@@ -41,3 +41,9 @@
 # before it runs them, so if this line is ever removed the test fails rather
 # than quietly passing over a normalised file.
 isabelle/fixtures-differential/probe_crlf_*.tsv -text
+
+# The hand-drawn README animations carry the sha256 of the scene that drew them,
+# and tests/knowledge_graph_asset_test.rs compares it with the scene checked out.
+# A CRLF checkout changes those bytes and the digest with them, so the test
+# reported a correct WebP as stale on Windows. The scene is LF everywhere.
+docs/assets/*.scene.json text eol=lf

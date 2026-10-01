@@ -19,7 +19,6 @@
 <p align="center">
   <a href="https://tesseractsemantics.com"><img src="https://img.shields.io/badge/Tesseract%20Semantics-tesseractsemantics.com-111827?style=for-the-badge" alt="Tesseract Semantics"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/stargazers"><img src="https://img.shields.io/github/stars/fabio-rovai/open-ontologies?style=for-the-badge&logo=github&color=0b5fff" alt="Stars"></a>
-  <a href="https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fabio-rovai/open-ontologies/ci.yml?style=for-the-badge&label=CI" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/pkgs/container/open-ontologies"><img src="https://img.shields.io/badge/GHCR-pull%20the%20image-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="GHCR"></a>
   <a href="https://github.com/sponsors/fabio-rovai"><img src="https://img.shields.io/github/sponsors/fabio-rovai?style=for-the-badge&label=Sponsor&logo=GitHub%20Sponsors" alt="Sponsors"></a>
@@ -46,7 +45,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="The Studio 3D view of ies-core.ttl: classes and subclass edges laid out in three dimensions, with the verification layer drawn as nodes beside them. Grey edges a person asserted, green edges the engine derived and Lean accepted, one red edge forged and refused, and particles travelling along each judged link." width="100%">
+  <a href="docs/assets/knowledge-graph.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.webp" alt="A hand-drawn animation of ies-core.ttl. A person asserts the grey edges. The engine derives the green edges, and Lean 4 checks the one certificate that holds them. Four provers read the clauses and give opinions. A forged red line is refused, and a question the file cannot be asked comes back unasked." width="100%"></a>
 </p>
 
 <p align="center">

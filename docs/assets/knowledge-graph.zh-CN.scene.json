@@ -1,0 +1,6082 @@
+{
+ "source": "docs/assets/knowledge-graph.py",
+ "lang": "zh",
+ "box": {
+  "w": 1100,
+  "h": 780,
+  "graph": [
+   470,
+   138,
+   1066,
+   534
+  ]
+ },
+ "headline": "ies-core.ttl：经过推理，并且得到证明",
+ "sub": "Studio 三维视图：绘制了 243 个节点与 686 条边，来自 1083 条断言三元组和由 rdfs11 x257, rdfs5 x8 推出的 265 条",
+ "cols": [
+  "文件",
+  "它变成什么",
+  "谁来阅读"
+ ],
+ "graphhead": "ies-core 的 233 个术语，一个连通图 · subClassOf、rdf:type、domain、range",
+ "nodes": [
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Accent>",
+   "label": "Accent",
+   "kind": "class",
+   "x": 1000.71,
+   "y": 422.77,
+   "depth": 0.3263,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Access>",
+   "label": "Access",
+   "kind": "class",
+   "x": 571.51,
+   "y": 239.7,
+   "depth": 0.6628,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Accessed>",
+   "label": "Accessed",
+   "kind": "class",
+   "x": 655.06,
+   "y": 243.46,
+   "depth": 0.8919,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Accessor>",
+   "label": "Accessor",
+   "kind": "class",
+   "x": 567.33,
+   "y": 214.84,
+   "depth": 0.9041,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Account>",
+   "label": "Account",
+   "kind": "class",
+   "x": 551.76,
+   "y": 302.81,
+   "depth": 0.7505,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountAdminActivity>",
+   "label": "AccountAdminActivity",
+   "kind": "class",
+   "x": 548.31,
+   "y": 208.77,
+   "depth": 0.7912,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountClosure>",
+   "label": "AccountClosure",
+   "kind": "class",
+   "x": 609.53,
+   "y": 197.76,
+   "depth": 0.7084,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountDetails>",
+   "label": "AccountDetails",
+   "kind": "class",
+   "x": 803.83,
+   "y": 376.19,
+   "depth": 0.8383,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountHolder>",
+   "label": "AccountHolder",
+   "kind": "class",
+   "x": 567.91,
+   "y": 192.95,
+   "depth": 0.8748,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountInCommunication>",
+   "label": "AccountInCommunication",
+   "kind": "class",
+   "x": 651.38,
+   "y": 168.0,
+   "depth": 0.8077,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountNumber>",
+   "label": "AccountNumber",
+   "kind": "class",
+   "x": 840.81,
+   "y": 414.92,
+   "depth": 0.1867,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountOpening>",
+   "label": "AccountOpening",
+   "kind": "class",
+   "x": 524.94,
+   "y": 238.0,
+   "depth": 0.8146,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountProvider>",
+   "label": "AccountProvider",
+   "kind": "class",
+   "x": 689.8,
+   "y": 181.3,
+   "depth": 0.7073,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/AccountUpdate>",
+   "label": "AccountUpdate",
+   "kind": "class",
+   "x": 576.67,
+   "y": 198.07,
+   "depth": 0.7668,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ActiveParticipation>",
+   "label": "ActiveParticipation",
+   "kind": "class",
+   "x": 674.08,
+   "y": 209.23,
+   "depth": 0.8313,
+   "deg": 12,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Activity>",
+   "label": "Activity",
+   "kind": "class",
+   "x": 596.55,
+   "y": 241.96,
+   "depth": 0.6855,
+   "deg": 31,
+   "labelled": true
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Actor>",
+   "label": "Actor",
+   "kind": "class",
+   "x": 597.19,
+   "y": 350.08,
+   "depth": 0.6068,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Address>",
+   "label": "Address",
+   "kind": "class",
+   "x": 929.38,
+   "y": 303.53,
+   "depth": 0.0311,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ArbitraryPeriod>",
+   "label": "ArbitraryPeriod",
+   "kind": "class",
+   "x": 878.93,
+   "y": 467.03,
+   "depth": 0.8028,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Arrival>",
+   "label": "Arrival",
+   "kind": "class",
+   "x": 747.93,
+   "y": 229.51,
+   "depth": 0.6346,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Artefact>",
+   "label": "Artefact",
+   "kind": "class",
+   "x": 645.44,
+   "y": 312.82,
+   "depth": 0.6217,
+   "deg": 11,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Assessment>",
+   "label": "Assessment",
+   "kind": "class",
+   "x": 681.79,
+   "y": 199.57,
+   "depth": 0.6504,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Assessor>",
+   "label": "Assessor",
+   "kind": "class",
+   "x": 743.35,
+   "y": 237.41,
+   "depth": 0.7434,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Attendance>",
+   "label": "Attendance",
+   "kind": "class",
+   "x": 691.48,
+   "y": 174.47,
+   "depth": 0.8404,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/BirthState>",
+   "label": "BirthState",
+   "kind": "class",
+   "x": 549.9,
+   "y": 356.38,
+   "depth": 0.646,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Capability>",
+   "label": "Capability",
+   "kind": "class",
+   "x": 663.01,
+   "y": 499.17,
+   "depth": 0.9119,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/CharacterString>",
+   "label": "CharacterString",
+   "kind": "class",
+   "x": 580.62,
+   "y": 403.46,
+   "depth": 0.7477,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Characteristic>",
+   "label": "Characteristic",
+   "kind": "class",
+   "x": 740.0,
+   "y": 367.0,
+   "depth": 0.4309,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/CoLocation>",
+   "label": "CoLocation",
+   "kind": "class",
+   "x": 675.54,
+   "y": 327.15,
+   "depth": 0.5773,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Color>",
+   "label": "Color",
+   "kind": "class",
+   "x": 711.66,
+   "y": 340.98,
+   "depth": 0.4358,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/CommercialOrganization>",
+   "label": "CommercialOrganization",
+   "kind": "class",
+   "x": 891.17,
+   "y": 219.41,
+   "depth": 0.2793,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Communication>",
+   "label": "Communication",
+   "kind": "class",
+   "x": 532.63,
+   "y": 213.61,
+   "depth": 0.7382,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ContinuousAccess>",
+   "label": "ContinuousAccess",
+   "kind": "class",
+   "x": 600.32,
+   "y": 168.0,
+   "depth": 0.7145,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Contract>",
+   "label": "Contract",
+   "kind": "class",
+   "x": 676.03,
+   "y": 262.77,
+   "depth": 0.5646,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Country>",
+   "label": "Country",
+   "kind": "class",
+   "x": 678.62,
+   "y": 434.54,
+   "depth": 0.7692,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Create>",
+   "label": "Create",
+   "kind": "class",
+   "x": 616.45,
+   "y": 227.82,
+   "depth": 0.6219,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Created>",
+   "label": "Created",
+   "kind": "class",
+   "x": 615.51,
+   "y": 184.08,
+   "depth": 0.8785,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Creator>",
+   "label": "Creator",
+   "kind": "class",
+   "x": 732.77,
+   "y": 222.33,
+   "depth": 0.7104,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/CriminalOrganization>",
+   "label": "CriminalOrganization",
+   "kind": "class",
+   "x": 1036.0,
+   "y": 352.25,
+   "depth": 0.3129,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/DeathState>",
+   "label": "DeathState",
+   "kind": "class",
+   "x": 554.87,
+   "y": 388.39,
+   "depth": 0.7129,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Department>",
+   "label": "Department",
+   "kind": "class",
+   "x": 836.77,
+   "y": 221.38,
+   "depth": 0.3582,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Departure>",
+   "label": "Departure",
+   "kind": "class",
+   "x": 525.62,
+   "y": 356.07,
+   "depth": 0.7183,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Destroy>",
+   "label": "Destroy",
+   "kind": "class",
+   "x": 513.84,
+   "y": 236.19,
+   "depth": 0.7725,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Destroyed>",
+   "label": "Destroyed",
+   "kind": "class",
+   "x": 599.48,
+   "y": 215.4,
+   "depth": 0.9106,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Destroyer>",
+   "label": "Destroyer",
+   "kind": "class",
+   "x": 651.49,
+   "y": 171.44,
+   "depth": 0.7846,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Disposition>",
+   "label": "Disposition",
+   "kind": "class",
+   "x": 740.72,
+   "y": 481.74,
+   "depth": 0.8491,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/DocumentFormat>",
+   "label": "DocumentFormat",
+   "kind": "class",
+   "x": 847.06,
+   "y": 359.63,
+   "depth": 0.84,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/DocumentSection>",
+   "label": "DocumentSection",
+   "kind": "class",
+   "x": 927.31,
+   "y": 210.62,
+   "depth": 0.4047,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Easting>",
+   "label": "Easting",
+   "kind": "class",
+   "x": 711.45,
+   "y": 426.72,
+   "depth": 0.9668,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/EducationalOrganization>",
+   "label": "EducationalOrganization",
+   "kind": "class",
+   "x": 1004.84,
+   "y": 343.06,
+   "depth": 0.0688,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/EndToEndActivity>",
+   "label": "EndToEndActivity",
+   "kind": "class",
+   "x": 528.61,
+   "y": 269.5,
+   "depth": 0.7917,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/EndToEndTransaction>",
+   "label": "EndToEndTransaction",
+   "kind": "class",
+   "x": 533.12,
+   "y": 290.82,
+   "depth": 0.7283,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Entitlement>",
+   "label": "Entitlement",
+   "kind": "class",
+   "x": 512.22,
+   "y": 272.23,
+   "depth": 0.7441,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Ethnicity>",
+   "label": "Ethnicity",
+   "kind": "class",
+   "x": 731.78,
+   "y": 480.85,
+   "depth": 0.7382,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Exchange>",
+   "label": "Exchange",
+   "kind": "class",
+   "x": 653.04,
+   "y": 239.72,
+   "depth": 0.5891,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ExchangeMovement>",
+   "label": "ExchangeMovement",
+   "kind": "class",
+   "x": 559.37,
+   "y": 192.8,
+   "depth": 0.7391,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Facility>",
+   "label": "Facility",
+   "kind": "class",
+   "x": 997.3,
+   "y": 395.83,
+   "depth": 0.1642,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/FiniteSetOfSpatiotemporalExtents>",
+   "label": "FiniteSetOfSpatiotemporalExtents",
+   "kind": "class",
+   "x": 793.43,
+   "y": 395.07,
+   "depth": 0.4633,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/FirstLineOfAddress>",
+   "label": "FirstLineOfAddress",
+   "kind": "class",
+   "x": 924.72,
+   "y": 445.15,
+   "depth": 0.2233,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Forgery>",
+   "label": "Forgery",
+   "kind": "class",
+   "x": 1009.93,
+   "y": 316.57,
+   "depth": 0.0892,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/FoundOrganization>",
+   "label": "FoundOrganization",
+   "kind": "class",
+   "x": 842.59,
+   "y": 387.81,
+   "depth": 0.1277,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/FusionOfIntegralParts>",
+   "label": "FusionOfIntegralParts",
+   "kind": "class",
+   "x": 587.77,
+   "y": 265.27,
+   "depth": 0.6799,
+   "deg": 41,
+   "labelled": true
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Gender>",
+   "label": "Gender",
+   "kind": "class",
+   "x": 652.41,
+   "y": 503.29,
+   "depth": 0.8768,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GeoIdentity>",
+   "label": "GeoIdentity",
+   "kind": "class",
+   "x": 731.25,
+   "y": 393.33,
+   "depth": 0.9802,
+   "deg": 12,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GeoPoint>",
+   "label": "GeoPoint",
+   "kind": "class",
+   "x": 642.71,
+   "y": 443.29,
+   "depth": 0.7823,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GeographicFeature>",
+   "label": "GeographicFeature",
+   "kind": "class",
+   "x": 981.3,
+   "y": 387.34,
+   "depth": 0.1031,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GivenName>",
+   "label": "GivenName",
+   "kind": "class",
+   "x": 981.15,
+   "y": 360.54,
+   "depth": 0.0682,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GovernanceActivity>",
+   "label": "GovernanceActivity",
+   "kind": "class",
+   "x": 643.88,
+   "y": 258.38,
+   "depth": 0.5728,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/GovernmentOrganization>",
+   "label": "GovernmentOrganization",
+   "kind": "class",
+   "x": 903.96,
+   "y": 383.97,
+   "depth": 0.0526,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/HumanMadeSystem>",
+   "label": "HumanMadeSystem",
+   "kind": "class",
+   "x": 590.41,
+   "y": 299.3,
+   "depth": 0.6177,
+   "deg": 10,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ICalRepresentation>",
+   "label": "ICalRepresentation",
+   "kind": "class",
+   "x": 818.66,
+   "y": 313.62,
+   "depth": 0.9292,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3>",
+   "label": "ISO3166_1Alpha_3",
+   "kind": "class",
+   "x": 752.22,
+   "y": 386.58,
+   "depth": 0.9971,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Identifier>",
+   "label": "Identifier",
+   "kind": "class",
+   "x": 783.56,
+   "y": 420.77,
+   "depth": 0.9631,
+   "deg": 14,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/IndividualDocument>",
+   "label": "IndividualDocument",
+   "kind": "class",
+   "x": 765.66,
+   "y": 328.72,
+   "depth": 0.6749,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/IndividualDocumentID>",
+   "label": "IndividualDocumentID",
+   "kind": "class",
+   "x": 973.64,
+   "y": 243.67,
+   "depth": 0.2407,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/InformationProcessingSystem>",
+   "label": "InformationProcessingSystem",
+   "kind": "class",
+   "x": 640.54,
+   "y": 326.79,
+   "depth": 0.5835,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication>",
+   "label": "InformationProcessingSystemInCommunication",
+   "kind": "class",
+   "x": 729.47,
+   "y": 244.15,
+   "depth": 0.7921,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Installed>",
+   "label": "Installed",
+   "kind": "class",
+   "x": 506.22,
+   "y": 287.55,
+   "depth": 0.8909,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/IntelligenceAgency>",
+   "label": "IntelligenceAgency",
+   "kind": "class",
+   "x": 922.39,
+   "y": 366.19,
+   "depth": 0.0258,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/IntermittentAccess>",
+   "label": "IntermittentAccess",
+   "kind": "class",
+   "x": 504.86,
+   "y": 293.63,
+   "depth": 0.6998,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/InternationalCoalition>",
+   "label": "InternationalCoalition",
+   "kind": "class",
+   "x": 974.58,
+   "y": 274.43,
+   "depth": 0.1181,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Journey>",
+   "label": "Journey",
+   "kind": "class",
+   "x": 554.69,
+   "y": 224.53,
+   "depth": 0.7544,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Language>",
+   "label": "Language",
+   "kind": "class",
+   "x": 680.07,
+   "y": 504.0,
+   "depth": 0.6841,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LanguageProficiency>",
+   "label": "LanguageProficiency",
+   "kind": "class",
+   "x": 713.29,
+   "y": 502.8,
+   "depth": 0.8014,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Latitude>",
+   "label": "Latitude",
+   "kind": "class",
+   "x": 750.89,
+   "y": 361.8,
+   "depth": 0.9791,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LawEnforcementOrganization>",
+   "label": "LawEnforcementOrganization",
+   "kind": "class",
+   "x": 962.53,
+   "y": 390.08,
+   "depth": 0.5685,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LegalOwner>",
+   "label": "LegalOwner",
+   "kind": "class",
+   "x": 713.47,
+   "y": 182.1,
+   "depth": 0.7392,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LegalOwnership>",
+   "label": "LegalOwnership",
+   "kind": "class",
+   "x": 509.98,
+   "y": 286.74,
+   "depth": 0.7914,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LifecycleActivity>",
+   "label": "LifecycleActivity",
+   "kind": "class",
+   "x": 546.34,
+   "y": 245.87,
+   "depth": 0.6933,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LineOfAddress>",
+   "label": "LineOfAddress",
+   "kind": "class",
+   "x": 861.31,
+   "y": 414.09,
+   "depth": 0.5319,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LivingOrganism>",
+   "label": "LivingOrganism",
+   "kind": "class",
+   "x": 587.9,
+   "y": 379.67,
+   "depth": 0.6514,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/LivingSystem>",
+   "label": "LivingSystem",
+   "kind": "class",
+   "x": 577.86,
+   "y": 352.36,
+   "depth": 0.6973,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Location>",
+   "label": "Location",
+   "kind": "class",
+   "x": 695.51,
+   "y": 434.11,
+   "depth": 0.7377,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Longitude>",
+   "label": "Longitude",
+   "kind": "class",
+   "x": 740.67,
+   "y": 424.55,
+   "depth": 0.989,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Measure>",
+   "label": "Measure",
+   "kind": "class",
+   "x": 655.58,
+   "y": 349.76,
+   "depth": 0.4015,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Meeting>",
+   "label": "Meeting",
+   "kind": "class",
+   "x": 578.28,
+   "y": 206.11,
+   "depth": 0.673,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/MilitaryOrganization>",
+   "label": "MilitaryOrganization",
+   "kind": "class",
+   "x": 886.47,
+   "y": 233.28,
+   "depth": 0.2113,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Modifier>",
+   "label": "Modifier",
+   "kind": "class",
+   "x": 710.04,
+   "y": 262.34,
+   "depth": 0.7799,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Modify>",
+   "label": "Modify",
+   "kind": "class",
+   "x": 525.57,
+   "y": 256.57,
+   "depth": 0.7527,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Movement>",
+   "label": "Movement",
+   "kind": "class",
+   "x": 625.12,
+   "y": 208.48,
+   "depth": 0.6567,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Name>",
+   "label": "Name",
+   "kind": "class",
+   "x": 774.49,
+   "y": 414.32,
+   "depth": 0.9181,
+   "deg": 16,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/NamingScheme>",
+   "label": "NamingScheme",
+   "kind": "class",
+   "x": 645.36,
+   "y": 450.16,
+   "depth": 0.5977,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Nation>",
+   "label": "Nation",
+   "kind": "class",
+   "x": 586.26,
+   "y": 315.47,
+   "depth": 0.6063,
+   "deg": 10,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Nickname>",
+   "label": "Nickname",
+   "kind": "class",
+   "x": 914.87,
+   "y": 325.07,
+   "depth": 0.0194,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Northing>",
+   "label": "Northing",
+   "kind": "class",
+   "x": 716.9,
+   "y": 399.26,
+   "depth": 0.9503,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/NotForProfitOrganization>",
+   "label": "NotForProfitOrganization",
+   "kind": "class",
+   "x": 908.69,
+   "y": 416.39,
+   "depth": 0.1172,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/OSGridReference>",
+   "label": "OSGridReference",
+   "kind": "class",
+   "x": 938.39,
+   "y": 428.23,
+   "depth": 0.1617,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Observation>",
+   "label": "Observation",
+   "kind": "class",
+   "x": 609.0,
+   "y": 233.04,
+   "depth": 0.5975,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Observed>",
+   "label": "Observed",
+   "kind": "class",
+   "x": 742.1,
+   "y": 263.71,
+   "depth": 0.6735,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Observer>",
+   "label": "Observer",
+   "kind": "class",
+   "x": 657.38,
+   "y": 172.94,
+   "depth": 0.8563,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Organization>",
+   "label": "Organization",
+   "kind": "class",
+   "x": 572.24,
+   "y": 317.71,
+   "depth": 0.6541,
+   "deg": 10,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/OrganizationIdentifier>",
+   "label": "OrganizationIdentifier",
+   "kind": "class",
+   "x": 981.64,
+   "y": 421.39,
+   "depth": 0.2068,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/OrganizationName>",
+   "label": "OrganizationName",
+   "kind": "class",
+   "x": 945.68,
+   "y": 355.22,
+   "depth": 0.0305,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/OwnedLegally>",
+   "label": "OwnedLegally",
+   "kind": "class",
+   "x": 542.02,
+   "y": 239.95,
+   "depth": 0.9006,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PartNumber>",
+   "label": "PartNumber",
+   "kind": "class",
+   "x": 837.37,
+   "y": 357.41,
+   "depth": 0.1009,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PartOfFacility>",
+   "label": "PartOfFacility",
+   "kind": "class",
+   "x": 1008.83,
+   "y": 288.0,
+   "depth": 0.1887,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Participation>",
+   "label": "Participation",
+   "kind": "class",
+   "x": 661.64,
+   "y": 216.4,
+   "depth": 0.8056,
+   "deg": 27,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ParticipationInGoverance>",
+   "label": "ParticipationInGoverance",
+   "kind": "class",
+   "x": 696.66,
+   "y": 283.2,
+   "depth": 0.7112,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ParticularPeriod>",
+   "label": "ParticularPeriod",
+   "kind": "class",
+   "x": 935.13,
+   "y": 409.65,
+   "depth": 0.7764,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PartyInCommunication>",
+   "label": "PartyInCommunication",
+   "kind": "class",
+   "x": 663.08,
+   "y": 273.7,
+   "depth": 0.5924,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Person>",
+   "label": "Person",
+   "kind": "class",
+   "x": 663.49,
+   "y": 369.79,
+   "depth": 0.6222,
+   "deg": 10,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PersonInCommunication>",
+   "label": "PersonInCommunication",
+   "kind": "class",
+   "x": 650.62,
+   "y": 206.69,
+   "depth": 0.8903,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PersonName>",
+   "label": "PersonName",
+   "kind": "class",
+   "x": 701.07,
+   "y": 372.56,
+   "depth": 0.9707,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PersonOrOrganization>",
+   "label": "PersonOrOrganization",
+   "kind": "class",
+   "x": 631.73,
+   "y": 356.6,
+   "depth": 0.5841,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PersonTitle>",
+   "label": "PersonTitle",
+   "kind": "class",
+   "x": 827.87,
+   "y": 449.47,
+   "depth": 0.3518,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Possession>",
+   "label": "Possession",
+   "kind": "class",
+   "x": 948.69,
+   "y": 456.87,
+   "depth": 0.3735,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/PostalCode>",
+   "label": "PostalCode",
+   "kind": "class",
+   "x": 971.87,
+   "y": 327.24,
+   "depth": 0.0287,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Provision>",
+   "label": "Provision",
+   "kind": "class",
+   "x": 590.7,
+   "y": 168.0,
+   "depth": 0.8485,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RealEstate>",
+   "label": "RealEstate",
+   "kind": "class",
+   "x": 1003.92,
+   "y": 280.5,
+   "depth": 0.4973,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Recognizer>",
+   "label": "Recognizer",
+   "kind": "class",
+   "x": 727.22,
+   "y": 197.11,
+   "depth": 0.7548,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RecurringTimespan>",
+   "label": "RecurringTimespan",
+   "kind": "class",
+   "x": 896.2,
+   "y": 169.66,
+   "depth": 0.8571,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RegionOfCountry>",
+   "label": "RegionOfCountry",
+   "kind": "class",
+   "x": 952.02,
+   "y": 388.26,
+   "depth": 0.0638,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RegionOfEarth>",
+   "label": "RegionOfEarth",
+   "kind": "class",
+   "x": 976.09,
+   "y": 278.96,
+   "depth": 0.553,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RegionalConsituency>",
+   "label": "RegionalConsituency",
+   "kind": "class",
+   "x": 570.91,
+   "y": 325.41,
+   "depth": 0.6338,
+   "deg": 10,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Religion>",
+   "label": "Religion",
+   "kind": "class",
+   "x": 859.53,
+   "y": 269.99,
+   "depth": 0.1325,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ReligiousOrganization>",
+   "label": "ReligiousOrganization",
+   "kind": "class",
+   "x": 889.46,
+   "y": 210.02,
+   "depth": 0.4357,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/ReplaceableLifespan>",
+   "label": "ReplaceableLifespan",
+   "kind": "class",
+   "x": 538.12,
+   "y": 227.6,
+   "depth": 0.6807,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Representation>",
+   "label": "Representation",
+   "kind": "class",
+   "x": 814.27,
+   "y": 370.38,
+   "depth": 0.8753,
+   "deg": 26,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RepresentationScheme>",
+   "label": "RepresentationScheme",
+   "kind": "class",
+   "x": 569.85,
+   "y": 492.03,
+   "depth": 0.7117,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RightGrantingArtefact>",
+   "label": "RightGrantingArtefact",
+   "kind": "class",
+   "x": 732.6,
+   "y": 250.41,
+   "depth": 0.6337,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RightHolder>",
+   "label": "RightHolder",
+   "kind": "class",
+   "x": 719.18,
+   "y": 190.44,
+   "depth": 0.7962,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RightTo>",
+   "label": "RightTo",
+   "kind": "class",
+   "x": 559.58,
+   "y": 258.07,
+   "depth": 0.9145,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/RoomNumber>",
+   "label": "RoomNumber",
+   "kind": "class",
+   "x": 1023.78,
+   "y": 339.66,
+   "depth": 0.1397,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SerialNumber>",
+   "label": "SerialNumber",
+   "kind": "class",
+   "x": 915.34,
+   "y": 227.98,
+   "depth": 0.5345,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfCharacterStrings>",
+   "label": "SetOfCharacterStrings",
+   "kind": "class",
+   "x": 702.71,
+   "y": 405.93,
+   "depth": 1.0,
+   "deg": 14,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments>",
+   "label": "SetOfIndividualDocuments",
+   "kind": "class",
+   "x": 813.69,
+   "y": 370.05,
+   "depth": 0.9191,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfInformationProcessingSystems>",
+   "label": "SetOfInformationProcessingSystems",
+   "kind": "class",
+   "x": 500.0,
+   "y": 385.15,
+   "depth": 0.987,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms>",
+   "label": "SetOfLivingOrganisms",
+   "kind": "class",
+   "x": 735.76,
+   "y": 489.36,
+   "depth": 0.7829,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfNames>",
+   "label": "SetOfNames",
+   "kind": "class",
+   "x": 572.77,
+   "y": 481.21,
+   "depth": 0.6766,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfPersons>",
+   "label": "SetOfPersons",
+   "kind": "class",
+   "x": 678.53,
+   "y": 504.0,
+   "depth": 0.8354,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfRepresentations>",
+   "label": "SetOfRepresentations",
+   "kind": "class",
+   "x": 605.37,
+   "y": 490.14,
+   "depth": 0.6683,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfSetOfSigns>",
+   "label": "SetOfSetOfSigns",
+   "kind": "class",
+   "x": 600.95,
+   "y": 501.13,
+   "depth": 0.7023,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfSigns>",
+   "label": "SetOfSigns",
+   "kind": "class",
+   "x": 775.78,
+   "y": 382.42,
+   "depth": 0.9348,
+   "deg": 21,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration>",
+   "label": "SetOfStatesWithParticularDuration",
+   "kind": "class",
+   "x": 861.31,
+   "y": 314.35,
+   "depth": 0.7406,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates>",
+   "label": "SetOfTimeBoundedStates",
+   "kind": "class",
+   "x": 883.1,
+   "y": 396.17,
+   "depth": 0.8704,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SetOfUniverseMates>",
+   "label": "SetOfUniverseMates",
+   "kind": "class",
+   "x": 603.57,
+   "y": 444.39,
+   "depth": 0.9866,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Sex>",
+   "label": "Sex",
+   "kind": "class",
+   "x": 790.67,
+   "y": 432.99,
+   "depth": 0.6782,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Sign>",
+   "label": "Sign",
+   "kind": "class",
+   "x": 624.79,
+   "y": 405.21,
+   "depth": 0.6708,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/SimilarUniverseMates>",
+   "label": "SimilarUniverseMates",
+   "kind": "class",
+   "x": 646.33,
+   "y": 416.54,
+   "depth": 0.928,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Skill>",
+   "label": "Skill",
+   "kind": "class",
+   "x": 705.4,
+   "y": 504.0,
+   "depth": 0.8523,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Surname>",
+   "label": "Surname",
+   "kind": "class",
+   "x": 1010.75,
+   "y": 270.22,
+   "depth": 0.2754,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/System>",
+   "label": "System",
+   "kind": "class",
+   "x": 591.8,
+   "y": 333.15,
+   "depth": 0.6511,
+   "deg": 11,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/TOID>",
+   "label": "TOID",
+   "kind": "class",
+   "x": 979.83,
+   "y": 303.33,
+   "depth": 0.0624,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Team>",
+   "label": "Team",
+   "kind": "class",
+   "x": 861.0,
+   "y": 464.03,
+   "depth": 0.3905,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Tendency>",
+   "label": "Tendency",
+   "kind": "class",
+   "x": 696.72,
+   "y": 504.0,
+   "depth": 0.9015,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/TerroristOrganization>",
+   "label": "TerroristOrganization",
+   "kind": "class",
+   "x": 943.66,
+   "y": 282.39,
+   "depth": 0.0639,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Ticket>",
+   "label": "Ticket",
+   "kind": "class",
+   "x": 704.82,
+   "y": 319.91,
+   "depth": 0.6087,
+   "deg": 4,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Title>",
+   "label": "Title",
+   "kind": "class",
+   "x": 724.54,
+   "y": 349.55,
+   "depth": 0.9753,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/TransactionActivity>",
+   "label": "TransactionActivity",
+   "kind": "class",
+   "x": 625.62,
+   "y": 262.62,
+   "depth": 0.5771,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Usage>",
+   "label": "Usage",
+   "kind": "class",
+   "x": 973.11,
+   "y": 234.3,
+   "depth": 0.4516,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/Vehicle>",
+   "label": "Vehicle",
+   "kind": "class",
+   "x": 621.06,
+   "y": 324.6,
+   "depth": 0.5907,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/VersionNumber>",
+   "label": "VersionNumber",
+   "kind": "class",
+   "x": 732.41,
+   "y": 444.89,
+   "depth": 0.9621,
+   "deg": 7,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/VersionOfDocument>",
+   "label": "VersionOfDocument",
+   "kind": "class",
+   "x": 841.74,
+   "y": 407.45,
+   "depth": 0.8943,
+   "deg": 8,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/WorkOfDocumentation>",
+   "label": "WorkOfDocumentation",
+   "kind": "class",
+   "x": 884.4,
+   "y": 387.68,
+   "depth": 0.8217,
+   "deg": 11,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/aCopyOf>",
+   "label": "aCopyOf",
+   "kind": "class",
+   "x": 907.35,
+   "y": 382.54,
+   "depth": 0.6859,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/allHaveCharacteristic>",
+   "label": "allHaveCharacteristic",
+   "kind": "class",
+   "x": 818.7,
+   "y": 370.08,
+   "depth": 0.3894,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/allHaveDisposition>",
+   "label": "allHaveDisposition",
+   "kind": "class",
+   "x": 864.45,
+   "y": 503.65,
+   "depth": 0.8202,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/assessed>",
+   "label": "assessed",
+   "kind": "class",
+   "x": 825.03,
+   "y": 168.0,
+   "depth": 0.5853,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/attribute>",
+   "label": "attribute",
+   "kind": "class",
+   "x": 876.08,
+   "y": 306.61,
+   "depth": 0.277,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/category>",
+   "label": "category",
+   "kind": "class",
+   "x": 904.86,
+   "y": 395.19,
+   "depth": 0.3355,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/documentedBy>",
+   "label": "documentedBy",
+   "kind": "class",
+   "x": 1009.69,
+   "y": 427.24,
+   "depth": 0.7598,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/duration>",
+   "label": "duration",
+   "kind": "class",
+   "x": 810.86,
+   "y": 280.08,
+   "depth": 0.6632,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/endBoundOfSet>",
+   "label": "endBoundOfSet",
+   "kind": "class",
+   "x": 1009.78,
+   "y": 370.62,
+   "depth": 0.8045,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/finiteMembershipCount>",
+   "label": "finiteMembershipCount",
+   "kind": "class",
+   "x": 861.99,
+   "y": 496.19,
+   "depth": 0.4626,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/format>",
+   "label": "format",
+   "kind": "class",
+   "x": 974.63,
+   "y": 358.01,
+   "depth": 0.733,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/formatOfIndividualDocument>",
+   "label": "formatOfIndividualDocument",
+   "kind": "class",
+   "x": 903.61,
+   "y": 343.16,
+   "depth": 0.7174,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasAssociatedRepresentation>",
+   "label": "hasAssociatedRepresentation",
+   "kind": "class",
+   "x": 915.76,
+   "y": 279.33,
+   "depth": 0.6962,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasCharacteristic>",
+   "label": "hasCharacteristic",
+   "kind": "class",
+   "x": 837.87,
+   "y": 406.28,
+   "depth": 0.3625,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasEthnicity>",
+   "label": "hasEthnicity",
+   "kind": "class",
+   "x": 778.91,
+   "y": 445.7,
+   "depth": 0.5869,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasGeoSparqlRepresentation>",
+   "label": "hasGeoSparqlRepresentation",
+   "kind": "class",
+   "x": 948.45,
+   "y": 233.96,
+   "depth": 0.8068,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasICalRepresentation>",
+   "label": "hasICalRepresentation",
+   "kind": "class",
+   "x": 955.74,
+   "y": 266.74,
+   "depth": 0.8597,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasIdentifiedGender>",
+   "label": "hasIdentifiedGender",
+   "kind": "class",
+   "x": 955.63,
+   "y": 266.47,
+   "depth": 0.468,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasName>",
+   "label": "hasName",
+   "kind": "class",
+   "x": 908.31,
+   "y": 447.79,
+   "depth": 0.6957,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasQuantity>",
+   "label": "hasQuantity",
+   "kind": "class",
+   "x": 564.39,
+   "y": 338.72,
+   "depth": 0.2469,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasSex>",
+   "label": "hasSex",
+   "kind": "class",
+   "x": 802.16,
+   "y": 402.17,
+   "depth": 0.5255,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasSkill>",
+   "label": "hasSkill",
+   "kind": "class",
+   "x": 897.58,
+   "y": 316.57,
+   "depth": 0.8213,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/hasTheme>",
+   "label": "hasTheme",
+   "kind": "class",
+   "x": 777.2,
+   "y": 262.42,
+   "depth": 0.4813,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/iCalRRuleRepresentation>",
+   "label": "iCalRRuleRepresentation",
+   "kind": "class",
+   "x": 1036.0,
+   "y": 413.98,
+   "depth": 0.6102,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/inLanguage>",
+   "label": "inLanguage",
+   "kind": "class",
+   "x": 823.17,
+   "y": 487.01,
+   "depth": 0.7342,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/inRepresentation>",
+   "label": "inRepresentation",
+   "kind": "class",
+   "x": 912.54,
+   "y": 309.88,
+   "depth": 0.8113,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/isDisposedTo>",
+   "label": "isDisposedTo",
+   "kind": "class",
+   "x": 766.22,
+   "y": 384.5,
+   "depth": 0.7195,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/isIdentifiedBy>",
+   "label": "isIdentifiedBy",
+   "kind": "class",
+   "x": 949.44,
+   "y": 454.37,
+   "depth": 0.8896,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/isRepresentedAs>",
+   "label": "isRepresentedAs",
+   "kind": "class",
+   "x": 910.28,
+   "y": 263.62,
+   "depth": 0.7317,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/iso8601DurationRepresentation>",
+   "label": "iso8601DurationRepresentation",
+   "kind": "class",
+   "x": 1015.03,
+   "y": 277.69,
+   "depth": 0.6216,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/iso8601PeriodRepresentation>",
+   "label": "iso8601PeriodRepresentation",
+   "kind": "class",
+   "x": 1023.83,
+   "y": 434.89,
+   "depth": 0.7009,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/published>",
+   "label": "published",
+   "kind": "class",
+   "x": 1006.62,
+   "y": 364.77,
+   "depth": 0.7203,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/representationValue>",
+   "label": "representationValue",
+   "kind": "class",
+   "x": 885.58,
+   "y": 437.74,
+   "depth": 0.7406,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/schemeMasteredIn>",
+   "label": "schemeMasteredIn",
+   "kind": "class",
+   "x": 745.32,
+   "y": 369.58,
+   "depth": 0.4955,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/schemeOwner>",
+   "label": "schemeOwner",
+   "kind": "class",
+   "x": 742.25,
+   "y": 388.6,
+   "depth": 0.4817,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/similarState>",
+   "label": "similarState",
+   "kind": "class",
+   "x": 751.57,
+   "y": 356.8,
+   "depth": 0.7752,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/spokenLanguage>",
+   "label": "spokenLanguage",
+   "kind": "class",
+   "x": 785.44,
+   "y": 492.0,
+   "depth": 0.6045,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/startBoundOfSet>",
+   "label": "startBoundOfSet",
+   "kind": "class",
+   "x": 1008.14,
+   "y": 418.67,
+   "depth": 0.8128,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/core/v0/ont/versionOf>",
+   "label": "versionOf",
+   "kind": "class",
+   "x": 974.66,
+   "y": 423.95,
+   "depth": 0.8196,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/IntermittentTimespan>",
+   "label": "IntermittentTimespan",
+   "kind": "class",
+   "x": 1036.0,
+   "y": 168.0,
+   "depth": 0.843,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/Period>",
+   "label": "Period",
+   "kind": "class",
+   "x": 1036.0,
+   "y": 501.53,
+   "depth": 0.7729,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/SetOfSetOfStates>",
+   "label": "SetOfSetOfStates",
+   "kind": "class",
+   "x": 586.13,
+   "y": 504.0,
+   "depth": 0.6424,
+   "deg": 6,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents>",
+   "label": "SetOfSpatiotemporalExtents",
+   "kind": "class",
+   "x": 759.42,
+   "y": 355.1,
+   "depth": 0.3042,
+   "deg": 5,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/SetOfStates>",
+   "label": "SetOfStates",
+   "kind": "class",
+   "x": 761.18,
+   "y": 432.65,
+   "depth": 0.888,
+   "deg": 35,
+   "labelled": true
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/SpatiotemporalExtent>",
+   "label": "SpatiotemporalExtent",
+   "kind": "class",
+   "x": 846.84,
+   "y": 432.06,
+   "depth": 0.1679,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/State>",
+   "label": "State",
+   "kind": "class",
+   "x": 628.9,
+   "y": 275.0,
+   "depth": 0.7254,
+   "deg": 86,
+   "labelled": true
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/TemporallyContinuousState>",
+   "label": "TemporallyContinuousState",
+   "kind": "class",
+   "x": 639.5,
+   "y": 168.0,
+   "depth": 0.723,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/TemporallyIntermittentState>",
+   "label": "TemporallyIntermittentState",
+   "kind": "class",
+   "x": 500.0,
+   "y": 358.31,
+   "depth": 0.6767,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://purl.org/ies/top/v0/ont/Thing>",
+   "label": "Thing",
+   "kind": "class",
+   "x": 823.74,
+   "y": 247.72,
+   "depth": 0.2518,
+   "deg": 2,
+   "labelled": false
+  },
+  {
+   "name": "<http://qudt.org/schema/qudt/Quantity>",
+   "label": "Quantity",
+   "kind": "class",
+   "x": 535.29,
+   "y": 311.74,
+   "depth": 0.2097,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.opengis.net/ont/geosparql#Feature>",
+   "label": "Feature",
+   "kind": "class",
+   "x": 725.28,
+   "y": 504.0,
+   "depth": 0.7983,
+   "deg": 3,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>",
+   "label": "Property",
+   "kind": "class",
+   "x": 885.78,
+   "y": 365.5,
+   "depth": 0.6302,
+   "deg": 38,
+   "labelled": true
+  },
+  {
+   "name": "<http://www.w3.org/2000/01/rdf-schema#Class>",
+   "label": "Class",
+   "kind": "class",
+   "x": 664.95,
+   "y": 326.49,
+   "depth": 0.762,
+   "deg": 131,
+   "labelled": true
+  },
+  {
+   "name": "<http://www.w3.org/2000/01/rdf-schema#Literal>",
+   "label": "Literal",
+   "kind": "class",
+   "x": 874.71,
+   "y": 303.13,
+   "depth": 0.0,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/2000/01/rdf-schema#Resource>",
+   "label": "Resource",
+   "kind": "class",
+   "x": 812.44,
+   "y": 168.0,
+   "depth": 0.5381,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/2001/XMLSchema#duration>",
+   "label": "duration",
+   "kind": "class",
+   "x": 1036.0,
+   "y": 219.11,
+   "depth": 0.4875,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/2001/XMLSchema#integer>",
+   "label": "integer",
+   "kind": "class",
+   "x": 852.25,
+   "y": 504.0,
+   "depth": 0.3669,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/2002/07/owl#ObjectProperty>",
+   "label": "ObjectProperty",
+   "kind": "class",
+   "x": 504.57,
+   "y": 323.75,
+   "depth": 0.3352,
+   "deg": 1,
+   "labelled": false
+  },
+  {
+   "name": "<http://www.w3.org/2004/02/skos/core#Concept>",
+   "label": "Concept",
+   "kind": "class",
+   "x": 935.43,
+   "y": 337.03,
+   "depth": 0.2442,
+   "deg": 44,
+   "labelled": true
+  },
+  {
+   "name": "ies-core.ttl",
+   "label": "ies-core.ttl",
+   "kind": "file",
+   "x": 86.0,
+   "y": 178.0,
+   "depth": 1.0,
+   "deg": 2,
+   "labelled": true
+  },
+  {
+   "name": "certificate",
+   "label": "certificate",
+   "kind": "file",
+   "x": 196.0,
+   "y": 214.0,
+   "depth": 1.0,
+   "deg": 3,
+   "labelled": true
+  },
+  {
+   "name": "problem.tsv",
+   "label": "problem.tsv",
+   "kind": "file",
+   "x": 196.0,
+   "y": 396.0,
+   "depth": 1.0,
+   "deg": 5,
+   "labelled": true
+  },
+  {
+   "name": "Lean 4 · oo-cert",
+   "label": "Lean 4 · oo-cert",
+   "kind": "lean",
+   "x": 318.0,
+   "y": 168.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  },
+  {
+   "name": "Isabelle/HOL",
+   "label": "Isabelle/HOL",
+   "kind": "program",
+   "x": 318.0,
+   "y": 250.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  },
+  {
+   "name": "Vampire",
+   "label": "Vampire",
+   "kind": "program",
+   "x": 318.0,
+   "y": 336.0,
+   "depth": 1.0,
+   "deg": 2,
+   "labelled": true
+  },
+  {
+   "name": "E",
+   "label": "E",
+   "kind": "program",
+   "x": 318.0,
+   "y": 384.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  },
+  {
+   "name": "Z3",
+   "label": "Z3",
+   "kind": "program",
+   "x": 318.0,
+   "y": 432.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  },
+  {
+   "name": "Mace4",
+   "label": "Mace4",
+   "kind": "program",
+   "x": 318.0,
+   "y": 480.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  },
+  {
+   "name": "oo-resolution",
+   "label": "oo-resolution",
+   "kind": "program",
+   "x": 420.0,
+   "y": 336.0,
+   "depth": 1.0,
+   "deg": 1,
+   "labelled": true
+  }
+ ],
+ "edges": [
+  [
+   173,
+   145,
+   "asserted"
+  ],
+  [
+   173,
+   226,
+   "asserted"
+  ],
+  [
+   172,
+   173,
+   "asserted"
+  ],
+  [
+   172,
+   154,
+   "asserted"
+  ],
+  [
+   172,
+   226,
+   "asserted"
+  ],
+  [
+   212,
+   173,
+   "asserted"
+  ],
+  [
+   212,
+   172,
+   "asserted"
+  ],
+  [
+   212,
+   225,
+   "asserted"
+  ],
+  [
+   171,
+   72,
+   "asserted"
+  ],
+  [
+   171,
+   226,
+   "asserted"
+  ],
+  [
+   170,
+   69,
+   "asserted"
+  ],
+  [
+   170,
+   226,
+   "asserted"
+  ],
+  [
+   169,
+   232,
+   "asserted"
+  ],
+  [
+   168,
+   15,
+   "asserted"
+  ],
+  [
+   168,
+   226,
+   "asserted"
+  ],
+  [
+   162,
+   232,
+   "asserted"
+  ],
+  [
+   167,
+   100,
+   "asserted"
+  ],
+  [
+   167,
+   226,
+   "asserted"
+  ],
+  [
+   166,
+   73,
+   "asserted"
+  ],
+  [
+   166,
+   226,
+   "asserted"
+  ],
+  [
+   165,
+   232,
+   "asserted"
+  ],
+  [
+   164,
+   45,
+   "asserted"
+  ],
+  [
+   164,
+   226,
+   "asserted"
+  ],
+  [
+   163,
+   232,
+   "asserted"
+  ],
+  [
+   161,
+   61,
+   "asserted"
+  ],
+  [
+   161,
+   226,
+   "asserted"
+  ],
+  [
+   160,
+   232,
+   "asserted"
+  ],
+  [
+   211,
+   118,
+   "asserted"
+  ],
+  [
+   211,
+   154,
+   "asserted"
+  ],
+  [
+   211,
+   225,
+   "asserted"
+  ],
+  [
+   210,
+   83,
+   "asserted"
+  ],
+  [
+   210,
+   82,
+   "asserted"
+  ],
+  [
+   210,
+   225,
+   "asserted"
+  ],
+  [
+   159,
+   149,
+   "asserted"
+  ],
+  [
+   159,
+   25,
+   "asserted"
+  ],
+  [
+   159,
+   226,
+   "asserted"
+  ],
+  [
+   158,
+   155,
+   "asserted"
+  ],
+  [
+   158,
+   226,
+   "asserted"
+  ],
+  [
+   209,
+   158,
+   "asserted"
+  ],
+  [
+   209,
+   219,
+   "asserted"
+  ],
+  [
+   209,
+   225,
+   "asserted"
+  ],
+  [
+   157,
+   219,
+   "asserted"
+  ],
+  [
+   157,
+   226,
+   "asserted"
+  ],
+  [
+   156,
+   147,
+   "asserted"
+  ],
+  [
+   156,
+   226,
+   "asserted"
+  ],
+  [
+   155,
+   217,
+   "asserted"
+  ],
+  [
+   155,
+   226,
+   "asserted"
+  ],
+  [
+   154,
+   217,
+   "asserted"
+  ],
+  [
+   154,
+   226,
+   "asserted"
+  ],
+  [
+   153,
+   217,
+   "asserted"
+  ],
+  [
+   153,
+   226,
+   "asserted"
+  ],
+  [
+   152,
+   217,
+   "asserted"
+  ],
+  [
+   152,
+   226,
+   "asserted"
+  ],
+  [
+   151,
+   215,
+   "asserted"
+  ],
+  [
+   151,
+   226,
+   "asserted"
+  ],
+  [
+   150,
+   151,
+   "asserted"
+  ],
+  [
+   150,
+   226,
+   "asserted"
+  ],
+  [
+   149,
+   147,
+   "asserted"
+  ],
+  [
+   149,
+   226,
+   "asserted"
+  ],
+  [
+   148,
+   150,
+   "asserted"
+  ],
+  [
+   148,
+   226,
+   "asserted"
+  ],
+  [
+   147,
+   217,
+   "asserted"
+  ],
+  [
+   147,
+   226,
+   "asserted"
+  ],
+  [
+   146,
+   226,
+   "asserted"
+  ],
+  [
+   145,
+   137,
+   "asserted"
+  ],
+  [
+   145,
+   226,
+   "asserted"
+  ],
+  [
+   144,
+   152,
+   "asserted"
+  ],
+  [
+   144,
+   226,
+   "asserted"
+  ],
+  [
+   143,
+   232,
+   "asserted"
+  ],
+  [
+   208,
+   101,
+   "asserted"
+  ],
+  [
+   208,
+   123,
+   "asserted"
+  ],
+  [
+   208,
+   225,
+   "asserted"
+  ],
+  [
+   207,
+   101,
+   "asserted"
+  ],
+  [
+   207,
+   75,
+   "asserted"
+  ],
+  [
+   207,
+   225,
+   "asserted"
+  ],
+  [
+   142,
+   232,
+   "asserted"
+  ],
+  [
+   141,
+   116,
+   "asserted"
+  ],
+  [
+   141,
+   226,
+   "asserted"
+  ],
+  [
+   140,
+   116,
+   "asserted"
+  ],
+  [
+   140,
+   226,
+   "asserted"
+  ],
+  [
+   139,
+   116,
+   "asserted"
+  ],
+  [
+   139,
+   226,
+   "asserted"
+  ],
+  [
+   206,
+   137,
+   "asserted"
+  ],
+  [
+   206,
+   225,
+   "asserted"
+  ],
+  [
+   138,
+   150,
+   "asserted"
+  ],
+  [
+   138,
+   226,
+   "asserted"
+  ],
+  [
+   137,
+   152,
+   "asserted"
+  ],
+  [
+   137,
+   226,
+   "asserted"
+  ],
+  [
+   136,
+   61,
+   "asserted"
+  ],
+  [
+   136,
+   226,
+   "asserted"
+  ],
+  [
+   135,
+   232,
+   "asserted"
+  ],
+  [
+   134,
+   232,
+   "asserted"
+  ],
+  [
+   132,
+   232,
+   "asserted"
+  ],
+  [
+   131,
+   232,
+   "asserted"
+  ],
+  [
+   133,
+   110,
+   "asserted"
+  ],
+  [
+   133,
+   226,
+   "asserted"
+  ],
+  [
+   130,
+   213,
+   "asserted"
+  ],
+  [
+   130,
+   226,
+   "asserted"
+  ],
+  [
+   129,
+   116,
+   "asserted"
+  ],
+  [
+   129,
+   226,
+   "asserted"
+  ],
+  [
+   128,
+   232,
+   "asserted"
+  ],
+  [
+   205,
+   118,
+   "asserted"
+  ],
+  [
+   205,
+   173,
+   "asserted"
+  ],
+  [
+   205,
+   225,
+   "asserted"
+  ],
+  [
+   127,
+   116,
+   "asserted"
+  ],
+  [
+   127,
+   226,
+   "asserted"
+  ],
+  [
+   126,
+   232,
+   "asserted"
+  ],
+  [
+   125,
+   232,
+   "asserted"
+  ],
+  [
+   124,
+   232,
+   "asserted"
+  ],
+  [
+   123,
+   16,
+   "asserted"
+  ],
+  [
+   123,
+   226,
+   "asserted"
+  ],
+  [
+   122,
+   100,
+   "asserted"
+  ],
+  [
+   122,
+   226,
+   "asserted"
+  ],
+  [
+   121,
+   14,
+   "asserted"
+  ],
+  [
+   121,
+   226,
+   "asserted"
+  ],
+  [
+   120,
+   123,
+   "asserted"
+  ],
+  [
+   120,
+   91,
+   "asserted"
+  ],
+  [
+   120,
+   226,
+   "asserted"
+  ],
+  [
+   119,
+   15,
+   "asserted"
+  ],
+  [
+   119,
+   226,
+   "asserted"
+  ],
+  [
+   115,
+   232,
+   "asserted"
+  ],
+  [
+   114,
+   232,
+   "asserted"
+  ],
+  [
+   118,
+   214,
+   "asserted"
+  ],
+  [
+   118,
+   226,
+   "asserted"
+  ],
+  [
+   117,
+   116,
+   "asserted"
+  ],
+  [
+   117,
+   226,
+   "asserted"
+  ],
+  [
+   116,
+   219,
+   "asserted"
+  ],
+  [
+   116,
+   226,
+   "asserted"
+  ],
+  [
+   113,
+   141,
+   "asserted"
+  ],
+  [
+   113,
+   226,
+   "asserted"
+  ],
+  [
+   106,
+   232,
+   "asserted"
+  ],
+  [
+   112,
+   232,
+   "asserted"
+  ],
+  [
+   111,
+   232,
+   "asserted"
+  ],
+  [
+   110,
+   123,
+   "asserted"
+  ],
+  [
+   110,
+   69,
+   "asserted"
+  ],
+  [
+   110,
+   226,
+   "asserted"
+  ],
+  [
+   109,
+   14,
+   "asserted"
+  ],
+  [
+   109,
+   226,
+   "asserted"
+  ],
+  [
+   108,
+   116,
+   "asserted"
+  ],
+  [
+   108,
+   226,
+   "asserted"
+  ],
+  [
+   107,
+   15,
+   "asserted"
+  ],
+  [
+   107,
+   226,
+   "asserted"
+  ],
+  [
+   105,
+   232,
+   "asserted"
+  ],
+  [
+   104,
+   63,
+   "asserted"
+  ],
+  [
+   104,
+   226,
+   "asserted"
+  ],
+  [
+   103,
+   232,
+   "asserted"
+  ],
+  [
+   102,
+   133,
+   "asserted"
+  ],
+  [
+   102,
+   226,
+   "asserted"
+  ],
+  [
+   101,
+   148,
+   "asserted"
+  ],
+  [
+   101,
+   138,
+   "asserted"
+  ],
+  [
+   101,
+   226,
+   "asserted"
+  ],
+  [
+   100,
+   137,
+   "asserted"
+  ],
+  [
+   100,
+   144,
+   "asserted"
+  ],
+  [
+   100,
+   226,
+   "asserted"
+  ],
+  [
+   99,
+   15,
+   "asserted"
+  ],
+  [
+   99,
+   226,
+   "asserted"
+  ],
+  [
+   98,
+   88,
+   "asserted"
+  ],
+  [
+   98,
+   226,
+   "asserted"
+  ],
+  [
+   97,
+   14,
+   "asserted"
+  ],
+  [
+   97,
+   226,
+   "asserted"
+  ],
+  [
+   96,
+   232,
+   "asserted"
+  ],
+  [
+   95,
+   31,
+   "asserted"
+  ],
+  [
+   95,
+   226,
+   "asserted"
+  ],
+  [
+   94,
+   27,
+   "asserted"
+  ],
+  [
+   94,
+   226,
+   "asserted"
+  ],
+  [
+   93,
+   63,
+   "asserted"
+  ],
+  [
+   93,
+   226,
+   "asserted"
+  ],
+  [
+   92,
+   224,
+   "asserted"
+  ],
+  [
+   92,
+   219,
+   "asserted"
+  ],
+  [
+   92,
+   226,
+   "asserted"
+  ],
+  [
+   91,
+   161,
+   "asserted"
+  ],
+  [
+   91,
+   90,
+   "asserted"
+  ],
+  [
+   91,
+   226,
+   "asserted"
+  ],
+  [
+   90,
+   219,
+   "asserted"
+  ],
+  [
+   90,
+   226,
+   "asserted"
+  ],
+  [
+   89,
+   232,
+   "asserted"
+  ],
+  [
+   88,
+   15,
+   "asserted"
+  ],
+  [
+   88,
+   226,
+   "asserted"
+  ],
+  [
+   87,
+   52,
+   "asserted"
+  ],
+  [
+   87,
+   226,
+   "asserted"
+  ],
+  [
+   86,
+   140,
+   "asserted"
+  ],
+  [
+   86,
+   226,
+   "asserted"
+  ],
+  [
+   85,
+   232,
+   "asserted"
+  ],
+  [
+   84,
+   63,
+   "asserted"
+  ],
+  [
+   84,
+   226,
+   "asserted"
+  ],
+  [
+   83,
+   159,
+   "asserted"
+  ],
+  [
+   83,
+   226,
+   "asserted"
+  ],
+  [
+   82,
+   150,
+   "asserted"
+  ],
+  [
+   82,
+   226,
+   "asserted"
+  ],
+  [
+   81,
+   99,
+   "asserted"
+  ],
+  [
+   81,
+   50,
+   "asserted"
+  ],
+  [
+   81,
+   226,
+   "asserted"
+  ],
+  [
+   202,
+   137,
+   "asserted"
+  ],
+  [
+   202,
+   225,
+   "asserted"
+  ],
+  [
+   204,
+   118,
+   "asserted"
+  ],
+  [
+   204,
+   225,
+   "asserted"
+  ],
+  [
+   203,
+   153,
+   "asserted"
+  ],
+  [
+   203,
+   229,
+   "asserted"
+  ],
+  [
+   203,
+   225,
+   "asserted"
+  ],
+  [
+   71,
+   63,
+   "asserted"
+  ],
+  [
+   71,
+   226,
+   "asserted"
+  ],
+  [
+   201,
+   72,
+   "asserted"
+  ],
+  [
+   201,
+   225,
+   "asserted"
+  ],
+  [
+   200,
+   45,
+   "asserted"
+  ],
+  [
+   200,
+   219,
+   "asserted"
+  ],
+  [
+   200,
+   225,
+   "asserted"
+  ],
+  [
+   80,
+   232,
+   "asserted"
+  ],
+  [
+   79,
+   221,
+   "asserted"
+  ],
+  [
+   79,
+   1,
+   "asserted"
+  ],
+  [
+   79,
+   226,
+   "asserted"
+  ],
+  [
+   78,
+   232,
+   "asserted"
+  ],
+  [
+   77,
+   219,
+   "asserted"
+  ],
+  [
+   77,
+   226,
+   "asserted"
+  ],
+  [
+   199,
+   137,
+   "asserted"
+  ],
+  [
+   199,
+   137,
+   "asserted"
+  ],
+  [
+   199,
+   225,
+   "asserted"
+  ],
+  [
+   198,
+   137,
+   "asserted"
+  ],
+  [
+   198,
+   82,
+   "asserted"
+  ],
+  [
+   198,
+   225,
+   "asserted"
+  ],
+  [
+   76,
+   14,
+   "asserted"
+  ],
+  [
+   76,
+   226,
+   "asserted"
+  ],
+  [
+   75,
+   16,
+   "asserted"
+  ],
+  [
+   75,
+   69,
+   "asserted"
+  ],
+  [
+   75,
+   226,
+   "asserted"
+  ],
+  [
+   74,
+   232,
+   "asserted"
+  ],
+  [
+   73,
+   20,
+   "asserted"
+  ],
+  [
+   73,
+   226,
+   "asserted"
+  ],
+  [
+   72,
+   100,
+   "asserted"
+  ],
+  [
+   72,
+   226,
+   "asserted"
+  ],
+  [
+   197,
+   225,
+   "asserted"
+  ],
+  [
+   70,
+   137,
+   "asserted"
+  ],
+  [
+   70,
+   226,
+   "asserted"
+  ],
+  [
+   69,
+   161,
+   "asserted"
+  ],
+  [
+   69,
+   20,
+   "asserted"
+  ],
+  [
+   69,
+   226,
+   "asserted"
+  ],
+  [
+   196,
+   222,
+   "asserted"
+  ],
+  [
+   196,
+   15,
+   "asserted"
+  ],
+  [
+   196,
+   225,
+   "asserted"
+  ],
+  [
+   195,
+   225,
+   "asserted"
+  ],
+  [
+   194,
+   156,
+   "asserted"
+  ],
+  [
+   194,
+   120,
+   "asserted"
+  ],
+  [
+   194,
+   225,
+   "asserted"
+  ],
+  [
+   193,
+   223,
+   "asserted"
+  ],
+  [
+   193,
+   94,
+   "asserted"
+  ],
+  [
+   193,
+   231,
+   "asserted"
+  ],
+  [
+   192,
+   100,
+   "asserted"
+  ],
+  [
+   192,
+   225,
+   "asserted"
+  ],
+  [
+   191,
+   225,
+   "asserted"
+  ],
+  [
+   190,
+   70,
+   "asserted"
+  ],
+  [
+   190,
+   130,
+   "asserted"
+  ],
+  [
+   190,
+   225,
+   "asserted"
+  ],
+  [
+   189,
+   225,
+   "asserted"
+  ],
+  [
+   188,
+   53,
+   "asserted"
+  ],
+  [
+   188,
+   120,
+   "asserted"
+  ],
+  [
+   188,
+   225,
+   "asserted"
+  ],
+  [
+   187,
+   27,
+   "asserted"
+  ],
+  [
+   187,
+   218,
+   "asserted"
+  ],
+  [
+   187,
+   225,
+   "asserted"
+  ],
+  [
+   186,
+   137,
+   "asserted"
+  ],
+  [
+   186,
+   225,
+   "asserted"
+  ],
+  [
+   68,
+   232,
+   "asserted"
+  ],
+  [
+   67,
+   15,
+   "asserted"
+  ],
+  [
+   67,
+   226,
+   "asserted"
+  ],
+  [
+   66,
+   232,
+   "asserted"
+  ],
+  [
+   64,
+   92,
+   "asserted"
+  ],
+  [
+   64,
+   226,
+   "asserted"
+  ],
+  [
+   63,
+   72,
+   "asserted"
+  ],
+  [
+   63,
+   226,
+   "asserted"
+  ],
+  [
+   65,
+   232,
+   "asserted"
+  ],
+  [
+   62,
+   217,
+   "asserted"
+  ],
+  [
+   62,
+   149,
+   "asserted"
+  ],
+  [
+   62,
+   226,
+   "asserted"
+  ],
+  [
+   61,
+   219,
+   "asserted"
+  ],
+  [
+   61,
+   226,
+   "asserted"
+  ],
+  [
+   60,
+   232,
+   "asserted"
+  ],
+  [
+   185,
+   46,
+   "asserted"
+  ],
+  [
+   185,
+   73,
+   "asserted"
+  ],
+  [
+   185,
+   225,
+   "asserted"
+  ],
+  [
+   184,
+   46,
+   "asserted"
+  ],
+  [
+   184,
+   173,
+   "asserted"
+  ],
+  [
+   184,
+   225,
+   "asserted"
+  ],
+  [
+   59,
+   232,
+   "asserted"
+  ],
+  [
+   58,
+   232,
+   "asserted"
+  ],
+  [
+   57,
+   216,
+   "asserted"
+  ],
+  [
+   57,
+   226,
+   "asserted"
+  ],
+  [
+   183,
+   230,
+   "asserted"
+  ],
+  [
+   183,
+   57,
+   "asserted"
+  ],
+  [
+   183,
+   225,
+   "asserted"
+  ],
+  [
+   56,
+   232,
+   "asserted"
+  ],
+  [
+   55,
+   15,
+   "asserted"
+  ],
+  [
+   55,
+   226,
+   "asserted"
+  ],
+  [
+   54,
+   168,
+   "asserted"
+  ],
+  [
+   54,
+   226,
+   "asserted"
+  ],
+  [
+   53,
+   149,
+   "asserted"
+  ],
+  [
+   53,
+   226,
+   "asserted"
+  ],
+  [
+   52,
+   15,
+   "asserted"
+  ],
+  [
+   52,
+   226,
+   "asserted"
+  ],
+  [
+   51,
+   50,
+   "asserted"
+  ],
+  [
+   51,
+   226,
+   "asserted"
+  ],
+  [
+   50,
+   15,
+   "asserted"
+  ],
+  [
+   50,
+   226,
+   "asserted"
+  ],
+  [
+   182,
+   118,
+   "asserted"
+  ],
+  [
+   182,
+   154,
+   "asserted"
+  ],
+  [
+   182,
+   225,
+   "asserted"
+  ],
+  [
+   49,
+   232,
+   "asserted"
+  ],
+  [
+   48,
+   63,
+   "asserted"
+  ],
+  [
+   48,
+   226,
+   "asserted"
+  ],
+  [
+   181,
+   219,
+   "asserted"
+  ],
+  [
+   181,
+   153,
+   "asserted"
+  ],
+  [
+   181,
+   225,
+   "asserted"
+  ],
+  [
+   47,
+   232,
+   "asserted"
+  ],
+  [
+   46,
+   145,
+   "asserted"
+  ],
+  [
+   46,
+   226,
+   "asserted"
+  ],
+  [
+   180,
+   173,
+   "asserted"
+  ],
+  [
+   180,
+   225,
+   "asserted"
+  ],
+  [
+   45,
+   217,
+   "asserted"
+  ],
+  [
+   45,
+   226,
+   "asserted"
+  ],
+  [
+   44,
+   14,
+   "asserted"
+  ],
+  [
+   44,
+   226,
+   "asserted"
+  ],
+  [
+   43,
+   14,
+   "asserted"
+  ],
+  [
+   43,
+   226,
+   "asserted"
+  ],
+  [
+   42,
+   88,
+   "asserted"
+  ],
+  [
+   42,
+   226,
+   "asserted"
+  ],
+  [
+   41,
+   219,
+   "asserted"
+  ],
+  [
+   41,
+   226,
+   "asserted"
+  ],
+  [
+   40,
+   232,
+   "asserted"
+  ],
+  [
+   39,
+   90,
+   "asserted"
+  ],
+  [
+   39,
+   226,
+   "asserted"
+  ],
+  [
+   38,
+   232,
+   "asserted"
+  ],
+  [
+   37,
+   14,
+   "asserted"
+  ],
+  [
+   37,
+   226,
+   "asserted"
+  ],
+  [
+   36,
+   14,
+   "asserted"
+  ],
+  [
+   36,
+   226,
+   "asserted"
+  ],
+  [
+   35,
+   88,
+   "asserted"
+  ],
+  [
+   35,
+   226,
+   "asserted"
+  ],
+  [
+   34,
+   92,
+   "asserted"
+  ],
+  [
+   34,
+   226,
+   "asserted"
+  ],
+  [
+   33,
+   20,
+   "asserted"
+  ],
+  [
+   33,
+   226,
+   "asserted"
+  ],
+  [
+   32,
+   220,
+   "asserted"
+  ],
+  [
+   32,
+   1,
+   "asserted"
+  ],
+  [
+   32,
+   226,
+   "asserted"
+  ],
+  [
+   31,
+   15,
+   "asserted"
+  ],
+  [
+   31,
+   226,
+   "asserted"
+  ],
+  [
+   30,
+   232,
+   "asserted"
+  ],
+  [
+   29,
+   27,
+   "asserted"
+  ],
+  [
+   29,
+   226,
+   "asserted"
+  ],
+  [
+   28,
+   61,
+   "asserted"
+  ],
+  [
+   28,
+   226,
+   "asserted"
+  ],
+  [
+   26,
+   157,
+   "asserted"
+  ],
+  [
+   26,
+   226,
+   "asserted"
+  ],
+  [
+   27,
+   216,
+   "asserted"
+  ],
+  [
+   27,
+   226,
+   "asserted"
+  ],
+  [
+   179,
+   232,
+   "asserted"
+  ],
+  [
+   179,
+   218,
+   "asserted"
+  ],
+  [
+   179,
+   225,
+   "asserted"
+  ],
+  [
+   25,
+   45,
+   "asserted"
+  ],
+  [
+   25,
+   226,
+   "asserted"
+  ],
+  [
+   24,
+   90,
+   "asserted"
+  ],
+  [
+   24,
+   226,
+   "asserted"
+  ],
+  [
+   178,
+   227,
+   "asserted"
+  ],
+  [
+   178,
+   222,
+   "asserted"
+  ],
+  [
+   178,
+   225,
+   "asserted"
+  ],
+  [
+   23,
+   116,
+   "asserted"
+  ],
+  [
+   23,
+   226,
+   "asserted"
+  ],
+  [
+   22,
+   14,
+   "asserted"
+  ],
+  [
+   22,
+   226,
+   "asserted"
+  ],
+  [
+   21,
+   15,
+   "asserted"
+  ],
+  [
+   21,
+   226,
+   "asserted"
+  ],
+  [
+   177,
+   21,
+   "asserted"
+  ],
+  [
+   177,
+   228,
+   "asserted"
+  ],
+  [
+   177,
+   225,
+   "asserted"
+  ],
+  [
+   20,
+   219,
+   "asserted"
+  ],
+  [
+   20,
+   226,
+   "asserted"
+  ],
+  [
+   19,
+   219,
+   "asserted"
+  ],
+  [
+   19,
+   226,
+   "asserted"
+  ],
+  [
+   18,
+   214,
+   "asserted"
+  ],
+  [
+   18,
+   226,
+   "asserted"
+  ],
+  [
+   176,
+   45,
+   "asserted"
+  ],
+  [
+   176,
+   217,
+   "asserted"
+  ],
+  [
+   176,
+   225,
+   "asserted"
+  ],
+  [
+   175,
+   27,
+   "asserted"
+  ],
+  [
+   175,
+   216,
+   "asserted"
+  ],
+  [
+   175,
+   225,
+   "asserted"
+  ],
+  [
+   17,
+   232,
+   "asserted"
+  ],
+  [
+   16,
+   219,
+   "asserted"
+  ],
+  [
+   16,
+   226,
+   "asserted"
+  ],
+  [
+   15,
+   61,
+   "asserted"
+  ],
+  [
+   15,
+   226,
+   "asserted"
+  ],
+  [
+   14,
+   116,
+   "asserted"
+  ],
+  [
+   14,
+   226,
+   "asserted"
+  ],
+  [
+   174,
+   173,
+   "asserted"
+  ],
+  [
+   174,
+   73,
+   "asserted"
+  ],
+  [
+   174,
+   225,
+   "asserted"
+  ],
+  [
+   13,
+   5,
+   "asserted"
+  ],
+  [
+   13,
+   226,
+   "asserted"
+  ],
+  [
+   12,
+   116,
+   "asserted"
+  ],
+  [
+   12,
+   226,
+   "asserted"
+  ],
+  [
+   11,
+   5,
+   "asserted"
+  ],
+  [
+   11,
+   226,
+   "asserted"
+  ],
+  [
+   10,
+   232,
+   "asserted"
+  ],
+  [
+   9,
+   116,
+   "asserted"
+  ],
+  [
+   9,
+   226,
+   "asserted"
+  ],
+  [
+   8,
+   116,
+   "asserted"
+  ],
+  [
+   8,
+   226,
+   "asserted"
+  ],
+  [
+   7,
+   137,
+   "asserted"
+  ],
+  [
+   7,
+   226,
+   "asserted"
+  ],
+  [
+   6,
+   5,
+   "asserted"
+  ],
+  [
+   6,
+   226,
+   "asserted"
+  ],
+  [
+   5,
+   15,
+   "asserted"
+  ],
+  [
+   5,
+   226,
+   "asserted"
+  ],
+  [
+   4,
+   50,
+   "asserted"
+  ],
+  [
+   4,
+   226,
+   "asserted"
+  ],
+  [
+   3,
+   116,
+   "asserted"
+  ],
+  [
+   3,
+   226,
+   "asserted"
+  ],
+  [
+   2,
+   116,
+   "asserted"
+  ],
+  [
+   2,
+   226,
+   "asserted"
+  ],
+  [
+   1,
+   15,
+   "asserted"
+  ],
+  [
+   1,
+   226,
+   "asserted"
+  ],
+  [
+   0,
+   232,
+   "asserted"
+  ],
+  [
+   83,
+   25,
+   "certified"
+  ],
+  [
+   83,
+   149,
+   "certified"
+  ],
+  [
+   54,
+   15,
+   "certified"
+  ],
+  [
+   84,
+   72,
+   "certified"
+  ],
+  [
+   31,
+   61,
+   "certified"
+  ],
+  [
+   6,
+   15,
+   "certified"
+  ],
+  [
+   86,
+   116,
+   "certified"
+  ],
+  [
+   87,
+   15,
+   "certified"
+  ],
+  [
+   36,
+   116,
+   "certified"
+  ],
+  [
+   104,
+   72,
+   "certified"
+  ],
+  [
+   33,
+   219,
+   "certified"
+  ],
+  [
+   11,
+   15,
+   "certified"
+  ],
+  [
+   55,
+   61,
+   "certified"
+  ],
+  [
+   51,
+   15,
+   "certified"
+  ],
+  [
+   137,
+   217,
+   "certified"
+  ],
+  [
+   107,
+   61,
+   "certified"
+  ],
+  [
+   161,
+   219,
+   "certified"
+  ],
+  [
+   62,
+   147,
+   "certified"
+  ],
+  [
+   71,
+   72,
+   "certified"
+  ],
+  [
+   171,
+   100,
+   "certified"
+  ],
+  [
+   37,
+   116,
+   "certified"
+  ],
+  [
+   42,
+   15,
+   "certified"
+  ],
+  [
+   156,
+   217,
+   "certified"
+  ],
+  [
+   9,
+   219,
+   "certified"
+  ],
+  [
+   120,
+   16,
+   "certified"
+  ],
+  [
+   43,
+   116,
+   "certified"
+  ],
+  [
+   167,
+   144,
+   "certified"
+  ],
+  [
+   167,
+   137,
+   "certified"
+  ],
+  [
+   172,
+   217,
+   "certified"
+  ],
+  [
+   141,
+   219,
+   "certified"
+  ],
+  [
+   172,
+   145,
+   "certified"
+  ],
+  [
+   120,
+   161,
+   "certified"
+  ],
+  [
+   120,
+   90,
+   "certified"
+  ],
+  [
+   95,
+   15,
+   "certified"
+  ],
+  [
+   173,
+   137,
+   "certified"
+  ],
+  [
+   81,
+   15,
+   "certified"
+  ],
+  [
+   122,
+   144,
+   "certified"
+  ],
+  [
+   122,
+   137,
+   "certified"
+  ],
+  [
+   22,
+   116,
+   "certified"
+  ],
+  [
+   14,
+   219,
+   "certified"
+  ],
+  [
+   101,
+   150,
+   "certified"
+  ],
+  [
+   75,
+   20,
+   "certified"
+  ],
+  [
+   75,
+   161,
+   "certified"
+  ],
+  [
+   2,
+   219,
+   "certified"
+  ],
+  [
+   21,
+   61,
+   "certified"
+  ],
+  [
+   164,
+   217,
+   "certified"
+  ],
+  [
+   23,
+   219,
+   "certified"
+  ],
+  [
+   158,
+   217,
+   "certified"
+  ],
+  [
+   109,
+   116,
+   "certified"
+  ],
+  [
+   69,
+   219,
+   "certified"
+  ],
+  [
+   140,
+   219,
+   "certified"
+  ],
+  [
+   110,
+   16,
+   "certified"
+  ],
+  [
+   28,
+   219,
+   "certified"
+  ],
+  [
+   159,
+   45,
+   "certified"
+  ],
+  [
+   138,
+   151,
+   "certified"
+  ],
+  [
+   99,
+   61,
+   "certified"
+  ],
+  [
+   129,
+   219,
+   "certified"
+  ],
+  [
+   127,
+   219,
+   "certified"
+  ],
+  [
+   15,
+   219,
+   "certified"
+  ],
+  [
+   34,
+   219,
+   "certified"
+  ],
+  [
+   34,
+   224,
+   "certified"
+  ],
+  [
+   7,
+   152,
+   "certified"
+  ],
+  [
+   63,
+   100,
+   "certified"
+  ],
+  [
+   139,
+   219,
+   "certified"
+  ],
+  [
+   35,
+   15,
+   "certified"
+  ],
+  [
+   8,
+   219,
+   "certified"
+  ],
+  [
+   70,
+   152,
+   "certified"
+  ],
+  [
+   26,
+   219,
+   "certified"
+  ],
+  [
+   48,
+   72,
+   "certified"
+  ],
+  [
+   72,
+   144,
+   "certified"
+  ],
+  [
+   72,
+   137,
+   "certified"
+  ],
+  [
+   94,
+   216,
+   "certified"
+  ],
+  [
+   123,
+   219,
+   "certified"
+  ],
+  [
+   117,
+   219,
+   "certified"
+  ],
+  [
+   119,
+   61,
+   "certified"
+  ],
+  [
+   29,
+   216,
+   "certified"
+  ],
+  [
+   12,
+   219,
+   "certified"
+  ],
+  [
+   100,
+   152,
+   "certified"
+  ],
+  [
+   110,
+   20,
+   "certified"
+  ],
+  [
+   110,
+   161,
+   "certified"
+  ],
+  [
+   102,
+   110,
+   "certified"
+  ],
+  [
+   88,
+   61,
+   "certified"
+  ],
+  [
+   121,
+   116,
+   "certified"
+  ],
+  [
+   76,
+   116,
+   "certified"
+  ],
+  [
+   67,
+   61,
+   "certified"
+  ],
+  [
+   46,
+   137,
+   "certified"
+  ],
+  [
+   91,
+   61,
+   "certified"
+  ],
+  [
+   144,
+   217,
+   "certified"
+  ],
+  [
+   32,
+   15,
+   "certified"
+  ],
+  [
+   39,
+   219,
+   "certified"
+  ],
+  [
+   25,
+   217,
+   "certified"
+  ],
+  [
+   75,
+   219,
+   "certified"
+  ],
+  [
+   44,
+   116,
+   "certified"
+  ],
+  [
+   24,
+   219,
+   "certified"
+  ],
+  [
+   150,
+   215,
+   "certified"
+  ],
+  [
+   79,
+   15,
+   "certified"
+  ],
+  [
+   170,
+   20,
+   "certified"
+  ],
+  [
+   170,
+   161,
+   "certified"
+  ],
+  [
+   4,
+   15,
+   "certified"
+  ],
+  [
+   166,
+   20,
+   "certified"
+  ],
+  [
+   108,
+   219,
+   "certified"
+  ],
+  [
+   5,
+   61,
+   "certified"
+  ],
+  [
+   69,
+   61,
+   "certified"
+  ],
+  [
+   91,
+   219,
+   "certified"
+  ],
+  [
+   133,
+   123,
+   "certified"
+  ],
+  [
+   133,
+   69,
+   "certified"
+  ],
+  [
+   1,
+   61,
+   "certified"
+  ],
+  [
+   97,
+   116,
+   "certified"
+  ],
+  [
+   73,
+   219,
+   "certified"
+  ],
+  [
+   148,
+   151,
+   "certified"
+  ],
+  [
+   82,
+   151,
+   "certified"
+  ],
+  [
+   93,
+   72,
+   "certified"
+  ],
+  [
+   113,
+   116,
+   "certified"
+  ],
+  [
+   145,
+   152,
+   "certified"
+  ],
+  [
+   136,
+   219,
+   "certified"
+  ],
+  [
+   3,
+   219,
+   "certified"
+  ],
+  [
+   64,
+   219,
+   "certified"
+  ],
+  [
+   64,
+   224,
+   "certified"
+  ],
+  [
+   52,
+   61,
+   "certified"
+  ],
+  [
+   50,
+   61,
+   "certified"
+  ],
+  [
+   13,
+   15,
+   "certified"
+  ],
+  [
+   168,
+   61,
+   "certified"
+  ],
+  [
+   159,
+   147,
+   "certified"
+  ],
+  [
+   149,
+   217,
+   "certified"
+  ],
+  [
+   53,
+   147,
+   "certified"
+  ],
+  [
+   98,
+   15,
+   "certified"
+  ],
+  [
+   83,
+   147,
+   "certified"
+  ],
+  [
+   83,
+   45,
+   "certified"
+  ],
+  [
+   54,
+   61,
+   "certified"
+  ],
+  [
+   84,
+   100,
+   "certified"
+  ],
+  [
+   31,
+   219,
+   "certified"
+  ],
+  [
+   6,
+   61,
+   "certified"
+  ],
+  [
+   63,
+   152,
+   "certified"
+  ],
+  [
+   63,
+   144,
+   "certified"
+  ],
+  [
+   63,
+   137,
+   "certified"
+  ],
+  [
+   86,
+   219,
+   "certified"
+  ],
+  [
+   87,
+   61,
+   "certified"
+  ],
+  [
+   36,
+   219,
+   "certified"
+  ],
+  [
+   104,
+   100,
+   "certified"
+  ],
+  [
+   11,
+   61,
+   "certified"
+  ],
+  [
+   55,
+   219,
+   "certified"
+  ],
+  [
+   110,
+   219,
+   "certified"
+  ],
+  [
+   170,
+   219,
+   "certified"
+  ],
+  [
+   51,
+   61,
+   "certified"
+  ],
+  [
+   107,
+   219,
+   "certified"
+  ],
+  [
+   88,
+   219,
+   "certified"
+  ],
+  [
+   71,
+   100,
+   "certified"
+  ],
+  [
+   72,
+   152,
+   "certified"
+  ],
+  [
+   72,
+   217,
+   "certified"
+  ],
+  [
+   172,
+   152,
+   "certified"
+  ],
+  [
+   172,
+   137,
+   "certified"
+  ],
+  [
+   100,
+   217,
+   "certified"
+  ],
+  [
+   171,
+   144,
+   "certified"
+  ],
+  [
+   171,
+   137,
+   "certified"
+  ],
+  [
+   21,
+   219,
+   "certified"
+  ],
+  [
+   37,
+   219,
+   "certified"
+  ],
+  [
+   42,
+   61,
+   "certified"
+  ],
+  [
+   35,
+   219,
+   "certified"
+  ],
+  [
+   35,
+   61,
+   "certified"
+  ],
+  [
+   104,
+   144,
+   "certified"
+  ],
+  [
+   104,
+   137,
+   "certified"
+  ],
+  [
+   167,
+   152,
+   "certified"
+  ],
+  [
+   167,
+   217,
+   "certified"
+  ],
+  [
+   120,
+   219,
+   "certified"
+  ],
+  [
+   83,
+   217,
+   "certified"
+  ],
+  [
+   43,
+   219,
+   "certified"
+  ],
+  [
+   81,
+   219,
+   "certified"
+  ],
+  [
+   81,
+   61,
+   "certified"
+  ],
+  [
+   120,
+   61,
+   "certified"
+  ],
+  [
+   95,
+   61,
+   "certified"
+  ],
+  [
+   87,
+   219,
+   "certified"
+  ],
+  [
+   173,
+   152,
+   "certified"
+  ],
+  [
+   122,
+   152,
+   "certified"
+  ],
+  [
+   22,
+   219,
+   "certified"
+  ],
+  [
+   76,
+   219,
+   "certified"
+  ],
+  [
+   101,
+   151,
+   "certified"
+  ],
+  [
+   75,
+   61,
+   "certified"
+  ],
+  [
+   148,
+   215,
+   "certified"
+  ],
+  [
+   79,
+   219,
+   "certified"
+  ],
+  [
+   79,
+   61,
+   "certified"
+  ],
+  [
+   109,
+   219,
+   "certified"
+  ],
+  [
+   122,
+   217,
+   "certified"
+  ],
+  [
+   54,
+   219,
+   "certified"
+  ],
+  [
+   84,
+   144,
+   "certified"
+  ],
+  [
+   84,
+   137,
+   "certified"
+  ],
+  [
+   159,
+   217,
+   "certified"
+  ],
+  [
+   121,
+   219,
+   "certified"
+  ],
+  [
+   1,
+   219,
+   "certified"
+  ],
+  [
+   11,
+   219,
+   "certified"
+  ],
+  [
+   138,
+   215,
+   "certified"
+  ],
+  [
+   98,
+   219,
+   "certified"
+  ],
+  [
+   98,
+   61,
+   "certified"
+  ],
+  [
+   99,
+   219,
+   "certified"
+  ],
+  [
+   53,
+   217,
+   "certified"
+  ],
+  [
+   102,
+   16,
+   "certified"
+  ],
+  [
+   102,
+   20,
+   "certified"
+  ],
+  [
+   102,
+   123,
+   "certified"
+  ],
+  [
+   102,
+   69,
+   "certified"
+  ],
+  [
+   102,
+   161,
+   "certified"
+  ],
+  [
+   145,
+   217,
+   "certified"
+  ],
+  [
+   7,
+   217,
+   "certified"
+  ],
+  [
+   32,
+   219,
+   "certified"
+  ],
+  [
+   32,
+   61,
+   "certified"
+  ],
+  [
+   95,
+   219,
+   "certified"
+  ],
+  [
+   70,
+   217,
+   "rejected"
+  ],
+  [
+   170,
+   61,
+   "certified"
+  ],
+  [
+   166,
+   219,
+   "certified"
+  ],
+  [
+   168,
+   219,
+   "certified"
+  ],
+  [
+   48,
+   100,
+   "certified"
+  ],
+  [
+   119,
+   219,
+   "certified"
+  ],
+  [
+   93,
+   144,
+   "certified"
+  ],
+  [
+   93,
+   137,
+   "certified"
+  ],
+  [
+   93,
+   100,
+   "certified"
+  ],
+  [
+   50,
+   219,
+   "certified"
+  ],
+  [
+   13,
+   219,
+   "certified"
+  ],
+  [
+   13,
+   61,
+   "certified"
+  ],
+  [
+   110,
+   61,
+   "certified"
+  ],
+  [
+   67,
+   219,
+   "certified"
+  ],
+  [
+   6,
+   219,
+   "certified"
+  ],
+  [
+   42,
+   219,
+   "certified"
+  ],
+  [
+   46,
+   152,
+   "certified"
+  ],
+  [
+   171,
+   152,
+   "certified"
+  ],
+  [
+   44,
+   219,
+   "certified"
+  ],
+  [
+   48,
+   144,
+   "certified"
+  ],
+  [
+   48,
+   137,
+   "certified"
+  ],
+  [
+   5,
+   219,
+   "certified"
+  ],
+  [
+   51,
+   219,
+   "certified"
+  ],
+  [
+   173,
+   217,
+   "certified"
+  ],
+  [
+   133,
+   219,
+   "certified"
+  ],
+  [
+   133,
+   16,
+   "certified"
+  ],
+  [
+   4,
+   61,
+   "certified"
+  ],
+  [
+   101,
+   215,
+   "certified"
+  ],
+  [
+   52,
+   219,
+   "certified"
+  ],
+  [
+   133,
+   20,
+   "certified"
+  ],
+  [
+   133,
+   61,
+   "certified"
+  ],
+  [
+   133,
+   161,
+   "certified"
+  ],
+  [
+   97,
+   219,
+   "certified"
+  ],
+  [
+   113,
+   219,
+   "certified"
+  ],
+  [
+   82,
+   215,
+   "certified"
+  ],
+  [
+   71,
+   144,
+   "certified"
+  ],
+  [
+   71,
+   137,
+   "certified"
+  ],
+  [
+   46,
+   217,
+   "certified"
+  ],
+  [
+   4,
+   219,
+   "certified"
+  ],
+  [
+   171,
+   217,
+   "certified"
+  ],
+  [
+   84,
+   152,
+   "certified"
+  ],
+  [
+   104,
+   152,
+   "certified"
+  ],
+  [
+   104,
+   217,
+   "certified"
+  ],
+  [
+   63,
+   217,
+   "certified"
+  ],
+  [
+   48,
+   152,
+   "certified"
+  ],
+  [
+   48,
+   217,
+   "certified"
+  ],
+  [
+   93,
+   152,
+   "certified"
+  ],
+  [
+   93,
+   217,
+   "certified"
+  ],
+  [
+   102,
+   61,
+   "certified"
+  ],
+  [
+   102,
+   219,
+   "certified"
+  ],
+  [
+   71,
+   152,
+   "certified"
+  ],
+  [
+   84,
+   217,
+   "certified"
+  ],
+  [
+   71,
+   217,
+   "certified"
+  ],
+  [
+   233,
+   234,
+   "asserted"
+  ],
+  [
+   234,
+   236,
+   "certified"
+  ],
+  [
+   234,
+   237,
+   "certified"
+  ],
+  [
+   233,
+   235,
+   "asserted"
+  ],
+  [
+   235,
+   238,
+   "asserted"
+  ],
+  [
+   235,
+   239,
+   "asserted"
+  ],
+  [
+   235,
+   240,
+   "asserted"
+  ],
+  [
+   235,
+   241,
+   "asserted"
+  ],
+  [
+   238,
+   242,
+   "certified"
+  ]
+ ],
+ "forged": 624,
+ "mu": {
+  "s": 0,
+  "o": 27,
+  "badge": "原样退回 · Accent 是一个 Concept，从来不是类"
+ },
+ "beats": [
+  {
+   "key": "asserted",
+   "text": "1 · 有人作出断言",
+   "t0": 0.6,
+   "t1": 3.4
+  },
+  {
+   "key": "derived",
+   "text": "2 · 引擎进行推导",
+   "t0": 3.4,
+   "t1": 6.4
+  },
+  {
+   "key": "lean",
+   "text": "3 · Lean 检查涵盖全部 259 条的那一份证书，并且接受",
+   "t0": 6.4,
+   "t1": 9.6
+  },
+  {
+   "key": "provers",
+   "text": "4 · 四个证明器读取子句；Vampire 的反驳被检查，其余只给出意见",
+   "t0": 9.6,
+   "t1": 13.0
+  },
+  {
+   "key": "forged",
+   "text": "5 · 有一行被伪造，同一个检查器拒绝了它",
+   "t0": 13.0,
+   "t1": 17.0
+  },
+  {
+   "key": "unasked",
+   "text": "6 · 一个该文件无法回答的问题，被原样退回",
+   "t0": 17.0,
+   "t1": 21.0
+  }
+ ],
+ "cycle": 22.0,
+ "judges": [
+  {
+   "node": 236,
+   "verdict": "证书",
+   "kind": "certificate",
+   "t0": 6.8,
+   "t1": 9.6
+  },
+  {
+   "node": 237,
+   "verdict": "同样的字节",
+   "kind": "certificate",
+   "t0": 7.4,
+   "t1": 9.6
+  },
+  {
+   "node": 238,
+   "verdict": "证书",
+   "kind": "certificate",
+   "t0": 10.0,
+   "t1": 13.0
+  },
+  {
+   "node": 242,
+   "verdict": "检查它",
+   "kind": "certificate",
+   "t0": 10.4,
+   "t1": 13.0
+  },
+  {
+   "node": 239,
+   "verdict": "意见",
+   "kind": "opinion",
+   "t0": 10.3,
+   "t1": 13.0
+  },
+  {
+   "node": 240,
+   "verdict": "意见",
+   "kind": "opinion",
+   "t0": 10.6,
+   "t1": 13.0
+  },
+  {
+   "node": 241,
+   "verdict": "意见",
+   "kind": "opinion",
+   "t0": 10.9,
+   "t1": 13.0
+  }
+ ],
+ "spot": [
+  {
+   "nodes": [
+    233
+   ],
+   "beat": 0
+  },
+  {
+   "nodes": [
+    234,
+    235
+   ],
+   "beat": 1
+  },
+  {
+   "nodes": [
+    236,
+    237
+   ],
+   "beat": 2
+  },
+  {
+   "nodes": [
+    238,
+    239,
+    240,
+    241,
+    242
+   ],
+   "beat": 3
+  },
+  {
+   "nodes": [
+    0
+   ],
+   "beat": 5
+  }
+ ],
+ "legend": {
+  "head": "带证明的推理",
+  "file": "ies-core.ttl · 1,083 条三元组",
+  "rows": [
+   {
+    "key": "asserted",
+    "label": "断言",
+    "count": 426,
+    "means": "读自 ies-core.ttl，由人作出的声称"
+   },
+   {
+    "key": "certified",
+    "label": "已认证",
+    "count": 259,
+    "means": "推导得出，并且已证明。一份证书，一次运行"
+   },
+   {
+    "key": "rejected",
+    "label": "被拒绝",
+    "count": 1,
+    "means": "伪造。检查器以 exit 1 退出，并指出规则"
+   },
+   {
+    "key": "unasked",
+    "label": "未提问",
+    "count": 1,
+    "means": "超出该文件语言范围的问题。没有询问任何裁判"
+   }
+  ]
+ },
+ "worth": {
+  "head": "一个结论值多少",
+  "rows": [
+   {
+    "key": "certificate",
+    "word": "证书",
+    "l1": "一个文件，涵盖全部 259 条。Lean 4 与 Isabelle/HOL 读取它。",
+    "l2": "OOCert.certificate_sound；Vampire 的反驳，Fo.unsat_of_check。"
+   },
+   {
+    "key": "opinion",
+    "word": "意见",
+    "l1": "E、Z3 与 Mace4 也读取这些子句，并给出一个词。",
+    "l2": "要么相信这个程序，要么什么都不信。没有可检查的对象。"
+   },
+   {
+    "key": "unasked",
+    "word": "无",
+    "l1": "Accent ⊑ Characteristic，被原样退回。",
+    "l2": "Accent 是一个 Concept，从来不是类。失败的是预设，而不是主张。"
+   }
+  ]
+ },
+ "labels": {
+  "forged": "这一行是伪造的",
+  "refused": "exit 1，已拒绝",
+  "disagree": "分歧 · 停止这条流水线",
+  "disagree_t": [
+   11.4,
+   13.0
+  ]
+ }
+}

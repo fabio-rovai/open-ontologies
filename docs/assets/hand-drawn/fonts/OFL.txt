@@ -1,0 +1,11 @@
+These fonts are subsets (Latin plus a few symbols, made with fontTools) of fonts
+published under the SIL Open Font License 1.1, https://openfontlicense.org
+
+  CaveatBrush.ttf    Caveat Brush, Copyright 2015 Google Inc.
+  PatrickHand.ttf    Patrick Hand, Copyright (c) 2012 Patrick Wagesreiter
+  JetBrainsMono.ttf  JetBrains Mono, Copyright 2020 The JetBrains Mono Project Authors
+
+They are used only to render the knowledge-graph WebPs and docs/assets/logo.png.
+
+  LXGWWenKai.ttf     LXGW WenKai, Copyright 2021-2025 LXGW, and 2020 The Klee Project
+                     Authors. Subset to the characters the Chinese figure uses.
