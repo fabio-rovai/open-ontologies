@@ -40,8 +40,22 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use open_ontologies::fol_model::{IngestError, cvc5, z3};
-use open_ontologies::fol_solve::{SolveOptions, Solver, find_checker, solve};
+use open_ontologies::fol_solve::{
+    Outcome, SolveOptions, Solver, find_checker, solve as solve_ungated,
+};
 use open_ontologies::tptp::{Concept, FolProblem, OwlAxiom, smtlib::SmtEncoding};
+
+/// `solve`, behind `common::exec_gate`.
+///
+/// `solve` forks the solver and the checker, and the lying-solver test writes
+/// an executable while its siblings solve. A fork in the middle of that write
+/// hands the child the write descriptor, and Linux then refuses to exec the
+/// script with `ETXTBSY`. Shadowing the name means no call in this file can
+/// forget the gate.
+fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::Result<Outcome> {
+    let _gate = common::exec_gate();
+    solve_ungated(problem, opts, dir)
+}
 
 fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -105,6 +119,7 @@ fn subsumption() -> FolProblem {
 
 fn run_checker(problem: &Path, model: &Path) -> (i32, String) {
     let checker = find_checker(None).expect("checked by skip()");
+    let _gate = common::exec_gate();
     let out = Command::new(checker)
         .arg(problem)
         .arg(model)
@@ -368,11 +383,13 @@ fn cvc5_prints_a_structure_after_unknown_and_the_checker_rejects_it() {
     // No --finite-model-find. That is the whole point: this is cvc5's DEFAULT
     // behaviour on a quantified problem, which is what a reader who ran the
     // binary by hand would see.
+    let gate = common::exec_gate();
     let out = Command::new("cvc5")
         .arg("--tlimit=30000")
         .arg(&smt)
         .output()
         .expect("run cvc5");
+    drop(gate);
     let text = String::from_utf8_lossy(&out.stdout).to_string();
     let status = text
         .lines()
@@ -496,7 +513,9 @@ fn differential(args: &[&str], extra_path: Option<&Path>) -> (bool, String) {
         let path = std::env::var("PATH").unwrap_or_default();
         cmd.env("PATH", format!("{}:{}", p.display(), path));
     }
+    let gate = common::exec_gate();
     let out = cmd.output().expect("run tools/smt_differential.py");
+    drop(gate);
     (
         out.status.success(),
         format!(
@@ -591,19 +610,22 @@ fn a_lying_solver_turns_the_differential_red() {
     }
     let d = scratch("lying-z3");
     let liar = d.join("z3");
-    std::fs::write(
-        &liar,
-        "#!/bin/sh\n\
-         # A Z3 that refutes everything, including problems with obvious models.\n\
-         # Nothing in this architecture can check an unsat, which is exactly why\n\
-         # a second solver is the only thing that can catch this.\n\
-         echo unsat\n",
-    )
-    .expect("write stub");
-    #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&liar, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+        let _gate = common::exec_gate();
+        std::fs::write(
+            &liar,
+            "#!/bin/sh\n\
+             # A Z3 that refutes everything, including problems with obvious models.\n\
+             # Nothing in this architecture can check an unsat, which is exactly why\n\
+             # a second solver is the only thing that can catch this.\n\
+             echo unsat\n",
+        )
+        .expect("write stub");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&liar, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+        }
     }
 
     let (ok, out) = differential(
