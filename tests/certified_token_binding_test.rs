@@ -27,6 +27,8 @@
 //! naming a theorem, which is the whole of what the mint reads, so it is
 //! enough to test what the mint does with the digest.
 
+mod common;
+
 use open_ontologies::verdict::{subject_digest, CheckerBinary, CheckerRun};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -40,8 +42,13 @@ const THEOREM: &str = "OOCert.certificate_sound";
 /// parallel threads of one process, so one test's write landed between
 /// another's run and its recomputation, and the digests disagreed. It passed
 /// on my machine and failed on CI, which is the signature of exactly this.
-/// The script the fake checker runs lives here too: writing over a file
-/// another thread is executing is `ETXTBSY` on Linux.
+///
+/// The script the fake checker runs lives here too, and a directory of its own
+/// does NOT keep it out of `ETXTBSY`. On 1 October 2026 the build job on `main`
+/// failed in `a_token_earned_over_one_artefact_is_not_about_another` with
+/// "Text file busy", one script per directory and all. The race is between any
+/// write and any fork in this process, not between two writers of one path,
+/// so `fake_checker` and `run_over` both hold `common::exec_gate`.
 fn dir(tag: &str) -> PathBuf {
     let d = std::env::temp_dir().join(format!("oo-token-binding-{}-{tag}", std::process::id()));
     std::fs::create_dir_all(&d).unwrap();
@@ -64,6 +71,7 @@ fn fake_checker(tag: &str) -> PathBuf {
     } else {
         format!("#!/bin/sh\necho '{say}'\nexit 0\n")
     };
+    let _gate = common::exec_gate();
     std::fs::write(&p, body).unwrap();
     #[cfg(unix)]
     {
@@ -79,6 +87,9 @@ fn run_over(tag: &str, inputs: &[&Path]) -> std::io::Result<CheckerRun> {
     for i in inputs {
         cmd.arg(i);
     }
+    // `CheckerRun::spawn` forks, and a fork while another test is writing its
+    // script hands that write descriptor to the child. See `common::exec_gate`.
+    let _gate = common::exec_gate();
     CheckerRun::spawn(&CheckerBinary::found_at(bin), cmd, inputs)
 }
 
