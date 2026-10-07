@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Emit lowercase RDF lexical values for already-admitted Boolean words in
+  declared boolean mappings, including spreadsheet-style case and surrounding
+  whitespace, so loaded values compare as booleans. String content and datatype
+  inference retain their existing behavior.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
