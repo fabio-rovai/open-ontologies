@@ -46,6 +46,9 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Preserve XLSX header and Parquet schema order during induction so the first
+  filled, unique column remains the identifier candidate, as it is for CSV.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that

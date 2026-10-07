@@ -419,7 +419,7 @@ impl DataIngester {
 
     /// Collect unique keys from all rows, sorted alphabetically.
     /// Column names in the order the FILE gives them, when the format has an
-    /// order (CSV: the header row), else sorted. `extract_headers` sorts,
+    /// order (CSV and XLSX: the header row; Parquet: the schema), else sorted. `extract_headers` sorts,
     /// which loses which column came first, and the first column is the
     /// identifier candidate for induction.
     pub fn headers_in_order(path: &str, rows: &[HashMap<String, String>]) -> Vec<String> {
@@ -428,6 +428,31 @@ impl DataIngester {
                 let mut r = csv::ReaderBuilder::new().has_headers(true).from_reader(c.as_bytes());
                 r.headers().ok().map(|h| h.iter().map(|x| x.to_string()).collect())
             }),
+            "xlsx" => (|| -> Result<Vec<String>> {
+                use calamine::{open_workbook, Reader, Xlsx};
+                let mut workbook: Xlsx<_> = open_workbook(path)?;
+                let first_sheet = workbook
+                    .sheet_names()
+                    .first()
+                    .context("XLSX workbook has no sheets")?
+                    .clone();
+                let range = workbook.worksheet_range(&first_sheet)?;
+                let header = range.rows().next().context("XLSX file has no rows")?;
+                Ok(header.iter().map(Self::calamine_cell_to_string).collect())
+            })()
+            .ok(),
+            "parquet" => (|| -> Result<Vec<String>> {
+                use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+                let builder =
+                    ParquetRecordBatchReaderBuilder::try_new(std::fs::File::open(path)?)?;
+                Ok(builder
+                    .schema()
+                    .fields()
+                    .iter()
+                    .map(|f| f.name().clone())
+                    .collect())
+            })()
+            .ok(),
             _ => None,
         };
         match ordered {
