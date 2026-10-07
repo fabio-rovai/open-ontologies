@@ -123,7 +123,8 @@ impl MappingConfig {
 fn sanitize_iri(s: &str) -> String {
     s.chars()
         .map(|c| match c {
-            ' ' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
+            ' ' | '"' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
+            c if c.is_ascii_control() => '_',
             _ => c,
         })
         .collect()

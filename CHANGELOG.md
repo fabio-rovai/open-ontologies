@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
+
 ### Added
 
 - **A named profile hands a client one job's worth of the tool surface** (#263).
