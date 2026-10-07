@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Save ontology versions as N-Quads and restore their stored format, preserving
+  named graphs and repeated facts in separate contexts. Legacy N-Triples
+  snapshots remain readable.
+
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
