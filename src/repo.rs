@@ -49,25 +49,26 @@ pub struct RepoEntry {
 /// (no path separators). This is intentionally tiny so we don't pull in a
 /// glob crate just for filtering tool output.
 pub fn glob_match(pattern: &str, name: &str) -> bool {
-    fn helper(p: &[u8], n: &[u8]) -> bool {
-        match (p.first(), n.first()) {
-            (None, None) => true,
-            (Some(b'*'), _) => {
-                // Try consuming zero or more characters from `n`.
-                if helper(&p[1..], n) {
-                    return true;
-                }
-                if !n.is_empty() && helper(p, &n[1..]) {
-                    return true;
-                }
-                false
+    // Keep the existing byte and ASCII-case matching contract, but visit each
+    // pattern/name pair once. Recursive `*` expansion revisits the same suffixes
+    // exponentially and can stall onto_repo_list on a single ordinary filename.
+    let name = name.as_bytes();
+    let mut matched = vec![false; name.len() + 1];
+    matched[0] = true;
+    for pc in pattern.as_bytes() {
+        if *pc == b'*' {
+            for i in 1..matched.len() {
+                matched[i] = matched[i] || matched[i - 1];
             }
-            (Some(b'?'), Some(_)) => helper(&p[1..], &n[1..]),
-            (Some(pc), Some(nc)) if pc.eq_ignore_ascii_case(nc) => helper(&p[1..], &n[1..]),
-            _ => false,
+        } else {
+            for i in (1..matched.len()).rev() {
+                matched[i] =
+                    matched[i - 1] && (*pc == b'?' || pc.eq_ignore_ascii_case(&name[i - 1]));
+            }
+            matched[0] = false;
         }
     }
-    helper(pattern.as_bytes(), name.as_bytes())
+    matched[name.len()]
 }
 
 /// Normalize `dir` to an absolute path that lies inside one of the configured

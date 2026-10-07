@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
+
 ### Added
 
 - **A named profile hands a client one job's worth of the tool surface** (#263).
