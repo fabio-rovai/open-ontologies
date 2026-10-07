@@ -167,7 +167,7 @@ async fn mapping_and_scaffold_discover_the_same_nonempty_schema_in_all_graph_for
                 json!({"path":data, "inline_mapping":true, "mapping":explicit.to_string()}),
             )
             .await;
-        assert_eq!(ingest["rows"], 1);
+        assert_eq!(ingest["rows_processed"], 1);
         let overridden = mcp
             .call(
                 "onto_query",
