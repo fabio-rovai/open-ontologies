@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Load crosswalk Parquet string columns with either Utf8 or LargeUtf8 offsets, including mixed schemas, so valid rows are not silently discarded.
+
 ### Added
 
 - **A named profile hands a client one job's worth of the tool surface** (#263).
