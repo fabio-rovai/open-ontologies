@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Compare canonical blank node identities in ontology diffs, so unchanged
+  anonymous restrictions do not appear as added and removed triples. Anonymous
+  structure remains visible when it changes; canonical IDs can shift under edits.
+
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that

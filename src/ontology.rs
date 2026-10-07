@@ -61,29 +61,25 @@ impl OntologyService {
 
     /// Diff two ontologies. Returns added/removed triples.
     pub fn diff(old_content: &str, new_content: &str) -> anyhow::Result<String> {
-        let old_store = Store::new()?;
-        let new_store = Store::new()?;
+        let old_raw = GraphStore::new();
+        let new_raw = GraphStore::new();
+        old_raw.load_turtle(old_content, None)?;
+        new_raw.load_turtle(new_content, None)?;
 
-        let old_reader = Cursor::new(old_content.as_bytes());
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(old_reader) {
-            old_store.insert(&quad?)?;
-        }
-
-        let new_reader = Cursor::new(new_content.as_bytes());
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(new_reader) {
-            new_store.insert(&quad?)?;
-        }
-
+        // Parse-local blank node IDs are not identity across snapshots.
+        // Preserve anonymous structure using the same RDFC 1.0 helper as drift.
+        // Canonical IDs can shift under edits; this is not a minimal edit script.
+        let old_store = old_raw.canonicalize_blank_nodes()?;
+        let new_store = new_raw.canonicalize_blank_nodes()?;
         let old_triples: HashSet<String> = old_store
-            .iter()
-            .filter_map(|q| q.ok())
-            .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+            .all_triples()?
+            .into_iter()
+            .map(|(s, p, o)| format!("{s} {p} {o}"))
             .collect();
-
         let new_triples: HashSet<String> = new_store
-            .iter()
-            .filter_map(|q| q.ok())
-            .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+            .all_triples()?
+            .into_iter()
+            .map(|(s, p, o)| format!("{s} {p} {o}"))
             .collect();
 
         let added: Vec<&String> = new_triples.difference(&old_triples).collect();
