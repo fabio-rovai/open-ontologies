@@ -173,6 +173,13 @@ fn synthetic_field_skips_all_existing_names_and_explicit_identifiers_stay_unchan
     let export = induced.instance_ntriples(&rows);
     assert!(export.contains("<https://example.org/orders/ont#__row> \"import-A\""));
     assert!(export.contains("<https://example.org/orders/ont#__row_> \"import-B\""));
+    let plain = DataIngester::parse_csv("kind,quantity\nretail,3\nretail,5\n").unwrap();
+    let synthesized = induce(&plain, &["kind".into(), "quantity".into()], "Orders", BASE);
+    assert_eq!(synthesized.id_column, "__row");
+    let export = synthesized.instance_ntriples(&plain);
+    assert!(export.contains("<https://example.org/orders/1>"));
+    assert!(export.contains("<https://example.org/orders/2>"));
+    assert!(!export.contains("_auto_"));
     let rows =
         DataIngester::parse_csv("id,kind,quantity\norder-1,retail,3\norder-2,retail,5\n").unwrap();
     let induced = induce(

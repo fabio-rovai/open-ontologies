@@ -356,7 +356,7 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
                     field.push('_');
                 }
                 (field, true)
-            },
+            }
         },
     };
     let id_values: BTreeSet<String> = if id_synthesised {
