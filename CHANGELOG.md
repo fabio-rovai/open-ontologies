@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Materialize documented row-number identifiers in batch and MCP induction
+  when no input column identifies the rows. Choose an unused internal field so
+  existing `__row` data remains a property instead of merging different rows.
+
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that

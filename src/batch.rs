@@ -1075,7 +1075,7 @@ impl BatchRunner {
                 .graph
                 .load_turtle(&induced.ontology_ttl, None)
                 .and_then(|a| self.graph.load_turtle(&induced.shapes_ttl, None).map(|b| a + b))
-                .and_then(|ab| self.graph.load_ntriples(&induced.mapping.rows_to_ntriples(&rows)).map(|c| (ab, c)));
+                .and_then(|ab| self.graph.load_ntriples(&induced.instance_ntriples(&rows)).map(|c| (ab, c)));
             match loaded {
                 Ok((schema, data)) => {
                     v["loaded"] = json!({"schema_triples": schema, "instance_triples": data});

@@ -207,6 +207,31 @@ pub struct Induced {
     pub means: &'static str,
 }
 
+impl Induced {
+    /// Serialize the analyzed rows as instances of this induced class.
+    ///
+    /// When no input column identifies the rows, materialize the documented
+    /// 1-based row numbers in the unused internal ID field. Original cells are
+    /// retained. Explicit identifiers use the existing mapping unchanged.
+    ///
+    /// The exported `MappingConfig` alone cannot synthesize row numbers from
+    /// raw input: use this serializer, or supply its generated ID field first.
+    pub fn instance_ntriples(&self, rows: &[HashMap<String, String>]) -> String {
+        if !self.id_synthesised {
+            return self.mapping.rows_to_ntriples(rows);
+        }
+        rows.iter()
+            .enumerate()
+            .flat_map(|(index, original)| {
+                let mut row = original.clone();
+                row.insert(self.id_column.clone(), (index + 1).to_string());
+                self.mapping.row_to_triples(&row)
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
+
 const MEANS: &str = "an induced ontology is a HYPOTHESIS about the sheet, not a truth about the \
                      domain. Every class, property, datatype and shape here was read off the rows \
                      and carries the counts that produced it; the rows satisfy the shapes by \
@@ -325,7 +350,13 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
         Some(h) if n > 0 && filled_unique(h) => (h.clone(), false),
         _ => match headers.iter().find(|h| id_like(h) && filled_unique(h)) {
             Some(h) => (h.clone(), false),
-            None => ("__row".to_string(), true),
+            None => {
+                let mut field = "__row".to_string();
+                while headers.contains(&field) || rows.iter().any(|row| row.contains_key(&field)) {
+                    field.push('_');
+                }
+                (field, true)
+            },
         },
     };
     let id_values: BTreeSet<String> = if id_synthesised {
