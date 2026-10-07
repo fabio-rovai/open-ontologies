@@ -53,7 +53,7 @@ pub fn build_scaffold(graph: &Arc<GraphStore>, class_iri: &str) -> anyhow::Resul
         class_iri
     );
     let mut props: Vec<PropertySpec> = Vec::new();
-    if let Ok(js) = graph.sparql_select(&q)
+    if let Ok(js) = graph.sparql_select_union(&q)
         && let Ok(v) = serde_json::from_str::<serde_json::Value>(&js)
         && let Some(rows) = v["results"].as_array()
     {
@@ -376,7 +376,7 @@ fn type_mismatch_kind(kind: RangeKind) -> String {
 
 fn single_str(graph: &Arc<GraphStore>, iri: &str, pred: &str) -> Option<String> {
     let q = format!("SELECT ?v WHERE {{ <{}> <{}> ?v }} LIMIT 1", iri, pred);
-    let js = graph.sparql_select(&q).ok()?;
+    let js = graph.sparql_select_union(&q).ok()?;
     let v: serde_json::Value = serde_json::from_str(&js).ok()?;
     v["results"][0]["v"]
         .as_str()

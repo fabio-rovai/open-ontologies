@@ -46,6 +46,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Read extraction-scaffold class metadata and property declarations from every
+  loaded graph, so TriG and N-Quads schemas retain the same typed extraction
+  checks and prompt fields as Turtle schemas.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
