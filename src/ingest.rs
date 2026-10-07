@@ -386,7 +386,15 @@ impl DataIngester {
     /// Dispatch to the correct parser based on detected format.
     /// For text formats, reads the file content first.
     pub fn parse_file(path: &str) -> Result<Vec<HashMap<String, String>>> {
-        let format = Self::detect_format(path);
+        Self::parse_file_with_format(path, None)
+    }
+
+    /// Parse the explicitly requested format, or infer it from the extension.
+    pub fn parse_file_with_format(
+        path: &str,
+        format: Option<&str>,
+    ) -> Result<Vec<HashMap<String, String>>> {
+        let format = format.unwrap_or_else(|| Self::detect_format(path));
         match format {
             "csv" => {
                 let content = Self::read_to_string_capped(path)?;
@@ -410,10 +418,7 @@ impl DataIngester {
             }
             "xlsx" => Self::parse_xlsx_file(path),
             "parquet" => Self::parse_parquet_file(path),
-            _ => {
-                let content = Self::read_to_string_capped(path)?;
-                Self::parse_csv(&content)
-            }
+            _ => anyhow::bail!("Unsupported data format: {format}"),
         }
     }
 

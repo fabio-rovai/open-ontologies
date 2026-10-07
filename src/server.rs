@@ -1029,7 +1029,7 @@ impl OpenOntologiesServer {
         let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/data/");
 
         // Parse data file
-        let rows = match DataIngester::parse_file(&input.path) {
+        let rows = match DataIngester::parse_file_with_format(&input.path, input.format.as_deref()) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.path, e)),
         };
@@ -1310,7 +1310,7 @@ impl OpenOntologiesServer {
         use crate::ingest::DataIngester;
         use crate::mapping::MappingConfig;
 
-        let rows = match DataIngester::parse_file(&input.data_path) {
+        let rows = match DataIngester::parse_file_with_format(&input.data_path, input.format.as_deref()) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.data_path, e)),
         };

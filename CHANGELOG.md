@@ -46,6 +46,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Explicit ingest formats are honored by the local CLI and the MCP ingest/map
+  tools rather than silently falling back to filename detection. Omitted formats
+  retain extension detection, and unsupported explicit formats return an error.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
