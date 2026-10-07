@@ -13,7 +13,11 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build:
+  # The Windows package leg can finish Build/Test/Clippy yet hit its 30-minute
+  # ceiling while compiling cargo-audit. Give the identical audit commands their
+  # own bounded matrix job, without letting an audit failure skip a required
+  # build check into a neutral result.
+  audit:
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,6 +28,38 @@ jobs:
       CARGO_INCREMENTAL: 0
       CARGO_PROFILE_DEV_DEBUG: 0
     steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          key: audit
+      - name: Audit
+        run: |
+          # --locked installs cargo-audit with its own published Cargo.lock.
+          # Without it cargo resolves transitive deps to latest, and
+          # tinyvec 1.13.0 no longer compiles on current stable
+          # ("`vec` is imported here, but it is a module, not a macro"),
+          # so the audit step fails for a reason unrelated to this repo.
+          cargo install cargo-audit --locked
+          cargo audit
+
+  build:
+    needs: audit
+    if: ${{ always() }}
+    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - name: Require successful prerequisite audits
+        shell: bash
+        run: test "${{ needs.audit.result }}" = success
       - uses: actions/checkout@v4
       - name: Free disk space
         if: runner.os == 'Linux'
@@ -87,15 +123,6 @@ jobs:
           grep 'SKIPPED_FIXTURE:' cargo-test.log | sort -u || true
       - name: Clippy
         run: cargo clippy -- -D warnings
-      - name: Audit
-        run: |
-          # --locked installs cargo-audit with its own published Cargo.lock.
-          # Without it cargo resolves transitive deps to latest, and
-          # tinyvec 1.13.0 no longer compiles on current stable
-          # ("`vec` is imported here, but it is a module, not a macro"),
-          # so the audit step fails for a reason unrelated to this repo.
-          cargo install cargo-audit --locked
-          cargo audit
 
   # Windows is the only leg that rejects an unrepresentable path, and it rejects
   # it inside actions/checkout, before a line is compiled: `benchmark/lubm\Uni-
