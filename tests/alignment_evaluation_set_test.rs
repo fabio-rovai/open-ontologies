@@ -104,16 +104,15 @@ fn entry(source: &str, target: &str, relation: &str) -> AlignmentEntry {
     }
 }
 
-fn cases() -> Vec<(
-    Vec<AlignmentEntry>,
-    Vec<AlignmentEntry>,
-    f64,
-    f64,
-    f64,
-    usize,
-    usize,
-    usize,
-)> {
+type Scores = (f64, f64, f64, usize, usize, usize);
+
+struct Case {
+    reference: Vec<AlignmentEntry>,
+    computed: Vec<AlignmentEntry>,
+    expected: Scores,
+}
+
+fn cases() -> Vec<Case> {
     let a = entry(
         "https://example.org/Order",
         "https://example.org/Purchase",
@@ -195,9 +194,18 @@ fn cases() -> Vec<(
         (vec![], vec![a.clone(), a], 0.0, 0.0, 0.0, 0, 1, 0),
         (vec![], vec![], 0.0, 0.0, 0.0, 0, 0, 0),
     ]
+    .into_iter()
+    .map(
+        |(reference, computed, precision, recall, f1, tp, fp, fn_)| Case {
+            reference,
+            computed,
+            expected: (precision, recall, f1, tp, fp, fn_),
+        },
+    )
+    .collect()
 }
 
-fn assert_report(result: &Value, expected: (f64, f64, f64, usize, usize, usize)) {
+fn assert_report(result: &Value, expected: Scores) {
     let (precision, recall, f1, tp, fp, fn_) = expected;
     assert_eq!(result["precision"], precision);
     assert_eq!(result["recall"], recall);
@@ -211,9 +219,14 @@ fn assert_report(result: &Value, expected: (f64, f64, f64, usize, usize, usize))
 
 #[test]
 fn repeated_alignment_entries_do_not_change_set_scores_or_relation_identity() {
-    for (reference, computed, precision, recall, f1, tp, fp, fn_) in cases() {
+    for Case {
+        reference,
+        computed,
+        expected,
+    } in cases()
+    {
         let result = serde_json::to_value(evaluate(&reference, &computed)).unwrap();
-        assert_report(&result, (precision, recall, f1, tp, fp, fn_));
+        assert_report(&result, expected);
     }
 }
 
@@ -221,7 +234,12 @@ fn repeated_alignment_entries_do_not_change_set_scores_or_relation_identity() {
 async fn public_mcp_alignment_scores_and_counts_agree_with_the_same_sets() {
     let tmp = tempfile::tempdir().unwrap();
     let mut mcp = Mcp::start(tmp.path()).await;
-    for (reference, computed, precision, recall, f1, tp, fp, fn_) in cases() {
+    for Case {
+        reference,
+        computed,
+        expected,
+    } in cases()
+    {
         let result = mcp
             .call(
                 "onto_eval_alignment",
@@ -231,7 +249,7 @@ async fn public_mcp_alignment_scores_and_counts_agree_with_the_same_sets() {
                 }),
             )
             .await;
-        assert_report(&result, (precision, recall, f1, tp, fp, fn_));
+        assert_report(&result, expected);
     }
     mcp.child.kill().await.unwrap();
 }
