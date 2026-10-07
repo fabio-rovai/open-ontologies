@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Render XLSX numeric calendar cells as ISO dateTime values instead of Excel
+  serial numbers, respecting the workbook's 1900 or 1904 calendar. Duration
+  cells retain their existing representation; calendar cells do not distinguish
+  date-only values from midnight dateTimes.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
