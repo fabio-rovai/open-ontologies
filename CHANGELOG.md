@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Calculate alignment evaluation metrics and reported sizes from the same
+  deduplicated alignment sets as TP/FP/FN, so repeated entries do not lower the
+  score of an otherwise identical alignment.
+
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
