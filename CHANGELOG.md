@@ -46,6 +46,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Validate relative RDF references against the local document base, matching
+  loading, conversion, and linting. Encode local file URLs so RDF files under paths with
+  spaces, percent signs, or fragment characters resolve relative references
+  correctly; explicit Turtle and XML bases retain priority.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
