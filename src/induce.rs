@@ -136,14 +136,18 @@ impl Dt {
                     Some(x) => x,
                     None => return false,
                 };
+                if !Dt::Date.accepts(d) {
+                    return false;
+                }
                 let t = t.trim_end_matches('Z');
                 let t = t.split(['+']).next().unwrap_or(t);
-                let t = if t.len() > 8 && &t[8..9] == "-" { &t[..8] } else { t };
-                Dt::Date.accepts(d)
-                    && t.len() >= 8
-                    && &t[2..3] == ":"
-                    && &t[5..6] == ":"
-                    && t[..8].chars().enumerate().all(|(i, c)| i == 2 || i == 5 || c.is_ascii_digit())
+                let t = if t.get(8..9) == Some("-") { &t[..8] } else { t };
+                t.len() >= 8
+                    && t.get(2..3) == Some(":")
+                    && t.get(5..6) == Some(":")
+                    && t.get(..8).is_some_and(|prefix| {
+                        prefix.chars().enumerate().all(|(i, c)| i == 2 || i == 5 || c.is_ascii_digit())
+                    })
             }
             Dt::AnyUri => (v.starts_with("http://") || v.starts_with("https://")) && !v.contains(' '),
             Dt::String => true,
