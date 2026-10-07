@@ -46,6 +46,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Parquet ingest formats each non-primitive cell with Arrow's value formatter,
+  preserving date and decimal lexical values instead of embedding a debug dump
+  of the complete column in every row. Formatting errors fail the import.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that

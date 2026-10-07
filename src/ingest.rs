@@ -292,6 +292,12 @@ impl DataIngester {
                         String::new()
                     } else {
                         Self::arrow_array_value_to_string(col.as_ref(), row_idx, field.data_type())
+                            .with_context(|| {
+                                format!(
+                                    "Failed to format Parquet column {} row {row_idx}",
+                                    field.name()
+                                )
+                            })?
                     };
                     row.insert(field.name().clone(), value);
                 }
@@ -306,11 +312,11 @@ impl DataIngester {
         array: &dyn arrow::array::Array,
         idx: usize,
         data_type: &arrow::datatypes::DataType,
-    ) -> String {
+    ) -> Result<String> {
         use arrow::array::*;
         use arrow::datatypes::DataType as ArrowType;
 
-        match data_type {
+        Ok(match data_type {
             ArrowType::Boolean => {
                 let a = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                 a.value(idx).to_string()
@@ -363,10 +369,12 @@ impl DataIngester {
                 let a = array.as_any().downcast_ref::<LargeStringArray>().unwrap();
                 a.value(idx).to_string()
             }
-            _ => format!("{array:?}[{idx}]"),
-        }
+            // Format this cell, never the whole column's Debug view. Dates,
+            // timestamps and scaled decimals otherwise include every other
+            // row's value in the string assigned to this one.
+            _ => arrow::util::display::array_value_to_string(array, idx)?,
+        })
     }
-
     /// Read a whole text file into memory, refusing anything over the ingest cap.
     /// Ingest reads the entire file at once, so an unbounded read is an
     /// out-of-memory lever for any caller that can point the tool at a large file.
