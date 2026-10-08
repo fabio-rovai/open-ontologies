@@ -1046,9 +1046,9 @@ impl BatchRunner {
             None => return json!({"error": "induce requires a data file path"}),
         };
         let base = Self::flag_value(args, "--base-iri").unwrap_or("http://example.org/data/".to_string());
-        let stem = Self::flag_value(args, "--class").unwrap_or_else(|| {
-            std::path::Path::new(&path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
-        });
+        let source_stem = std::path::Path::new(&path).file_stem()
+            .and_then(|s| s.to_str()).unwrap_or("Row").to_string();
+        let stem = Self::flag_value(args, "--class").unwrap_or_else(|| source_stem.clone());
         let rows = match DataIngester::parse_file(&path) {
             Ok(r) => r,
             Err(e) => return json!({"error": e.to_string()}),
@@ -1057,7 +1057,7 @@ impl BatchRunner {
             return json!({"error": "no data rows found; nothing to induce from"});
         }
         let headers = DataIngester::headers_in_order(&path, &rows);
-        let induced = crate::induce::induce(&rows, &headers, &stem, &base);
+        let induced = crate::induce::induce_with_source(&rows, &headers, &stem, &source_stem, &base);
         if let Some(out) = Self::flag_value(args, "--out") {
             let dir = std::path::Path::new(&out);
             if let Err(e) = std::fs::create_dir_all(dir)

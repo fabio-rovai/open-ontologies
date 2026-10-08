@@ -1116,9 +1116,9 @@ impl OpenOntologiesServer {
     async fn onto_induce(&self, Parameters(input): Parameters<OntoInduceInput>) -> String {
         use crate::ingest::DataIngester;
         let base_iri = input.base_iri.clone().unwrap_or_else(|| "http://example.org/data/".to_string());
-        let stem = input.class_name.clone().unwrap_or_else(|| {
-            std::path::Path::new(&input.path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
-        });
+        let source_stem = std::path::Path::new(&input.path).file_stem()
+            .and_then(|s| s.to_str()).unwrap_or("Row").to_string();
+        let stem = input.class_name.clone().unwrap_or_else(|| source_stem.clone());
         let rows = match DataIngester::parse_file(&input.path) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.path, e)),
@@ -1127,7 +1127,7 @@ impl OpenOntologiesServer {
             return Self::err_json("no data rows found; nothing to induce from");
         }
         let headers = DataIngester::headers_in_order(&input.path, &rows);
-        let induced = crate::induce::induce(&rows, &headers, &stem, &base_iri);
+        let induced = crate::induce::induce_with_source(&rows, &headers, &stem, &source_stem, &base_iri);
         let mut v = match serde_json::to_value(&induced) {
             Ok(v) => v,
             Err(e) => return Self::err_json(e),
