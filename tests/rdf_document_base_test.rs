@@ -157,6 +157,7 @@ fn turtle_source_and_comments_are_preserved_and_inline_input_is_unchanged() {
     std::fs::write(&path, &content).unwrap();
     let normalized = GraphStore::read_as_turtle(path.to_str().unwrap()).unwrap();
     assert!(normalized.starts_with("@base <file://"));
+    assert_eq!(GraphStore::validate_turtle(&normalized).unwrap().triples, 1);
     assert!(normalized.ends_with(&content));
     assert_eq!(
         GraphStore::content_as_turtle("-", content.clone()).unwrap(),
@@ -170,4 +171,116 @@ fn turtle_source_and_comments_are_preserved_and_inline_input_is_unchanged() {
         .unwrap(),
         content
     );
+}
+
+fn diagnostic_line(error: &str) -> u64 {
+    error
+        .split_once("line ")
+        .and_then(|(_, suffix)| suffix.split_whitespace().next())
+        .and_then(|line| line.parse().ok())
+        .unwrap_or_else(|| panic!("no parser line in diagnostic: {error}"))
+}
+
+const MISSING_DOT_TTL: &str = concat!(
+    "@prefix ex: <http://example.org/> .\n",
+    "ex:a a ex:C .\n",
+    "ex:b a ex:C\n",
+    "ex:c a ex:C .\n",
+);
+
+#[test]
+fn normalized_turtle_preserves_parse_error_lines_for_consumers() {
+    use open_ontologies::modules::{Module, distributed};
+    use open_ontologies::vocab_check::check_data_vocab;
+    use std::sync::Arc;
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("diagnostics.ttl");
+    let path_str = path.to_str().unwrap();
+    let ontology = Arc::new(GraphStore::new());
+    let commented = format!(
+        "# Original leading comment\r\n@base <https://example.org/base/> .\r\n{}",
+        MISSING_DOT_TTL.replace('\n', "\r\n")
+    );
+    let bom = format!("\u{feff}{ABSOLUTE_TTL}");
+    for (name, content) in [
+        ("first line", "this is not RDF"),
+        ("missing dot", MISSING_DOT_TTL),
+        ("comment and explicit base", commented.as_str()),
+        ("BOM", bom.as_str()),
+    ] {
+        std::fs::write(&path, content).unwrap();
+        let original_error = GraphStore::validate_file(path_str).unwrap_err().to_string();
+        let expected_line = diagnostic_line(&original_error);
+        if name == "missing dot" {
+            assert_eq!(expected_line, 4, "{original_error}");
+        }
+        let normalized = GraphStore::read_as_turtle(path_str).unwrap();
+        let modules = [Module {
+            name: name.to_string(),
+            ttl: normalized.clone(),
+        }];
+        let errors = [
+            (
+                "graph loader",
+                GraphStore::new()
+                    .load_turtle(&normalized, None)
+                    .unwrap_err()
+                    .to_string(),
+            ),
+            (
+                "lint",
+                OntologyService::lint(&normalized).unwrap_err().to_string(),
+            ),
+            ("modules", distributed(&modules, 1).unwrap_err().to_string()),
+            (
+                "vocabulary check",
+                check_data_vocab(&ontology, &normalized, &[])
+                    .unwrap_err()
+                    .to_string(),
+            ),
+        ];
+        for (consumer, error) in errors {
+            assert_eq!(
+                diagnostic_line(&error),
+                expected_line,
+                "{name}: {consumer}: {error}; original: {original_error}"
+            );
+        }
+    }
+}
+
+#[test]
+fn cli_checkers_report_the_original_turtle_error_line() {
+    let _gate = common::exec_gate();
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("diagnostics.ttl");
+    let path_str = path.to_str().unwrap();
+    for content in ["this is not RDF", MISSING_DOT_TTL] {
+        std::fs::write(&path, content).unwrap();
+        let expected_line =
+            diagnostic_line(&GraphStore::validate_file(path_str).unwrap_err().to_string());
+        for command in ["validate", "lint", "defects", "vocab-check"] {
+            let result = std::process::Command::new(env!("CARGO_BIN_EXE_open-ontologies"))
+                .args(["--no-connect", "--data-dir"])
+                .arg(tmp.path())
+                .arg(command)
+                .arg(&path)
+                .output()
+                .unwrap();
+            let stdout = String::from_utf8(result.stdout).unwrap();
+            let stderr = String::from_utf8_lossy(&result.stderr);
+            assert_eq!(
+                result.status.code(),
+                Some(1),
+                "{command}: stdout={stdout}; stderr={stderr}"
+            );
+            let report: serde_json::Value = serde_json::from_str(&stdout).unwrap_or_else(|error| {
+                panic!("{command}: {error}; stdout={stdout}; stderr={stderr}")
+            });
+            let error = report["error"]
+                .as_str()
+                .unwrap_or_else(|| panic!("{command}: {report}"));
+            assert_eq!(diagnostic_line(error), expected_line, "{command}: {error}");
+        }
+    }
 }

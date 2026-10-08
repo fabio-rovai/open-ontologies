@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep original Turtle error line numbers when applying a local document base.
+
 ### Added
 
 - **A named profile hands a client one job's worth of the tool surface** (#263).

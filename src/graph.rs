@@ -343,9 +343,10 @@ impl GraphStore {
         let format = Self::detect_format_sniffed(path_hint, &content);
         if format == RdfFormat::Turtle {
             if let Some(base) = Self::file_base_iri(path_hint) {
-                // Supply the document base without rewriting its Turtle. A
-                // later @base in the source still overrides this default.
-                return Ok(format!("@base <{base}> .\n{content}"));
+                // Keep the default base on the first source line so downstream
+                // parsers report the document's original line numbers. A later
+                // @base still overrides it; only first-line columns gain the prefix.
+                return Ok(format!("@base <{base}> . {content}"));
             }
             return Ok(content);
         }
