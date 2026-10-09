@@ -99,6 +99,10 @@ All notable changes to Open Ontologies are documented here.
 - Decode extraction-scaffold annotation literals to their lexical text, so
   language-tagged and escaped class labels, comments, and property labels retain
   their intended prompt fields and label-keyed type checks.
+- Save ontology versions as N-Quads and restore their stored format, preserving
+  named graphs and repeated facts in separate contexts. Legacy N-Triples
+  snapshots remain readable.
+
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to

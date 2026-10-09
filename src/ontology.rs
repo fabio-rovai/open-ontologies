@@ -236,12 +236,12 @@ impl OntologyService {
 
     /// Save a named version (snapshot) of the current graph store.
     pub fn save_version(db: &StateDb, store: &Arc<GraphStore>, label: &str) -> anyhow::Result<String> {
-        let content = store.snapshot("ntriples")?;
+        let content = store.snapshot("nquads")?;
         let count = store.triple_count();
         let conn = db.conn();
         conn.execute(
             "INSERT INTO ontology_versions (label, triple_count, content, format) VALUES (?1, ?2, ?3, ?4)",
-            rusqlite::params![label, count as i64, content, "ntriples"],
+            rusqlite::params![label, count as i64, content, "nquads"],
         )?;
         Ok(serde_json::json!({
             "ok": true,
@@ -271,13 +271,18 @@ impl OntologyService {
     /// Rollback the graph store to a previously saved version.
     pub fn rollback_version(db: &StateDb, store: &Arc<GraphStore>, label: &str) -> anyhow::Result<String> {
         let conn = db.conn();
-        let content: String = conn.query_row(
-            "SELECT content FROM ontology_versions WHERE label = ?1 ORDER BY id DESC LIMIT 1",
+        let (content, format): (String, String) = conn.query_row(
+            "SELECT content, format FROM ontology_versions WHERE label = ?1 ORDER BY id DESC LIMIT 1",
             rusqlite::params![label],
-            |row| row.get(0),
+            |row| Ok((row.get(0)?, row.get(1)?)),
         )?;
+        let rdf_format = match format.as_str() {
+            "nquads" => RdfFormat::NQuads,
+            "ntriples" => RdfFormat::NTriples,
+            _ => anyhow::bail!("unsupported saved version format: {format}"),
+        };
         store.clear()?;
-        let count = store.load_ntriples(&content)?;
+        let count = store.load_content(&content, rdf_format)?;
         Ok(serde_json::json!({
             "ok": true,
             "label": label,
