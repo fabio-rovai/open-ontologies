@@ -92,6 +92,10 @@ All notable changes to Open Ontologies are documented here.
 - Treat Unicode strings as strings during the dateTime probe, including mixed
   product names such as `Tシャツ半袖綿素材`, so one-sheet induction can complete
   without slicing through a character. Existing ASCII dateTime checks are retained.
+- Emit lowercase RDF lexical values for already-admitted Boolean words in
+  declared boolean mappings, including spreadsheet-style case and surrounding
+  whitespace, so loaded values compare as booleans. String content and datatype
+  inference retain their existing behavior.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
