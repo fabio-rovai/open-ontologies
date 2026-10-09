@@ -86,6 +86,9 @@ All notable changes to Open Ontologies are documented here.
   loading, conversion, and linting. Encode local file URLs so RDF files under paths with
   spaces, percent signs, or fragment characters resolve relative references
   correctly; explicit Turtle and XML bases retain priority.
+- Keep competency-question result excerpts within the existing 800-byte budget
+  at a UTF-8 character boundary, so long multilingual descriptions return the
+  normal report instead of failing during formatting.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
