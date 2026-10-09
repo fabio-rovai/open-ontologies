@@ -297,6 +297,10 @@ impl DataIngester {
             calamine::Data::Float(f) => f.to_string(),
             calamine::Data::String(s) => s.clone(),
             calamine::Data::Bool(b) => b.to_string(),
+            calamine::Data::DateTime(dt) if dt.is_datetime() => dt
+                .as_datetime()
+                .map(|value| value.format("%Y-%m-%dT%H:%M:%S%.f").to_string())
+                .unwrap_or_else(|| dt.to_string()),
             calamine::Data::DateTime(dt) => dt.to_string(),
             calamine::Data::DateTimeIso(s) => s.clone(),
             calamine::Data::DurationIso(s) => s.clone(),
