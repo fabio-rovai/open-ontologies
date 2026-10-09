@@ -1330,8 +1330,8 @@ impl OpenOntologiesServer {
             { ?p a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> }
         }"#;
 
-        let classes = self.graph.sparql_select(classes_query).unwrap_or_default();
-        let props = self.graph.sparql_select(props_query).unwrap_or_default();
+        let classes = self.graph.sparql_select_union(classes_query).unwrap_or_default();
+        let props = self.graph.sparql_select_union(props_query).unwrap_or_default();
 
         let extract_iris = |json: &str, var: &str| -> Vec<String> {
             serde_json::from_str::<serde_json::Value>(json)

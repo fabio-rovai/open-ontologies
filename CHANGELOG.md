@@ -58,6 +58,9 @@ All notable changes to Open Ontologies are documented here.
 - Explicit ingest formats are honored by the local CLI and the MCP ingest/map
   tools rather than silently falling back to filename detection. Omitted formats
   retain extension detection, and unsupported explicit formats return an error.
+- Read extraction-scaffold metadata and mapping-generator declarations from
+  every loaded graph, so TriG and N-Quads retain the same discovered classes,
+  properties, typed extraction checks, and prompt fields as Turtle schemas.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
