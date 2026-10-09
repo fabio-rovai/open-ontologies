@@ -13,6 +13,33 @@ pub struct CrosswalkRow {
     pub target_label: String,
 }
 
+// Parquet Arrow metadata may retain either string offset width.
+// Keep unsupported columns and null value handling consistent with the loader.
+enum CrosswalkStrings<'a> {
+    Utf8(&'a arrow::array::StringArray),
+    LargeUtf8(&'a arrow::array::LargeStringArray),
+}
+
+impl<'a> CrosswalkStrings<'a> {
+    fn new(array: &'a dyn arrow::array::Array) -> Option<Self> {
+        if let Some(strings) = array.as_any().downcast_ref::<arrow::array::StringArray>() {
+            Some(Self::Utf8(strings))
+        } else {
+            array
+                .as_any()
+                .downcast_ref::<arrow::array::LargeStringArray>()
+                .map(Self::LargeUtf8)
+        }
+    }
+
+    fn value(&self, index: usize) -> &str {
+        match self {
+            Self::Utf8(strings) => strings.value(index),
+            Self::LargeUtf8(strings) => strings.value(index),
+        }
+    }
+}
+
 /// Clinical crosswalks backed by a Parquet file.
 pub struct ClinicalCrosswalks {
     rows: Vec<CrosswalkRow>,
@@ -21,7 +48,6 @@ pub struct ClinicalCrosswalks {
 impl ClinicalCrosswalks {
     /// Load crosswalk data from a Parquet file.
     pub fn load(path: &str) -> anyhow::Result<Self> {
-        use arrow::array::StringArray;
         use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
         use std::fs::File;
 
@@ -33,19 +59,19 @@ impl ClinicalCrosswalks {
         for batch in reader {
             let batch = batch?;
             let source_code = batch.column_by_name("source_code")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let source_system = batch.column_by_name("source_system")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let target_code = batch.column_by_name("target_code")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let target_system = batch.column_by_name("target_system")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let relation = batch.column_by_name("relation")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let source_label = batch.column_by_name("source_label")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
             let target_label = batch.column_by_name("target_label")
-                .and_then(|c| c.as_any().downcast_ref::<StringArray>());
+                .and_then(|c| CrosswalkStrings::new(c.as_ref()));
 
             if let (Some(sc), Some(ss), Some(tc), Some(ts), Some(rel), Some(sl), Some(tl)) =
                 (source_code, source_system, target_code, target_system, relation, source_label, target_label)

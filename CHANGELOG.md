@@ -13,6 +13,7 @@ All notable changes to Open Ontologies are documented here.
   preserving distinct subjects across sheets and class overrides. Encode source
   names losslessly; identical stems require distinct base IRIs.
 - Keep original Turtle error line numbers when applying a local document base.
+- Load crosswalk Parquet string columns with either Utf8 or LargeUtf8 offsets, including mixed schemas, so valid rows are not silently discarded.
 
 ### Added
 
