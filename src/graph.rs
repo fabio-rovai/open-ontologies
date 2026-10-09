@@ -257,34 +257,49 @@ impl GraphStore {
     }
 
     /// Load RDF content with an optional base IRI for resolving relative IRIs.
-    pub fn load_content_with_base(&self, content: &str, format: RdfFormat, base_iri: Option<&str>) -> anyhow::Result<usize> {
-        let store = &self.store;
+    pub fn load_content_with_base(
+        &self,
+        content: &str,
+        format: RdfFormat,
+        base_iri: Option<&str>,
+    ) -> anyhow::Result<usize> {
+        self.load_content_with_base_mode(content, format, base_iri, false)
+    }
+
+    fn load_content_with_base_mode(
+        &self,
+        content: &str,
+        format: RdfFormat,
+        base_iri: Option<&str>,
+        replace: bool,
+    ) -> anyhow::Result<usize> {
         let reader = Cursor::new(content.as_bytes());
         let mut parser = RdfParser::from_format(format);
         if let Some(base) = base_iri {
             parser = parser.with_base_iri(base)?;
         }
         // All or nothing: see load_turtle (issue #93).
-        let quads: Vec<_> = parser
-            .for_reader(reader)
-            .collect::<Result<_, _>>()?;
-        // Report triples actually added, not parse events. The store is a set, so
-        // re-inserting a statement it already holds changes nothing and must not be
-        // counted as a load.
-        let before = store.len().unwrap_or(0);
-        // Atomic for the reason given on the first loader above.
-        let mut txn = store.start_transaction()?;
-        for quad in &quads {
-            txn.insert(quad);
-        }
-        txn.commit()?;
-        Ok(store.len().unwrap_or(before).saturating_sub(before))
+        let quads: Vec<_> = parser.for_reader(reader).collect::<Result<_, _>>()?;
+        self.store_parsed_quads(&quads, replace)
     }
 
     pub fn load_file(&self, path: &str) -> anyhow::Result<usize> {
+        self.load_file_mode(path, false)
+    }
+
+    /// Replace the active dataset only after the entire source parses.
+    pub(crate) fn replace_file(&self, path: &str) -> anyhow::Result<usize> {
+        self.load_file_mode(path, true)
+    }
+
+    /// Replace from a cache or eviction snapshot without partial publication.
+    pub(crate) fn replace_nquads(&self, content: &str) -> anyhow::Result<usize> {
+        self.load_content_with_base_mode(content, RdfFormat::NQuads, None, true)
+    }
+
+    fn load_file_mode(&self, path: &str, replace: bool) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
         let format = Self::detect_format_sniffed(path, &content);
-        let store = &self.store;
         let reader = Cursor::new(content.as_bytes());
 
         // A document's own location is its default base, per RFC 3986. Without
@@ -296,25 +311,34 @@ impl GraphStore {
             .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
         // All or nothing: see load_turtle (issue #93).
         let mut parser = RdfParser::from_format(format);
-        if let Some(p) = base.as_ref().and_then(|b| parser.clone().with_base_iri(b).ok()) {
+        if let Some(p) = base
+            .as_ref()
+            .and_then(|b| parser.clone().with_base_iri(b).ok())
+        {
             parser = p;
         }
-        let quads: Vec<_> = parser
-            .for_reader(reader)
-            .collect::<Result<_, _>>()?;
-        // Report triples actually added, not parse events. The store is a set, so
-        // re-inserting a statement it already holds changes nothing and must not be
-        // counted as a load.
-        let before = store.len().unwrap_or(0);
-        // Atomic for the reason given on the first loader above.
-        let mut txn = store.start_transaction()?;
-        for quad in &quads {
+        let quads: Vec<_> = parser.for_reader(reader).collect::<Result<_, _>>()?;
+        self.store_parsed_quads(&quads, replace)
+    }
+
+    fn store_parsed_quads(&self, quads: &[Quad], replace: bool) -> anyhow::Result<usize> {
+        let before = if replace {
+            0
+        } else {
+            self.store.len().unwrap_or(0)
+        };
+        let mut txn = self.store.start_transaction()?;
+        if replace {
+            // Clear and insert share one transaction: failed parsing never clears
+            // the old graph, and readers cannot observe an empty intermediate graph.
+            txn.clear()?;
+        }
+        for quad in quads {
             txn.insert(quad);
         }
         txn.commit()?;
-        Ok(store.len().unwrap_or(before).saturating_sub(before))
+        Ok(self.store.len().unwrap_or(before).saturating_sub(before))
     }
-
     pub fn save_file(&self, path: &str, format: &str) -> anyhow::Result<()> {
         let content = self.serialize(format)?;
         std::fs::write(path, content)?;

@@ -124,20 +124,17 @@ impl OntologyRegistry {
                 })
                 .unwrap_or(false);
 
-        // Always start from a clean store for a fresh load.
-        self.graph.clear()?;
-
         let (triple_count, origin, cache_path) = if cache_is_fresh {
             let entry = existing.unwrap();
             let quads = std::fs::read_to_string(&entry.cache_path)
                 .with_context(|| format!("read cache {}", entry.cache_path))?;
-            let count = self.graph.load_nquads(&quads)?;
+            let count = self.graph.replace_nquads(&quads)?;
             self.cache.touch(&name)?;
             (count, "cache", PathBuf::from(entry.cache_path))
         } else {
             let count = self
                 .graph
-                .load_file(path)
+                .replace_file(path)
                 .with_context(|| format!("parse source {}", path))?;
             let cache_path = if self.config.enabled {
                 let cp = self.cache.cache_path_for(&name, &fp.sha_prefix);
@@ -217,8 +214,7 @@ impl OntologyRegistry {
             let cur = SourceFingerprint::from_path(Path::new(&source_path))?;
             if cur != stored_fp {
                 // Source changed — re-parse and rewrite cache.
-                self.graph.clear()?;
-                let count = self.graph.load_file(&source_path)?;
+                let count = self.graph.replace_file(&source_path)?;
                 let new_cache = self.cache.cache_path_for(&name, &cur.sha_prefix);
                 let quads = self.graph.serialize("nquads")?;
                 CacheManager::atomic_write(&new_cache, &quads)?;
@@ -247,16 +243,13 @@ impl OntologyRegistry {
             let evict_path = Self::evict_snapshot_path(&cache_path);
             if evict_path.exists() {
                 let quads = std::fs::read_to_string(&evict_path)?;
-                self.graph.clear()?;
-                self.graph.load_nquads(&quads)?;
+                self.graph.replace_nquads(&quads)?;
                 let _ = std::fs::remove_file(&evict_path);
             } else if cache_path.exists() {
                 let quads = std::fs::read_to_string(&cache_path)?;
-                self.graph.clear()?;
-                self.graph.load_nquads(&quads)?;
+                self.graph.replace_nquads(&quads)?;
             } else if Path::new(&source_path).exists() {
-                self.graph.clear()?;
-                self.graph.load_file(&source_path)?;
+                self.graph.replace_file(&source_path)?;
             } else {
                 return Err(anyhow!(
                     "ontology '{}' was evicted but neither cache file '{}' nor source '{}' exists",
