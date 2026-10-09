@@ -89,6 +89,9 @@ All notable changes to Open Ontologies are documented here.
 - Keep competency-question result excerpts within the existing 800-byte budget
   at a UTF-8 character boundary, so long multilingual descriptions return the
   normal report instead of failing during formatting.
+- Treat Unicode strings as strings during the dateTime probe, including mixed
+  product names such as `Tシャツ半袖綿素材`, so one-sheet induction can complete
+  without slicing through a character. Existing ASCII dateTime checks are retained.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
