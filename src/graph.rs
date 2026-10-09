@@ -306,16 +306,11 @@ impl GraphStore {
         // it, any file using relative IRIs fails to parse at all, which is
         // most published RDF/XML: LUBM's generated data would not load a
         // single triple before this.
-        let base = std::fs::canonicalize(path)
-            .ok()
-            .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
+        let base = Self::file_base_iri(path);
         // All or nothing: see load_turtle (issue #93).
         let mut parser = RdfParser::from_format(format);
-        if let Some(p) = base
-            .as_ref()
-            .and_then(|b| parser.clone().with_base_iri(b).ok())
-        {
-            parser = p;
+        if let Some(base) = base {
+            parser = parser.with_base_iri(base)?;
         }
         let quads: Vec<_> = parser.for_reader(reader).collect::<Result<_, _>>()?;
         self.store_parsed_quads(&quads, replace)
@@ -368,17 +363,21 @@ impl GraphStore {
     pub fn content_as_turtle(path_hint: &str, content: String) -> anyhow::Result<String> {
         let format = Self::detect_format_sniffed(path_hint, &content);
         if format == RdfFormat::Turtle {
+            if let Some(base) = Self::file_base_iri(path_hint) {
+                // Keep the default base on the first source line so downstream
+                // parsers report the document's original line numbers. A later
+                // @base still overrides it; only first-line columns gain the prefix.
+                return Ok(format!("@base <{base}> . {content}"));
+            }
             return Ok(content);
         }
         let store = Self::new();
         {
             let inner = &store.store;
-            let base = std::fs::canonicalize(path_hint)
-                .ok()
-                .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
+            let base = Self::file_base_iri(path_hint);
             let mut parser = RdfParser::from_format(format);
-            if let Some(p) = base.as_ref().and_then(|b| parser.clone().with_base_iri(b).ok()) {
-                parser = p;
+            if let Some(base) = base {
+                parser = parser.with_base_iri(base)?;
             }
             let quads: Vec<_> = parser
                 .for_reader(Cursor::new(content.as_bytes()))
@@ -394,8 +393,19 @@ impl GraphStore {
         let content = std::fs::read_to_string(path)?;
         let format = Self::detect_format_sniffed(path, &content);
         let reader = Cursor::new(content.as_bytes());
-        let parser = RdfParser::from_format(format).for_reader(reader);
-        Self::count_parsed(parser)
+        let mut parser = RdfParser::from_format(format);
+        if let Some(base) = Self::file_base_iri(path) {
+            parser = parser.with_base_iri(base)?;
+        }
+        Self::count_parsed(parser.for_reader(reader))
+    }
+
+    /// A local document's default base is its encoded file URL. Building this
+    /// by concatenation treats filename characters such as spaces, `#` and `%`
+    /// as URI syntax instead of part of the path.
+    fn file_base_iri(path: &str) -> Option<String> {
+        let absolute = std::fs::canonicalize(path).ok()?;
+        reqwest::Url::from_file_path(absolute).ok().map(Into::into)
     }
 
     /// Count what a parser produced, distinguishing statements from triples.
