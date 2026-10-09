@@ -80,7 +80,11 @@ pub fn run_cq_suite(graph: &Arc<GraphStore>, cqs: &[CompetencyQuestion]) -> CqRu
                     pitfalls.push(VSPO_HINT_NO_LABELS.to_string());
                 }
                 let excerpt = if js.len() > 800 {
-                    format!("{}...", &js[..800])
+                    let mut end = 800;
+                    while !js.is_char_boundary(end) {
+                        end -= 1;
+                    }
+                    format!("{}...", &js[..end])
                 } else {
                     js
                 };

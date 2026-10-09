@@ -4,6 +4,17 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
+- Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
+- Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
+- Scope deterministic synthetic row identifiers to the original source stem,
+  preserving distinct subjects across sheets and class overrides. Encode source
+  names losslessly; identical stems require distinct base IRIs.
+- Keep original Turtle error line numbers when applying a local document base.
+- Load crosswalk Parquet string columns with either Utf8 or LargeUtf8 offsets, including mixed schemas, so valid rows are not silently discarded.
+
 ### Added
 
 - **A named profile hands a client one job's worth of the tool surface** (#263).
@@ -45,6 +56,57 @@ All notable changes to Open Ontologies are documented here.
   report says so, so it never means false.
 
 ### Fixed
+
+- XML ingest preserves CDATA and text split by comments or CDATA boundaries,
+  and rejects undecodable entities rather than loading a silently empty value.
+  Whitespace normalization applies once to the completed field.
+- Explicit ingest formats are honored by the local CLI and the MCP ingest/map
+  tools rather than silently falling back to filename detection. Omitted formats
+  retain extension detection, and unsupported explicit formats return an error.
+- Read extraction-scaffold metadata and mapping-generator declarations from
+  every loaded graph, so TriG and N-Quads retain the same discovered classes,
+  properties, typed extraction checks, and prompt fields as Turtle schemas.
+- Materialize documented row-number identifiers in batch and MCP induction
+  when no input column identifies the rows. Choose an unused internal field so
+  existing `__row` data remains a property instead of merging different rows.
+
+- Render XLSX numeric calendar cells as ISO dateTime values instead of Excel
+  serial numbers, respecting the workbook's 1900 or 1904 calendar. Duration
+  cells retain their existing representation; calendar cells do not distinguish
+  date-only values from midnight dateTimes.
+- Parquet ingest formats each non-primitive cell with Arrow's value formatter,
+  preserving date and decimal lexical values instead of embedding a debug dump
+  of the complete column in every row. Formatting errors fail the import.
+- Preserve XLSX header and Parquet schema order during induction so the first
+  filled, unique column remains the identifier candidate, as it is for CSV.
+- Compare canonical blank node identities in ontology diffs, so unchanged
+  anonymous restrictions do not appear as added and removed triples. Anonymous
+  structure remains visible when it changes; canonical IDs can shift under edits.
+
+- Validate relative RDF references against the local document base, matching
+  loading, conversion, and linting. Encode local file URLs so RDF files under paths with
+  spaces, percent signs, or fragment characters resolve relative references
+  correctly; explicit Turtle and XML bases retain priority.
+- Keep competency-question result excerpts within the existing 800-byte budget
+  at a UTF-8 character boundary, so long multilingual descriptions return the
+  normal report instead of failing during formatting.
+- Treat Unicode strings as strings during the dateTime probe, including mixed
+  product names such as `Tシャツ半袖綿素材`, so one-sheet induction can complete
+  without slicing through a character. Existing ASCII dateTime checks are retained.
+- Emit lowercase RDF lexical values for already-admitted Boolean words in
+  declared boolean mappings, including spreadsheet-style case and surrounding
+  whitespace, so loaded values compare as booleans. String content and datatype
+  inference retain their existing behavior.
+- Decode extraction-scaffold annotation literals to their lexical text, so
+  language-tagged and escaped class labels, comments, and property labels retain
+  their intended prompt fields and label-keyed type checks.
+- Save ontology versions as N-Quads and restore their stored format, preserving
+  named graphs and repeated facts in separate contexts. Legacy N-Triples
+  snapshots remain readable.
+- Calculate alignment evaluation metrics and reported sizes from the same
+  deduplicated alignment sets as TP/FP/FN, so repeated entries do not lower the
+  score of an otherwise identical alignment.
+
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to

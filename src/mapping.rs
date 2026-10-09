@@ -25,6 +25,7 @@ pub struct MappingConfig {
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 impl MappingConfig {
     /// Generate a naive 1:1 mapping from column headers.
@@ -95,7 +96,14 @@ impl MappingConfig {
                 // crate cannot parse keep the declared type.
                 let ok = crate::induce::Dt::from_iri(dt).is_none_or(|d| d.accepts(value));
                 if ok {
-                    format!("\"{}\"^^<{}>", escape_ntriples(value), dt)
+                    // The probe admits spreadsheet-style Boolean words, but
+                    // their RDF lexical spelling is lowercase.
+                    let lexical = match (dt.as_str(), value.trim()) {
+                        (XSD_BOOLEAN, "true" | "True" | "TRUE") => "true",
+                        (XSD_BOOLEAN, "false" | "False" | "FALSE") => "false",
+                        _ => value.as_str(),
+                    };
+                    format!("\"{}\"^^<{}>", escape_ntriples(lexical), dt)
                 } else {
                     format!("\"{}\"", escape_ntriples(value))
                 }
@@ -123,7 +131,8 @@ impl MappingConfig {
 fn sanitize_iri(s: &str) -> String {
     s.chars()
         .map(|c| match c {
-            ' ' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
+            ' ' | '"' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
+            c if c.is_ascii_control() => '_',
             _ => c,
         })
         .collect()

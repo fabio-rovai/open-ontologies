@@ -3024,7 +3024,7 @@ async fn async_main() -> anyhow::Result<()> {
         }
         Commands::Ingest {
             path,
-            format: _format,
+            format,
             mapping,
             base_iri,
         } => {
@@ -3033,7 +3033,7 @@ async fn async_main() -> anyhow::Result<()> {
             let (_db, graph) = setup(&cli.data_dir)?;
 
             let base = base_iri.as_deref().unwrap_or("http://example.org/data/");
-            let rows = DataIngester::parse_file(&path)?;
+            let rows = DataIngester::parse_file_with_format(&path, format.as_deref())?;
 
             if rows.is_empty() {
                 output_json(
