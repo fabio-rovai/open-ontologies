@@ -55,6 +55,9 @@ All notable changes to Open Ontologies are documented here.
 - XML ingest preserves CDATA and text split by comments or CDATA boundaries,
   and rejects undecodable entities rather than loading a silently empty value.
   Whitespace normalization applies once to the completed field.
+- Explicit ingest formats are honored by the local CLI and the MCP ingest/map
+  tools rather than silently falling back to filename detection. Omitted formats
+  retain extension detection, and unsupported explicit formats return an error.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
