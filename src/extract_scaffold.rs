@@ -66,7 +66,7 @@ pub fn build_scaffold(graph: &Arc<GraphStore>, class_iri: &str) -> anyhow::Resul
                     .unwrap_or_else(|| "literal".to_string());
                 let lbl = row["lbl"]
                     .as_str()
-                    .map(|s| s.trim_matches('"').to_string());
+                    .map(|s| crate::language::parse_literal(s).text);
                 props.push(PropertySpec {
                     property_iri: p,
                     property_label: lbl,
@@ -380,7 +380,13 @@ fn single_str(graph: &Arc<GraphStore>, iri: &str, pred: &str) -> Option<String> 
     let v: serde_json::Value = serde_json::from_str(&js).ok()?;
     v["results"][0]["v"]
         .as_str()
-        .map(|s| s.trim_matches(|c| c == '"' || c == '<' || c == '>').to_string())
+        .map(|s| {
+            if s.starts_with('"') {
+                crate::language::parse_literal(s).text
+            } else {
+                s.trim_matches(|c| c == '<' || c == '>').to_string()
+            }
+        })
 }
 
 #[cfg(test)]

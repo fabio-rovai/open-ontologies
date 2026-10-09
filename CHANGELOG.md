@@ -96,6 +96,9 @@ All notable changes to Open Ontologies are documented here.
   declared boolean mappings, including spreadsheet-style case and surrounding
   whitespace, so loaded values compare as booleans. String content and datatype
   inference retain their existing behavior.
+- Decode extraction-scaffold annotation literals to their lexical text, so
+  language-tagged and escaped class labels, comments, and property labels retain
+  their intended prompt fields and label-keyed type checks.
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
