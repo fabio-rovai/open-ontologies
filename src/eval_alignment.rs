@@ -45,15 +45,15 @@ pub fn evaluate(reference: &[AlignmentEntry], computed: &[AlignmentEntry]) -> Ev
     let fp = comp_set.len() - tp;
     let fn_ = ref_set.len() - tp;
 
-    let precision = if computed.is_empty() {
+    let precision = if comp_set.is_empty() {
         0.0
     } else {
-        tp as f64 / computed.len() as f64
+        tp as f64 / comp_set.len() as f64
     };
-    let recall = if reference.is_empty() {
+    let recall = if ref_set.is_empty() {
         0.0
     } else {
-        tp as f64 / reference.len() as f64
+        tp as f64 / ref_set.len() as f64
     };
     let f1 = if precision + recall == 0.0 {
         0.0
@@ -68,8 +68,8 @@ pub fn evaluate(reference: &[AlignmentEntry], computed: &[AlignmentEntry]) -> Ev
         true_positive: tp,
         false_positive: fp,
         false_negative: fn_,
-        reference_size: reference.len(),
-        computed_size: computed.len(),
+        reference_size: ref_set.len(),
+        computed_size: comp_set.len(),
     }
 }
 

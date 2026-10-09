@@ -103,6 +103,9 @@ All notable changes to Open Ontologies are documented here.
 - Save ontology versions as N-Quads and restore their stored format, preserving
   named graphs and repeated facts in separate contexts. Legacy N-Triples
   snapshots remain readable.
+- Calculate alignment evaluation metrics and reported sizes from the same
+  deduplicated alignment sets as TP/FP/FN, so repeated entries do not lower the
+  score of an otherwise identical alignment.
 
 
 - **The embedding model is loaded once per process rather than once per HTTP
