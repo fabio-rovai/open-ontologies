@@ -9,6 +9,9 @@ All notable changes to Open Ontologies are documented here.
 - Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
 - Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
 - Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
+- Scope deterministic synthetic row identifiers to the original source stem,
+  preserving distinct subjects across sheets and class overrides. Encode source
+  names losslessly; identical stems require distinct base IRIs.
 
 ### Added
 
@@ -61,6 +64,10 @@ All notable changes to Open Ontologies are documented here.
 - Read extraction-scaffold metadata and mapping-generator declarations from
   every loaded graph, so TriG and N-Quads retain the same discovered classes,
   properties, typed extraction checks, and prompt fields as Turtle schemas.
+- Materialize documented row-number identifiers in batch and MCP induction
+  when no input column identifies the rows. Choose an unused internal field so
+  existing `__row` data remains a property instead of merging different rows.
+
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to

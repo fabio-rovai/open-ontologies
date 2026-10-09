@@ -192,8 +192,10 @@ pub struct Induced {
     pub class: String,
     pub class_iri: String,
     pub base_iri: String,
+    /// Original source stem, independent of the normalized class name.
+    pub source_stem: String,
     pub id_column: String,
-    /// `true` when no column identified the rows and a row number was used.
+    /// `true` when no column identified the rows and a source-scoped row number was used.
     pub id_synthesised: bool,
     pub rows: usize,
     pub columns: Vec<Column>,
@@ -205,6 +207,52 @@ pub struct Induced {
     pub mapping: MappingConfig,
     /// What this output is and is not.
     pub means: &'static str,
+}
+
+impl Induced {
+    /// Serialize the analyzed rows as instances of this induced class.
+    ///
+    /// When no input column identifies the rows, materialize IDs formed from
+    /// the percent-encoded original source stem, a hyphen, and the 1-based
+    /// row number in the unused internal ID field. Original cells are retained.
+    /// Explicit identifiers use the existing mapping unchanged.
+    ///
+    /// Replaying the same source in the same row order mints the same IDs.
+    /// Sources with the same stem share a namespace; use distinct base IRIs
+    /// for unrelated sources with identical stems.
+    ///
+    /// The exported `MappingConfig` alone cannot synthesize these IDs from raw
+    /// input: use this serializer, or supply its generated ID field first.
+    pub fn instance_ntriples(&self, rows: &[HashMap<String, String>]) -> String {
+        if !self.id_synthesised {
+            return self.mapping.rows_to_ntriples(rows);
+        }
+        let prefix = source_id_prefix(&self.source_stem);
+        rows.iter()
+            .enumerate()
+            .flat_map(|(index, original)| {
+                let mut row = original.clone();
+                row.insert(self.id_column.clone(), format!("{prefix}-{}", index + 1));
+                self.mapping.row_to_triples(&row)
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
+
+fn source_id_prefix(stem: &str) -> String {
+    const HEX: &[u8; 16] = b"0123456789ABCDEF";
+    let mut out = String::new();
+    for &byte in stem.as_bytes() {
+        if byte.is_ascii_alphanumeric() || b"-._~".contains(&byte) {
+            out.push(char::from(byte));
+        } else {
+            out.push('%');
+            out.push(char::from(HEX[usize::from(byte >> 4)]));
+            out.push(char::from(HEX[usize::from(byte & 15)]));
+        }
+    }
+    out
 }
 
 const MEANS: &str = "an induced ontology is a HYPOTHESIS about the sheet, not a truth about the \
@@ -300,8 +348,23 @@ fn ttl_str(s: &str) -> String {
 /// Induce class, properties, shapes and mapping from `rows`.
 ///
 /// `headers` fixes the column order (a `HashMap` row has none); `stem` names
-/// the class (a file stem, usually); `base_iri` roots every minted IRI.
+/// the class and source namespace (a file stem, usually); `base_iri` roots every minted IRI.
 pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, base_iri: &str) -> Induced {
+    induce_with_source(rows, headers, stem, stem, base_iri)
+}
+
+/// Induce a class while retaining an independent source namespace.
+///
+/// Class overrides affect schema names; source_stem identifies synthetic rows.
+/// IDs encode UTF-8 bytes outside ASCII unreserved characters, then append a
+/// hyphen and the 1-based row number.
+pub fn induce_with_source(
+    rows: &[HashMap<String, String>],
+    headers: &[String],
+    stem: &str,
+    source_stem: &str,
+    base_iri: &str,
+) -> Induced {
     let n = rows.len();
     let class = class_name(stem);
     let ont = format!("{base_iri}ont#");
@@ -325,7 +388,13 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
         Some(h) if n > 0 && filled_unique(h) => (h.clone(), false),
         _ => match headers.iter().find(|h| id_like(h) && filled_unique(h)) {
             Some(h) => (h.clone(), false),
-            None => ("__row".to_string(), true),
+            None => {
+                let mut field = "__row".to_string();
+                while headers.contains(&field) || rows.iter().any(|row| row.contains_key(&field)) {
+                    field.push('_');
+                }
+                (field, true)
+            }
         },
     };
     let id_values: BTreeSet<String> = if id_synthesised {
@@ -472,7 +541,7 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
     }
 
     // 4. Render.
-    let ctx = Ctx { ont: &ont, class: &class, class_iri: &class_iri, stem, n, id_synthesised, id_column: &id_column };
+    let ctx = Ctx { ont: &ont, class: &class, class_iri: &class_iri, stem: source_stem, n, id_synthesised, id_column: &id_column };
     let ontology_ttl = render_ontology(&ctx, &columns);
     let shapes_ttl = render_shapes(&ctx, &columns);
     let mut mappings = Vec::new();
@@ -498,6 +567,7 @@ pub fn induce(rows: &[HashMap<String, String>], headers: &[String], stem: &str, 
         class,
         class_iri,
         base_iri: base_iri.to_string(),
+        source_stem: source_stem.to_string(),
         id_column,
         id_synthesised,
         rows: n,
@@ -543,7 +613,7 @@ fn render_ontology(ctx: &Ctx<'_>, columns: &[Column]) -> String {
         ttl_str(&format!(
             "One instance per row of {stem:?}, {n} in the sheet. Identified by {}.",
             if id_synthesised {
-                "row number, because no column was filled and unique in every row".to_string()
+                "percent-encoded source stem followed by a hyphen and a 1-based row number, because no column was filled and unique in every row".to_string()
             } else {
                 format!("the column {id_column:?}, filled and unique in every row")
             }
