@@ -152,11 +152,16 @@ impl DataIngester {
         use quick_xml::reader::Reader;
 
         let mut reader = Reader::from_str(content);
-        reader.config_mut().trim_text(true);
+        // Trimming every event destroys spaces when a field is split by a
+        // comment or CDATA boundary. Normalize only the completed field.
+        reader.config_mut().trim_text(false);
 
         let mut rows: Vec<HashMap<String, String>> = Vec::new();
         let mut current_row: Option<HashMap<String, String>> = None;
         let mut current_field: Option<String> = None;
+        // Keep raw text until the field closes: XML whitespace is trimmed
+        // before entity decoding, while CDATA is literal and never unescaped.
+        let mut field_parts: Vec<(String, bool)> = Vec::new();
         let mut depth: u32 = 0;
 
         loop {
@@ -174,19 +179,24 @@ impl DataIngester {
                         3 => {
                             // Field element start
                             let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                            field_parts.clear();
                             current_field = Some(name);
                         }
                         _ => {}
                     }
                 }
                 Ok(Event::Text(e)) => {
-                    if depth == 3
-                        && let (Some(row), Some(field)) =
-                            (&mut current_row, &current_field)
-                        {
-                            let text = e.unescape().unwrap_or_default().to_string();
-                            row.insert(field.clone(), text);
-                        }
+                    if depth == 3 && current_row.is_some() && current_field.is_some() {
+                        let text = std::str::from_utf8(e.as_ref())
+                            .context("Failed to decode XML field text")?;
+                        field_parts.push((text.to_string(), true));
+                    }
+                }
+                Ok(Event::CData(e)) => {
+                    if depth == 3 && current_row.is_some() && current_field.is_some() {
+                        let text = e.decode().context("Failed to decode XML field CDATA")?;
+                        field_parts.push((text.into_owned(), false));
+                    }
                 }
                 Ok(Event::End(_)) => {
                     match depth {
@@ -197,6 +207,38 @@ impl DataIngester {
                             }
                         }
                         3 => {
+                            // Keep quick-xml's existing XML-whitespace policy,
+                            // including significant entity-encoded spaces.
+                            for (raw, _) in &mut field_parts {
+                                *raw = raw.trim_start_matches([' ', '\t', '\r', '\n']).to_string();
+                                if !raw.is_empty() {
+                                    break;
+                                }
+                            }
+                            for (raw, _) in field_parts.iter_mut().rev() {
+                                *raw = raw.trim_end_matches([' ', '\t', '\r', '\n']).to_string();
+                                if !raw.is_empty() {
+                                    break;
+                                }
+                            }
+                            let mut value = String::new();
+                            for (raw, escaped) in &field_parts {
+                                if *escaped {
+                                    value.push_str(
+                                        &quick_xml::escape::unescape(raw)
+                                            .context("Failed to decode XML field text")?,
+                                    );
+                                } else {
+                                    value.push_str(raw);
+                                }
+                            }
+                            // An empty field did not create or overwrite a key.
+                            if !value.is_empty()
+                                && let (Some(row), Some(field)) = (&mut current_row, &current_field)
+                            {
+                                row.insert(field.clone(), value);
+                            }
+                            field_parts.clear();
                             current_field = None;
                         }
                         _ => {}
@@ -210,7 +252,6 @@ impl DataIngester {
         }
         Ok(rows)
     }
-
     /// Parse an Excel (.xlsx) file. First row is treated as headers.
     pub fn parse_xlsx_file(path: &str) -> Result<Vec<HashMap<String, String>>> {
         use calamine::{open_workbook, Reader, Xlsx};

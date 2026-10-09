@@ -46,6 +46,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- XML ingest preserves CDATA and text split by comments or CDATA boundaries,
+  and rejects undecodable entities rather than loading a silently empty value.
+  Whitespace normalization applies once to the completed field.
+
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
   `StreamableHttpService::new` as a per-session factory, so everything that
