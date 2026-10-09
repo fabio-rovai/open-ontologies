@@ -77,6 +77,10 @@ All notable changes to Open Ontologies are documented here.
   of the complete column in every row. Formatting errors fail the import.
 - Preserve XLSX header and Parquet schema order during induction so the first
   filled, unique column remains the identifier candidate, as it is for CSV.
+- Compare canonical blank node identities in ontology diffs, so unchanged
+  anonymous restrictions do not appear as added and removed triples. Anonymous
+  structure remains visible when it changes; canonical IDs can shift under edits.
+
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to
