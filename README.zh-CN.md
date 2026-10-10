@@ -23,6 +23,16 @@
 </p>
 
 <p align="center">
+  <a href="https://www.star-history.com/fabio-rovai/open-ontologies">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+      <img alt="GitHub Trending 当日仓库" src="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
   <a href="README.md">English</a> · <strong>简体中文</strong>
 </p>
 
