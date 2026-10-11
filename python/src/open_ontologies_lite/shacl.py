@@ -94,6 +94,11 @@ def _focus_nodes(data_graph, shapes_graph) -> tuple[int, list[dict]]:
     return total, unmatched
 
 
+def _term_text(term) -> str:
+    """A missing RDF term is empty; falsy literal values are still present."""
+    return "" if term is None else str(term)
+
+
 def shacl_validate(
     data: str,
     shapes: str,
@@ -131,13 +136,13 @@ def shacl_validate(
         severity = get(sh.resultSeverity)
         violations.append(
             {
-                "focus_node": str(get(sh.focusNode) or ""),
-                "path": str(get(sh.resultPath) or ""),
-                "value": str(get(sh.value) or ""),
-                "message": str(get(sh.resultMessage) or ""),
+                "focus_node": _term_text(get(sh.focusNode)),
+                "path": _term_text(get(sh.resultPath)),
+                "value": _term_text(get(sh.value)),
+                "message": _term_text(get(sh.resultMessage)),
                 "severity": _local(str(severity)) if severity else "Violation",
-                "source_shape": str(get(sh.sourceShape) or ""),
-                "constraint": _local(str(get(sh.sourceConstraintComponent) or "")),
+                "source_shape": _term_text(get(sh.sourceShape)),
+                "constraint": _local(_term_text(get(sh.sourceConstraintComponent))),
             }
         )
 
