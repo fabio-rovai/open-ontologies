@@ -60,8 +60,8 @@ class AlignmentIndex:
         if len(vector) != self.dim:
             raise ValueError(f"vector length {len(vector)} != index dim {self.dim}")
         label = len(self._ids)
-        self._ids.append(id)
         self._index.add_items([list(vector)], [label])
+        self._ids.append(id)
         self._built = True
         return label
 
