@@ -125,7 +125,9 @@ def find_checker(name: str = "oo-horn", explicit: str | Path | None = None) -> P
         # site-wide default rather than a per-call instruction.
         p = Path(explicit)
         if p.is_file() and os.access(p, os.X_OK):
-            return p
+            # Keep a verified relative path from becoming a bare PATH lookup.
+            # Preserve symlink identity; only anchor it to the current directory.
+            return p.absolute()
         raise CheckerUnavailable(
             name,
             [str(p)],
@@ -137,7 +139,9 @@ def find_checker(name: str = "oo-horn", explicit: str | Path | None = None) -> P
         p = Path(from_env)
         looked.append(f"{env}={from_env}")
         if p.is_file() and os.access(p, os.X_OK):
-            return p
+            # Keep a verified relative path from becoming a bare PATH lookup.
+            # Preserve symlink identity; only anchor it to the current directory.
+            return p.absolute()
     repo = _repo_candidate(name)
     if repo is not None:
         looked.append(str(repo))
