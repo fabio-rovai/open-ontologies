@@ -36,6 +36,12 @@ _FORMATS = {
 OWL_CLASS = "http://www.w3.org/2002/07/owl#Class"
 RDFS_CLASS = "http://www.w3.org/2000/01/rdf-schema#Class"
 RDF_PROPERTY = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
+_PROPERTY_TYPES = (RDF_PROPERTY,) + tuple(
+    "http://www.w3.org/2002/07/owl#" + name
+    for name in ("ObjectProperty", "DatatypeProperty", "AnnotationProperty")
+)
+_PROPERTY_VALUES = " ".join(f"<{iri}>" for iri in _PROPERTY_TYPES)
+_SCHEMA_TYPES = (OWL_CLASS, RDFS_CLASS) + _PROPERTY_TYPES
 
 
 def resolve_format(name: str) -> ox.RdfFormat:
@@ -112,11 +118,11 @@ class OntologyEngine:
                 f"VALUES ?t {{ <{OWL_CLASS}> <{RDFS_CLASS}> }} }}"
             ),
             "properties": self._count(
-                f"SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE {{ ?p a <{RDF_PROPERTY}> }}"
+                f"SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE {{ ?p a ?t VALUES ?t {{ {_PROPERTY_VALUES} }} }}"
             ),
             "individuals": self._count(
                 "SELECT (COUNT(DISTINCT ?i) AS ?n) WHERE { ?i a ?t "
-                f"FILTER(?t != <{OWL_CLASS}> && ?t != <{RDFS_CLASS}> && ?t != <{RDF_PROPERTY}>) }}"
+                "FILTER(?t NOT IN (" + ", ".join(f"<{iri}>" for iri in _SCHEMA_TYPES) + ")) }"
             ),
         }
 
@@ -193,11 +199,11 @@ class OntologyEngine:
             "FILTER NOT EXISTS {{ ?c <http://www.w3.org/2000/01/rdf-schema#label> ?l }} }"
         )
         missing_domain = self._terms(
-            f"SELECT DISTINCT ?p WHERE {{ ?p a <{RDF_PROPERTY}> "
+            f"SELECT DISTINCT ?p WHERE {{ ?p a ?t VALUES ?t {{ {_PROPERTY_VALUES} }} "
             "FILTER NOT EXISTS {{ ?p <http://www.w3.org/2000/01/rdf-schema#domain> ?d }} }"
         )
         missing_range = self._terms(
-            f"SELECT DISTINCT ?p WHERE {{ ?p a <{RDF_PROPERTY}> "
+            f"SELECT DISTINCT ?p WHERE {{ ?p a ?t VALUES ?t {{ {_PROPERTY_VALUES} }} "
             "FILTER NOT EXISTS {{ ?p <http://www.w3.org/2000/01/rdf-schema#range> ?r }} }"
         )
         issues = (

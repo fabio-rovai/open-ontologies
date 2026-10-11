@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Recognize explicitly declared OWL properties in Python statistics and structural lint, without counting property declarations as individuals.
+
 - Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
 - Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
 - Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
