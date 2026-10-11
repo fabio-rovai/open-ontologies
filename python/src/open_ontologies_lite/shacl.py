@@ -52,7 +52,11 @@ def _focus_nodes(data_graph, shapes_graph) -> tuple[int, list[dict]]:
     total = 0
     unmatched: list[dict] = []
 
-    for shape in set(shapes_graph.subjects(rdflib.RDF.type, sh.NodeShape)):
+    # A declarative target identifies a shape without requiring rdf:type.
+    # This also includes property shapes (SHACL Core section 2.1).
+    targets = (sh.targetClass, sh.targetNode, sh.targetSubjectsOf, sh.targetObjectsOf)
+    shapes = {shape for target in targets for shape in shapes_graph.subjects(target, None)}
+    for shape in shapes:
         selected: set = set()
         declared = False
 
@@ -120,6 +124,9 @@ def shacl_validate(
         shacl_graph=shapes_graph,
         inference=inference,
         advanced=True,
+        # Count coverage on the same inferred graph that the validator checks.
+        # This graph was parsed here; the caller's store is never modified.
+        inplace=True,
     )
 
     focus_nodes, unmatched_shapes = _focus_nodes(data_graph, shapes_graph)
