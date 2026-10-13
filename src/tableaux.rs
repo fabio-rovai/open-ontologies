@@ -1893,6 +1893,10 @@ struct TNode {
     /// or `≥` label that generated it.
     created: Dep,
     blocked: bool,
+    /// The node that blocks this one directly, as `update_blocking` last
+    /// decided. `None` for an unblocked node AND for an indirectly blocked one,
+    /// which has no blocker of its own: an ancestor is blocked.
+    blocker: Option<u32>,
 }
 
 impl TNode {
@@ -1907,6 +1911,7 @@ impl TNode {
             parent_role,
             created: Dep::new(),
             blocked: false,
+            blocker: None,
         }
     }
 
@@ -3083,19 +3088,99 @@ impl Tableau {
         None
     }
 
-    /// Applies pairwise ancestor blocking to every node. See
-    /// `is_pairwise_blocked` for the condition.
+    /// Applies pairwise ANYWHERE blocking to every node, and marks the
+    /// descendants of a blocked node indirectly blocked.
+    ///
+    /// The blocker used to have to be an ANCESTOR. On an EL ontology with long
+    /// chains of existentials over distinct classes (ORE 2015 `ore_ont_11497`,
+    /// an anatomy ontology whose developmental stages are each `preceded_by`
+    /// the last, with about three existentials per class) no ancestor ever
+    /// repeats a label before the chain ends, so every distinct path was
+    /// expanded separately and the tree grew exponentially with the chain's
+    /// depth: 21 s, one class undetermined, and a different answer on each run
+    /// as the budget fell in a different place. Anywhere blocking lets ANY
+    /// earlier node with the same pairwise signature block, so each signature
+    /// is expanded once. It is sound for SHIQ with the pairwise condition
+    /// below (Motik, Shearer and Horrocks, *Hypertableau Reasoning for
+    /// Description Logics*, JAIR 36, 2009, section 5), and it is what HermiT
+    /// does.
+    ///
+    /// Nodes are visited in id order, which is creation order, so a blocker is
+    /// always older than the node it blocks and never its descendant. Only an
+    /// unblocked, blockable node goes into the index, so no blocker is itself
+    /// blocked. A node whose parent is blocked, directly or indirectly, is
+    /// indirectly blocked and gets no rule, which is what makes the unravelled
+    /// model well defined. A merge can point a node at a parent with a larger
+    /// id; that parent's status is not yet known when the child is visited, so
+    /// the child is simply not treated as indirectly blocked. Blocking less only
+    /// costs expansion, never soundness.
     fn update_blocking(&mut self) {
         let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
-        // Sorted: HashMap iteration order is seeded per process, so an unsorted
-        // traversal makes expansion order (and therefore which checks finish
-        // inside budget) vary run to run. Node ids are assigned sequentially, so
-        // sorting by id is creation order.
         node_ids.sort_unstable();
+        let mut blocked_now: HashSet<u32> = HashSet::new();
+        let mut decided: HashMap<u32, Option<u32>> = HashMap::new();
+        let mut index: HashMap<Vec<Concept>, Vec<u32>> = HashMap::new();
         for &nid in &node_ids {
-            let blocked = self.is_pairwise_blocked(nid);
-            self.nodes.get_mut(&nid).unwrap().blocked = blocked;
+            let node = &self.nodes[&nid];
+            let Some(parent) = node.parent else {
+                // A root is never blocked and never blocks.
+                decided.insert(nid, None);
+                continue;
+            };
+            if blocked_now.contains(&parent) {
+                blocked_now.insert(nid);
+                decided.insert(nid, None);
+                continue;
+            }
+            let mut sig: Vec<Concept> = node.labels.iter().cloned().collect();
+            sig.sort_unstable();
+            let blocker = index
+                .get(&sig)
+                .and_then(|cands| cands.iter().copied().find(|&t| self.pairwise_blocks(t, nid)));
+            match blocker {
+                Some(t) => {
+                    blocked_now.insert(nid);
+                    decided.insert(nid, Some(t));
+                }
+                None => {
+                    decided.insert(nid, None);
+                    index.entry(sig).or_default().push(nid);
+                }
+            }
         }
+        for (nid, blocker) in decided {
+            let n = self.nodes.get_mut(&nid).unwrap();
+            n.blocked = blocked_now.contains(&nid);
+            n.blocker = blocker;
+        }
+    }
+
+    /// Whether `t` blocks `s` under the pairwise condition, labels of the two
+    /// nodes already known to be equal.
+    ///
+    /// Horrocks and Sattler, *A Tableau Decision Procedure for SHOIQ* (JAR 39,
+    /// 2007): once a logic has BOTH inverse roles and number restrictions,
+    /// single-node blocking is not sound, because unravelling replicates the
+    /// fragment between a blocked node and its blocker, and with inverse roles a
+    /// node constrains its predecessor, so the contexts have to match too. For
+    /// `s` a blockable successor of `s'` and `t` one of `t'`, `t` blocks `s`
+    /// iff `L(s) = L(t)`, `L(s') = L(t')`, `L(s,s') = L(t,t')` and
+    /// `L(s',s) = L(t',t)`. Equality, not inclusion.
+    fn pairwise_blocks(&self, t: u32, s: u32) -> bool {
+        let (Some(sn), Some(tn)) = (self.nodes.get(&s), self.nodes.get(&t)) else {
+            return false;
+        };
+        let (Some(sp), Some(tp)) = (sn.parent, tn.parent) else {
+            return false;
+        };
+        let (Some(spn), Some(tpn)) = (self.nodes.get(&sp), self.nodes.get(&tp)) else {
+            return false;
+        };
+        t < s
+            && tn.labels == sn.labels
+            && tpn.labels == spn.labels
+            && self.roles_between(tp, t) == self.roles_between(sp, s)
+            && self.roles_between(t, tp) == self.roles_between(s, sp)
     }
 
     /// The set of roles labelling the edge from `from` to `to`.
@@ -3111,75 +3196,14 @@ impl Tableau {
         }
     }
 
-    /// Pairwise (double) ancestor blocking.
-    ///
-    /// Horrocks and Sattler, *A Tableau Decision Procedure for SHOIQ* (JAR 39,
-    /// 2007): once a logic has BOTH inverse roles and number restrictions,
-    /// single-node blocking is not sound. The reason is unravelling. To build a
-    /// model from a completion graph you replicate the fragment between the
-    /// blocked node and its blocker infinitely often, and that only yields a
-    /// model if the blocked node behaves like its blocker *in its context*.
-    /// With inverse roles a node constrains its predecessor, so the contexts
-    /// have to match too.
-    ///
-    /// The condition, for `s` a blockable successor of `s'` and `t` a blockable
-    /// successor of `t'`, is that `t` blocks `s` iff
-    ///
-    ///   t ≺ s,  L(s) = L(t),  L(s') = L(t'),  L(s,s') = L(t,t'),  L(s',s) = L(t',t)
-    ///
-    /// Note `=`, not `⊆`. This replaces the previous implementation, which used
-    /// ancestor SUBSET blocking on the node label alone and ignored parents and
-    /// edge labels entirely. That was adequate for ALC but unsound for the
-    /// SHIQ this reasoner implements.
-    ///
-    /// This is deliberately the classical ancestor variant rather than HermiT's
-    /// "anywhere" blocking. Anywhere blocking yields smaller models but is a
-    /// further optimisation on top of a correct base; get the base right first.
-    fn is_pairwise_blocked(&self, s: u32) -> bool {
-        self.blocker_of(s).is_some()
-    }
-
-    /// The ancestor that blocks `s`, under the condition `is_pairwise_blocked`
-    /// documents. Split out so that the model emitter can fold a blocked node
-    /// into the node that blocks it, which is the only way a completion graph
-    /// with blocking becomes a finite interpretation. One condition, one place.
+    /// The node that directly blocks `s`, as `update_blocking` last decided.
+    /// Split out so that the model emitter can fold a blocked node into the
+    /// node that blocks it, which is the only way a completion graph with
+    /// blocking becomes a finite interpretation. One decision, one place: the
+    /// emitter reads the blocker the expansion used rather than recomputing
+    /// one under a condition that could drift from it.
     fn blocker_of(&self, s: u32) -> Option<u32> {
-        // Only blockable successors can be blocked. A node with no parent is
-        // a root and is never blocked.
-        let s_parent = self.nodes.get(&s).and_then(|n| n.parent)?;
-        let s_node = self.nodes.get(&s)?;
-        let s_parent_node = self.nodes.get(&s_parent)?;
-
-        let s_labels = &s_node.labels;
-        let s_parent_labels = &s_parent_node.labels;
-        let s_down = self.roles_between(s_parent, s);
-        let s_up = self.roles_between(s, s_parent);
-
-        // Walk strict ancestors, looking for a blocker.
-        let mut cur = s_node.parent;
-        while let Some(t) = cur {
-            let Some(t_node) = self.nodes.get(&t) else {
-                break;
-            };
-            if let Some(t_parent) = t_node.parent {
-                // Node ids are allocated monotonically, so `t < s` is the
-                // strict ordering the calculus requires. It also guarantees we
-                // never create a blocking cycle.
-                if t < s
-                    && t_node.labels == *s_labels
-                    && self
-                        .nodes
-                        .get(&t_parent)
-                        .is_some_and(|tp| tp.labels == *s_parent_labels)
-                    && self.roles_between(t_parent, t) == s_down
-                    && self.roles_between(t, t_parent) == s_up
-                {
-                    return Some(t);
-                }
-            }
-            cur = t_node.parent;
-        }
-        None
+        self.nodes.get(&s).and_then(|n| n.blocker)
     }
 }
 
