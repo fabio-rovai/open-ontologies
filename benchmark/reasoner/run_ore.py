@@ -434,7 +434,7 @@ def markdown(meta, rows, head):
     L.append("")
     L.append("- files scored: {} of {}".format(head["files_scored"], head["files_total"]))
     L.append("- told_only, excluded: {}".format(", ".join(head["files_told_only_excluded"]) or "none"))
-    L.append("- failed a gate: {}".format(", ".join("{} ({})".format(f, s) for f, s in head["files_failed"]) or "none"))
+    L.append("- not scored (engine gate, HermiT failure or inconsistent reference): {}".format(", ".join("{} ({})".format(f, s) for f, s in head["files_failed"]) or "none"))
     L.append("- micro recall, inferred-only pairs: {}".format(pct(head["micro_recall_inferred"])))
     L.append("- micro recall, all pairs: {}".format(pct(head["micro_recall_all"])))
     L.append("- wrong subsumption pairs, all files: {}".format(head["wrong_pairs_total"]))
