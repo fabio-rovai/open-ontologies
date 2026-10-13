@@ -362,6 +362,17 @@ impl TripleIndex {
 struct OwlParser {
     index: TripleIndex,
     interner: Interner,
+    /// Every role's inverse, both directions, from `owl:inverseOf` between two
+    /// IRIs and from the anonymous inverse expressions `role_of` reads.
+    inverse: HashMap<u32, u32>,
+}
+
+/// The name minted for the inverse of a role that has no named inverse.
+///
+/// An IRI under a scheme no ontology uses, so it can never collide with a
+/// declared property, and readable in an output that names it.
+fn minted_inverse_name(role: &str) -> String {
+    format!("<urn:x-oo:inverse-of:{}>", role.trim_start_matches('<').trim_end_matches('>'))
 }
 
 impl OwlParser {
@@ -369,7 +380,40 @@ impl OwlParser {
         Self {
             index: TripleIndex::new(&triples),
             interner: Interner::new(),
+            inverse: HashMap::new(),
         }
+    }
+
+    /// The role a property node denotes, reading `[ owl:inverseOf p ]` as the
+    /// inverse of `p`.
+    ///
+    /// The inverse of a role is ONE role however many blank nodes write it.
+    /// Interning each blank node as a role of its own, and relying on the
+    /// generic `owl:inverseOf` collector to link it back, linked only one of
+    /// them: that collector keeps a single inverse per role, so with two
+    /// `[ owl:inverseOf hasChild ]` nodes `hasChild`'s inverse was whichever came
+    /// last, and a `∀` through the other never reached a parent.
+    fn role_of(&mut self, node: &str) -> u32 {
+        if node.starts_with("_:")
+            && let Some(of) = self.index.object(node, OWL_INVERSE_OF)
+            && of != node
+        {
+            let r = self.role_of(&of);
+            return self.inverse_of(r);
+        }
+        self.interner.intern(node)
+    }
+
+    /// `r`'s inverse, minting a name for it when the ontology names none.
+    fn inverse_of(&mut self, r: u32) -> u32 {
+        if let Some(&inv) = self.inverse.get(&r) {
+            return inv;
+        }
+        let name = minted_inverse_name(self.interner.resolve(r));
+        let inv = self.interner.intern(&name);
+        self.inverse.insert(r, inv);
+        self.inverse.insert(inv, r);
+        inv
     }
 
     fn parse(mut self) -> ParseResult {
@@ -474,10 +518,19 @@ impl OwlParser {
             })
             .collect();
         for (a_str, b_str) in inverse_pairs_raw {
+            // A blank-node subject is an inverse-property EXPRESSION, read by
+            // `role_of` where it is used, not a property of its own.
+            if a_str.starts_with("_:") {
+                continue;
+            }
             let a = self.interner.intern(&a_str);
-            let b = self.interner.intern(&b_str);
+            let b = self.role_of(&b_str);
             inverse_roles.insert(a, b);
             inverse_roles.insert(b, a);
+        }
+        // `role_of` consults `self.inverse`, so the declared pairs go in first.
+        for (&a, &b) in &inverse_roles {
+            self.inverse.insert(a, b);
         }
 
         // owl:{Transitive,Symmetric,Functional,InverseFunctional}Property and any
@@ -510,10 +563,11 @@ impl OwlParser {
             })
             .collect();
         for (sub, sup) in subprop_pairs {
-            let sub_id = self.interner.intern(&sub);
-            let sup_id = self.interner.intern(&sup);
+            let sub_id = self.role_of(&sub);
+            let sup_id = self.role_of(&sup);
             sub_to_super.entry(sub_id).or_default().insert(sup_id);
         }
+        inverse_roles.extend(self.inverse.iter().map(|(&a, &b)| (a, b)));
 
         // Close the role hierarchy under inverses: `r ⊑ s` entails `r⁻ ⊑ s⁻`.
         //
@@ -762,7 +816,7 @@ impl OwlParser {
             {
                 continue;
             }
-            let role = self.interner.intern(&prop_str);
+            let role = self.role_of(&prop_str);
             let cls = self.parse_class_expr(&cls_str).to_nnf();
             if cls_str.starts_with('<') && cls_str != OWL_NOTHING {
                 let id = self.interner.intern(&cls_str);
@@ -911,6 +965,28 @@ impl OwlParser {
             }
         }
 
+        // Anonymous inverse expressions met while parsing class expressions,
+        // domains and ranges minted inverses after the role hierarchy was closed
+        // under inverses above, so the minted ones join the map and the closure
+        // runs again. It is idempotent on the pairs it has already added.
+        inverse_roles.extend(self.inverse.iter().map(|(&a, &b)| (a, b)));
+        let late_inverse_subprops: Vec<(u32, u32)> = sub_to_super
+            .iter()
+            .flat_map(|(sub, sups)| sups.iter().map(move |sup| (*sub, *sup)))
+            .filter_map(|(sub, sup)| match (inverse_roles.get(&sub), inverse_roles.get(&sup)) {
+                (Some(&sub_inv), Some(&sup_inv)) if sub_inv != sup_inv => Some((sub_inv, sup_inv)),
+                _ => None,
+            })
+            .collect();
+        for (sub_inv, sup_inv) in late_inverse_subprops {
+            sub_to_super.entry(sub_inv).or_default().insert(sup_inv);
+        }
+        for &r in transitive_roles.clone().iter() {
+            if let Some(&inv) = inverse_roles.get(&r) {
+                transitive_roles.insert(inv);
+            }
+        }
+
         // Ensure owl:Thing and owl:Nothing are interned
         let thing_id = self.interner.intern(OWL_THING);
         let nothing_id = self.interner.intern(OWL_NOTHING);
@@ -994,10 +1070,27 @@ impl OwlParser {
         None
     }
 
+    /// A restriction this parser does not model, as an opaque atom named by its
+    /// own blank node.
+    ///
+    /// This used to be `RawConcept::Top`, which is a sound weakening on the
+    /// right of an inclusion and an unsound strengthening on the left. An
+    /// `owl:equivalentClass` puts each side on the left once, so `Narcissist ≡
+    /// ∃loves.Self` became `⊤ ⊑ Narcissist` and every class in the ontology was
+    /// reported a subclass of `Narcissist`. A fresh name is sound in both
+    /// places: every model of the ontology extends to a model of the rewritten
+    /// one by giving the name the expression's extension, so whatever the
+    /// rewritten ontology entails over the original names, the original
+    /// entails. The same blank node always gets the same atom, which keeps the
+    /// two directions of an equivalence talking about one thing.
+    fn opaque_restriction(&mut self, node: &str) -> RawConcept {
+        RawConcept::Named(self.interner.intern(node))
+    }
+
     fn parse_restriction(&mut self, node: &str) -> RawConcept {
         let prop = match self.index.object(node, OWL_ON_PROPERTY) {
-            Some(p) => self.interner.intern(&p),
-            None => return RawConcept::Top,
+            Some(p) => self.role_of(&p),
+            None => return self.opaque_restriction(node),
         };
 
         // someValuesFrom → ∃R.C
@@ -1056,7 +1149,9 @@ impl OwlParser {
                 ]);
             }
 
-        RawConcept::Top
+        // `owl:hasSelf`, a cardinality whose literal does not parse, or anything
+        // else this reader does not know.
+        self.opaque_restriction(node)
     }
 }
 
@@ -4769,11 +4864,14 @@ impl DlReasoner {
         // so an ontology leaning on asymmetry got a clean verdict with no sign
         // that a constraint had been dropped. That is the one outcome this list
         // exists to prevent.
-        const NOT_MODELLED: [(&str, &str); 9] = [
+        const NOT_MODELLED: [(&str, &str); 10] = [
             ("owl:sameAs", "http://www.w3.org/2002/07/owl#sameAs"),
             ("owl:differentFrom", "http://www.w3.org/2002/07/owl#differentFrom"),
             ("owl:oneOf", "http://www.w3.org/2002/07/owl#oneOf"),
             ("owl:hasValue", "http://www.w3.org/2002/07/owl#hasValue"),
+            // Read as an opaque atom, which is sound and says nothing about
+            // the individual being its own successor.
+            ("owl:hasSelf", "http://www.w3.org/2002/07/owl#hasSelf"),
             ("owl:propertyChainAxiom", "http://www.w3.org/2002/07/owl#propertyChainAxiom"),
             ("owl:hasKey", "http://www.w3.org/2002/07/owl#hasKey"),
             ("owl:ReflexiveProperty", "http://www.w3.org/2002/07/owl#ReflexiveProperty"),
