@@ -1,70 +1,87 @@
 #!/usr/bin/env python3
-"""Compare reasoner classification results for correctness."""
+"""Compare the engine's owl-dl classification with HermiT's, like with like.
+
+Usage: compare_results.py <hermit.json> <oo_result.json> [--pellet <pellet.json>]
+
+<hermit.json> is JavaReasoner output: the FULL entailed named hierarchy (all
+superclasses plus equivalent classes) and the told closure. <oo_result.json> is
+the engine's `reason --profile owl-dl` result. The engine side is read from
+classification[].superclasses plus equivalences, never from a `subsumptions`
+key, which the engine does not emit. An earlier version read that key from the
+engine result, got an empty set, and compared HermiT's direct superclasses
+against nothing.
+
+The pair contract and the scoring are shared with run_ore.py, so the Pizza
+figure and the ORE figures mean the same thing.
+"""
+import argparse
 import json
+import os
 import sys
 
-
-def load_subsumptions(path):
-    with open(path) as f:
-        data = json.load(f)
-    return set(data.get("subsumptions", [])), data.get("time_ms", 0), data.get("reasoner", "unknown")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from run_ore import compare, engine_view, java_pairs, pct  # noqa: E402
 
 
 def main():
-    if len(sys.argv) < 4:
-        print("Usage: compare_results.py <hermit.json> <pellet.json> <oo.json>")
-        sys.exit(1)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("hermit")
+    ap.add_argument("oo")
+    ap.add_argument("--pellet")
+    args = ap.parse_args()
 
-    hermit_subs, hermit_ms, _ = load_subsumptions(sys.argv[1])
-    pellet_subs, pellet_ms, _ = load_subsumptions(sys.argv[2])
-    oo_subs, oo_ms, _ = load_subsumptions(sys.argv[3])
+    hermit = json.load(open(args.hermit))
+    oo = json.load(open(args.oo))
+    if "subsumptions" not in hermit or "told_subsumptions" not in hermit:
+        sys.exit("ERROR: {} is not JavaReasoner output with the full hierarchy; "
+                 "rebuild JavaReasoner.java".format(args.hermit))
+    if "classification" not in oo:
+        sys.exit("ERROR: {} has no classification; it is not an owl-dl reason result".format(args.oo))
 
-    # Compare OO against HermiT (reference)
-    oo_vs_hermit_missing = hermit_subs - oo_subs
-    oo_vs_hermit_extra = oo_subs - hermit_subs
+    view = engine_view(oo)
+    r = compare(view, hermit)
 
-    # Compare OO against Pellet
-    oo_vs_pellet_missing = pellet_subs - oo_subs
-    oo_vs_pellet_extra = oo_subs - pellet_subs
-
-    # Compare HermiT vs Pellet (baseline)
-    hermit_vs_pellet_diff = hermit_subs.symmetric_difference(pellet_subs)
-
-    print(f"{'Reasoner':<25} {'Time (ms)':<12} {'Subsumptions':<15}")
-    print("-" * 52)
-    print(f"{'HermiT':<25} {hermit_ms:<12} {len(hermit_subs):<15}")
-    print(f"{'Pellet':<25} {pellet_ms:<12} {len(pellet_subs):<15}")
-    print(f"{'Open Ontologies':<25} {oo_ms:<12} {len(oo_subs):<15}")
+    print("HermiT: load {} ms, create {} ms, classify {} ms (JVM start {} ms, excluded)".format(
+        hermit.get("load_ms"), hermit.get("reasoner_create_ms"), hermit.get("classify_ms"),
+        hermit.get("jvm_start_ms")))
+    print("Engine: reason {} ms (agents.total_time_ms), complete={}, undetermined={}, "
+          "budget_exhausted_in={}".format(view["reason_ms"], view["complete"],
+                                          len(view["undetermined"]), view["budget_exhausted_in"] or "none"))
     print()
+    print("Gold (HermiT, all superclasses + equivalents): {}".format(r["gold"]))
+    print("  told closure (asserted hierarchy):            {}".format(r["told"]))
+    print("  inferred only (gold minus told):              {}".format(r["inferred_only"]))
+    if r["told_not_entailed"]:
+        print("  WARNING: {} told pairs HermiT does not entail; the told closure is wrong".format(
+            r["told_not_entailed"]))
+    print("Engine pairs:                                   {}".format(r["engine_pairs"]))
+    print("  found in gold:                                {}  recall {}".format(r["found"], pct(r["recall_all"])))
+    print("  found among inferred-only:                    {}  recall {}".format(
+        r["found_inferred"], pct(r["recall_inferred"])))
+    print("  WRONG (engine claims, HermiT rejects):        {}".format(len(r["wrong"])))
+    for p in r["wrong"][:20]:
+        print("    WRONG: {}".format(p))
+    print("Unsatisfiable: HermiT {}, engine {}; engine-only (wrong) {}, missed {}".format(
+        r["hermit_unsat"], r["engine_unsat"], len(r["wrong_unsat"]), len(r["missed_unsat"])))
+    for c in r["wrong_unsat"][:20]:
+        print("    WRONG UNSAT: {}".format(c))
+    if r["told_only"]:
+        print("NOTE: no inferred-only pairs; a structural walk scores 100% here, so this file proves nothing about reasoning")
 
-    if hermit_vs_pellet_diff:
-        print(f"HermiT vs Pellet: {len(hermit_vs_pellet_diff)} differences (baseline)")
-    else:
-        print("HermiT vs Pellet: EXACT MATCH (baseline)")
+    if args.pellet:
+        pellet = json.load(open(args.pellet))
+        h, p = java_pairs(hermit["subsumptions"]), java_pairs(pellet.get("subsumptions") or [])
+        diff = h ^ p
+        print()
+        print("HermiT vs Pellet (baseline): {}".format(
+            "EXACT MATCH" if not diff else "{} differences".format(len(diff))))
 
     print()
-
-    if not oo_vs_hermit_missing and not oo_vs_hermit_extra:
-        print("OO vs HermiT: EXACT MATCH")
+    if r["wrong"] or r["wrong_unsat"]:
+        print("RESULT: {} wrong answers vs HermiT".format(len(r["wrong"]) + len(r["wrong_unsat"])))
     else:
-        print(f"OO vs HermiT: {len(oo_vs_hermit_missing)} missing, {len(oo_vs_hermit_extra)} extra")
-        for s in sorted(oo_vs_hermit_missing)[:10]:
-            print(f"  MISSING: {s}")
-        for s in sorted(oo_vs_hermit_extra)[:10]:
-            print(f"  EXTRA:   {s}")
-
-    if not oo_vs_pellet_missing and not oo_vs_pellet_extra:
-        print("OO vs Pellet: EXACT MATCH")
-    else:
-        print(f"OO vs Pellet: {len(oo_vs_pellet_missing)} missing, {len(oo_vs_pellet_extra)} extra")
-
-    # Summary
-    print()
-    total_issues = len(oo_vs_hermit_missing) + len(oo_vs_hermit_extra)
-    if total_issues == 0:
-        print("RESULT: Open Ontologies produces identical classification to HermiT")
-    else:
-        print(f"RESULT: {total_issues} differences found vs HermiT reference")
+        print("RESULT: no wrong answers; {} of {} entailed pairs found ({} of {} inferred-only)".format(
+            r["found"], r["gold"], r["found_inferred"], r["inferred_only"]))
 
 
 if __name__ == "__main__":
