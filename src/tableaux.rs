@@ -1196,6 +1196,248 @@ struct ParseResult {
     definitions: HashMap<u32, Concept>,
 }
 
+// ── Absorption ──────────────────────────────────────────────────────────
+
+/// Rewrites a TBox so that as few axioms as possible sit on every node.
+///
+/// An inclusion whose left-hand side is not a single named class used to go
+/// into the GCI list as `¬C ⊔ D`, and every GCI is added to EVERY node of every
+/// tableau. Each one is a disjunction, so each one can double the branching of
+/// the whole search. That is what kept three different inputs from terminating:
+/// the four-nominal LUBM repro in `benchmark/reasoner/regressions/` (each
+/// `C ≡ ∃worksFor.{d}` puts `∀worksFor.¬{d} ⊔ C` on every node), the ORE 2015 EL
+/// files (thirty-odd `∃r.⊤ ⊑ C` axioms), and the canonical Pizza ontology,
+/// whose defined classes (`CheeseyPizza ≡ Pizza ⊓ ∃hasTopping.CheeseTopping`)
+/// each contribute one reverse half of that shape.
+///
+/// The rewrites are the standard ones (Horrocks, *Optimising Tableaux Decision
+/// Procedures for Description Logics*, 1997; Hudek and Weddell, *Binary
+/// Absorption in Tableaux-Based Reasoning for Description Logics*, 2006), and
+/// each one replaces an axiom by axioms that ENTAIL it over the original names
+/// and are entailed by it once the fresh names are read as the sub-expressions
+/// they stand for. So a model of the rewritten TBox is a model of the original,
+/// and every model of the original extends to one of the rewritten TBox: the
+/// rewrite neither adds nor loses an entailment over the ontology's own names.
+///
+///   - `⊤ ⊑ D` is `D` on every node, with no disjunction.
+///   - `∃r.⊤ ⊑ D` is a DOMAIN of `r`, applied when an `r` edge is made.
+///   - `∃r.F ⊑ X`, with `F` a named class, is `F ⊑ ∀r⁻.X`: whatever is an
+///     `r`-successor in `F` puts `X` on its predecessor. A complex `F` is first
+///     named by a fresh atom.
+///   - `A₁ ⊓ … ⊓ Aₙ ⊑ D` over named classes is a BINARY rule, fired only on a
+///     node that already carries both conjuncts, chained through fresh atoms
+///     when there are more than two.
+///   - `¬A ⊓ C ⊑ D` is `C ⊑ A ⊔ D`, which moves the negation to where a
+///     disjunction is only met on `C`-nodes.
+///   - Anything else in a conjunctive left-hand side stays a disjunction, but
+///     only on the nodes that carry the absorbed part, not on every node.
+///
+/// The fresh atoms are named `_:oo-absorb-N`, a blank-node label, so no output
+/// that lists NAMED classes can ever report one.
+struct Absorber<'a> {
+    interner: &'a mut Interner,
+    inverse: HashMap<u32, u32>,
+    concept_defs: HashMap<u32, Vec<Concept>>,
+    /// `a → [(b, D)]`: a node carrying both `a` and `b` gets `D`. Stored under
+    /// both conjuncts, so whichever arrives second fires the rule.
+    binary_defs: HashMap<u32, Vec<(u32, Concept)>>,
+    gcis: Vec<Concept>,
+    domains: Vec<(u32, Concept)>,
+    /// One fresh atom per distinct `∃r.F` on a left-hand side, so the reverse
+    /// halves of many definitions that share a restriction share its name.
+    exists_names: HashMap<(u32, Concept), u32>,
+    /// One fresh atom per distinct conjunction of named classes.
+    and_names: HashMap<Vec<u32>, u32>,
+    fresh: usize,
+}
+
+impl<'a> Absorber<'a> {
+    fn fresh_atom(&mut self) -> u32 {
+        let id = self.interner.intern(&format!("_:oo-absorb-{}", self.fresh));
+        self.fresh += 1;
+        id
+    }
+
+    /// `r`'s inverse, minting one under the parser's naming scheme when the
+    /// ontology has none.
+    fn inverse_of(&mut self, r: u32) -> u32 {
+        if let Some(&inv) = self.inverse.get(&r) {
+            return inv;
+        }
+        let name = minted_inverse_name(self.interner.resolve(r));
+        let inv = self.interner.intern(&name);
+        self.inverse.insert(r, inv);
+        self.inverse.insert(inv, r);
+        inv
+    }
+
+    fn add_def(&mut self, a: u32, d: Concept) {
+        if d != Concept::Top {
+            self.concept_defs.entry(a).or_default().push(d);
+        }
+    }
+
+    fn universal(&mut self, d: Concept) {
+        match d {
+            Concept::Top => {}
+            Concept::And(parts) => {
+                for p in parts {
+                    self.universal(p);
+                }
+            }
+            other => self.gcis.push(other),
+        }
+    }
+
+    /// The single atom that stands for `a₁ ⊓ … ⊓ aₙ`, wiring the binary rules
+    /// that put it on exactly the nodes carrying every conjunct.
+    fn conjunction(&mut self, mut atoms: Vec<u32>) -> u32 {
+        atoms.sort_unstable();
+        atoms.dedup();
+        if atoms.len() == 1 {
+            return atoms[0];
+        }
+        if let Some(&t) = self.and_names.get(&atoms) {
+            return t;
+        }
+        let mut acc = atoms[0];
+        for (i, &next) in atoms.iter().enumerate().skip(1) {
+            let prefix = atoms[..=i].to_vec();
+            let t = match self.and_names.get(&prefix) {
+                Some(&t) => t,
+                None => {
+                    let t = self.fresh_atom();
+                    self.binary_defs.entry(acc).or_default().push((next, Concept::Atom(t)));
+                    self.binary_defs.entry(next).or_default().push((acc, Concept::Atom(t)));
+                    self.and_names.insert(prefix, t);
+                    t
+                }
+            };
+            acc = t;
+        }
+        acc
+    }
+
+    /// The atom `X` with `∃r.F ⊑ X`, wired so that `X` lands on every node that
+    /// has an `r`-successor in `F`.
+    fn exists_name(&mut self, r: u32, f: Concept) -> u32 {
+        if let Some(&x) = self.exists_names.get(&(r, f.clone())) {
+            return x;
+        }
+        let x = self.fresh_atom();
+        self.exists_names.insert((r, f.clone()), x);
+        match f {
+            Concept::Top => self.domains.push((r, Concept::Atom(x))),
+            Concept::Atom(c) => {
+                let inv = self.inverse_of(r);
+                self.add_def(c, Concept::ForAll(inv, Box::new(Concept::Atom(x))));
+            }
+            other => {
+                let y = self.fresh_atom();
+                self.absorb(other, Concept::Atom(y));
+                let inv = self.inverse_of(r);
+                self.add_def(y, Concept::ForAll(inv, Box::new(Concept::Atom(x))));
+            }
+        }
+        x
+    }
+
+    fn absorb(&mut self, sub: Concept, sup: Concept) {
+        if sup == Concept::Top {
+            return;
+        }
+        let mut parts: Vec<Concept> = Vec::new();
+        let mut stack = vec![sub];
+        while let Some(c) = stack.pop() {
+            match c {
+                Concept::And(cs) => stack.extend(cs),
+                other => parts.push(other),
+            }
+        }
+        let mut atoms: Vec<u32> = Vec::new();
+        let mut rest: Vec<Concept> = Vec::new();
+        let mut moved: Vec<Concept> = Vec::new();
+        for part in parts {
+            match part {
+                Concept::Top => {}
+                // `⊥ ⊓ … ⊑ D` holds of nothing and constrains nothing.
+                Concept::Bottom => return,
+                Concept::Atom(a) => atoms.push(a),
+                Concept::NegAtom(a) => moved.push(Concept::Atom(a)),
+                Concept::Exists(r, f) | Concept::MinCard(r, 1, f) => {
+                    let x = self.exists_name(r, *f);
+                    atoms.push(x);
+                }
+                other => rest.push(other),
+            }
+        }
+        let rhs = if moved.is_empty() {
+            sup
+        } else {
+            moved.push(sup);
+            disjunction(moved)
+        };
+        if !rest.is_empty() {
+            let unabsorbed = if rest.len() == 1 { rest.remove(0) } else { Concept::And(rest) };
+            let body = disjunction(vec![unabsorbed.negate(), rhs]);
+            if atoms.is_empty() {
+                self.gcis.push(body);
+            } else {
+                let t = self.conjunction(atoms);
+                self.add_def(t, body);
+            }
+            return;
+        }
+        if atoms.is_empty() {
+            self.universal(rhs);
+        } else {
+            let t = self.conjunction(atoms);
+            self.add_def(t, rhs);
+        }
+    }
+}
+
+/// Every role a concept mentions.
+fn collect_roles(c: &Concept, out: &mut BTreeSet<u32>) {
+    match c {
+        Concept::Top | Concept::Bottom | Concept::Atom(_) | Concept::NegAtom(_) => {}
+        Concept::And(cs) | Concept::Or(cs) => {
+            for x in cs {
+                collect_roles(x, out);
+            }
+        }
+        Concept::Exists(r, f) | Concept::ForAll(r, f) => {
+            out.insert(*r);
+            collect_roles(f, out);
+        }
+        Concept::MinCard(r, _, f) | Concept::MaxCard(r, _, f) => {
+            out.insert(*r);
+            collect_roles(f, out);
+        }
+    }
+}
+
+/// `C₁ ⊔ … ⊔ Cₙ`, flattened, with `⊥` dropped and `⊤` absorbing the rest.
+fn disjunction(cs: Vec<Concept>) -> Concept {
+    let mut out: Vec<Concept> = Vec::new();
+    let mut stack = cs;
+    while let Some(c) = stack.pop() {
+        match c {
+            Concept::Or(inner) => stack.extend(inner),
+            Concept::Bottom => {}
+            Concept::Top => return Concept::Top,
+            other => out.push(other),
+        }
+    }
+    out.sort();
+    out.dedup();
+    match out.len() {
+        0 => Concept::Bottom,
+        1 => out.remove(0),
+        _ => Concept::Or(out),
+    }
+}
+
 // ── Processed TBox ──────────────────────────────────────────────────────
 
 #[derive(Clone)]
@@ -1204,11 +1446,14 @@ struct ProcessedTBox {
     concept_defs: HashMap<u32, Vec<Concept>>,
     /// General Concept Inclusions for complex LHS: ¬C ⊔ D.
     gcis: Vec<Concept>,
+    /// Binary absorption rules: `a → [(b, D)]` puts `D` on a node carrying
+    /// both `a` and `b`. See `Absorber`.
+    binary_defs: HashMap<u32, Vec<(u32, Concept)>>,
     /// Disjointness pairs.
     disjoint_pairs: Vec<(Concept, Concept)>,
     /// Transitive roles.
     transitive_roles: HashSet<u32>,
-    /// Role hierarchy: super-role → set of sub-roles.
+    /// Role hierarchy: super-role → every sub-role, transitively.
     super_to_sub: HashMap<u32, HashSet<u32>>,
     /// Inverse role mapping (bidirectional): R → R⁻ and R⁻ → R.
     inverse_roles: HashMap<u32, u32>,
@@ -1241,9 +1486,10 @@ impl ProcessedTBox {
         axioms: &[(Concept, Concept)],
         disjoint_pairs: &[(Concept, Concept)],
         roles: RoleAxioms<'_>,
+        interner: &mut Interner,
     ) -> Self {
         let RoleAxioms {
-            transitive_roles,
+            mut transitive_roles,
             sub_to_super,
             inverse_roles,
             functional_roles,
@@ -1251,9 +1497,6 @@ impl ProcessedTBox {
             role_domains,
             role_ranges,
         } = roles;
-        let mut concept_defs: HashMap<u32, Vec<Concept>> = HashMap::new();
-        let mut gcis: Vec<Concept> = Vec::new();
-
         // ── GCI absorption ──────────────────────────────────────────────
         //
         // An axiom with a non-atomic left-hand side becomes ¬sub ⊔ sup and is
@@ -1293,36 +1536,102 @@ impl ProcessedTBox {
         }
         let axioms: &[(Concept, Concept)] = &absorbed;
 
+        let mut absorber = Absorber {
+            interner,
+            inverse: inverse_roles,
+            concept_defs: HashMap::new(),
+            binary_defs: HashMap::new(),
+            gcis: Vec::new(),
+            domains: Vec::new(),
+            exists_names: HashMap::new(),
+            and_names: HashMap::new(),
+            fresh: 0,
+        };
         for (sub, sup) in axioms {
-            match sub {
-                Concept::Atom(a) => {
-                    concept_defs.entry(*a).or_default().push(sup.clone());
-                }
-                _ => {
-                    // Complex LHS → GCI: ¬sub ⊔ sup
-                    let mut parts = vec![sub.negate(), sup.clone()];
-                    parts.sort();
-                    gcis.push(Concept::Or(parts));
-                }
-            }
+            absorber.absorb(sub.clone(), sup.clone());
         }
 
         // Functional properties: R functional → every node gets ≤1 R.⊤
         for &role in functional_roles {
-            gcis.push(Concept::MaxCard(role, 1, Box::new(Concept::Top)));
+            absorber.gcis.push(Concept::MaxCard(role, 1, Box::new(Concept::Top)));
         }
 
-        // Inverse-functional: R inv-functional → ≤1 R⁻.⊤
+        // A `∀r⁻` that absorption put on a node reaches its `r`-predecessors
+        // through the stored inverse edge `add_role_edge` writes, and through
+        // sub-roles of `r⁻`. So once any inverse is in play, every role the TBox
+        // names needs one, or an edge on a sub-role of `r` would have no
+        // inverse edge for the `∀` to follow.
+        let mut roles_named: BTreeSet<u32> = BTreeSet::new();
+        for (&sub, sups) in sub_to_super {
+            roles_named.insert(sub);
+            roles_named.extend(sups.iter().copied());
+        }
+        roles_named.extend(transitive_roles.iter().copied());
+        roles_named.extend(functional_roles.iter().copied());
+        roles_named.extend(inv_functional_roles.iter().copied());
+        roles_named.extend(role_domains.iter().map(|(r, _)| *r));
+        roles_named.extend(role_ranges.iter().map(|(r, _)| *r));
+        for (sub, sup) in axioms {
+            collect_roles(sub, &mut roles_named);
+            collect_roles(sup, &mut roles_named);
+        }
+        for (a, b) in disjoint_pairs {
+            collect_roles(a, &mut roles_named);
+            collect_roles(b, &mut roles_named);
+        }
+        for r in roles_named {
+            absorber.inverse_of(r);
+        }
+
+        // Inverse-functional: R inv-functional → ≤1 R⁻.⊤. Every role now has
+        // an inverse, so this no longer depends on the ontology naming one;
+        // before, an inverse-functional property with no declared inverse was
+        // silently unconstrained.
         for &role in inv_functional_roles {
-            if let Some(&inv) = inverse_roles.get(&role) {
-                gcis.push(Concept::MaxCard(inv, 1, Box::new(Concept::Top)));
+            let inv = absorber.inverse_of(role);
+            absorber.gcis.push(Concept::MaxCard(inv, 1, Box::new(Concept::Top)));
+        }
+
+        let Absorber { inverse: inverse_roles, concept_defs, binary_defs, gcis, domains, .. } =
+            absorber;
+
+        // The role hierarchy, closed under inverses (`r ⊑ s` gives `r⁻ ⊑ s⁻`)
+        // and then transitively, which is what `successors` and the domain
+        // and range folds below both need.
+        let mut direct_roles: HashMap<u32, HashSet<u32>> = sub_to_super.clone();
+        let pairs: Vec<(u32, u32)> = direct_roles
+            .iter()
+            .flat_map(|(sub, sups)| sups.iter().map(move |sup| (*sub, *sup)))
+            .collect();
+        for (sub, sup) in pairs {
+            if let (Some(&si), Some(&pi)) = (inverse_roles.get(&sub), inverse_roles.get(&sup))
+                && si != pi
+            {
+                direct_roles.entry(si).or_default().insert(pi);
             }
         }
-
-        // Compute super_to_sub from sub_to_super
+        for &r in transitive_roles.clone().iter() {
+            if let Some(&inv) = inverse_roles.get(&r) {
+                transitive_roles.insert(inv);
+            }
+        }
+        let mut super_of: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for (&sub, sups) in &direct_roles {
+            let mut seen: HashSet<u32> = HashSet::new();
+            let mut stack: Vec<u32> = sups.iter().copied().collect();
+            while let Some(x) = stack.pop() {
+                if seen.insert(x)
+                    && let Some(next) = direct_roles.get(&x)
+                {
+                    stack.extend(next.iter().copied());
+                }
+            }
+            seen.remove(&sub);
+            super_of.insert(sub, seen);
+        }
         let mut super_to_sub_map: HashMap<u32, HashSet<u32>> = HashMap::new();
-        for (&sub, supers) in sub_to_super {
-            for &sup in supers {
+        for (&sub, sups) in &super_of {
+            for &sup in sups {
                 super_to_sub_map.entry(sup).or_default().insert(sub);
             }
         }
@@ -1364,19 +1673,6 @@ impl ProcessedTBox {
         // A constraint on a super-role binds its sub-roles, so each role's list
         // is closed over its transitive super-roles once, here, rather than
         // walked on every edge.
-        let mut super_of: HashMap<u32, HashSet<u32>> = HashMap::new();
-        for (&sub, sups) in sub_to_super {
-            let mut seen: HashSet<u32> = HashSet::new();
-            let mut stack: Vec<u32> = sups.iter().copied().collect();
-            while let Some(x) = stack.pop() {
-                if seen.insert(x)
-                    && let Some(next) = sub_to_super.get(&x)
-                {
-                    stack.extend(next.iter().copied());
-                }
-            }
-            super_of.insert(sub, seen);
-        }
         let fold = |src: &[(u32, Concept)]| -> HashMap<u32, Vec<Concept>> {
             let mut direct: HashMap<u32, Vec<Concept>> = HashMap::new();
             for (r, c) in src {
@@ -1396,12 +1692,15 @@ impl ProcessedTBox {
             }
             out
         };
-        let role_domain = fold(role_domains);
+        let mut all_domains: Vec<(u32, Concept)> = role_domains.to_vec();
+        all_domains.extend(domains);
+        let role_domain = fold(&all_domains);
         let role_range = fold(role_ranges);
 
         Self {
             concept_defs,
             gcis,
+            binary_defs,
             disjoint_pairs: disjoint_pairs.to_vec(),
             transitive_roles,
             super_to_sub: super_to_sub_map,
@@ -1686,12 +1985,26 @@ impl Tableau {
             return false;
         }
         // Trigger concept definitions for atomic labels
-        if let Concept::Atom(a) = &concept
-            && let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
+        if let Concept::Atom(a) = &concept {
+            if let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
                 for d in defs {
                     self.add_label(node_id, d);
                 }
             }
+            // A binary rule fires on whichever of its two conjuncts arrives
+            // second, so it is checked from both sides. See `Absorber`.
+            if let Some(rules) = self.tbox.binary_defs.get(a).cloned() {
+                for (other, d) in rules {
+                    let has_other = self
+                        .nodes
+                        .get(&node_id)
+                        .is_some_and(|n| n.labels.contains(&Concept::Atom(other)));
+                    if has_other {
+                        self.add_label(node_id, d);
+                    }
+                }
+            }
+        }
         true
     }
 
@@ -1789,6 +2102,21 @@ impl Tableau {
             .entry(role)
             .or_default()
             .insert(to);
+        // The inverse edge holds in every model in which this one does, and it
+        // is stored rather than inferred because a `∀r⁻` placed by absorption
+        // has to reach an `r`-predecessor that is not a tree parent: an ABox
+        // neighbour, or a parent reached through a sub-role of `r`. The parent
+        // back-link in `successors` covered only the second case's simplest
+        // form.
+        if let Some(&inv) = self.tbox.inverse_roles.get(&role) {
+            self.nodes
+                .get_mut(&to)
+                .unwrap()
+                .edges
+                .entry(inv)
+                .or_default()
+                .insert(from);
+        }
 
         // Keeping domain and range out of the GCI list is deliberate: as GCIs
         // they are `∃p.⊤ ⊑ D` and `⊤ ⊑ ∀p.R`, both with a non-atomic left-hand
@@ -2515,7 +2843,7 @@ impl DlReasoner {
     pub fn from_graph(graph: &Arc<GraphStore>) -> anyhow::Result<Self> {
         let triples = graph.all_triples()?;
         let parser = OwlParser::new(triples);
-        let result = parser.parse();
+        let mut result = parser.parse();
 
         // Transitive closure of asserted CLASS subsumption, so an individual typed
         // EnumerationTerm satisfies a conjunct requiring ClassTerm.
@@ -2567,6 +2895,7 @@ impl DlReasoner {
                 role_domains: &result.role_domains,
                 role_ranges: &result.role_ranges,
             },
+            &mut result.interner,
         ));
 
         Ok(Self {
