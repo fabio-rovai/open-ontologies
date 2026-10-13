@@ -2,3 +2,9 @@ lib/
 *.class
 *.owl
 target/
+corpora/
+results/ore_*
+results/oo_batch.json
+results/oo_result.json
+results/hermit_result.json
+results/pellet_result.json
