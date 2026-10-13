@@ -62,12 +62,20 @@ public class JavaReasoner {
         OWLReasoner reasoner = factory.createReasoner(ontology);
         long createNs = System.nanoTime() - t1;
 
+        // An inconsistent ontology makes HermiT throw from precomputeInferences.
+        // Report it as consistent=false with no pairs rather than crashing, so
+        // the driver can check whether the engine noticed.
         long t2 = System.nanoTime();
-        reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+        boolean consistent;
+        try {
+            reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+            consistent = reasoner.isConsistent();
+        } catch (InconsistentOntologyException e) {
+            consistent = false;
+        }
         long classifyNs = System.nanoTime() - t2;
 
         long t3 = System.nanoTime();
-        boolean consistent = reasoner.isConsistent();
         Set<OWLClass> classes = ontology.getClassesInSignature(Imports.INCLUDED);
         List<String> subsumptions = new ArrayList<>();
         List<String> unsatisfiable = new ArrayList<>();
