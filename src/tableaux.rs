@@ -86,6 +86,10 @@ const OWL_INTERSECTION: &str = "<http://www.w3.org/2002/07/owl#intersectionOf>";
 const OWL_UNION: &str = "<http://www.w3.org/2002/07/owl#unionOf>";
 const OWL_EQUIV_CLASS: &str = "<http://www.w3.org/2002/07/owl#equivalentClass>";
 const OWL_DISJOINT_WITH: &str = "<http://www.w3.org/2002/07/owl#disjointWith>";
+const OWL_ALL_DISJOINT_CLASSES: &str = "<http://www.w3.org/2002/07/owl#AllDisjointClasses>";
+const OWL_MEMBERS: &str = "<http://www.w3.org/2002/07/owl#members>";
+const OWL_DISJOINT_UNION_OF: &str = "<http://www.w3.org/2002/07/owl#disjointUnionOf>";
+const OWL_EQUIV_PROPERTY: &str = "<http://www.w3.org/2002/07/owl#equivalentProperty>";
 const OWL_TRANSITIVE: &str = "<http://www.w3.org/2002/07/owl#TransitiveProperty>";
 const OWL_SYMMETRIC: &str = "<http://www.w3.org/2002/07/owl#SymmetricProperty>";
 const OWL_INVERSE_OF: &str = "<http://www.w3.org/2002/07/owl#inverseOf>";
@@ -246,7 +250,13 @@ impl Interner {
 /// is. A second traversal of `rdf:first`/`rdf:rest` would be a second thing to
 /// keep right; there is one, and `walk_list_checked` is it.
 pub(crate) struct TripleIndex {
-    by_subject: HashMap<String, Vec<(String, String)>>,
+    /// Ordered, not hashed. Every pass of the parser walks this map, and the
+    /// order it walks in is the order IRIs are interned, which fixes the
+    /// numeric ids concepts are sorted by, which fixes the order the tableau
+    /// tries disjuncts in. With a `HashMap` that order changed from run to run
+    /// of one input, and once backjumping and early disjointness made the
+    /// search order matter, so did the number of steps a run took (#161).
+    by_subject: std::collections::BTreeMap<String, Vec<(String, String)>>,
 }
 
 /// Why a traversal of an `rdf:List` did not reach `rdf:nil`.
@@ -291,12 +301,17 @@ pub(crate) const MAX_LIST_CELLS: usize = 1000;
 
 impl TripleIndex {
     pub(crate) fn new(triples: &[(String, String, String)]) -> Self {
-        let mut by_subject: HashMap<String, Vec<(String, String)>> = HashMap::new();
+        let mut by_subject: std::collections::BTreeMap<String, Vec<(String, String)>> =
+            std::collections::BTreeMap::new();
         for (s, p, o) in triples {
             by_subject
                 .entry(s.clone())
                 .or_default()
                 .push((p.clone(), o.clone()));
+        }
+        // The store's own iteration order is not part of the ontology either.
+        for pairs in by_subject.values_mut() {
+            pairs.sort_unstable();
         }
         Self { by_subject }
     }
@@ -434,7 +449,9 @@ impl OwlParser {
         let mut role_ranges: Vec<(u32, Concept)> = Vec::new();
 
         // Collect all subjects with their types for classification
-        let mut subject_types: HashMap<String, Vec<String>> = HashMap::new();
+        // Ordered for the same reason as `TripleIndex::by_subject`.
+        let mut subject_types: std::collections::BTreeMap<String, Vec<String>> =
+            std::collections::BTreeMap::new();
         for (s, pairs) in &self.index.by_subject {
             for (p, o) in pairs {
                 if p == RDF_TYPE {
@@ -444,9 +461,14 @@ impl OwlParser {
         }
 
         // Collect class declarations
+        // IRIs only, as in every other discovery pass below. An anonymous class
+        // expression written as `<owl:Class><owl:oneOf …>` also carries
+        // `rdf:type owl:Class`, and taking its blank node for a named class put
+        // it in the satisfiability sweep and in the output: Pizza reported
+        // `Country ⊑ _:…`, its own `owl:oneOf` enumeration.
         let class_subjects: Vec<String> = subject_types
             .iter()
-            .filter(|(_, types)| types.iter().any(|t| t == OWL_CLASS))
+            .filter(|(s, types)| s.starts_with('<') && types.iter().any(|t| t == OWL_CLASS))
             .map(|(s, _)| s.clone())
             .collect();
         for s in &class_subjects {
@@ -566,6 +588,28 @@ impl OwlParser {
             let sub_id = self.role_of(&sub);
             let sup_id = self.role_of(&sup);
             sub_to_super.entry(sub_id).or_default().insert(sup_id);
+        }
+        // `owl:equivalentProperty` is `rdfs:subPropertyOf` both ways. It was not
+        // read at all, so a role named only through its equivalent carried none
+        // of the other's edges, domains or ranges.
+        let equiv_props: Vec<(String, String)> = self
+            .index
+            .by_subject
+            .iter()
+            .flat_map(|(s, pairs)| {
+                pairs
+                    .iter()
+                    .filter(|(p, _)| p == OWL_EQUIV_PROPERTY)
+                    .map(move |(_, o)| (s.clone(), o.clone()))
+            })
+            .collect();
+        for (a, b) in equiv_props {
+            let a_id = self.role_of(&a);
+            let b_id = self.role_of(&b);
+            if a_id != b_id {
+                sub_to_super.entry(a_id).or_default().insert(b_id);
+                sub_to_super.entry(b_id).or_default().insert(a_id);
+            }
         }
         inverse_roles.extend(self.inverse.iter().map(|(&a, &b)| (a, b)));
 
@@ -775,6 +819,87 @@ impl OwlParser {
             let a = self.parse_class_expr(&a_str).to_nnf();
             let b = self.parse_class_expr(&b_str).to_nnf();
             disjoint_pairs.push((a, b));
+        }
+
+        // `owl:AllDisjointClasses` with an `owl:members` list, which is how the
+        // OWL 2 mapping writes `DisjointClasses` of three or more classes, and
+        // `owl:disjointUnionOf`, which is `C ≡ C₁ ⊔ … ⊔ Cₙ` with the `Cᵢ`
+        // pairwise disjoint. Neither was read. Only the binary `owl:disjointWith`
+        // was, so an n-ary disjointness, the usual way an ontology says its
+        // siblings do not overlap, was silently absent. Measured on ORE 2015
+        // `ore_ont_16461`: the five affected joints of `Patient1` are in one
+        // 40-member `DisjointClasses`, so they could be merged, `≥4
+        // hasAffectedJoint.Joint` could not be proved, and `Patient1 ⊑
+        // Systemic_JIA_Patient` (which HermiT finds) was missing from a run that
+        // reported itself complete.
+        let mut all_disjoint: Vec<String> = subject_types
+            .iter()
+            .filter(|(_, types)| types.iter().any(|t| t == OWL_ALL_DISJOINT_CLASSES))
+            .map(|(s, _)| s.clone())
+            .collect();
+        all_disjoint.sort();
+        for node in all_disjoint {
+            let Some(head) = self.index.object(&node, OWL_MEMBERS) else { continue };
+            let members: Vec<Concept> = self
+                .index
+                .walk_list(&head)
+                .iter()
+                .map(|m| {
+                    if m.starts_with('<') && m != OWL_THING && m != OWL_NOTHING {
+                        let id = self.interner.intern(m);
+                        named_classes.insert(id);
+                    }
+                    self.parse_class_expr(m).to_nnf()
+                })
+                .collect();
+            for i in 0..members.len() {
+                for j in (i + 1)..members.len() {
+                    disjoint_pairs.push((members[i].clone(), members[j].clone()));
+                }
+            }
+        }
+        let mut disjoint_unions: Vec<(String, String)> = self
+            .index
+            .by_subject
+            .iter()
+            .flat_map(|(s, pairs)| {
+                pairs
+                    .iter()
+                    .filter(|(p, _)| p == OWL_DISJOINT_UNION_OF)
+                    .map(move |(_, o)| (s.clone(), o.clone()))
+            })
+            .collect();
+        disjoint_unions.sort();
+        for (class, head) in disjoint_unions {
+            let members_raw = self.index.walk_list(&head);
+            let id = self.interner.intern(&class);
+            named_classes.insert(id);
+            let members: Vec<Concept> = members_raw
+                .iter()
+                .map(|m| {
+                    if m.starts_with('<') && m != OWL_THING && m != OWL_NOTHING {
+                        let mid = self.interner.intern(m);
+                        named_classes.insert(mid);
+                    }
+                    self.parse_class_expr(m).to_nnf()
+                })
+                .collect();
+            let union = match members.len() {
+                0 => Concept::Bottom,
+                1 => members[0].clone(),
+                _ => {
+                    let mut parts = members.clone();
+                    parts.sort();
+                    Concept::Or(parts)
+                }
+            };
+            axioms.push((Concept::Atom(id), union.clone()));
+            axioms.push((union, Concept::Atom(id)));
+            for i in 0..members.len() {
+                for j in (i + 1)..members.len() {
+                    disjoint_pairs.push((members[i].clone(), members[j].clone()));
+                }
+            }
         }
 
         // Collect rdfs:domain / rdfs:range as GCIs.
@@ -1550,6 +1675,17 @@ impl ProcessedTBox {
         for (sub, sup) in axioms {
             absorber.absorb(sub.clone(), sup.clone());
         }
+        // `A disjointWith B` is `A ⊓ B ⊑ ⊥`, and absorbed as such it is a binary
+        // rule that puts `⊥` on a node the moment both labels meet there. The
+        // list `disjoint_pairs` is still checked, but only once a branch has
+        // otherwise finished expanding, so a ≤-merge that fused two disjoint
+        // successors went on expanding everything below them, further merges
+        // included, before the clash was seen. On Pizza that is every
+        // `X ⊑ InterestingPizza` test, which has to rule out every way of
+        // merging four or five pairwise-disjoint toppings down to two.
+        for (a, b) in disjoint_pairs {
+            absorber.absorb(Concept::And(vec![a.clone(), b.clone()]), Concept::Bottom);
+        }
 
         // Functional properties: R functional → every node gets ≤1 R.⊤
         for &role in functional_roles {
@@ -1714,14 +1850,48 @@ impl ProcessedTBox {
 
 // ── Tableau Node ────────────────────────────────────────────────────────
 
+/// The choice points a label, an edge or a clash depends on.
+///
+/// Dependency-directed backjumping (Horrocks, 1997, section 6.3.2; Baader et
+/// al., *The Description Logic Handbook*, chapter 9). Every label records the
+/// `⊔` and `≤` choices it was derived under. When a branch clashes, the clash's
+/// dependency set is the union of the clashing labels' sets, and a choice point
+/// that is NOT in it did not cause the clash, so trying its other alternatives
+/// cannot remove it: the search jumps straight past it.
+///
+/// Chronological backtracking, which this replaces, re-tried every later
+/// choice before revisiting the one that failed. On the Pizza ontology a pizza
+/// with five toppings carries one closure-axiom disjunction per topping, and a
+/// wrong guess on the pizza itself (say `VegetarianPizza` on `AmericanHot`) only
+/// clashes once a topping is expanded, so every combination of the toppings'
+/// own disjuncts was re-tried first. That is exponential in the topping count
+/// and it is why the three pizzas with the most toppings never finished.
+///
+/// THE SAFETY RULE: a set may be too LARGE and never too small. A set that is
+/// too large only stops a jump the search could have made, which costs time.
+/// A set that is too small jumps past a choice whose other alternative would
+/// have found a model, and turns a satisfiable test into a proof of
+/// unsatisfiability, which is a false subsumption. So anything this code does
+/// not track precisely (a merge, an edge redirected by one, a label read
+/// without a recorded set) is charged to EVERY open choice point.
+type Dep = BTreeSet<u32>;
+
 #[derive(Clone)]
 struct TNode {
     labels: HashSet<Concept>,
+    /// The choice points each label depends on. See `Dep`.
+    deps: HashMap<Concept, Dep>,
     processed: HashSet<Concept>,
     edges: HashMap<u32, HashSet<u32>>,
+    /// The choice points each outgoing edge depends on, keyed by role and
+    /// target. An edge with no entry is read as depending on every open choice.
+    edge_deps: HashMap<(u32, u32), Dep>,
     parent: Option<u32>,
     /// Which role created this node from its parent (for inverse propagation).
     parent_role: Option<u32>,
+    /// The choice points this node's existence depends on: those of the `∃`
+    /// or `≥` label that generated it.
+    created: Dep,
     blocked: bool,
 }
 
@@ -1729,46 +1899,71 @@ impl TNode {
     fn new(parent: Option<u32>, parent_role: Option<u32>) -> Self {
         Self {
             labels: HashSet::new(),
+            deps: HashMap::new(),
             processed: HashSet::new(),
             edges: HashMap::new(),
+            edge_deps: HashMap::new(),
             parent,
             parent_role,
+            created: Dep::new(),
             blocked: false,
         }
     }
 
-    fn has_clash(&self) -> bool {
-        if self.labels.contains(&Concept::Bottom) {
-            return true;
+    /// The union of the dependency sets of `labels`, or `None` if one of them
+    /// has no recorded set, in which case the caller must charge every open
+    /// choice point.
+    fn deps_of<'a>(&self, labels: impl IntoIterator<Item = &'a Concept>) -> Option<Dep> {
+        let mut out = Dep::new();
+        for l in labels {
+            out.extend(self.deps.get(l)?.iter().copied());
         }
-        for label in &self.labels {
-            if let Concept::Atom(a) = label
-                && self.labels.contains(&Concept::NegAtom(*a)) {
-                    return true;
-                }
-        }
-        // MinCard/MaxCard direct clash: ≥n1 R.C and ≤n2 R.C with n1 > n2
-        for label in &self.labels {
-            if let Concept::MinCard(r1, n1, f1) = label {
-                for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other
-                        && r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top) {
-                            return true;
-                        }
-                }
-            }
-            // Exists(R, C) = ≥1 R.C clashes with MaxCard(R, 0, C/Top)
-            if let Concept::Exists(r1, f1) = label {
-                for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other
-                        && r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top) {
-                            return true;
-                        }
-                }
-            }
-        }
-        false
+        Some(out)
     }
+
+    /// `has_clash`, with the choice points the clash depends on.
+    ///
+    /// The outer `Option` is whether there is a clash; the inner one is
+    /// `None` when a clashing label carries no recorded set.
+    fn clash_dep(&self) -> Option<Option<Dep>> {
+        if self.labels.contains(&Concept::Bottom) {
+            return Some(self.deps_of([&Concept::Bottom]));
+        }
+        // Sorted, so the clash reported, and so the dependency set a backjump
+        // follows, does not depend on the label set's random hash seed.
+        let mut sorted: Vec<&Concept> = self.labels.iter().collect();
+        sorted.sort_unstable();
+        for &label in &sorted {
+            if let Concept::Atom(a) = label {
+                let neg = Concept::NegAtom(*a);
+                if self.labels.contains(&neg) {
+                    return Some(self.deps_of([label, &neg]));
+                }
+            }
+        }
+        for &label in &sorted {
+            if let Concept::MinCard(r1, n1, f1) = label {
+                for &other in &sorted {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top)
+                    {
+                        return Some(self.deps_of([label, other]));
+                    }
+                }
+            }
+            if let Concept::Exists(r1, f1) = label {
+                for &other in &sorted {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top)
+                    {
+                        return Some(self.deps_of([label, other]));
+                    }
+                }
+            }
+        }
+        None
+    }
+
 }
 
 // ── Explanation Trace ───────────────────────────────────────────────────
@@ -1921,6 +2116,21 @@ struct Tableau {
     /// this stays off by default and nothing changes; the model emitter turns it
     /// on because it has to hand over the graph, not the verdict.
     capture: bool,
+    /// The choice points the label being added right now depends on. Every
+    /// rule sets it to the set of the label that fired it before adding
+    /// anything; between rules it is every open choice point, which is the
+    /// safe value for anything that forgets. See `Dep`.
+    ctx: Dep,
+    /// The `⊔` and `≤` choice points open on the path to this tableau.
+    open: Vec<u32>,
+    /// The id the next choice point will take.
+    next_choice: u32,
+    /// Why the last `expand` that returned `false` failed: the choice points
+    /// its clash depends on. Meaningless after a `true`.
+    fail_dep: Dep,
+    /// Whether any `⊔` branch or `≤` merge has been chosen on the path to
+    /// the graph this tableau holds. See `ClassModel`.
+    nondeterministic: bool,
 }
 
 impl Tableau {
@@ -1932,6 +2142,11 @@ impl Tableau {
             trace: ExplanationTrace::new(false),
             budget: Budget::default(),
             capture: false,
+            ctx: Dep::new(),
+            open: Vec::new(),
+            next_choice: 0,
+            fail_dep: Dep::new(),
+            nondeterministic: false,
         }
     }
 
@@ -1949,6 +2164,11 @@ impl Tableau {
             trace: ExplanationTrace::new(true),
             budget: Budget::default(),
             capture: false,
+            ctx: Dep::new(),
+            open: Vec::new(),
+            next_choice: 0,
+            fail_dep: Dep::new(),
+            nondeterministic: false,
         }
     }
 
@@ -1976,14 +2196,55 @@ impl Tableau {
         id
     }
 
+    /// Every open choice point: the safe dependency set for anything whose
+    /// real set is not tracked.
+    fn all_open(&self) -> Dep {
+        self.open.iter().copied().collect()
+    }
+
+    /// The set of a label on a node, or every open choice point if none is
+    /// recorded.
+    fn label_dep(&self, node_id: u32, c: &Concept) -> Dep {
+        self.nodes
+            .get(&node_id)
+            .and_then(|n| n.deps.get(c).cloned())
+            .unwrap_or_else(|| self.all_open())
+    }
+
+    /// The set of the edge `from --role--> to`, read through the sub-roles of
+    /// `role` and the parent back-link the way `successors` reads them, or
+    /// every open choice point if none is recorded.
+    fn edge_dep(&self, from: u32, role: u32, to: u32) -> Dep {
+        let Some(n) = self.nodes.get(&from) else {
+            return self.all_open();
+        };
+        let mut roles = vec![role];
+        if let Some(subs) = self.tbox.super_to_sub.get(&role) {
+            roles.extend(subs.iter().copied());
+        }
+        for r in roles {
+            if n.edges.get(&r).is_some_and(|t| t.contains(&to))
+                && let Some(d) = n.edge_deps.get(&(r, to))
+            {
+                return d.clone();
+            }
+        }
+        if n.parent == Some(to) {
+            return n.created.clone();
+        }
+        self.all_open()
+    }
+
     fn add_label(&mut self, node_id: u32, concept: Concept) -> bool {
         if concept == Concept::Top {
             return false;
         }
+        let dep = self.ctx.clone();
         let node = self.nodes.get_mut(&node_id).unwrap();
         if !node.labels.insert(concept.clone()) {
             return false;
         }
+        node.deps.insert(concept.clone(), dep.clone());
         // Trigger concept definitions for atomic labels
         if let Concept::Atom(a) = &concept {
             if let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
@@ -1992,15 +2253,22 @@ impl Tableau {
                 }
             }
             // A binary rule fires on whichever of its two conjuncts arrives
-            // second, so it is checked from both sides. See `Absorber`.
+            // second, so it is checked from both sides. See `Absorber`. What
+            // it adds depends on BOTH conjuncts.
             if let Some(rules) = self.tbox.binary_defs.get(a).cloned() {
                 for (other, d) in rules {
-                    let has_other = self
-                        .nodes
-                        .get(&node_id)
-                        .is_some_and(|n| n.labels.contains(&Concept::Atom(other)));
-                    if has_other {
+                    let other_dep = self.nodes.get(&node_id).and_then(|n| {
+                        n.labels
+                            .contains(&Concept::Atom(other))
+                            .then(|| n.deps.get(&Concept::Atom(other)).cloned())
+                    });
+                    if let Some(other_dep) = other_dep {
+                        let saved = self.ctx.clone();
+                        let mut both = dep.clone();
+                        both.extend(other_dep.unwrap_or_else(|| self.all_open()));
+                        self.ctx = both;
                         self.add_label(node_id, d);
+                        self.ctx = saved;
                     }
                 }
             }
@@ -2095,13 +2363,10 @@ impl Tableau {
         if !self.nodes.contains_key(&from) || !self.nodes.contains_key(&to) {
             return;
         }
-        self.nodes
-            .get_mut(&from)
-            .unwrap()
-            .edges
-            .entry(role)
-            .or_default()
-            .insert(to);
+        let dep = self.ctx.clone();
+        let from_node = self.nodes.get_mut(&from).unwrap();
+        from_node.edges.entry(role).or_default().insert(to);
+        from_node.edge_deps.entry((role, to)).or_insert_with(|| dep.clone());
         // The inverse edge holds in every model in which this one does, and it
         // is stored rather than inferred because a `∀r⁻` placed by absorption
         // has to reach an `r`-predecessor that is not a tree parent: an ABox
@@ -2109,13 +2374,9 @@ impl Tableau {
         // back-link in `successors` covered only the second case's simplest
         // form.
         if let Some(&inv) = self.tbox.inverse_roles.get(&role) {
-            self.nodes
-                .get_mut(&to)
-                .unwrap()
-                .edges
-                .entry(inv)
-                .or_default()
-                .insert(from);
+            let to_node = self.nodes.get_mut(&to).unwrap();
+            to_node.edges.entry(inv).or_default().insert(from);
+            to_node.edge_deps.entry((inv, from)).or_insert(dep);
         }
 
         // Keeping domain and range out of the GCI list is deliberate: as GCIs
@@ -2150,6 +2411,9 @@ impl Tableau {
     /// Create a new successor node and set up edges (including inverse back-edges).
     fn create_successor(&mut self, parent_id: u32, role: u32, filler: Concept) -> u32 {
         let succ = self.fresh_node(Some(parent_id), Some(role));
+        // The node exists only under the choices its generating `∃` or `≥`
+        // label depends on, which is what the caller left in `ctx`.
+        self.nodes.get_mut(&succ).unwrap().created = self.ctx.clone();
         // The edge goes in through the shared primitive, which is what applies
         // rdfs:domain to this node and rdfs:range to the new one.
         self.add_role_edge(parent_id, role, succ);
@@ -2160,15 +2424,22 @@ impl Tableau {
             self.add_label(succ, gci);
         }
 
-        // Propagate ∀ labels from parent to new successor
-        let parent_labels: Vec<Concept> = self.nodes[&parent_id].labels.iter().cloned().collect();
+        // Propagate ∀ labels from parent to new successor. What lands depends
+        // on the `∀` label as well as on the edge.
+        let edge_ctx = self.ctx.clone();
+        let mut parent_labels: Vec<Concept> = self.nodes[&parent_id].labels.iter().cloned().collect();
+        parent_labels.sort_unstable();
         for label in &parent_labels {
             match label {
                 Concept::ForAll(r, f) if *r == role => {
+                    let mut d = edge_ctx.clone();
+                    d.extend(self.label_dep(parent_id, label));
+                    self.ctx = d;
                     self.add_label(succ, *f.clone());
                     if self.tbox.transitive_roles.contains(r) {
                         self.add_label(succ, Concept::ForAll(*r, f.clone()));
                     }
+                    self.ctx = edge_ctx.clone();
                 }
                 _ => {}
             }
@@ -2188,7 +2459,11 @@ impl Tableau {
             for label in &parent_labels {
                 if let Concept::ForAll(r, f) = label
                     && *r == sup_role {
+                        let mut d = edge_ctx.clone();
+                        d.extend(self.label_dep(parent_id, label));
+                        self.ctx = d;
                         self.add_label(succ, *f.clone());
+                        self.ctx = edge_ctx.clone();
                     }
             }
         }
@@ -2211,24 +2486,36 @@ impl Tableau {
             remove_id, keep_id
         ));
 
+        // Everything the merge moves depends on the merge itself, which the
+        // caller left in `ctx` (the choice, the `≤` label, and the edges and
+        // filler labels that made the two nodes candidates), and on whatever
+        // the moved thing depended on where it was.
+        let merge_ctx = self.ctx.clone();
+
         // 1. Merge labels
-        let remove_labels: Vec<Concept> = self.nodes[&remove_id].labels.iter().cloned().collect();
+        let mut remove_labels: Vec<Concept> = self.nodes[&remove_id].labels.iter().cloned().collect();
+        remove_labels.sort_unstable();
         for label in remove_labels {
+            let mut d = merge_ctx.clone();
+            d.extend(self.label_dep(remove_id, &label));
+            self.ctx = d;
             self.add_label(keep_id, label);
         }
+        self.ctx = merge_ctx.clone();
 
         // 2. Merge edges
         let remove_edges = self.nodes[&remove_id].edges.clone();
         for (role, targets) in remove_edges {
             for target in targets {
                 if target != keep_id && target != remove_id {
-                    self.nodes
-                        .get_mut(&keep_id)
-                        .unwrap()
-                        .edges
-                        .entry(role)
-                        .or_default()
-                        .insert(target);
+                    let mut d = merge_ctx.clone();
+                    match self.nodes[&remove_id].edge_deps.get(&(role, target)) {
+                        Some(e) => d.extend(e.iter().copied()),
+                        None => d.extend(self.all_open()),
+                    }
+                    let keep = self.nodes.get_mut(&keep_id).unwrap();
+                    keep.edges.entry(role).or_default().insert(target);
+                    keep.edge_deps.entry((role, target)).or_insert(d);
                 }
             }
         }
@@ -2244,16 +2531,30 @@ impl Tableau {
             if nid == remove_id {
                 continue;
             }
+            let open = self.all_open();
             let node = self.nodes.get_mut(&nid).unwrap();
-            for targets in node.edges.values_mut() {
+            let mut moved: Vec<u32> = Vec::new();
+            for (&role, targets) in node.edges.iter_mut() {
                 if targets.remove(&remove_id)
                     && nid != keep_id {
                         targets.insert(keep_id);
+                        moved.push(role);
                     }
+            }
+            // An edge redirected to the survivor exists there only because of
+            // the merge.
+            for role in moved {
+                let mut d = merge_ctx.clone();
+                match node.edge_deps.remove(&(role, remove_id)) {
+                    Some(e) => d.extend(e),
+                    None => d.extend(open.iter().copied()),
+                }
+                node.edge_deps.insert((role, keep_id), d);
             }
             // Update parent references
             if node.parent == Some(remove_id) {
                 node.parent = Some(keep_id);
+                node.created.extend(merge_ctx.iter().copied());
             }
         }
 
@@ -2276,6 +2577,9 @@ impl Tableau {
         let out_of_budget = self.budget.spend();
         if depth > max_depth || self.nodes.len() > max_nodes || out_of_budget {
             self.budget.exhausted = true;
+            // An exhausted branch refuted nothing, so it may not license a
+            // jump past any choice point.
+            self.fail_dep = self.all_open();
             return false;
         }
 
@@ -2290,9 +2594,11 @@ impl Tableau {
             // work is: every iteration re-runs blocking over every node.
             if self.budget.spend() {
                 self.budget.exhausted = true;
+                self.fail_dep = self.all_open();
                 return false;
             }
-            if self.any_clash() {
+            if let Some(d) = self.clash() {
+                self.fail_dep = d;
                 return false;
             }
             let mut changed = false;
@@ -2308,14 +2614,23 @@ impl Tableau {
                     continue;
                 }
 
-                let labels: Vec<Concept> = self.nodes[&nid]
+                let mut labels: Vec<Concept> = self.nodes[&nid]
                     .labels
                     .iter()
                     .filter(|l| !self.nodes[&nid].processed.contains(l))
                     .cloned()
                     .collect();
+                // Sorted, like the node traversals. A label set is a HashSet
+                // with a per-instance random seed, and the order rules fire in
+                // decides node ids, which clash is met first and therefore the
+                // dependency set a backjump follows. Unsorted, the number of
+                // branches explored moved between runs of one input (#161).
+                labels.sort_unstable();
 
                 for label in labels {
+                    // Everything this rule adds depends on the label that
+                    // fired it.
+                    self.ctx = self.label_dep(nid, &label);
                     match &label {
                         // ⊓-rule: expand conjunction
                         Concept::And(cs) => {
@@ -2361,6 +2676,7 @@ impl Tableau {
                                 for _ in 0..(n - matching) {
                                     if self.nodes.len() > max_nodes || self.budget.spend() {
                                         self.budget.exhausted = true;
+                                        self.fail_dep = self.all_open();
                                         return false;
                                     }
                                     self.create_successor(nid, role, filler.clone());
@@ -2375,10 +2691,14 @@ impl Tableau {
                             let filler = *filler.clone();
                             let is_transitive = self.tbox.transitive_roles.contains(&role);
                             let succs = self.successors(nid, role);
+                            let forall_dep = self.ctx.clone();
                             for s in succs {
                                 if !self.nodes.contains_key(&s) {
                                     continue;
                                 }
+                                let mut d = forall_dep.clone();
+                                d.extend(self.edge_dep(nid, role, s));
+                                self.ctx = d;
                                 if self.add_label(s, filler.clone()) {
                                     changed = true;
                                 }
@@ -2404,13 +2724,15 @@ impl Tableau {
                 }
             }
 
+            self.ctx = self.all_open();
             self.update_blocking();
             if !changed {
                 break;
             }
         }
 
-        if self.any_clash() {
+        if let Some(d) = self.clash() {
+            self.fail_dep = d;
             return false;
         }
 
@@ -2427,7 +2749,7 @@ impl Tableau {
                 continue;
             }
 
-            let max_labels: Vec<(u32, u32, Concept)> = self.nodes[&nid]
+            let mut max_labels: Vec<(u32, u32, Concept)> = self.nodes[&nid]
                 .labels
                 .iter()
                 .filter(|l| !self.nodes[&nid].processed.contains(l))
@@ -2436,14 +2758,16 @@ impl Tableau {
                     _ => None,
                 })
                 .collect();
+            max_labels.sort_unstable();
 
             for (role, n, filler) in max_labels {
                 let succs = self.successors(nid, role);
-                let matching: Vec<u32> = succs
+                let mut matching: Vec<u32> = succs
                     .iter()
                     .filter(|&&s| self.node_satisfies(s, &filler))
                     .copied()
                     .collect();
+                matching.sort_unstable();
 
                 if matching.len() as u32 > n {
                     self.trace.record(&format!(
@@ -2518,10 +2842,36 @@ impl Tableau {
                     // `budget.exhausted`, which callers turn into `Verdict::Unknown`
                     // and `undecided: true`. The degraded answer is "I did not
                     // finish", never a verdict.
+                    // A merge is a choice point. What it moves is charged to
+                    // the choice, to the `≤` label and to each candidate's
+                    // edge and filler label, on top of what it depended on
+                    // before; see `merge_nodes`.
+                    let choice = self.next_choice;
+                    self.next_choice += 1;
+                    let alternatives = matching.len() * (matching.len() - 1) / 2;
+                    // Why the rule fired at all: the bound, and each candidate's
+                    // edge and its filler label.
+                    let max_label = Concept::MaxCard(role, n, Box::new(filler.clone()));
+                    let mut rule_dep = self.label_dep(nid, &max_label);
+                    for &m in &matching {
+                        rule_dep.extend(self.edge_dep(nid, role, m));
+                        if filler != Concept::Top {
+                            rule_dep.extend(self.label_dep(m, &filler));
+                        }
+                    }
+                    let mut failed = rule_dep.clone();
                     for i in 0..matching.len() {
                         for j in (i + 1)..matching.len() {
                             let mut branch = self.clone();
+                            branch.open.push(choice);
+                            if alternatives > 1 {
+                                branch.nondeterministic = true;
+                            }
+                            let mut d = rule_dep.clone();
+                            d.insert(choice);
+                            branch.ctx = d;
                             branch.merge_nodes(matching[i], matching[j]);
+                            branch.ctx = branch.all_open();
                             if branch.expand(depth + 1) {
                                 *self = branch;
                                 return true;
@@ -2532,8 +2882,16 @@ impl Tableau {
                             if self.budget.stopped_by.is_none() {
                                 self.budget.stopped_by = branch.budget.stopped_by;
                             }
+                            // Backjump, as for a disjunction: a clash that does
+                            // not depend on this merge recurs under every other.
+                            if !branch.fail_dep.contains(&choice) {
+                                self.fail_dep = branch.fail_dep;
+                                return false;
+                            }
+                            failed.extend(branch.fail_dep.iter().copied().filter(|&c| c != choice));
                         }
                     }
+                    self.fail_dep = failed;
                     return false; // All merges lead to clash
                 } else {
                     // No violation, mark as processed
@@ -2558,13 +2916,14 @@ impl Tableau {
             if !self.nodes.contains_key(&nid) || self.nodes[&nid].blocked {
                 continue;
             }
-            let pending_ors: Vec<Concept> = self.nodes[&nid]
+            let mut pending_ors: Vec<Concept> = self.nodes[&nid]
                 .labels
                 .iter()
                 .filter(|l| matches!(l, Concept::Or(_)))
                 .filter(|l| !self.nodes[&nid].processed.contains(l))
                 .cloned()
                 .collect();
+            pending_ors.sort_unstable();
 
             for or_concept in pending_ors {
                 if let Concept::Or(ref disjuncts) = or_concept {
@@ -2585,14 +2944,27 @@ impl Tableau {
                         .unwrap()
                         .processed
                         .insert(or_concept.clone());
+                    let or_dep = self.label_dep(nid, &or_concept);
+                    let choice = self.next_choice;
+                    self.next_choice += 1;
+                    // Why every disjunct failed, less this choice itself.
+                    let mut failed = or_dep.clone();
                     for disjunct in disjuncts {
                         let mut branch = self.clone();
+                        branch.open.push(choice);
+                        branch.nondeterministic = true;
+                        let mut d = or_dep.clone();
+                        d.insert(choice);
+                        branch.ctx = d;
                         branch.add_label(nid, disjunct.clone());
+                        branch.ctx = branch.all_open();
                         if branch.expand(depth + 1) {
                             // Only the model emitter asks for the graph back. See
                             // `Tableau::capture`.
                             if self.capture {
                                 *self = branch;
+                            } else {
+                                self.nondeterministic = true;
                             }
                             return true;
                         }
@@ -2601,33 +2973,67 @@ impl Tableau {
                             if self.budget.stopped_by.is_none() {
                                 self.budget.stopped_by = branch.budget.stopped_by;
                             }
+                        // Backjump: a clash that does not depend on this
+                        // choice would recur under every other disjunct.
+                        if !branch.fail_dep.contains(&choice) {
+                            self.fail_dep = branch.fail_dep;
+                            return false;
+                        }
+                        failed.extend(branch.fail_dep.iter().copied().filter(|&c| c != choice));
                     }
+                    self.fail_dep = failed;
                     return false; // All branches clash
                 }
             }
         }
 
         // Check disjointness constraints
+        let mut disjoint_clash: Option<Dep> = None;
+        let mut by_id: Vec<u32> = self.nodes.keys().copied().collect();
+        by_id.sort_unstable();
         for (a, b) in &self.tbox.disjoint_pairs {
-            for node in self.nodes.values() {
+            for node in by_id.iter().map(|id| &self.nodes[id]) {
                 if node.blocked {
                     continue;
                 }
                 if node.labels.contains(a) && node.labels.contains(b) {
                     self.trace
                         .record(&format!("Clash: disjoint concepts {:?} and {:?}", a, b));
-                    return false;
+                    disjoint_clash = Some(node.deps_of([a, b]).unwrap_or_else(|| self.all_open()));
+                    break;
                 }
             }
+            if disjoint_clash.is_some() {
+                break;
+            }
+        }
+        if let Some(d) = disjoint_clash {
+            self.fail_dep = d;
+            return false;
         }
 
         true // Complete, clash-free
     }
 
-    fn any_clash(&self) -> bool {
-        self.nodes
-            .values()
-            .any(|n| !n.blocked && (n.has_clash() || self.card_clash_via_hierarchy(n)))
+    /// The first clash on an unblocked node, with the choice points it
+    /// depends on. Nodes are visited in id order so the answer does not depend
+    /// on `HashMap` iteration.
+    fn clash(&self) -> Option<Dep> {
+        let mut ids: Vec<u32> = self.nodes.keys().copied().collect();
+        ids.sort_unstable();
+        for id in ids {
+            let n = &self.nodes[&id];
+            if n.blocked {
+                continue;
+            }
+            if let Some(d) = n.clash_dep() {
+                return Some(d.unwrap_or_else(|| self.all_open()));
+            }
+            if let Some(d) = self.card_clash_via_hierarchy(n) {
+                return Some(d.unwrap_or_else(|| self.all_open()));
+            }
+        }
+        None
     }
 
     /// ≥n1 R.C against ≤n2 R.D where n1 > n2 and C ⊑ D.
@@ -2642,7 +3048,7 @@ impl Tableau {
     /// are all of this shape. Ablating its cardinality axioms takes the count to
     /// 0, while ablating rdfs:domain, rdfs:range or owl:disjointWith each leave
     /// all 39 standing.
-    fn card_clash_via_hierarchy(&self, n: &TNode) -> bool {
+    fn card_clash_via_hierarchy(&self, n: &TNode) -> Option<Option<Dep>> {
         let subsumed = |a: &Concept, b: &Concept| -> bool {
             match (a, b) {
                 (Concept::Atom(x), Concept::Atom(y)) => {
@@ -2656,23 +3062,25 @@ impl Tableau {
                 _ => false,
             }
         };
-        for label in &n.labels {
+        let mut sorted: Vec<&Concept> = n.labels.iter().collect();
+        sorted.sort_unstable();
+        for &label in &sorted {
             let (r1, n1, f1) = match label {
                 Concept::MinCard(r, k, f) => (*r, *k, f.as_ref()),
                 Concept::Exists(r, f) => (*r, 1u32, f.as_ref()),
                 _ => continue,
             };
-            for other in &n.labels {
+            for &other in &sorted {
                 if let Concept::MaxCard(r2, n2, f2) = other
                     && r1 == *r2
                     && n1 > *n2
                     && subsumed(f1, f2)
                 {
-                    return true;
+                    return Some(n.deps_of([label, other]));
                 }
             }
         }
-        false
+        None
     }
 
     /// Applies pairwise ancestor blocking to every node. See
@@ -3010,6 +3418,42 @@ impl DlReasoner {
         tableau.decide(concept)
     }
 
+    /// `decide_satisfiable` for a named class, keeping what its model says about
+    /// the class's subsumers. See `ClassModel`.
+    fn satisfiable_with_model(&self, cls: u32, deadline: Option<Instant>) -> (Verdict, Option<ClassModel>) {
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), deadline);
+        // The graph of the branch that succeeded is the model; without
+        // `capture` the ⊔-rule hands back the state before the last choice.
+        tableau.capture = true;
+        let verdict = tableau.decide(&Concept::Atom(cls));
+        if !matches!(verdict, Verdict::Satisfiable) {
+            return (verdict, None);
+        }
+        // Node 0 is the root `decide` created. A merge can in principle remove
+        // it, and then there is no root to read, so the class falls back to
+        // pairwise testing rather than being read off the wrong node.
+        let Some(root) = tableau.nodes.get(&0) else {
+            return (verdict, None);
+        };
+        let mut root_classes: Vec<u32> = root
+            .labels
+            .iter()
+            .filter_map(|l| match l {
+                Concept::Atom(a)
+                    if *a != cls
+                        && *a != self.thing_id
+                        && *a != self.nothing_id
+                        && self.named_classes.contains(a) =>
+                {
+                    Some(*a)
+                }
+                _ => None,
+            })
+            .collect();
+        root_classes.sort_unstable();
+        (verdict, Some(ClassModel { root_classes, deterministic: !tableau.nondeterministic }))
+    }
+
     /// `decide_subsumption` against a deadline the caller already opened.
     fn decide_subsumption_within(
         &self,
@@ -3197,19 +3641,18 @@ impl DlReasoner {
         // check — which runs last and is the one a user reads for their own data
         // — routinely reported `undecided` on an ABox it decides in microseconds.
         let sat_deadline = self.phase_deadline_within(global_deadline);
-        let sat_results: Vec<(u32, Verdict)> = classes
+        let sat_full: Vec<(u32, Verdict, Option<ClassModel>)> = classes
             .par_iter()
             .map(|&cls| {
                 if out_of_time() {
                     // Budget gone: report Unknown rather than guessing.
-                    return (cls, Verdict::Unknown);
+                    return (cls, Verdict::Unknown, None);
                 }
-                (
-                    cls,
-                    self.decide_satisfiable_within(&Concept::Atom(cls), sat_deadline),
-                )
+                let (verdict, model) = self.satisfiable_with_model(cls, sat_deadline);
+                (cls, verdict, model)
             })
             .collect();
+        let sat_results: Vec<(u32, Verdict)> = sat_full.iter().map(|(c, v, _)| (*c, *v)).collect();
 
         // Only PROVEN unsatisfiable classes go in the unsatisfiable list.
         // Classes we ran out of budget on are undetermined, and are kept in
@@ -3247,12 +3690,40 @@ impl DlReasoner {
         let sub_start = Instant::now();
         let told = self.compute_told_subsumers();
 
-        // Build pairs to test (skip told subsumptions)
+        // What each class's own model already settles, and the pairs left to
+        // test. See `ClassModel`: a named class missing from the root label of
+        // a model of `A` is a proven non-subsumer and is never tested; when the
+        // model was built with no choice, every named class in the root label
+        // is a proven subsumer and is not tested either. Only a class with no
+        // model (undetermined) falls back to testing every pair, which is what
+        // every class used to do.
+        let sat_set: HashSet<u32> = satisfiable.iter().copied().collect();
         let mut pairs: Vec<(u32, u32)> = Vec::new();
-        for &sub in &satisfiable {
-            for &sup in &satisfiable {
-                if sub != sup && !told.get(&sub).is_some_and(|s| s.contains(&sup)) {
-                    pairs.push((sub, sup));
+        let mut from_models: Vec<(u32, u32)> = Vec::new();
+        for (sub, verdict, model) in &sat_full {
+            if verdict.is_unsat() {
+                continue;
+            }
+            let told_sup = |sup: u32| told.get(sub).is_some_and(|s| s.contains(&sup));
+            match model {
+                Some(m) => {
+                    for &sup in &m.root_classes {
+                        if !sat_set.contains(&sup) || told_sup(sup) {
+                            continue;
+                        }
+                        if m.deterministic {
+                            from_models.push((*sub, sup));
+                        } else {
+                            pairs.push((*sub, sup));
+                        }
+                    }
+                }
+                None => {
+                    for &sup in &satisfiable {
+                        if *sub != sup && !told_sup(sup) {
+                            pairs.push((*sub, sup));
+                        }
+                    }
                 }
             }
         }
@@ -3266,7 +3737,9 @@ impl DlReasoner {
             }
             self.decide_subsumption_within(&Concept::Atom(sub), &Concept::Atom(sup), sub_deadline)
         });
-        let inferred = sweep.inferred;
+        let subsumptions_from_models = from_models.len();
+        let mut inferred = from_models;
+        inferred.extend(sweep.inferred);
         let undetermined_pairs = sweep.undetermined;
         let subsumption_cut_short = !undetermined_pairs.is_empty();
         let sub_time = sub_start.elapsed();
@@ -3305,6 +3778,7 @@ impl DlReasoner {
             undetermined,
             subsumption_cut_short,
             undetermined_pairs,
+            subsumptions_from_models,
             equivalences,
             inferred_subsumptions: inferred.len(),
             agents: AgentMetrics {
@@ -3794,9 +4268,20 @@ impl DlReasoner {
             .iter()
             .map(|&id| reasoner.interner.resolve(id))
             .collect();
-        let complete = undetermined_names.is_empty()
+        // A search that finished is not a classification that is complete. An
+        // axiom this engine reads only approximately, or not at all, can carry
+        // an entailment the search never had a chance to find, and the list of
+        // such axioms used to be computed only when a model certificate was
+        // requested. So `complete: true` was printed over runs that had
+        // approximated nominals or dropped a property chain, and a reader had
+        // no way to tell. Measured on ORE 2015 `ore_ont_5107`: seven
+        // `ObjectOneOf`, every phase decided, `complete: true`, and none of the
+        // six subsumptions HermiT infers.
+        let unmodelled = DlReasoner::unmodelled_constructs(graph);
+        let search_finished = undetermined_names.is_empty()
             && !result.subsumption_cut_short
             && !abox_result.undecided;
+        let complete = search_finished && unmodelled.is_empty();
 
         // WHICH phase ran out, not merely THAT something did.
         //
@@ -3980,6 +4465,11 @@ impl DlReasoner {
             "named_classes": reasoner.named_classes.len(),
             "unsatisfiable_classes": unsat_names,
             "complete": complete,
+            "search_finished": search_finished,
+            "constructs_not_modelled": unmodelled
+                .iter()
+                .map(|(k, n)| serde_json::json!({"construct": k, "occurrences": n}))
+                .collect::<Vec<_>>(),
             "budget_exhausted_in": budget_exhausted_in,
             "budget": {
                 "classify_timeout_ms": global_ms,
@@ -4008,6 +4498,7 @@ impl DlReasoner {
                     "pairs_tested": result.agents.subsumption.tasks,
                     "subsumptions_found": result.agents.subsumption.results,
                     "undetermined": result.undetermined_pairs.len(),
+                    "read_from_models": result.subsumptions_from_models,
                     "time_ms": result.agents.subsumption.time_ms,
                 },
                 "parallel_workers": result.agents.parallel_workers,
@@ -4039,7 +4530,6 @@ impl DlReasoner {
                     serde_json::json!(describe(reasoner.certify_class_satisfiable(class, &sub))),
                 );
             }
-            let unmodelled = DlReasoner::unmodelled_constructs(graph);
             output["model_certificate"] = serde_json::json!({
                 "dir": root.display().to_string(),
                 "tbox": describe(reasoner.certify_tbox_consistent(&root.join("tbox"))),
@@ -4136,6 +4626,28 @@ impl DlReasoner {
 
 // ── Subsumption sweep ───────────────────────────────────────────────────
 
+/// What one satisfiability test's model says about a class's subsumers.
+///
+/// A complete, clash-free completion graph for `A` is a model of the TBox in
+/// which the root is an instance of `A`, and in that model the root belongs to
+/// a named class `B` exactly when `B` is in the root's label. So every named
+/// class NOT in the root label is a proven non-subsumer of `A`: the model is a
+/// witness that `A ⊓ ¬B` is satisfiable. That half needs nothing else.
+///
+/// The other half needs the run to have made no choice. When no `⊔` branch was
+/// taken and no `≤` merge was chosen, every label in the graph was forced by
+/// deterministic rules from `A` and the TBox, so it holds of the root in EVERY
+/// model of `A`, and every named class in the root label is a subsumer. When a
+/// choice was made, the label is only one model's answer, and each class in it
+/// is a candidate that still needs its own `A ⊓ ¬B` test.
+struct ClassModel {
+    /// Named classes in the root label, the class itself excluded.
+    root_classes: Vec<u32>,
+    /// True when no `⊔` branch and no `≤` merge was taken.
+    deterministic: bool,
+}
+
+
 /// What a sweep of subsumption tests established, kept three-valued.
 struct PairSweep {
     /// Pairs whose test proved `sub ⊓ ¬sup` unsatisfiable, so `sub ⊑ sup`.
@@ -4203,6 +4715,9 @@ pub struct AgentClassificationResult {
     /// the run's ceiling stopped the sweep before reaching them or the phase
     /// budget expired inside the test. See `sweep_pairs`.
     pub undetermined_pairs: Vec<(u32, u32)>,
+    /// Subsumptions read off a satisfiability model built with no choice, so
+    /// never tested pairwise. See `ClassModel`.
+    pub subsumptions_from_models: usize,
     pub equivalences: Vec<(u32, u32)>,
     pub inferred_subsumptions: usize,
     pub agents: AgentMetrics,
@@ -5193,7 +5708,7 @@ impl DlReasoner {
         // so an ontology leaning on asymmetry got a clean verdict with no sign
         // that a constraint had been dropped. That is the one outcome this list
         // exists to prevent.
-        const NOT_MODELLED: [(&str, &str); 10] = [
+        const NOT_MODELLED: [(&str, &str); 13] = [
             ("owl:sameAs", "http://www.w3.org/2002/07/owl#sameAs"),
             ("owl:differentFrom", "http://www.w3.org/2002/07/owl#differentFrom"),
             ("owl:oneOf", "http://www.w3.org/2002/07/owl#oneOf"),
@@ -5206,6 +5721,11 @@ impl DlReasoner {
             ("owl:ReflexiveProperty", "http://www.w3.org/2002/07/owl#ReflexiveProperty"),
             ("owl:IrreflexiveProperty", "http://www.w3.org/2002/07/owl#IrreflexiveProperty"),
             ("owl:AsymmetricProperty", "http://www.w3.org/2002/07/owl#AsymmetricProperty"),
+            // Disjointness of ROLES is an edge-level constraint, like asymmetry.
+            ("owl:propertyDisjointWith", "http://www.w3.org/2002/07/owl#propertyDisjointWith"),
+            ("owl:AllDisjointProperties", "http://www.w3.org/2002/07/owl#AllDisjointProperties"),
+            // The n-ary form of `owl:differentFrom`, already listed above.
+            ("owl:AllDifferent", "http://www.w3.org/2002/07/owl#AllDifferent"),
         ];
         let mut found = Vec::new();
         for (label, iri) in NOT_MODELLED {
@@ -5221,6 +5741,22 @@ impl DlReasoner {
                 .unwrap_or(0);
             if n > 0 {
                 found.push((label.to_string(), n));
+            }
+        }
+        let q = "SELECT (COUNT(*) AS ?n) WHERE { ?r <http://www.w3.org/2002/07/owl#onProperty> ?p . \
+                 ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }";
+        if let Ok(raw) = graph.sparql_select_union(q)
+            && let Ok(v) = serde_json::from_str::<serde_json::Value>(&raw)
+        {
+            let n = v["results"][0]["n"]
+                .as_str()
+                .and_then(|s| s.trim_matches('"').split('"').next())
+                .and_then(|s| s.parse::<u64>().ok())
+                .unwrap_or(0);
+            if n > 0 {
+                // Read as a role to an opaque class: sound, and blind to
+                // values, so no datatype clash or value count is ever found.
+                found.push(("datatype restriction".to_string(), n));
             }
         }
         found

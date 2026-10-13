@@ -52,7 +52,14 @@ fn the_four_nominal_repro_is_decided_and_matches_hermit() {
     let t = std::time::Instant::now();
     let v: serde_json::Value =
         serde_json::from_str(&Reasoner::run(&store, "owl-dl", false).unwrap()).unwrap();
-    assert_eq!(v["complete"], true, "{v}");
+    assert_eq!(v["search_finished"], true, "{v}");
+    // `owl:hasValue` is approximated, so the run must not call itself complete
+    // even though, here, its answers are exactly HermiT's.
+    assert_eq!(v["complete"], false, "{v}");
+    assert!(
+        v["constructs_not_modelled"].as_array().unwrap().iter().any(|c| c["construct"] == "owl:hasValue"),
+        "{v}"
+    );
     assert!(t.elapsed().as_secs() < 10, "took {:?}", t.elapsed());
     let mut got: Vec<(String, String)> = Vec::new();
     for row in v["classification"].as_array().unwrap() {

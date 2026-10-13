@@ -35,7 +35,9 @@ fn supers(ttl: &str, class: &str) -> Vec<String> {
     store.load_turtle(&format!("{PREFIXES}{ttl}"), None).unwrap();
     let out = Reasoner::run(&store, "owl-dl", false).unwrap();
     let v: serde_json::Value = serde_json::from_str(&out).unwrap();
-    assert_eq!(v["complete"], true, "fixture must be decided: {v}");
+    // `complete` is false wherever a construct is not modelled (`owl:hasSelf`
+    // here), so the search having finished is what this fixture needs.
+    assert_eq!(v["search_finished"], true, "fixture must be decided: {v}");
     let want = format!("<http://example.org/{class}>");
     v["classification"]
         .as_array()
