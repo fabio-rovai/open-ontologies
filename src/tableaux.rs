@@ -2833,30 +2833,18 @@ impl DlReasoner {
             }
         }
 
-        let subsumption_cut_short = std::sync::atomic::AtomicBool::new(false);
         // This phase's own budget, opened now rather than inherited from the
         // satisfiability sweep that just finished.
         let sub_deadline = self.phase_deadline_within(global_deadline);
-        let inferred: Vec<(u32, u32)> = pairs
-            .par_iter()
-            .filter(|(sub, sup)| {
-                if out_of_time() {
-                    // Untested pairs are NOT non-subsumptions. Flag the run as
-                    // incomplete so no caller reads absence as refutation.
-                    subsumption_cut_short.store(true, std::sync::atomic::Ordering::Relaxed);
-                    return false;
-                }
-                self.decide_subsumption_within(
-                    &Concept::Atom(*sub),
-                    &Concept::Atom(*sup),
-                    sub_deadline,
-                )
-                .is_unsat()
-            })
-            .cloned()
-            .collect();
-        let subsumption_cut_short =
-            subsumption_cut_short.load(std::sync::atomic::Ordering::Relaxed);
+        let sweep = sweep_pairs(&pairs, |sub, sup| {
+            if out_of_time() {
+                return Verdict::Unknown;
+            }
+            self.decide_subsumption_within(&Concept::Atom(sub), &Concept::Atom(sup), sub_deadline)
+        });
+        let inferred = sweep.inferred;
+        let undetermined_pairs = sweep.undetermined;
+        let subsumption_cut_short = !undetermined_pairs.is_empty();
         let sub_time = sub_start.elapsed();
 
         // Build hierarchy (told + inferred)
@@ -2892,6 +2880,7 @@ impl DlReasoner {
             unsatisfiable,
             undetermined,
             subsumption_cut_short,
+            undetermined_pairs,
             equivalences,
             inferred_subsumptions: inferred.len(),
             agents: AgentMetrics {
@@ -3594,6 +3583,7 @@ impl DlReasoner {
                 "subsumption_agent": {
                     "pairs_tested": result.agents.subsumption.tasks,
                     "subsumptions_found": result.agents.subsumption.results,
+                    "undetermined": result.undetermined_pairs.len(),
                     "time_ms": result.agents.subsumption.time_ms,
                 },
                 "parallel_workers": result.agents.parallel_workers,
@@ -3720,6 +3710,57 @@ impl DlReasoner {
     }
 }
 
+// ── Subsumption sweep ───────────────────────────────────────────────────
+
+/// What a sweep of subsumption tests established, kept three-valued.
+struct PairSweep {
+    /// Pairs whose test proved `sub ⊓ ¬sup` unsatisfiable, so `sub ⊑ sup`.
+    inferred: Vec<(u32, u32)>,
+    /// Pairs whose test came back `Unknown`. Neither a subsumption nor a
+    /// refutation of one.
+    undetermined: Vec<(u32, u32)>,
+}
+
+/// Run `decide` over every pair and keep the three answers apart.
+///
+/// This used to be a `filter` that kept a pair when its verdict `.is_unsat()`,
+/// which folds `Unknown` into "not subsumed". The sweep only flagged itself
+/// incomplete when the run's GLOBAL ceiling had passed before a pair was
+/// reached; a test whose own phase budget ran out inside it returned
+/// `Unknown`, was dropped exactly as a refuted pair is, and left no trace. The
+/// phase budget is shared by every pair in the sweep, so once it expires every
+/// remaining pair fails that way at once.
+///
+/// Measured on ORE 2015 `ore_ont_8937` (37 classes, 1,326 pairs): the sweep hit
+/// its 10 s phase budget, two runs of one binary returned 36 and then 57
+/// subsumptions against HermiT's 329, and both reported
+/// `budget_exhausted_in: []`, `complete: true`. A result that is wrong and says
+/// it is finished is the failure this codebase exists to rule out.
+///
+/// Taking the verdict as a function is what lets a test hand the sweep an
+/// `Unknown` deterministically. The real failure needs a wall clock to run out
+/// partway through a sweep, and a test that depends on a wall clock is the
+/// flake `#161` removed.
+fn sweep_pairs<F>(pairs: &[(u32, u32)], decide: F) -> PairSweep
+where
+    F: Fn(u32, u32) -> Verdict + Sync,
+{
+    let verdicts: Vec<((u32, u32), Verdict)> = pairs
+        .par_iter()
+        .map(|&(sub, sup)| ((sub, sup), decide(sub, sup)))
+        .collect();
+    let mut inferred = Vec::new();
+    let mut undetermined = Vec::new();
+    for (pair, verdict) in verdicts {
+        match verdict {
+            Verdict::Unsatisfiable => inferred.push(pair),
+            Verdict::Unknown => undetermined.push(pair),
+            Verdict::Satisfiable => {}
+        }
+    }
+    PairSweep { inferred, undetermined }
+}
+
 // ── Agent Result Types ──────────────────────────────────────────────────
 
 pub struct AgentClassificationResult {
@@ -3730,10 +3771,14 @@ pub struct AgentClassificationResult {
     /// proven satisfiable nor proven unsatisfiable. Their presence means the
     /// classification as a whole is incomplete.
     pub undetermined: Vec<u32>,
-    /// True when the subsumption sweep ran out of global budget, so some pairs
-    /// were never tested. Absence of a subsumption in the output is then not
-    /// evidence that it does not hold.
+    /// True when any subsumption test came back undecided, so the hierarchy
+    /// may be missing pairs. Absence of a subsumption in the output is then
+    /// not evidence that it does not hold.
     pub subsumption_cut_short: bool,
+    /// The ordered pairs `(sub, sup)` whose test came back `Unknown`, whether
+    /// the run's ceiling stopped the sweep before reaching them or the phase
+    /// budget expired inside the test. See `sweep_pairs`.
+    pub undetermined_pairs: Vec<(u32, u32)>,
     pub equivalences: Vec<(u32, u32)>,
     pub inferred_subsumptions: usize,
     pub agents: AgentMetrics,
@@ -5176,5 +5221,39 @@ mod certificate_boundary_tests {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod pair_sweep_tests {
+    use super::*;
+
+    /// An undecided subsumption test is reported as undecided, not dropped.
+    ///
+    /// The old sweep kept a pair when its verdict `.is_unsat()` and discarded
+    /// everything else, so the `Unknown` pair below vanished exactly as the
+    /// refuted one did and the sweep could not say it had been cut short.
+    #[test]
+    fn an_unknown_pair_is_kept_apart_from_a_refuted_one() {
+        let pairs = [(1, 2), (1, 3), (2, 3), (3, 1)];
+        let sweep = sweep_pairs(&pairs, |sub, sup| match (sub, sup) {
+            (1, 2) => Verdict::Unsatisfiable,
+            (1, 3) => Verdict::Unknown,
+            (3, 1) => Verdict::Unknown,
+            _ => Verdict::Satisfiable,
+        });
+        assert_eq!(sweep.inferred, vec![(1, 2)]);
+        assert_eq!(sweep.undetermined, vec![(1, 3), (3, 1)]);
+    }
+
+    /// A sweep in which every test was decided has nothing to report.
+    #[test]
+    fn a_fully_decided_sweep_reports_no_undetermined_pair() {
+        let pairs = [(1, 2), (2, 1)];
+        let sweep = sweep_pairs(&pairs, |sub, _| {
+            if sub == 1 { Verdict::Unsatisfiable } else { Verdict::Satisfiable }
+        });
+        assert_eq!(sweep.inferred, vec![(1, 2)]);
+        assert!(sweep.undetermined.is_empty());
     }
 }

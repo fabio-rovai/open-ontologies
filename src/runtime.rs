@@ -151,6 +151,15 @@ pub fn tableaux_max_steps() -> Option<u64> {
     }
 }
 
+/// Override the step ceiling, for tests. `0` removes the bound.
+///
+/// The step budget is the one bound that stops a run at the same place on
+/// every machine, so it is the one a test can use to cut a sweep short on
+/// purpose and then ask whether the output admits it.
+pub fn set_tableaux_max_steps(n: usize) {
+    TABLEAUX_MAX_STEPS.store(n, Ordering::Relaxed);
+}
+
 /// Wall-clock cut-off for a single tableau satisfiability test, in
 /// milliseconds. `None` (value 0) means no time limit.
 ///
