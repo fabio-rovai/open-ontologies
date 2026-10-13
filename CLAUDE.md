@@ -59,7 +59,7 @@ Claude dynamically decides the next tool call based on what the previous tool re
 | `onto_query` | To verify structure, answer competency questions, explore the ontology |
 | `onto_diff` | To compare against a reference or previous version |
 | `onto_save` | To persist the ontology to a file |
-| `onto_convert` | To convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG) |
+| `onto_convert` | To convert between formats (reads Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD and OWL 2 functional syntax; writes the first five) |
 | `onto_clear` | To reset the store before loading a different ontology |
 | `onto_marketplace` | To browse and install ontologies: 33 curated W3C/ISO/industry standards plus community packs from the open registry (`community/registry.json`, fetched at runtime; `community=false` for curated/offline only). Curated IDs always win over community IDs |
 | `onto_plugin_list` | To discover installed WASM plugins (community `.wasm` tools in `~/.open-ontologies/plugins` or `./plugins`) and the tools each declares. Requires a build with `--features plugins` |

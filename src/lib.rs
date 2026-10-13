@@ -79,6 +79,9 @@ pub mod marketplace;
 /// answered, on rmcp 1.4.0 and on 1.8.0 alike.
 pub mod mcp_handshake;
 pub mod monitor;
+/// OWL 2 Functional-Style Syntax read into the RDF graph the W3C mapping
+/// assigns it, so `.ofn` files and the OFN-under-`.owl` corpora load.
+pub mod ofn;
 pub mod ontology;
 pub mod ossie;
 pub mod plan;

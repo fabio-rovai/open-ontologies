@@ -7,6 +7,14 @@ use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+/// How a document is serialised: one of the RDF formats Oxigraph parses, or
+/// OWL 2 functional syntax, which is not RDF and is read by [`crate::ofn`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SourceFormat {
+    Rdf(RdfFormat),
+    OwlFunctional,
+}
+
 /// What a parse produced. `statements` counts parser events; `triples` counts
 /// distinct triples, which is the size of the resulting graph. They differ
 /// whenever the source repeats a statement.
@@ -299,21 +307,40 @@ impl GraphStore {
 
     fn load_file_mode(&self, path: &str, replace: bool) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format_sniffed(path, &content);
-        let reader = Cursor::new(content.as_bytes());
-
-        // A document's own location is its default base, per RFC 3986. Without
-        // it, any file using relative IRIs fails to parse at all, which is
-        // most published RDF/XML: LUBM's generated data would not load a
-        // single triple before this.
-        let base = Self::file_base_iri(path);
         // All or nothing: see load_turtle (issue #93).
-        let mut parser = RdfParser::from_format(format);
-        if let Some(base) = base {
-            parser = parser.with_base_iri(base)?;
-        }
-        let quads: Vec<_> = parser.for_reader(reader).collect::<Result<_, _>>()?;
+        let quads = Self::parse_document(path, &content)?;
         self.store_parsed_quads(&quads, replace)
+    }
+
+    /// Parse a whole document, whatever it is serialised as, into quads.
+    ///
+    /// Every path that reads a FILE goes through here (`load_file`,
+    /// `replace_file`, `validate_file`, `content_as_turtle`), so a format this
+    /// engine learns to read is learned once and reaches the CLI, `batch`, the
+    /// MCP tools and the compile cache together. Before the OWL functional
+    /// syntax reader existed each of those called the RDF parser directly, and
+    /// adding a format meant finding all of them.
+    fn parse_document(path: &str, content: &str) -> anyhow::Result<Vec<Quad>> {
+        match Self::detect_source_format(path, content) {
+            SourceFormat::OwlFunctional => Ok(crate::ofn::parse(content)?
+                .into_iter()
+                .map(|t| t.in_graph(GraphName::DefaultGraph))
+                .collect()),
+            SourceFormat::Rdf(format) => {
+                // A document's own location is its default base, per RFC 3986.
+                // Without it, any file using relative IRIs fails to parse at
+                // all, which is most published RDF/XML: LUBM's generated data
+                // would not load a single triple before this. OFN needs none:
+                // its grammar admits only absolute IRIs.
+                let mut parser = RdfParser::from_format(format);
+                if let Some(base) = Self::file_base_iri(path) {
+                    parser = parser.with_base_iri(base)?;
+                }
+                Ok(parser
+                    .for_reader(Cursor::new(content.as_bytes()))
+                    .collect::<Result<_, _>>()?)
+            }
+        }
     }
 
     fn store_parsed_quads(&self, quads: &[Quad], replace: bool) -> anyhow::Result<usize> {
@@ -361,8 +388,8 @@ impl GraphStore {
 
     /// As `read_as_turtle`, for content already in hand (stdin, for instance).
     pub fn content_as_turtle(path_hint: &str, content: String) -> anyhow::Result<String> {
-        let format = Self::detect_format_sniffed(path_hint, &content);
-        if format == RdfFormat::Turtle {
+        let format = Self::detect_source_format(path_hint, &content);
+        if format == SourceFormat::Rdf(RdfFormat::Turtle) {
             if let Some(base) = Self::file_base_iri(path_hint) {
                 // Keep the default base on the first source line so downstream
                 // parsers report the document's original line numbers. A later
@@ -374,14 +401,7 @@ impl GraphStore {
         let store = Self::new();
         {
             let inner = &store.store;
-            let base = Self::file_base_iri(path_hint);
-            let mut parser = RdfParser::from_format(format);
-            if let Some(base) = base {
-                parser = parser.with_base_iri(base)?;
-            }
-            let quads: Vec<_> = parser
-                .for_reader(Cursor::new(content.as_bytes()))
-                .collect::<Result<_, _>>()?;
+            let quads = Self::parse_document(path_hint, &content)?;
             for quad in &quads {
                 inner.insert(quad)?;
             }
@@ -391,13 +411,35 @@ impl GraphStore {
 
     pub fn validate_file(path: &str) -> anyhow::Result<ValidationCounts> {
         let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format_sniffed(path, &content);
-        let reader = Cursor::new(content.as_bytes());
-        let mut parser = RdfParser::from_format(format);
-        if let Some(base) = Self::file_base_iri(path) {
-            parser = parser.with_base_iri(base)?;
+        if let SourceFormat::Rdf(format) = Self::detect_source_format(path, &content) {
+            let reader = Cursor::new(content.as_bytes());
+            let mut parser = RdfParser::from_format(format);
+            if let Some(base) = Self::file_base_iri(path) {
+                parser = parser.with_base_iri(base)?;
+            }
+            return Self::count_parsed(parser.for_reader(reader));
         }
-        Self::count_parsed(parser.for_reader(reader))
+        Self::count_ofn(&content)
+    }
+
+    /// Validate text handed over without a file name: the CLI's `validate -`
+    /// and `onto_validate` with `inline: true`. Both used to go straight to
+    /// the Turtle parser, which is right for everything they were written for
+    /// and wrong for an OWL functional-syntax document, which no Turtle parser
+    /// can read. With no extension to go on, the content decides.
+    pub fn validate_text(content: &str) -> anyhow::Result<ValidationCounts> {
+        if crate::ofn::looks_like_ofn(content) {
+            return Self::count_ofn(content);
+        }
+        Self::validate_turtle(content)
+    }
+
+    fn count_ofn(content: &str) -> anyhow::Result<ValidationCounts> {
+        Self::count_parsed(
+            crate::ofn::parse(content)?
+                .into_iter()
+                .map(|t| Ok::<_, oxigraph::io::RdfParseError>(t.in_graph(GraphName::DefaultGraph))),
+        )
     }
 
     /// A local document's default base is its encoded file URL. Building this
@@ -1273,6 +1315,24 @@ impl GraphStore {
             }
         }
         Ok(out)
+    }
+
+    /// The serialisation of a document, deciding between the RDF formats
+    /// Oxigraph parses and the one this crate parses itself.
+    ///
+    /// OWL functional syntax wins on content before anything else is
+    /// consulted, because the extension it most often travels under is `.owl`,
+    /// and `.owl` means RDF/XML to [`Self::detect_format`]. The ORE 2015
+    /// reasoner-competition corpus is 1,920 such files and every one of them
+    /// reached the RDF/XML parser and died on its first line. `.ofn` is the
+    /// one extension that names the syntax, so it is honoured even when the
+    /// content does not sniff, which sends a malformed `.ofn` file to the
+    /// reader that can say what is wrong with it.
+    fn detect_source_format(path: &str, content: &str) -> SourceFormat {
+        if crate::ofn::looks_like_ofn(content) || path.to_ascii_lowercase().ends_with(".ofn") {
+            return SourceFormat::OwlFunctional;
+        }
+        SourceFormat::Rdf(Self::detect_format_sniffed(path, content))
     }
 
     fn detect_format(path: &str) -> RdfFormat {

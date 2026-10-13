@@ -13,10 +13,12 @@ use std::time::UNIX_EPOCH;
 
 use anyhow::{anyhow, Result};
 
-/// File extensions the RDF parser (`GraphStore::detect_format`) accepts.
-/// Lowercased, without the leading dot. Keep in sync with `graph.rs`.
+/// File extensions the loaders accept: the RDF parser's
+/// (`GraphStore::detect_format`) and `.ofn`, which `GraphStore` hands to the
+/// OWL functional-syntax reader. Lowercased, without the leading dot. Keep in
+/// sync with `graph.rs`.
 pub const RDF_EXTENSIONS: &[&str] = &[
-    "ttl", "turtle", "nt", "ntriples", "rdf", "xml", "owl", "nq", "trig", "jsonld",
+    "ttl", "turtle", "nt", "ntriples", "rdf", "xml", "owl", "nq", "trig", "jsonld", "ofn",
 ];
 
 /// True if `path`'s extension is one of `RDF_EXTENSIONS` (case-insensitive).

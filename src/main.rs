@@ -2553,7 +2553,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
-                GraphStore::validate_turtle(&buf)
+                GraphStore::validate_text(&buf)
             } else {
                 GraphStore::validate_file(&input)
             };

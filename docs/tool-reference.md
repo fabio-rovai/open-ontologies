@@ -104,7 +104,7 @@ it withheld.
 | `onto_coevolve_dependency_graph` | Build the shape→OWL-dependency map for a SHACL document. |
 | `onto_communities` | Detect communities in the loaded entity graph and return a SKELETON per community: size, top members by degree, internal relations, and the bridges connecting it to other communities. |
 | `onto_conservative_check` | Does adding these axioms change anything the ontology ALREADY said? Reasons base and base+extension to a fixpoint under one rule table and reports closure(base ∪ extension) minus closure(base), restricted to triples every name of which the base already used. |
-| `onto_convert` | Convert an RDF file between formats: turtle, ntriples, rdfxml, nquads, trig |
+| `onto_convert` | Convert an ontology file to turtle, ntriples, rdfxml, nquads or trig. |
 | `onto_cq_run` | Run a batch of competency questions (CQs) against the loaded ontology (#29). |
 | `onto_cq_verdicts_list` | List all stored verdicts for a CQ id, most-recent first. |
 | `onto_crosswalk` | Look up clinical crosswalk mappings for a code and system (ICD10, SNOMED, MeSH). |
@@ -141,7 +141,7 @@ it withheld.
 | `onto_lineage` | Get the compact lineage log for the current or specified session. |
 | `onto_lint` | Check an ontology for quality issues: missing labels, comments, domains, ranges |
 | `onto_lint_feedback` | Accept or dismiss a lint issue to improve future lint runs. |
-| `onto_load` | Load an RDF file or inline Turtle content into the in-memory ontology store. |
+| `onto_load` | Load an ontology file or inline Turtle content into the in-memory ontology store. |
 | `onto_lock` | Lock IRIs to prevent removal during plan/apply. |
 | `onto_map` | Generate a mapping config by inspecting a data file's schema against the currently loaded ontology. |
 | `onto_marketplace` | Browse and install ontologies from the curated catalogue of 33 W3C/ISO/industry standards plus the open community-pack registry (community/registry.json, fetched at runtime; override with OPEN_ONTOLOGIES_COMMUNITY_REGISTRY). |

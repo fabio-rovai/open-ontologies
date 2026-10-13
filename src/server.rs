@@ -322,7 +322,7 @@ impl OpenOntologiesServer {
 
     // ── Ontology ────────────────────────────────────────────────────────────
 
-    #[tool(name = "onto_validate", description = "Validate RDF/OWL syntax. Accepts a file path or inline Turtle content.")]
+    #[tool(name = "onto_validate", description = "Validate RDF/OWL syntax. Accepts a file path or inline content. A file may be Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD or OWL 2 functional syntax (OFN), and the content is sniffed before the extension is trusted, so an OFN document published as `.owl` is read as OFN. Inline content is Turtle unless it opens with `Prefix(` or `Ontology(`, in which case it is OFN. An OFN construct the reader does not translate is an error naming the construct, its count and its first line, never a silent drop.")]
     async fn onto_validate(&self, Parameters(input): Parameters<OntoValidateInput>) -> String {
         use crate::ontology::OntologyService;
         if input.inline.unwrap_or(false) {
@@ -332,7 +332,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_convert", description = "Convert an RDF file between formats: turtle, ntriples, rdfxml, nquads, trig")]
+    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads or trig. Reads every format onto_load reads, OWL 2 functional syntax (OFN) included, so this is also the way to turn an OFN document into RDF.")]
     async fn onto_convert(&self, Parameters(input): Parameters<OntoConvertInput>) -> String {
         let store = GraphStore::new();
         match store.load_file(&input.path) {
@@ -355,7 +355,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_load", description = "Load an RDF file or inline Turtle content into the in-memory ontology store. When given a file path, the parsed graph is also written to a fast N-Triples compile cache (in `[cache] dir`) so subsequent loads from the same source skip parsing. Optional `name`, `auto_refresh`, and `force_recompile` flags control caching/refresh behavior.")]
+    #[tool(name = "onto_load", description = "Load an ontology file or inline Turtle content into the in-memory ontology store. A file may be Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD or OWL 2 functional syntax (OFN, `.ofn`, or any extension whose content opens with `Prefix(` or `Ontology(`, which covers OFN published as `.owl`); OFN is translated to the RDF graph the W3C OWL 2 mapping assigns it, and a construct the reader does not translate fails the load by name rather than being dropped. When given a file path, the parsed graph is also written to a fast N-Triples compile cache (in `[cache] dir`) so subsequent loads from the same source skip parsing. Optional `name`, `auto_refresh`, and `force_recompile` flags control caching/refresh behavior.")]
     async fn onto_load(&self, Parameters(input): Parameters<OntoLoadInput>) -> String {
         if let Some(turtle) = input.turtle {
             // Inline turtle bypasses the registry/cache (no source file).

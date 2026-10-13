@@ -17,6 +17,20 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **OWL 2 functional syntax loads, whatever the file is called.** `src/ofn.rs`
+  reads OFN into exactly the triples the W3C "OWL 2 Mapping to RDF Graphs"
+  assigns it, and every path that reads a file reaches it: `load`, `validate`,
+  `convert`, `lint`, `batch`, `onto_load` with its compile cache,
+  `onto_validate` and `onto_convert`. A document is OFN when its first token is
+  `Prefix(` or `Ontology(`, so the ORE 2015 reasoner-competition corpus, 1,920
+  OFN files published as `.owl` that all died in the RDF/XML parser, now loads,
+  and `.ofn` is accepted by name. A construct the reader does not translate
+  fails the whole document by name, count and first line, never a silent drop.
+  SWRL `DLSafeRule`s become the `swrl:` vocabulary `onto_rules_import` already
+  reads. Checked against OWL API 4.5.29 on 93 ORE files across the `dl`, `el`
+  and `pure_dl` tracks: all 93 agree once seven documented OWL API habits are
+  undone, and none of the seven is a defect in either reader.
+
 - **A named profile hands a client one job's worth of the tool surface** (#263).
   A client aligning two vocabularies has no use for most of what this server
   registers, and every tool it has no use for is one more chance to call the

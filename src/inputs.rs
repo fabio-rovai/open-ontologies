@@ -5,7 +5,8 @@ use serde::Deserialize;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoValidateInput {
-    /// Path to an RDF file OR inline Turtle content
+    /// Path to an ontology file (any format onto_load reads, OWL functional
+    /// syntax included) OR inline Turtle or OWL functional-syntax content
     pub input: String,
     /// If true, treat input as inline content rather than a file path
     pub inline: Option<bool>,
@@ -13,7 +14,8 @@ pub struct OntoValidateInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoConvertInput {
-    /// Path to source RDF file
+    /// Path to the source file: any format onto_load reads, OWL functional
+    /// syntax included
     pub path: String,
     /// Target format: turtle, ntriples, rdfxml, nquads, trig
     pub to: String,
@@ -23,7 +25,8 @@ pub struct OntoConvertInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoLoadInput {
-    /// Path to RDF file, OR inline Turtle/RDF content
+    /// Path to an ontology file: Turtle, N-Triples, RDF/XML, N-Quads, TriG,
+    /// JSON-LD or OWL 2 functional syntax
     pub path: Option<String>,
     /// Inline Turtle content to load (alternative to path)
     pub turtle: Option<String>,

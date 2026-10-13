@@ -14,7 +14,7 @@ pub struct OntologyService;
 impl OntologyService {
     /// Validate RDF syntax. Returns a JSON report (never errors on bad input).
     pub fn validate_string(content: &str) -> anyhow::Result<String> {
-        match GraphStore::validate_turtle(content) {
+        match GraphStore::validate_text(content) {
             Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
                 "triple_count": counts.triples,
