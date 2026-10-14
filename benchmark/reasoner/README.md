@@ -56,8 +56,10 @@ Compares the engine's `owl-dl` classification of
 `benchmark/reference/pizza-reference.owl` with HermiT's, and with Pellet's when
 its jars are present. The file contains six `owl:hasValue` restrictions and one
 `owl:oneOf` enumeration of five individuals, so it is a nominal-bearing
-ontology; see [`regressions/`](regressions/) for what that does to this
-reasoner.
+ontology. The engine approximates nominals (each `{a}` is read as an atom
+standing for it, which is sound and can miss entailments), so a run on this file
+reports `complete: false` and names `owl:hasValue` and `owl:oneOf` under
+`constructs_not_modelled`, even though its answer here is exactly HermiT's.
 
 ```bash
 export OO_BIN=./target/release/open-ontologies
@@ -193,7 +195,7 @@ scale-up was the tell. Fixed by content sniffing in `detect_format_sniffed`, by
 running through `batch -` so a single store is shared, and by asserting
 `triples > 0` before any timing is trusted.
 
-### Corrected comparison
+### Corrected comparison, July
 
 Measured properly on the canonical `pizza.owl` (1,944 triples, 99 classes, 218
 individuals), same task, same machine, HermiT 1.4.3.456 on JDK 17:
@@ -207,10 +209,47 @@ individuals), same task, same machine, HermiT 1.4.3.456 on JDK 17:
 The pair counts in this table predate the full-hierarchy reference described
 above and are not comparable with what the current harness reports.
 
-The claim was not merely unsupported. It was inverted. **No speed claim against
-any Java reasoner should be made from this repository.** The reason our reasoner
-does not complete is documented in [`regressions/`](regressions/): it does not
-terminate on nominals, and LUBM emits one `owl:hasValue` per department.
+The claim was not merely unsupported. It was inverted.
+
+### What changed, 13 October
+
+The engine did not finish on Pizza or on LUBM for five reasons, each found by
+running it against HermiT and each fixed in `src/tableaux.rs`:
+
+1. Every inclusion with a non-atomic left-hand side was a disjunction on every
+   node. **Absorption** now turns them into domains, `∀r⁻` rules and binary
+   rules, which is what made the nominals repro below terminate.
+2. Search backtracked chronologically. **Dependency-directed backjumping**
+   skips any choice a clash does not depend on.
+3. Classification tested every ordered pair of classes (19,394 tableaux on
+   Pizza). It now **reads subsumers off each class's model** and tests only the
+   candidates a nondeterministic model leaves (231 on Pizza).
+4. Disjointness was checked only after a branch finished, never fired against
+   `owl:Thing`, and n-ary `DisjointClasses`, `DisjointUnion` and
+   `owl:equivalentProperty` were not parsed at all.
+5. Only an ancestor could block, so long EL chains grew exponentially.
+   **Anywhere blocking** expands each pairwise signature once.
+
+Pizza against HermiT 1.4.3, both on one machine under heavy load:
+
+| | HermiT | Open Ontologies |
+| --- | --- | --- |
+| Subsumptions (with equivalences) | 500 | **500**, none wrong |
+| Unsatisfiable classes | 2 | **2**, the same two |
+| Wall time | 1.8 s | 2.6 s |
+| `complete` | | `false`, because nominals are approximated |
+
+`run_ore.py` over the 40 smallest files of each ORE 2015 track (120 files, up
+to 4 MB): **no wrong subsumption and no wrong unsatisfiability claim** on any
+file; recall on inferred-only pairs 100% (el), 79% (dl) and 48% (pure_dl).
+Every pair the engine misses is either on a file whose run reports
+`budget_exhausted_in` or on one that names the construct it approximated
+(nominals, datatype restrictions) under `constructs_not_modelled`, so no
+`complete: true` run misses an answer. These are correctness figures. **No
+speed claim against any Java reasoner should be made from this repository**:
+HermiT's 1.8 s includes JVM start-up, the machine was loaded, and the pure_dl
+track shows the engine still runs out of budget on files HermiT classifies in
+under a second.
 
 For a workload the compiled `claimcheck` module *is* suited to, see the
 claim-verification benchmark in [`docs/benchmarks.md`](../../docs/benchmarks.md),

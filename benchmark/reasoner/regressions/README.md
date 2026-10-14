@@ -51,7 +51,20 @@ budgets, not by classification finishing, so it is not quoted here. The
 conclusion that the blowup is specific to nominals rests on the table above
 alone, not on Pizza.
 
-**Status: contained, not fixed.**
+**Status: fixed on 2026-10-13.** The file classifies in milliseconds with
+HermiT's eight subsumptions and nothing else; `tests/tableaux_absorption_test.rs`
+pins that. The cause was not nominals as such: each `C ≡ ∃worksFor.{d}` put the
+disjunction `∀worksFor.¬{d} ⊔ C` on every node of every tableau, and four of
+them multiplied. Absorbing `∃r.F ⊑ C` as `F ⊑ ∀r⁻.C` removes the disjunction.
+Nominals are still approximated (`{d}` is read as an atom standing for it), so
+the run reports `complete: false` with `owl:hasValue` under
+`constructs_not_modelled`; the answer is exact here, and the flag says the
+engine cannot promise that in general.
+
+What follows is the history, kept because it explains the three-valued
+verdicts every run still relies on.
+
+**Status on 2026-07-27: contained, not fixed.**
 
 The underlying blowup is still there. What changed on 2026-07-27 is that it can
 no longer hang the process or corrupt the answer:

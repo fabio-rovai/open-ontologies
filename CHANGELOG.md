@@ -6,6 +6,28 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
+  complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
+  undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its
+  two unsatisfiable classes, none wrong. The changes, each measured against
+  HermiT: absorption of non-atomic left-hand sides (domains, `∀r⁻` rules,
+  binary rules), dependency-directed backjumping, subsumers read off each
+  class's satisfiability model instead of one tableau per pair of classes,
+  `owl:disjointWith` absorbed as `A ⊓ B ⊑ ⊥` (disjointness with `owl:Thing`
+  never fired before), anywhere blocking, and parsing of `owl:AllDisjointClasses`,
+  `owl:disjointUnionOf` and `owl:equivalentProperty`, which were skipped in
+  silence. Over 120 ORE 2015 files across the `el`, `dl` and `pure_dl` tracks
+  there is no wrong subsumption and no wrong unsatisfiability claim.
+- An unrecognised restriction such as `owl:hasSelf` was read as `⊤`, so
+  `Narcissist ≡ ∃loves.Self` made every class a subclass of `Narcissist`. It
+  is now an opaque name, which is sound in both positions.
+- A subsumption test that ran out of budget was dropped as if refuted, and the
+  run still reported `complete: true`; it is now counted in
+  `subsumption_agent.undetermined` and named in `budget_exhausted_in`.
+- `complete` now requires that every axiom was modelled. Each `owl-dl` run
+  reports `search_finished` and `constructs_not_modelled`, which now include
+  `owl:hasSelf`, property disjointness, `owl:AllDifferent` and restrictions on
+  datatype properties.
 - Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
 - Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
 - Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
