@@ -64,7 +64,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.zh-CN.svg" alt="HQDM 的两个发布文件并排绘制。左侧为 RDFS 版本：23 个被当作类使用却从未声明的术语画作空心红环，12 条以关系而非类作为 rdfs:range 的声明画作红边。右侧为 OWL 版本：本引擎判定可满足的 195 个具名类，无法判定的 39 个画作琥珀色，其中被 HermiT 判为不可满足的 39 个套上红环。" width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.zh-CN.svg" alt="HQDM 的两个发布文件并排绘制。左侧为 RDFS 版本：23 个被当作类使用却从未声明的术语画作空心红环，12 条以关系而非类作为 rdfs:range 的声明画作红边。右侧为 OWL 版本：本引擎判定可满足的 190 个具名类，判定不可满足的 39 个画作红色，HermiT 判为不可满足的 39 个套上红环，二者正是同样的 39 个。" width="100%">
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@
   但是该文件有 <b>23</b> 个被它当作类使用、却从未声明的术语。它有 <b>12</b> 条把关系而不是类
   写成 <code>rdfs:range</code> 的声明。它还有 <b>13</b> 对仅相差一个尾部下划线的名称。其中 3
   对具有相同的定义域和相同的值域。OWL 文件通过了全部三项检查，而 OWL 文件并不融贯。本引擎的
-  tableaux 判定其 <b>195</b> 个具名类可满足。该 tableaux 无法判定 <b>39</b> 个。HermiT 恰好把这
+  tableaux 判定其 <b>190</b> 个具名类可满足。该 tableaux 判定 <b>39</b> 个不可满足。HermiT 也把同样的
   <b>39</b> 个判为不可满足，而在本仓库的词汇中，HermiT 只是一种意见。这张图没有证明任何东西，
   图中也没有宣称有证明。一个测试重新计算每个数字，该测试也重新计算这一交集。关于来源与方法，请阅读
   <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>。</sub>

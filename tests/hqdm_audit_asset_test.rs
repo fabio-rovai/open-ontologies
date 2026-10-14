@@ -254,38 +254,47 @@ fn the_reasoner_counts_and_the_intersection_are_derived() {
         .as_u64()
         .expect("classes_checked") as usize;
     assert_eq!(sat + undecided.len() + refuted.len(), checked, "the run does not add up");
-    assert_eq!(run["complete"], false, "an incomplete run is what the figure describes");
+    // Not complete because `hqdm.owl` carries datatype restrictions this engine
+    // reads only approximately, which the run names; the search itself finished.
+    assert_eq!(run["complete"], false, "the run must say what it did not model");
+    assert_eq!(run["search_finished"], true, "every class was decided");
 
     let oracle = hermit();
-    let both = undecided.intersection(&oracle).count();
+    let both = refuted.intersection(&oracle).count();
     let s = svg();
     for want in [
-        format!("this engine finds {sat} named classes satisfiable and cannot decide {}", undecided.len()),
         format!(
-            "HermiT, an opinion here, calls {} unsatisfiable, and they are the same {both}",
+            "this engine finds {sat} named classes satisfiable, {} unsatisfiable, {} undecided",
+            refuted.len(),
+            undecided.len()
+        ),
+        format!(
+            "HermiT, an opinion here, calls {} unsatisfiable, and this engine agrees on {both}",
             oracle.len()
         ),
-        format!("{both} are the undecided ones"),
+        format!("this engine agrees on {both}"),
     ] {
         assert!(s.contains(&want), "the asset does not say {want:?}");
     }
     // A gate must be able to fail: the intersection is asserted against the
-    // sets, so a stale list on either side changes the number.
-    assert_eq!(both, oracle.len(), "the oracle names a class the engine decided");
-    assert_eq!(both, undecided.len(), "the engine left a class undecided that the oracle passed");
+    // sets, so a stale list on either side changes the number. The engine used
+    // to leave all 39 undecided; it now finds the same 39 unsatisfiable, and
+    // a class on one list and not the other is a disagreement with the oracle.
+    assert_eq!(both, oracle.len(), "the oracle calls a class unsatisfiable that the engine did not");
+    assert_eq!(both, refuted.len(), "the engine calls a class unsatisfiable that the oracle does not");
 }
 
-/// The committed run is reproducible: the tableaux leaves the SAME classes
-/// undecided today. This is the one place a number in the figure is recomputed
-/// by running the engine rather than counting rows.
+/// The committed run is reproducible: the tableaux gives the SAME verdicts
+/// today. This is the one place a number in the figure is recomputed by running
+/// the engine rather than counting rows.
 ///
-/// The budget here is five times the one the committed run used. The 39
-/// undecided classes stop on an expansion cap, not on the clock: the committed
-/// run's satisfiability phase spent 1,068 ms of a 120,000 ms budget. A larger
-/// budget therefore cannot decide them, and it protects the 195 satisfiable
-/// ones from a slow runner turning a debug-build search into a timeout.
+/// Until October 2026 the committed run left 39 classes undecided on an
+/// expansion cap; absorption, backjumping and the absorbed disjointness axioms
+/// decide all of them, unsatisfiable, in under a tenth of a second. The budget
+/// here is five times the committed run's, so a slow runner turning a
+/// debug-build search into a timeout cannot fake a difference.
 #[test]
-fn the_reasoner_still_leaves_the_same_classes_undecided() {
+fn the_reasoner_still_gives_the_committed_verdicts() {
     use open_ontologies::graph::GraphStore;
     use open_ontologies::tableaux::DlReasoner;
     use std::sync::Arc;
@@ -351,7 +360,7 @@ fn the_translated_readme_states_the_same_counts() {
     let f = find("asserted.tsv");
     let run = owl_dl();
     let sat = run["agents"]["satisfiability_agent"]["satisfiable_found"].as_u64().unwrap() as usize;
-    let undecided = names(&run["undetermined_classes"]).len();
+    let unsatisfiable = names(&run["unsatisfiable_classes"]).len();
     let zh = std::fs::read_to_string(repo().join("README.zh-CN.md")).expect("README.zh-CN.md");
     let en = std::fs::read_to_string(repo().join("README.md")).expect("README.md");
 
@@ -379,7 +388,7 @@ fn the_translated_readme_states_the_same_counts() {
     }
 
     // The HQDM counts, recomputed from the rows and the run, must appear in BOTH.
-    for n in [f.undeclared, f.bad_range, f.twins, sat, undecided] {
+    for n in [f.undeclared, f.bad_range, f.twins, sat, unsatisfiable] {
         let needle = format!("<b>{n}</b>");
         assert!(en.contains(&needle), "README.md does not state {n} for the HQDM audit");
         assert!(

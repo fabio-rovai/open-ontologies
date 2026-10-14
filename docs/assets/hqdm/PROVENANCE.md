@@ -48,15 +48,21 @@ with `<dir>/config.toml` raising the per-phase budget:
     tableaux_test_timeout_ms = 120000
     classify_timeout_ms = 900000
 
-The SHIQ tableaux checks 234 named classes, finds **195 satisfiable**, refutes
-**none**, and leaves **39 undetermined** with `complete: false`. Undetermined is
-not a verdict either way; it is the budget running out on those classes. The
-file keeps the fields the figure reads and drops the 2,681 inferred
-subsumptions. `the_reasoner_still_leaves_the_same_classes_undecided` in the test
-recomputes this run in-process, under a budget five times larger, and requires
-the same two sets. The larger budget changes nothing about the 39: the run's
-satisfiability phase spent 1,068 ms of its 120,000 ms, so what stopped on those
-classes was the tableaux's expansion cap, not the clock.
+The SHIQ tableaux checks 229 named classes, finds **190 satisfiable** and
+**39 unsatisfiable**, and leaves **none undetermined**, in 91 ms. `complete` is
+`false` and `search_finished` is `true`: the file has 23 restrictions on datatype
+properties, which this engine reads only approximately, and the run names them
+under `constructs_not_modelled`. The file keeps the fields the figure reads and
+drops the inferred subsumptions. `the_reasoner_still_gives_the_committed_verdicts`
+in the test recomputes this run in-process and requires the same two sets.
+
+Regenerated on 2026-10-13. The run committed before that checked 234 classes,
+found 195 satisfiable, refuted none and left these 39 undetermined on the
+tableaux's expansion cap. Two changes account for the difference. Five of the
+234 were anonymous `owl:Class` nodes taken for named classes, which is why the
+count is now 229 and the satisfiable count 190. And absorption, backjumping and
+the absorption of `owl:disjointWith` as `A ⊓ B ⊑ ⊥` let the search finish on the
+39.
 
 ## `hermit-unsatisfiable.txt`: the oracle's list
 
@@ -65,7 +71,8 @@ the OM 2026 crosswalk's reasoning run (`hqdm_prerepair_results.json`,
 `deleted_classes`). HermiT is an external reasoner and, in this repository's
 vocabulary, an opinion: nothing checks its proof. The figure does not repeat
 the paper's 39; it intersects this list with the engine's undetermined set and
-prints the size of the intersection, which happens to be all 39.
+prints the size of the intersection with the engine's own unsatisfiable set,
+which is all 39: the engine and the oracle name the same classes.
 
 ## What the checks find
 

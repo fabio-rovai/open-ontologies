@@ -66,7 +66,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM as two shipped files side by side. Left, the RDFS rendering: 23 terms used as a class but never declared drawn as hollow red rings and 12 rdfs:range declarations naming a relation drawn as red edges. Right, the OWL rendering: 195 named classes this engine found satisfiable, 39 it could not decide drawn amber, and a red ring on the 39 of those that HermiT calls unsatisfiable." width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM as two shipped files side by side. Left, the RDFS rendering: 23 terms used as a class but never declared drawn as hollow red rings and 12 rdfs:range declarations naming a relation drawn as red edges. Right, the OWL rendering: 190 named classes this engine found satisfiable and 39 it found unsatisfiable drawn red, with a red ring on the 39 that HermiT calls unsatisfiable, the same 39." width="100%">
 </p>
 
 <p align="center">
@@ -78,8 +78,8 @@
   <b>12</b> <code>rdfs:range</code> declarations that name a relation and not a class. It also has <b>13</b>
   pairs of names that differ by one final underscore. Three of those pairs have the same domain and the
   same range. The OWL file passes all three checks, and the OWL file is not coherent. The tableaux of
-  this engine finds <b>195</b> of its named classes satisfiable. The tableaux cannot decide <b>39</b>.
-  HermiT calls exactly those <b>39</b> unsatisfiable, and HermiT is an opinion in the vocabulary of this
+  this engine finds <b>190</b> of its named classes satisfiable. The tableaux finds <b>39</b> unsatisfiable.
+  HermiT calls the same <b>39</b> unsatisfiable, and HermiT is an opinion in the vocabulary of this
   repository. This figure proves nothing, and the figure does not claim a proof. A test computes each
   count again, and the test also computes that intersection. For the source and the method, read
   <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>.</sub>

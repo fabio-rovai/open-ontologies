@@ -323,7 +323,7 @@ fn the_translated_page_carries_the_same_structure() {
         std::fs::read_to_string(repo().join("docs/assets/hqdm-audit.svg")).expect("en figure"),
         std::fs::read_to_string(repo().join("docs/assets/hqdm-audit.zh-CN.svg")).expect("zh figure"),
     );
-    for n in ["23", "12", "13", "195", "39"] {
+    for n in ["23", "12", "13", "190", "39"] {
         let needle = format!(">{n}</text>");
         assert_eq!(
             en_svg.matches(&needle).count(),
@@ -336,7 +336,7 @@ fn the_translated_page_carries_the_same_structure() {
         assert!(zh.contains(link), "the translated page is missing {link:?}");
     }
     // The headline numbers are digits in both languages, so they can be compared.
-    for n in ["426", "259", "901", "23", "12", "13", "195", "39"] {
+    for n in ["426", "259", "901", "23", "12", "13", "190", "39"] {
         assert!(
             zh.contains(n),
             "the translated page does not state {n}, and the English page does. A number \
