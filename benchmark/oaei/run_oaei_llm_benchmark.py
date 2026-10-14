@@ -204,6 +204,7 @@ async def main():
                 "target": human_path,
                 "min_confidence": LOW_CONFIDENCE,
                 "dry_run": True,
+                "scoring": "legacy",
             })
             align_time = time.time() - start
             print(f"Structural alignment completed in {align_time:.1f}s")

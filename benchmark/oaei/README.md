@@ -30,6 +30,8 @@ python3 run_oaei_benchmark.py
 
 Measured with `onto_align` at `min_confidence = 0.8`, stable 1-to-1 matching, label penalty on zero structural evidence. No external background knowledge (UMLS, BioPortal, LLM oracle) is used. Raw output in `results/oaei_results.json` and `results/conference_results.json`.
 
+**These rows are the legacy fusion.** The default scoring changed (see [`docs/alignment.md`](../../docs/alignment.md)): confidence is now a weighted mean over the signals that carry evidence for the pair, so a name-only match is no longer multiplied by 0.85. The figures below reproduce with `--scoring legacy`; the Anatomy row reproduces byte for byte (1,152 correspondences, set hash `469e0e04cb58`). Under the new default the Anatomy track scores P 0.946 / R 0.745 / **F1 0.833** (1,194) at `min_confidence = 0.94`, which is `0.80 / 0.85`, the threshold equivalent to the run below, and P 0.957 / R 0.732 / F1 0.829 (1,159) at the new default 0.95. Rank in the OAEI 2025 field is unchanged at 9th of 13. The Conference track has not been re-run under the new default, because its data is not in this checkout; its row is legacy only.
+
 | Track | Precision | Recall | F1 | Predicted | Reference | Runtime |
 |---|---:|---:|---:|---:|---:|---:|
 | Anatomy | 0.960 | 0.730 | **0.829** | 1,152 | 1,516 | 47s |

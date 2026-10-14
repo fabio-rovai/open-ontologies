@@ -155,6 +155,9 @@ impl BatchRunner {
             "ingest" => self.exec_ingest(&cmd.args),
             "induce" => self.exec_induce(&cmd.args),
             "crosswalk-certify" | "crosswalk_certify" => Self::exec_crosswalk(&cmd.args),
+            "crosswalk-probe" | "crosswalk_probe" | "contradiction-probe" | "contradiction_probe" => {
+                Self::exec_crosswalk_probe(&cmd.args)
+            }
             "modules" | "distributed" => Self::exec_modules(&cmd.args),
             "matcert" => Self::exec_matcert(&cmd.args),
             "drift" => self.exec_drift(&cmd.args),
@@ -700,6 +703,22 @@ impl BatchRunner {
             }
             Err(e) => json!({"error": e.to_string()}),
         }
+    }
+
+    /// Carry a crosswalk's claims into the target and look for a clash.
+    ///
+    /// The sharper question beside `crosswalk-certify`: not whether the two
+    /// sides differ in granularity but whether the target's own axioms DENY
+    /// something the mapping carries in. Its own stores, for the same reason
+    /// as `crosswalk-certify`. Reports `exit_code: 1` when the mapping adds a
+    /// clash, so a batch that runs it fails on a contradiction.
+    fn exec_crosswalk_probe(args: &[String]) -> Value {
+        let pos: Vec<&String> = args.iter().filter(|a| !a.starts_with("--")).collect();
+        if pos.len() < 3 {
+            return json!({"error": "crosswalk-probe needs SOURCE TARGET MAPPINGS.tsv"});
+        }
+        crate::crosswalk::probe_files(pos[0], pos[1], pos[2])
+            .unwrap_or_else(|e| json!({"error": e.to_string()}))
     }
 
     /// Reason each module alone, then promote what k of n agree on.

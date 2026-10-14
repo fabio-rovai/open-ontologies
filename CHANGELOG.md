@@ -28,6 +28,38 @@ All notable changes to Open Ontologies are documented here.
   reports `search_finished` and `constructs_not_modelled`, which now include
   `owl:hasSelf`, property disjointness, `owl:AllDifferent` and restrictions on
   datatype properties.
+- **`align` reads SKOS.** It read `owl:Class` only, so a pure SKOS taxonomy
+  produced zero candidates and said nothing about why. A `skos:Concept` is now
+  aligned with its preferred, alternative and hidden labels, its
+  `skos:broader`/`skos:broaderTransitive` parents, and its `skos:definition`
+  shown to the reviewer. An entity that is also an `owl:Class` is read as
+  before.
+- **A perfect name no longer caps at 0.85, and agreement no longer costs
+  confidence.** The weighted sum now averages over the signals that carry
+  evidence for the pair (`informative_signals`, `evidence_coverage`), and a
+  structural signal counts as support when the two sides share a feature the
+  other can name. The old fusion is `--scoring legacy` and reproduces the
+  published OAEI Anatomy figure byte for byte; the new default scores F1 0.833
+  there at the equivalent threshold. The default auto-apply threshold is 0.95
+  under the new scoring (0.85 under legacy), the same strictness on each scale.
+- **Ties are reported, never dropped.** A row stable matching kept over an
+  equally scored one names the loser under `tied_with`, is marked `ambiguous`,
+  and goes to review instead of into the graph. `--cardinality many-to-one`
+  keeps several source terms on one coarser target.
+- **`crosswalk-certify` compares only what can be compared.** An ancestor with
+  no counterpart through the mapping, on either side, is a coverage gap named
+  on the row and no longer downgrades it; a SKOS scheme's hierarchy is its
+  `skos:broader` closure, so the check can now fail on SKOS input; a row with
+  nothing to compare is `not_refuted_nothing_compared` rather than upheld; and
+  the SSSOM predicate column never strengthens a claim.
+
+### Added
+
+- **`crosswalk-probe`** (CLI subcommand and batch verb): carry a crosswalk's
+  subsumptions into the target and report the clashes they add. Witness
+  individuals make a TBox-only taxonomy able to clash; clashes the target has
+  on its own are reported apart. Exits 1 on a contradiction.
+
 - Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
 - Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
 - Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.

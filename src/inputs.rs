@@ -787,10 +787,12 @@ pub struct OntoAlignInput {
     pub source: String,
     /// Target ontology: inline Turtle content or file path. If omitted, aligns against loaded store
     pub target: Option<String>,
-    /// Minimum confidence threshold for auto-apply (default 0.85). Back-compat alias for
-    /// `high_threshold` — if both are set, `high_threshold` wins.
+    /// Minimum confidence threshold for auto-apply (default 0.95, or 0.85 under
+    /// `scoring: "legacy"`). Back-compat alias for `high_threshold` — if both are
+    /// set, `high_threshold` wins.
     pub min_confidence: Option<f64>,
-    /// Confidence threshold above which a candidate is auto-applied (default 0.85, or
+    /// Confidence threshold above which a candidate is auto-applied (default 0.95, or
+    /// 0.85 under `scoring: "legacy"`, the same strictness on each scale; or
     /// `min_confidence` if provided for back-compat). Candidates above this land in
     /// `auto_applied`.
     pub high_threshold: Option<f64>,
@@ -808,6 +810,18 @@ pub struct OntoAlignInput {
     /// choice; the weighted_sum self-calibrates from `onto_align_feedback` over time.
     #[serde(default)]
     pub fusion: Option<String>,
+    /// How the weighted sum becomes a confidence. "informative" (default): the
+    /// weighted mean over the signals BOTH sides carry data for, each candidate
+    /// naming them in `informative_signals`. "legacy": the fusion the published
+    /// OAEI figures were measured with (label x 0.85 when no structural signal
+    /// fires, otherwise the weighted sum over all signals).
+    #[serde(default)]
+    pub scoring: Option<String>,
+    /// "one-to-one" (default) keeps one row per source and per target.
+    /// "many-to-one" lets several source terms map to the same target, which
+    /// is right when the source is finer than the target.
+    #[serde(default)]
+    pub cardinality: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]

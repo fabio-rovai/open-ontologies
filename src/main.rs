@@ -895,12 +895,41 @@ enum Commands {
         source: String,
         /// Target ontology file (if omitted, aligns against loaded store)
         target: Option<String>,
-        /// Minimum confidence threshold (default 0.85)
-        #[arg(long, default_value = "0.85")]
-        min_confidence: f64,
+        /// Minimum confidence threshold (default 0.95, or 0.85 with
+        /// `--scoring legacy`, which is the same strictness on each scale)
+        #[arg(long)]
+        min_confidence: Option<f64>,
         /// Dry run — show candidates without inserting triples
         #[arg(long)]
         dry_run: bool,
+        /// How the weighted sum becomes a confidence: `informative` (default:
+        /// the weighted mean over the signals both sides carry data for) or
+        /// `legacy` (the fusion the published OAEI figures were measured with)
+        #[arg(long, default_value = "informative")]
+        scoring: String,
+        /// `one-to-one` (default) keeps one row per source and per target;
+        /// `many-to-one` lets several source terms map to one target, for a
+        /// source list finer than its target
+        #[arg(long, default_value = "one-to-one")]
+        cardinality: String,
+    },
+    /// Carry a crosswalk's claims into the target and report any clash
+    ///
+    /// The source's entailed subsumptions are translated through the mapping
+    /// (an SSSOM TSV) and reasoned together with the target's axioms. A clash
+    /// the carried claims ADD means the target denies what the mapping says:
+    /// a wrong row, or two ontologies that disagree. One witness individual is
+    /// typed into each receiving class so a TBox-only taxonomy can clash at
+    /// all, and clashes the target has on its own are reported apart. Exits 1
+    /// when the mapping adds a clash. The same check runs in `batch` as
+    /// `crosswalk-probe`.
+    CrosswalkProbe {
+        /// The ontology the mapping's subjects come from
+        source: String,
+        /// The ontology the mapping's objects come from
+        target: String,
+        /// The crosswalk, as SSSOM TSV (subject_id, predicate_id, object_id)
+        mappings: String,
     },
     /// Accept or reject an alignment candidate
     AlignFeedback {
@@ -3717,7 +3746,10 @@ async fn async_main() -> anyhow::Result<()> {
             target,
             min_confidence,
             dry_run,
+            scoring,
+            cardinality,
         } => {
+            use open_ontologies::align::{AlignOptions, Cardinality, Scoring};
             let (db, graph) = setup(&cli.data_dir)?;
             let source_ttl = std::fs::read_to_string(&source)?;
             let target_ttl = match target {
@@ -3725,10 +3757,39 @@ async fn async_main() -> anyhow::Result<()> {
                 None => None,
             };
             let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
-            let result = engine
-                .align(&source_ttl, target_ttl.as_deref(), min_confidence, dry_run)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            // The command line has one threshold, so the borderline bucket is
+            // empty here exactly as it always was: low == high.
+            let result = Scoring::parse(&scoring)
+                .and_then(|scoring| {
+                    let cardinality = Cardinality::parse(&cardinality)?;
+                    let min_confidence =
+                        min_confidence.unwrap_or_else(|| scoring.default_high_threshold());
+                    engine.align_with_options(
+                        &source_ttl,
+                        target_ttl.as_deref(),
+                        &AlignOptions {
+                            high_threshold: min_confidence,
+                            low_threshold: min_confidence,
+                            dry_run,
+                            scoring,
+                            cardinality,
+                            ..AlignOptions::default()
+                        },
+                    )
+                })
+                .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string());
+            output_result_with_exit(&result, cli.pretty);
+        }
+        Commands::CrosswalkProbe {
+            source,
+            target,
+            mappings,
+        } => {
+            // Runs here rather than through a daemon: it builds its own two
+            // stores and never reads the loaded one.
+            let result = open_ontologies::crosswalk::probe_files(&source, &target, &mappings)
+                .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}));
+            output_result_with_exit(&result.to_string(), cli.pretty);
         }
         Commands::AlignFeedback {
             source,

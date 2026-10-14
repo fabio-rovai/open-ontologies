@@ -89,7 +89,7 @@ it withheld.
 | `onto_action_apply_concurrent` | Fire a tick of concurrent BC+ actions atomically. |
 | `onto_action_list` | List the names of all action schemas registered in this server's Dynamics store. |
 | `onto_action_register` | Persist a named action schema (Dynamics layer #43). |
-| `onto_align` | Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. |
+| `onto_align` | Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies or SKOS vocabularies (owl:Class and skos:Concept) using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. |
 | `onto_align_feedback` | Accept or reject an alignment candidate to improve future confidence scoring. |
 | `onto_align_flora` | End-to-end FLORA alignment (#38). |
 | `onto_align_fuzzy` | FLORA-style fuzzy-logic alignment adjudication (#38, ISWC 2025 Best Paper). |

@@ -84,7 +84,7 @@ for name, weights in CONFIGS.items():
     print('Running alignment...')
     t0 = time.time()
     result = subprocess.run(
-        [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', THRESHOLD, '--dry-run'],
+        [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', THRESHOLD, '--dry-run', '--scoring', 'legacy'],
         capture_output=True, text=True, timeout=600
     )
     elapsed = time.time() - t0
