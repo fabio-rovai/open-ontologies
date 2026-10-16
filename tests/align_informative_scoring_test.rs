@@ -356,7 +356,11 @@ fn the_legacy_fusion_is_kept_behind_a_flag_and_reproduces_the_old_numbers() {
     // Every published alignment figure (OAEI Anatomy F1 0.829, Conference
     // 0.438) was measured with the old fusion, so it stays reachable. These
     // are the two numbers the old code produced on these fixtures: the 0.85
-    // cap on a perfect flat name, and 0.40 for the same name and same parent.
+    // cap on a perfect flat name, and the weighted sum of name and parent for
+    // the same name and same parent. That sum is 0.25 + 0.15 = 0.40 with the
+    // six default weights, and 0.20 + 0.12 = 0.32 when the embeddings feature
+    // adds a seventh signal and rescales the rest (no vectors are loaded here,
+    // so the embedding term contributes 0).
     use open_ontologies::align::{AlignOptions, Scoring};
     let legacy = AlignOptions {
         scoring: Scoring::Legacy,
@@ -383,7 +387,12 @@ fn the_legacy_fusion_is_kept_behind_a_flag_and_reproduces_the_old_numbers() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(only(&parents, "/Dog")["confidence"], 0.4, "{parents}");
+    #[cfg(not(feature = "embeddings"))]
+    let expected = 0.25 + 0.15;
+    #[cfg(feature = "embeddings")]
+    let expected = 0.20 + 0.12;
+    let got = only(&parents, "/Dog")["confidence"].as_f64().unwrap();
+    assert!((got - expected).abs() < 1e-9, "expected {expected}, got {got}: {parents}");
 }
 
 #[test]
