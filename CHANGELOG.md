@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Python: keep anonymous blank-node identities stable when diffing identical RDF text in `OntologyEngine.diff` and `kgcl_diff`; identical inputs remain parsed and validated.
+
 - **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
   complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
   undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its

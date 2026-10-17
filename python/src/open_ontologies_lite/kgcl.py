@@ -109,7 +109,8 @@ def kgcl_diff(old: str, new: str, fmt: str = "turtle") -> ChangeSet:
     node_annotation_change, edge_creation, edge_deletion.
     """
     old_t, old_s = _parse(old, fmt)
-    new_t, new_s = _parse(new, fmt)
+    # Parsing identical text twice generates different anonymous blank-node IDs.
+    new_t, new_s = (old_t, old_s) if old == new else _parse(new, fmt)
     cs = ChangeSet()
 
     subjects = set(old_s) | set(new_s)

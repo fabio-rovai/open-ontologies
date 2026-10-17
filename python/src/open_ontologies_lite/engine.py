@@ -176,7 +176,10 @@ class OntologyEngine:
         """Triple-level diff between two ontologies (added/removed vs A→B)."""
         rdf_format = resolve_format(fmt)
         a = {_triple_key(t) for t in ox.parse(data_a.encode("utf-8"), format=rdf_format)}
-        b = {_triple_key(t) for t in ox.parse(data_b.encode("utf-8"), format=rdf_format)}
+        # Reuse parsed blank-node identities for the same input document.
+        b = a if data_a == data_b else {
+            _triple_key(t) for t in ox.parse(data_b.encode("utf-8"), format=rdf_format)
+        }
         return {
             "added": sorted(b - a),
             "removed": sorted(a - b),
