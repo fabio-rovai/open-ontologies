@@ -14,7 +14,13 @@ concurrency:
 
 jobs:
   build:
-    timeout-minutes: 30
+    # 60, not 30. The Windows leg takes 9 to 14 minutes on a warm cache and 30
+    # to 35 on a cold or partial one, and the 30-minute ceiling killed it AFTER
+    # every step had passed: on 16 October 2026 main (run 38943462546) and the
+    # 2.1.0 release PR were reported cancelled while Build, Test, Clippy and
+    # Audit were all green and only the rust-cache save was still running.
+    # The same happened on main on 13 October. A hung job is still caught.
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -88,6 +94,10 @@ jobs:
       - name: Clippy
         run: cargo clippy -- -D warnings
       - name: Audit
+        # Linux only. `cargo audit` reads Cargo.lock, which is the same file on
+        # both legs, so the Windows run reported nothing the Linux run had not,
+        # and it spent six minutes compiling cargo-audit from source to do it.
+        if: runner.os == 'Linux'
         run: |
           # --locked installs cargo-audit with its own published Cargo.lock.
           # Without it cargo resolves transitive deps to latest, and
