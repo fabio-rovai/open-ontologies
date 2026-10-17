@@ -267,6 +267,15 @@ def check_horn(
             warning=f"the certificate was written and NOT checked. {_UNPROVED}",
         )
 
+    if not isinstance(payload, dict):
+        return _unchecked(
+            "unchecked_error",
+            certificate_dir,
+            name,
+            error=f"{binary} exited {proc.returncode} and its JSON output is not an object",
+            warning=f"the certificate was written and NOT checked. {_UNPROVED}",
+        )
+
     if proc.returncode == 1 and payload.get("ok") is False:
         return {
             "status": "rejected",
