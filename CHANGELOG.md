@@ -4,6 +4,8 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-16
+
 ### Fixed
 
 - **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
