@@ -139,12 +139,13 @@ class OntologyEngine:
                 row = {}
                 for name, var in zip(names, var_objs):
                     term = sol[var]
-                    row[name] = term.value if term is not None else None
+                    row[name] = _query_value(term)
                 rows.append(row)
             return {"type": "table", "variables": names, "rows": rows}
         # QueryTriples (CONSTRUCT / DESCRIBE)
         triples = [
-            {"subject": t.subject.value, "predicate": t.predicate.value, "object": t.object.value}
+            {"subject": _query_value(t.subject), "predicate": _query_value(t.predicate),
+             "object": _query_value(t.object)}
             for t in result
         ]
         return {"type": "graph", "triples": triples}
@@ -304,6 +305,13 @@ class OntologyEngine:
                 f"{outcome['error']}"
             )
         return report
+
+
+def _query_value(term) -> str | None:
+    """Keep scalar query values; spell RDF triple terms that have no .value."""
+    if term is None:
+        return None
+    return str(term) if isinstance(term, ox.Triple) else term.value
 
 
 def _triple_key(t) -> str:

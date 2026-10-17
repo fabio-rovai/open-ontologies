@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Python: serialize RDF triple-term values in SELECT, CONSTRUCT and DESCRIBE query results instead of raising `AttributeError`; ordinary scalar values remain unchanged.
+
 - **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
   complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
   undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its
