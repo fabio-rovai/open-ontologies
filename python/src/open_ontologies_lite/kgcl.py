@@ -36,8 +36,8 @@ def _term(t) -> str:
         return t.value
     if isinstance(t, ox.BlankNode):
         return f"_:{t.value}"
-    # Literal
-    return f'"{t.value}"' + (f"@{t.language}" if getattr(t, "language", None) else "")
+    # Preserve a literal's datatype, language and escaped lexical form.
+    return str(t)
 
 
 def _parse(data: str, fmt: str):
@@ -48,7 +48,8 @@ def _parse(data: str, fmt: str):
         tr = getattr(q, "triple", q)
         s, p, o = _term(tr.subject), _term(tr.predicate), _term(tr.object)
         triples.add((s, p, o))
-        by_subj.setdefault(s, set()).add((p, o))
+        # Compare RDF terms directly; labels still need their lexical value.
+        by_subj.setdefault(s, set()).add((p, tr.object))
     return triples, by_subj
 
 
@@ -97,8 +98,8 @@ class ChangeSet:
 
 def _label_of(triples: set, predicates: set) -> str | None:
     for p, o in triples:
-        if p in predicates and o.startswith('"'):
-            return o[1:].split('"')[0]
+        if p in predicates and isinstance(o, ox.Literal):
+            return o.value
     return None
 
 
@@ -123,12 +124,12 @@ def kgcl_diff(old: str, new: str, fmt: str = "turtle") -> ChangeSet:
         if s not in old_s and s in new_s:
             cs.changes.append({"type": "node_creation", "node": s,
                                "label": _label_of(n_tr, LABEL_PREDICATES)})
-            accounted |= {(s, p, o) for p, o in n_tr}
+            accounted |= {(s, p, _term(o)) for p, o in n_tr}
             continue
         if s in old_s and s not in new_s:
             cs.changes.append({"type": "node_deletion", "node": s,
                                "label": _label_of(o_tr, LABEL_PREDICATES)})
-            accounted |= {(s, p, o) for p, o in o_tr}
+            accounted |= {(s, p, _term(o)) for p, o in o_tr}
             continue
 
         # Subject in both: look for label / annotation changes per predicate.
@@ -140,12 +141,12 @@ def kgcl_diff(old: str, new: str, fmt: str = "turtle") -> ChangeSet:
                 if ov != nv and ov and nv:
                     old_v = next(iter(ov)); new_v = next(iter(nv))
                     rec = {"type": ctype, "node": s,
-                           "old": old_v.strip('"').split('"@')[0],
-                           "new": new_v.strip('"').split('"@')[0]}
+                           "old": old_v.value if isinstance(old_v, ox.Literal) else _term(old_v),
+                           "new": new_v.value if isinstance(new_v, ox.Literal) else _term(new_v)}
                     if ctype == "node_annotation_change":
                         rec["predicate"] = p
                     cs.changes.append(rec)
-                    accounted |= {(s, p, old_v), (s, p, new_v)}
+                    accounted |= {(s, p, _term(old_v)), (s, p, _term(new_v))}
 
     # Remaining raw triple differences become edge creations / deletions.
     for (s, p, o) in sorted(new_t - old_t):
