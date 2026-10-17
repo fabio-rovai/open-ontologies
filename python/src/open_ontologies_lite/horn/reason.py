@@ -220,10 +220,12 @@ def _graph_label(graph_name) -> str:
 
 def _named_graph(name: str):
     """Accept a graph either bare (`http://x/g`) or in its N-Triples spelling
-    (`<http://x/g>`), because a user reading `asserted_graphs` out of a previous
+    (`<http://x/g>` or `_:blank`), because a user reading `asserted_graphs` out of a previous
     report will paste back the spelled form."""
     if name == "default":
         return ox.DefaultGraph()
+    if name.startswith("_:"):
+        return ox.BlankNode(name[2:])
     iri = name[1:-1] if name.startswith("<") and name.endswith(">") else name
     return ox.NamedNode(iri)
 
