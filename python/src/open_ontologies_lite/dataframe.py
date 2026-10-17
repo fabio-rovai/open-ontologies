@@ -56,7 +56,13 @@ def _literal(value: Any) -> str | None:
         return f'"{value}"^^<{XSD}integer>'
     if isinstance(value, float):
         return f'"{value!r}"^^<{XSD}double>'
-    escaped = str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    escaped = (
+        str(value)
+        .replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
     return f'"{escaped}"'
 
 
