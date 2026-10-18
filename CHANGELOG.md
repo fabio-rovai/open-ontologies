@@ -6,6 +6,13 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
+  relative-IRI Turtle.** They passed the raw file to the Turtle parser, so an
+  RDF/XML `.owl` file failed with "Invalid IRI code point" and `<#Dog> a
+  owl:Class .` failed with "No scheme found in an absolute IRI", while CLI
+  `lint`, `onto_load` and `onto_validate` accepted the same files. They now
+  read through `GraphStore::read_as_turtle`, as CLI `lint` does, and a file
+  CLI `diff` cannot read is reported as JSON like every other `lint` error.
 - **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
   complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
   undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its

@@ -550,13 +550,15 @@ impl OpenOntologiesServer {
     }
 
     #[tool(name = "onto_diff", description = "Compare two ontology files and show added/removed triples")]
-    async fn onto_diff(&self, Parameters(input): Parameters<OntoDiffInput>) -> String {
+    pub async fn onto_diff(&self, Parameters(input): Parameters<OntoDiffInput>) -> String {
         use crate::ontology::OntologyService;
-        let old = match std::fs::read_to_string(&input.old_path) {
+        // Same reading as `onto_load` and CLI `lint`: sniff the format, convert
+        // RDF/XML and friends, and give Turtle the file's base IRI.
+        let old = match GraphStore::read_as_turtle(&input.old_path) {
             Ok(c) => c,
             Err(e) => return Self::err_json(format!("Cannot read {}: {}", input.old_path, e)),
         };
-        let new = match std::fs::read_to_string(&input.new_path) {
+        let new = match GraphStore::read_as_turtle(&input.new_path) {
             Ok(c) => c,
             Err(e) => return Self::err_json(format!("Cannot read {}: {}", input.new_path, e)),
         };
@@ -564,12 +566,14 @@ impl OpenOntologiesServer {
     }
 
     #[tool(name = "onto_lint", description = "Check an ontology for quality issues: missing labels, comments, domains, ranges")]
-    async fn onto_lint(&self, Parameters(input): Parameters<OntoLintInput>) -> String {
+    pub async fn onto_lint(&self, Parameters(input): Parameters<OntoLintInput>) -> String {
         use crate::ontology::OntologyService;
         let content = if input.inline.unwrap_or(false) {
             input.input.clone()
         } else {
-            match std::fs::read_to_string(&input.input) {
+            // As CLI `lint` does: an RDF/XML file is converted, not handed to
+            // the Turtle parser, and relative IRIs resolve against the file.
+            match GraphStore::read_as_turtle(&input.input) {
                 Ok(c) => c,
                 Err(e) => return Self::err_json(e),
             }
