@@ -2677,8 +2677,17 @@ async fn async_main() -> anyhow::Result<()> {
         }
         Commands::Diff { old_path, new_path } => {
             use open_ontologies::ontology::OntologyService;
-            let old = std::fs::read_to_string(&old_path)?;
-            let new = std::fs::read_to_string(&new_path)?;
+            // Read both sides as lint does: an RDF/XML file is converted rather
+            // than handed to the Turtle parser, and errors stay JSON.
+            let read = |path: &str| match GraphStore::read_as_turtle(path) {
+                Ok(c) => c,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
+            let old = read(&old_path);
+            let new = read(&new_path);
             let result = OntologyService::diff(&old, &new)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
