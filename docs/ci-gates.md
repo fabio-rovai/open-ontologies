@@ -207,8 +207,10 @@ property is that CI cannot skip in silence, not that a laptop cannot skip at all
 The Python half is still by hand:
 
 ```bash
-# every Python file that can skip: 10 hits, of which conftest.py is the
-# mechanism and not a test, so 9, and the table has 9 rows
+# every Python file that can skip: 11 hits. conftest.py is the mechanism and
+# not a test, and test_conftest_collection_skip.py tests it: it writes a
+# skipping module into a temp directory and cannot skip itself. So 9, and the
+# table has 9 rows
 grep -rln 'pytest.skip\|importorskip\|skipif' python/tests/*.py
 # every leg CI makes strict
 grep -rn 'OO_REQUIRE_FIXTURES=1' .github/workflows/
