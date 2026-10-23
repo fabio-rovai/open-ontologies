@@ -4,7 +4,7 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
-## [2.1.0] - 2026-10-16
+## [2.1.0] - 2026-10-23
 
 ### Fixed
 
