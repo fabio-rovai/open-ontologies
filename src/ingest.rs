@@ -245,7 +245,16 @@ impl DataIngester {
                     }
                     depth -= 1;
                 }
-                Ok(Event::Eof) => break,
+                Ok(Event::Eof) => {
+                    // quick-xml accepts EOF with unclosed elements. Do not
+                    // report a completed prefix as a successful ingestion.
+                    if depth != 0 {
+                        anyhow::bail!(
+                            "XML parse error: unexpected EOF with {depth} unclosed elements"
+                        );
+                    }
+                    break;
+                }
                 Err(e) => return Err(anyhow::anyhow!("XML parse error: {e}")),
                 _ => {}
             }

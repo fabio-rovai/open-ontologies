@@ -52,7 +52,11 @@ def _focus_nodes(data_graph, shapes_graph) -> tuple[int, list[dict]]:
     total = 0
     unmatched: list[dict] = []
 
-    for shape in set(shapes_graph.subjects(rdflib.RDF.type, sh.NodeShape)):
+    # A declarative target identifies a shape without requiring rdf:type.
+    # This also includes property shapes (SHACL Core section 2.1).
+    targets = (sh.targetClass, sh.targetNode, sh.targetSubjectsOf, sh.targetObjectsOf)
+    shapes = {shape for target in targets for shape in shapes_graph.subjects(target, None)}
+    for shape in shapes:
         selected: set = set()
         declared = False
 
@@ -94,6 +98,11 @@ def _focus_nodes(data_graph, shapes_graph) -> tuple[int, list[dict]]:
     return total, unmatched
 
 
+def _term_text(term) -> str:
+    """A missing RDF term is empty; falsy literal values are still present."""
+    return "" if term is None else str(term)
+
+
 def shacl_validate(
     data: str,
     shapes: str,
@@ -120,6 +129,9 @@ def shacl_validate(
         shacl_graph=shapes_graph,
         inference=inference,
         advanced=True,
+        # Count coverage on the same inferred graph that the validator checks.
+        # This graph was parsed here; the caller's store is never modified.
+        inplace=True,
     )
 
     focus_nodes, unmatched_shapes = _focus_nodes(data_graph, shapes_graph)
@@ -131,13 +143,13 @@ def shacl_validate(
         severity = get(sh.resultSeverity)
         violations.append(
             {
-                "focus_node": str(get(sh.focusNode) or ""),
-                "path": str(get(sh.resultPath) or ""),
-                "value": str(get(sh.value) or ""),
-                "message": str(get(sh.resultMessage) or ""),
+                "focus_node": _term_text(get(sh.focusNode)),
+                "path": _term_text(get(sh.resultPath)),
+                "value": _term_text(get(sh.value)),
+                "message": _term_text(get(sh.resultMessage)),
                 "severity": _local(str(severity)) if severity else "Violation",
-                "source_shape": str(get(sh.sourceShape) or ""),
-                "constraint": _local(str(get(sh.sourceConstraintComponent) or "")),
+                "source_shape": _term_text(get(sh.sourceShape)),
+                "constraint": _local(_term_text(get(sh.sourceConstraintComponent))),
             }
         )
 

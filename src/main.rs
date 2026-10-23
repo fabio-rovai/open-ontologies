@@ -456,6 +456,9 @@ enum Commands {
         base_iri: Option<String>,
     },
     /// Validate against SHACL shapes
+    ///
+    /// Exit code: 0 conforms, 1 does not conform or failed, 2 not determined
+    /// (`conforms: null`).
     Shacl {
         shapes: String,
         /// Validate the snapshot that was TRUE at this instant (#108). Read as
@@ -844,6 +847,8 @@ enum Commands {
     /// Detect drift between two ontology versions
     Drift { file_a: String, file_b: String },
     /// Run design pattern enforcement
+    ///
+    /// Exit code: 0 no error-severity violation, 1 at least one, or failed.
     Enforce {
         #[arg(default_value = "generic")]
         pack: String,
@@ -855,6 +860,9 @@ enum Commands {
     /// certificate; the certificate was accepted; it was REFUSED, which stops
     /// the load; or this build has no checker, so nothing was checked. The last
     /// one is not a pass.
+    ///
+    /// Exit code: 0 accepted or no certificate, 1 refused, unreadable, not
+    /// about this pack, or failed, 2 nothing was checked.
     ///
     /// `pack` stays MCP-only and this does not, on purpose. The receiver is the
     /// party this exists for, and requiring them to run an MCP client to audit
@@ -879,6 +887,8 @@ enum Commands {
         load_even_if_refused: bool,
     },
     /// Run active SPARQL watchers
+    ///
+    /// Exit code: 1 when a watcher blocked the next apply or rolled back, else 0.
     Monitor,
     /// Clear monitor block state
     MonitorClear,
@@ -1597,6 +1607,73 @@ fn output_result_with_exit(result: &str, pretty: bool) {
         Some(v) => v.get("exit_code").and_then(|c| c.as_i64()).unwrap_or(0) as i32,
         None => 1,
     };
+    output_result(result, pretty);
+    if code != 0 {
+        std::process::exit(code);
+    }
+}
+
+/// The commands whose output is a verdict, not just a result.
+#[derive(Clone, Copy)]
+enum Gate {
+    Shacl,
+    Enforce,
+    Unpack,
+    Monitor,
+}
+
+/// Map a gate command's own verdict to an exit code: 0 pass, 1 fail, 2 not
+/// determined.
+///
+/// `output_result_checked` sees only an `error` field, and the failures that
+/// matter here are not errors. `conforms: false` and `certificate_refused` are
+/// verdicts, so `shacl shapes.ttl || exit 1` and `unpack x.oopack || exit 1`
+/// passed on exactly the inputs they exist to catch (#323). An undetermined
+/// verdict (`conforms: null`, no checker to re-run the proof) is not a pass
+/// and not a failure, so it gets its own code rather than being folded into
+/// either.
+fn gate_exit_code(gate: Gate, result: &str) -> i32 {
+    let Ok(v) = serde_json::from_str::<serde_json::Value>(result) else {
+        return 1;
+    };
+    if v.get("error").is_some() {
+        return 1;
+    }
+    match gate {
+        Gate::Shacl => match v.get("conforms") {
+            Some(serde_json::Value::Bool(true)) => 0,
+            Some(serde_json::Value::Bool(false)) => 1,
+            _ => 2,
+        },
+        Gate::Enforce => {
+            let errors = v
+                .get("violations")
+                .and_then(|x| x.as_array())
+                .is_some_and(|vs| vs.iter().any(|x| x["severity"] == "error"));
+            i32::from(errors)
+        }
+        Gate::Unpack => {
+            let verdict = v.pointer("/certificate/verdict").and_then(|x| x.as_str());
+            match verdict {
+                Some(
+                    "certificate_refused"
+                    | "certificate_unreadable"
+                    | "certificate_not_about_this_pack",
+                ) => 1,
+                Some("checker_absent_nothing_was_checked") => 2,
+                _ if v.get("ok") == Some(&serde_json::Value::Bool(false)) => 1,
+                _ => 0,
+            }
+        }
+        Gate::Monitor => match v.get("status").and_then(|x| x.as_str()) {
+            Some("blocked" | "auto_rolled_back") => 1,
+            _ => 0,
+        },
+    }
+}
+
+fn output_result_gated(result: &str, pretty: bool, gate: Gate) {
+    let code = gate_exit_code(gate, result);
     output_result(result, pretty);
     if code != 0 {
         std::process::exit(code);
@@ -3117,7 +3194,7 @@ async fn async_main() -> anyhow::Result<()> {
                     open_ontologies::shacl_verified::validate_verified(&graph, &shapes_content)
                         .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}))
                 };
-                output_result(&result.to_string(), cli.pretty);
+                output_result_gated(&result.to_string(), cli.pretty, Gate::Shacl);
                 return Ok(());
             }
             let result = match open_ontologies::temporal::ScopeRequest::from_args(
@@ -3129,7 +3206,7 @@ async fn async_main() -> anyhow::Result<()> {
                     .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
                 Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
             };
-            output_result(&result, cli.pretty);
+            output_result_gated(&result, cli.pretty, Gate::Shacl);
         }
         Commands::VocabCheck { data } => {
             let (_db, graph) = setup(&cli.data_dir)?;
@@ -3438,7 +3515,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = planner
                 .plan_checked(&turtle, opts)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Apply { mode, plan_id } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3472,7 +3549,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = detector
                 .detect(&v1, &v2)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Enforce { pack } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3480,7 +3557,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = enforcer
                 .enforce_with_feedback(&pack, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_gated(&result, cli.pretty, Gate::Enforce);
         }
         Commands::Unpack {
             path,
@@ -3501,7 +3578,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = open_ontologies::pack::Packer::new(graph)
                 .unpack(&path, &opts)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{e}"}}"#));
-            output_result(&result, cli.pretty);
+            output_result_gated(&result, cli.pretty, Gate::Unpack);
         }
         Commands::Monitor => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3509,7 +3586,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = monitor.run_watchers();
             let json = serde_json::to_string(&result)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&json, cli.pretty);
+            output_result_gated(&json, cli.pretty, Gate::Monitor);
         }
         Commands::MonitorClear => {
             let (db, graph) = setup(&cli.data_dir)?;

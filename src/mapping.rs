@@ -127,15 +127,29 @@ impl MappingConfig {
     }
 }
 
-/// Replace spaces and special characters that are invalid in IRIs with underscores.
+/// Replace invalid IRI characters and encode literal percent signs.
+/// Existing percent escapes remain unchanged.
 fn sanitize_iri(s: &str) -> String {
-    s.chars()
-        .map(|c| match c {
-            ' ' | '"' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
-            c if c.is_ascii_control() => '_',
-            _ => c,
-        })
-        .collect()
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '%' => {
+                let mut following = chars.clone();
+                let encoded = matches!(following.next(), Some(c) if c.is_ascii_hexdigit())
+                    && matches!(following.next(), Some(c) if c.is_ascii_hexdigit());
+                if encoded {
+                    out.push('%');
+                } else {
+                    out.push_str("%25");
+                }
+            }
+            ' ' | '"' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => out.push('_'),
+            c if c.is_ascii_control() => out.push('_'),
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 /// Escape characters that are special in N-Triples string literals.

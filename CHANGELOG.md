@@ -8,6 +8,32 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`shacl`, `enforce`, `unpack` and `monitor` exit non-zero on a failing
+  verdict** (#323, reported by @noahgift). They printed `conforms: false`, an
+  error-severity violation, `certificate_refused` or a blocking watcher and
+  exited 0, so `open-ontologies shacl shapes.ttl || exit 1` passed on the data
+  it exists to catch. Codes are 0 pass, 1 fail, 2 not determined (`conforms:
+  null`, or no checker re-ran the certificate), and each command's `--help`
+  lists them. `plan` and `drift` now exit 1 on an error, as `lint` does.
+- Preserve carriage returns and CRLF text when importing dataframe rows into the Python engine.
+- Report non-object JSON from a configured Python certificate checker as unchecked instead of raising an attribute error.
+- Preserve RDF literal datatypes when comparing Python KGCL graph changes, while retaining lexical label and annotation values.
+- Python: keep anonymous blank-node identities stable when diffing identical RDF text in `OntologyEngine.diff` and `kgcl_diff`; identical inputs remain parsed and validated.
+- Python: serialize RDF triple-term values in SELECT, CONSTRUCT and DESCRIBE query results instead of raising `AttributeError`; ordinary scalar values remain unchanged.
+- Python: accept reported blank-node graph names when selecting asserted graphs for Horn reasoning; preserve ordinary graph-name forms and inferred-graph refusal.
+- **A module that skipped at collection did not fail the strict Python leg.**
+  The entry that added `python/tests/conftest.py` says collection-time skips
+  "are caught too, through `pytest_collectreport`". They were seen and not
+  failed: the hook rewrote `report.outcome`, and that never reached the exit
+  status. MEASURED on pytest 9.0.3 and 9.1.1, under `OO_REQUIRE_FIXTURES=1`,
+  with one passing test and one module that skips at collection:
+  `1 passed, 1 skipped`, exit 0. Four files in the strict leg skip that way —
+  `test_shacl.py`, `test_shacl_vacuous.py`, `test_align.py` and
+  `test_vocab_check.py` — so the leg stayed green if their extras went missing.
+  The hook now records the skip, and `pytest_sessionfinish` fails the run.
+  `python/tests/test_conftest_collection_skip.py` holds it, with a control run
+  without the variable.
+
 - **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
   complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
   undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its
@@ -54,14 +80,14 @@ All notable changes to Open Ontologies are documented here.
   `skos:broader` closure, so the check can now fail on SKOS input; a row with
   nothing to compare is `not_refuted_nothing_compared` rather than upheld; and
   the SSSOM predicate column never strengthens a claim.
-
-### Added
-
-- **`crosswalk-probe`** (CLI subcommand and batch verb): carry a crosswalk's
-  subsumptions into the target and report the clashes they add. Witness
-  individuals make a TBox-only taxonomy able to clash; clashes the target has
-  on its own are reported apart. Exits 1 on a contradiction.
-
+- Encode literal percent characters in mapped IRI components while preserving valid percent escapes.
+- Render native SELECT rows as tables with `--human`, including empty results, while preserving JSON output and standard SPARQL binding rendering.
+- Reject truncated XML data documents instead of reporting an incomplete prefix as a successful ingestion.
+- Recognize explicitly declared OWL properties in Python statistics and structural lint, without counting property declarations as individuals.
+- Launch explicitly selected and environment-configured certificate checkers by their verified location, including paths relative to the current directory.
+- Preserve zero and false RDF literal values and focus nodes in Python SHACL violation reports instead of rendering them as missing fields.
+- Report Python SHACL coverage for property and untyped targeted shapes, using the same inferred graph as validation so actual violations are not replaced by an unmatched-target verdict.
+- Keep Python alignment labels and query counts consistent when HNSW insertion rejects a full index or an invalid numeric vector.
 - Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
 - Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
 - Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
@@ -70,6 +96,13 @@ All notable changes to Open Ontologies are documented here.
   names losslessly; identical stems require distinct base IRIs.
 - Keep original Turtle error line numbers when applying a local document base.
 - Load crosswalk Parquet string columns with either Utf8 or LargeUtf8 offsets, including mixed schemas, so valid rows are not silently discarded.
+
+### Added
+
+- **`crosswalk-probe`** (CLI subcommand and batch verb): carry a crosswalk's
+  subsumptions into the target and report the clashes they add. Witness
+  individuals make a TBox-only taxonomy able to clash; clashes the target has
+  on its own are reported apart. Exits 1 on a contradiction.
 
 ### Added
 

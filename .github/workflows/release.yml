@@ -90,7 +90,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
+      # releases.lean-lang.org has dropped TLS connections for minutes at a
+      # time (19 Oct 2026: every python and lean job failed fetching the
+      # toolchain, with no code at fault). The first attempt may fail; the
+      # second is the one that decides the job, so a real proof failure still
+      # fails it, only later.
+      - id: lean1
+        uses: leanprover/lean-action@v1
+        continue-on-error: true
+        with:
+          lake-package-directory: lean
+          build: true
+          test: false
+          lint: false
+          use-github-cache: true
+      - if: steps.lean1.outcome == 'failure'
+        run: sleep 90
+      - if: steps.lean1.outcome == 'failure'
+        uses: leanprover/lean-action@v1
         with:
           lake-package-directory: lean
           build: true

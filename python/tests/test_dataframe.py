@@ -84,6 +84,35 @@ def test_engine_load_rows_roundtrip():
     assert [r["name"] for r in res["rows"]] == ["Bakery", "Dairy"]
 
 
+@pytest.mark.parametrize(
+    "note",
+    [
+        pytest.param("left\rright", id="carriage-return"),
+        pytest.param("left\r\nright", id="crlf"),
+        pytest.param('say "hi"\\bye', id="quote-and-backslash"),
+        pytest.param("left\nright", id="newline"),
+        pytest.param("left\tright", id="tab"),
+        pytest.param("ordinary text", id="ordinary"),
+    ],
+)
+def test_engine_load_rows_preserves_string_line_endings(note):
+    engine = OntologyEngine()
+    count = engine.load_rows(
+        [{"note": note, "integer": 7, "double": 1.5, "boolean": True, "absent": None}],
+        base_iri="http://x.org/",
+    )
+    assert count == 4
+    result = engine.query(
+        "SELECT ?note ?integer ?double ?boolean WHERE { "
+        "<http://x.org/0> <http://x.org/note> ?note ; "
+        "<http://x.org/integer> ?integer ; <http://x.org/double> ?double ; "
+        "<http://x.org/boolean> ?boolean }"
+    )
+    assert result["rows"] == [
+        {"note": note, "integer": "7", "double": "1.5", "boolean": "true"}
+    ]
+
+
 def test_real_fenic_dataframe_if_installed():
     fc = pytest.importorskip("fenic")
     session = fc.Session.get_or_create(fc.SessionConfig(app_name="oo_lite_test"))
