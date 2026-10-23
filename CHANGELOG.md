@@ -6,6 +6,13 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`shacl`, `enforce`, `unpack` and `monitor` exit non-zero on a failing
+  verdict** (#323, reported by @noahgift). They printed `conforms: false`, an
+  error-severity violation, `certificate_refused` or a blocking watcher and
+  exited 0, so `open-ontologies shacl shapes.ttl || exit 1` passed on the data
+  it exists to catch. Codes are 0 pass, 1 fail, 2 not determined (`conforms:
+  null`, or no checker re-ran the certificate), and each command's `--help`
+  lists them. `plan` and `drift` now exit 1 on an error, as `lint` does.
 - Preserve carriage returns and CRLF text when importing dataframe rows into the Python engine.
 - Report non-object JSON from a configured Python certificate checker as unchecked instead of raising an attribute error.
 - Preserve RDF literal datatypes when comparing Python KGCL graph changes, while retaining lexical label and annotation values.
