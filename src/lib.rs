@@ -82,6 +82,9 @@ pub mod monitor;
 /// OWL 2 Functional-Style Syntax read into the RDF graph the W3C mapping
 /// assigns it, so `.ofn` files and the OFN-under-`.owl` corpora load.
 pub mod ofn;
+/// OWL 2 functional syntax WRITTEN from an RDF graph: the inverse of [`ofn`],
+/// with every triple that maps back to no axiom reported by name (issue #322).
+pub mod ofn_writer;
 pub mod ontology;
 pub mod ossie;
 pub mod plan;

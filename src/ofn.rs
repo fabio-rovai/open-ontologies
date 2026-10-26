@@ -119,7 +119,7 @@ const RDF_PLAIN_LITERAL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Plai
 /// The prefixes every OFN document may use without declaring them. The
 /// structural specification fixes these five, and the OWL API writes them out
 /// anyway, so predefining them only matters for hand-written files.
-const STANDARD_PREFIXES: &[(&str, &str)] = &[
+pub(crate) const STANDARD_PREFIXES: &[(&str, &str)] = &[
     ("owl", "http://www.w3.org/2002/07/owl#"),
     ("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
     ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
@@ -328,6 +328,33 @@ pub fn parse(text: &str) -> Result<Vec<Triple>, OfnError> {
         return Err(OfnError::Unsupported(census));
     }
     Ok(p.out)
+}
+
+/// The `Prefix(name:=<iri>)` declarations at the head of `text`, in the order
+/// written, stopping at `Ontology(` or at the first token that is not part of
+/// a well-formed declaration.
+///
+/// [`parse`] returns triples, and a graph has no prefixes, so the names a
+/// document chose are lost by the time [`crate::ofn_writer`] sees it. Reading
+/// them here, with the same lexer, is what lets an OFN-to-OFN conversion keep
+/// `:A` as `:A` instead of spelling every IRI in full.
+pub fn declared_prefixes(text: &str) -> Vec<(String, String)> {
+    let mut lx = Lexer::new(text);
+    let mut out = Vec::new();
+    loop {
+        let Ok((Tok::Word("Prefix"), _)) = lx.next() else {
+            return out;
+        };
+        let (Ok((Tok::Open, _)), Ok((Tok::Word(name), _)), Ok((Tok::Eq, _)), Ok((Tok::Iri(iri), _)), Ok((Tok::Close, _))) =
+            (lx.next(), lx.next(), lx.next(), lx.next(), lx.next())
+        else {
+            return out;
+        };
+        match name.strip_suffix(':') {
+            Some(n) if !n.contains(':') => out.push((n.to_string(), iri.to_string())),
+            _ => return out,
+        }
+    }
 }
 
 // --------------------------------------------------------------------------- //

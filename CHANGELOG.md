@@ -4,6 +4,31 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`onto_convert`, the CLI `convert` and `batch` `convert` write OWL 2
+  functional syntax (`--to ofn`)** (requested by @noahgift in #322). #311 gave
+  the engine an OFN reader and no writer, so handing an ontology to the OWL
+  API, ELK, HermiT, Protégé or ROBOT meant converting through another tool, and
+  the reader had no round-trip test. `src/ofn_writer.rs` recognises exactly the
+  image of the reader's W3C mapping (Table 1, Table 2, Section 2.3) and writes
+  one axiom per line, declarations first, each group in byte order, with the
+  document's own prefixes. Anonymous expressions are written inline; the only
+  printed blank-node labels are anonymous individuals, labelled by RDFC-1.0
+  over their blank-node components, so two runs are byte-identical. Every
+  triple that maps back to no axiom (an unrecognised blank-node structure, a
+  malformed `rdf:List`, `rdf:type rdf:Property`, an OWL 1 `owl:distinctMembers`,
+  an `xsd:integer` cardinality the reader would retype) is named and counted in
+  `constructs_not_exported` with the reason, never dropped, and a shared
+  anonymous expression, which OFN can only write twice, is listed under
+  `constructs_not_round_trippable`. MEASURED: `ofn::parse(write_ofn(G))` is
+  RDFC-isomorphic to `G`, two parses write identical bytes, and writing the
+  re-read graph gives the same bytes again, on `tests/fixtures/ofn/all_constructs.ofn`,
+  17 targeted documents, and 1,550 of 1,550 ORE 2015 pool files of up to 10 MB
+  that the reader accepts (5 of the 1,555 are refused by the reader; the 363
+  larger files were not run). Conversion reads the document without a store,
+  because the store retypes `xsd:nonNegativeInteger` as `xsd:integer`.
+
 ## [2.1.0] - 2026-10-23
 
 ### Fixed

@@ -17,7 +17,8 @@ pub struct OntoConvertInput {
     /// Path to the source file: any format onto_load reads, OWL functional
     /// syntax included
     pub path: String,
-    /// Target format: turtle, ntriples, rdfxml, nquads, trig
+    /// Target format: turtle, ntriples, rdfxml, nquads, trig, or ofn (OWL 2
+    /// functional syntax, returned as JSON with what it could not export)
     pub to: String,
     /// Optional output file path (if omitted, returns content)
     pub output: Option<String>,

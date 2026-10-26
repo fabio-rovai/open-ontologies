@@ -332,8 +332,26 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads or trig. Reads every format onto_load reads, OWL 2 functional syntax (OFN) included, so this is also the way to turn an OFN document into RDF.")]
+    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads, trig or ofn (OWL 2 functional syntax). Reads every format onto_load reads, OFN included, so this also turns an OFN document into RDF and back. `to: \"ofn\"` writes the inverse of the reader's W3C mapping, one axiom per line, in a byte-identical order on every run, and returns JSON: `content` (or `path` when `output` is given) plus `constructs_not_exported`, which names and counts every triple that maps back to no OWL 2 axiom (an unrecognised blank-node structure, a malformed rdf:List, a reserved-vocabulary triple outside any axiom) instead of dropping it, and `constructs_not_round_trippable` for what was written but will not read back as the same graph.")]
     async fn onto_convert(&self, Parameters(input): Parameters<OntoConvertInput>) -> String {
+        if crate::ofn_writer::is_ofn_format(&input.to) {
+            return match crate::ofn_writer::convert_file(&input.path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(output) = input.output {
+                        if let Err(e) = std::fs::write(&output, &out.text) {
+                            return Self::err_json(e);
+                        }
+                        report["ok"] = serde_json::json!(true);
+                        report["path"] = serde_json::json!(output);
+                    } else {
+                        report["content"] = serde_json::json!(out.text);
+                    }
+                    report.to_string()
+                }
+                Err(e) => Self::err_json(e),
+            };
+        }
         let store = GraphStore::new();
         match store.load_file(&input.path) {
             Ok(_) => {

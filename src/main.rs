@@ -385,7 +385,7 @@ enum Commands {
     Lint { input: String },
     /// Defects: check the ONTOLOGY against itself, before any data is judged by it
     Defects { input: String },
-    /// Convert between RDF formats
+    /// Convert between RDF formats, or to OWL 2 functional syntax (`--to ofn`)
     Convert {
         path: String,
         #[arg(long)]
@@ -2828,6 +2828,32 @@ async fn async_main() -> anyhow::Result<()> {
             let result = OntologyService::lint_with_feedback(&content, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
+        }
+        Commands::Convert { path, to, output } if open_ontologies::ofn_writer::is_ofn_format(&to) => {
+            match open_ontologies::ofn_writer::convert_file(&path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(out_path) = output {
+                        std::fs::write(&out_path, &out.text)?;
+                        report["ok"] = serde_json::json!(true);
+                        report["path"] = serde_json::json!(out_path);
+                        output_json(&report, cli.pretty);
+                    } else {
+                        // The document is stdout, so the report goes to stderr,
+                        // and only when it has something to say: a pipe into
+                        // a file stays a valid OFN document, and what it lacks
+                        // is still printed.
+                        print!("{}", out.text);
+                        if !out.not_exported.is_empty() || !out.not_round_trippable.is_empty() {
+                            eprintln!("{report}");
+                        }
+                    }
+                }
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::Convert { path, to, output } => {
             let store = GraphStore::new();

@@ -849,6 +849,24 @@ impl BatchRunner {
             if args.len() > 1 { args[1].clone() } else { "turtle".to_string() }
         });
         let output = Self::flag_value(args, "--output");
+        if crate::ofn_writer::is_ofn_format(&to) {
+            return match crate::ofn_writer::convert_file(path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(out_path) = output {
+                        if let Err(e) = std::fs::write(&out_path, &out.text) {
+                            return json!({"error": e.to_string()});
+                        }
+                        report["path"] = json!(out_path);
+                    } else {
+                        report["content_length"] = json!(out.text.len());
+                    }
+                    report["ok"] = json!(true);
+                    report
+                }
+                Err(e) => json!({"error": e.to_string()}),
+            };
+        }
         let store = GraphStore::new();
         match store.load_file(path) {
             Ok(_) => match store.serialize(&to) {

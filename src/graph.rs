@@ -7,6 +7,9 @@ use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+/// A document's quads and the namespace prefixes it declared, in order.
+pub type ParsedDocument = (Vec<Quad>, Vec<(String, String)>);
+
 /// How a document is serialised: one of the RDF formats Oxigraph parses, or
 /// OWL 2 functional syntax, which is not RDF and is read by [`crate::ofn`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -312,6 +315,20 @@ impl GraphStore {
         self.store_parsed_quads(&quads, replace)
     }
 
+    /// A file's quads, as parsed and never stored, with the namespace
+    /// prefixes it declared, in the order it declared them.
+    ///
+    /// A store holds no prefixes, and it also normalises some literals, so a
+    /// writer that must give back exactly the document's graph, abbreviated
+    /// with the document's own names, reads the document here. The OWL
+    /// functional-syntax writer (issue #322) is that writer.
+    pub fn read_file_with_prefixes(
+        path: &str,
+    ) -> anyhow::Result<ParsedDocument> {
+        let content = std::fs::read_to_string(path)?;
+        Self::parse_document_with_prefixes(path, &content)
+    }
+
     /// Parse a whole document, whatever it is serialised as, into quads.
     ///
     /// Every path that reads a FILE goes through here (`load_file`,
@@ -321,11 +338,22 @@ impl GraphStore {
     /// syntax reader existed each of those called the RDF parser directly, and
     /// adding a format meant finding all of them.
     fn parse_document(path: &str, content: &str) -> anyhow::Result<Vec<Quad>> {
+        Ok(Self::parse_document_with_prefixes(path, content)?.0)
+    }
+
+    /// [`Self::parse_document`], keeping the prefixes the parser saw.
+    fn parse_document_with_prefixes(
+        path: &str,
+        content: &str,
+    ) -> anyhow::Result<ParsedDocument> {
         match Self::detect_source_format(path, content) {
-            SourceFormat::OwlFunctional => Ok(crate::ofn::parse(content)?
-                .into_iter()
-                .map(|t| t.in_graph(GraphName::DefaultGraph))
-                .collect()),
+            SourceFormat::OwlFunctional => Ok((
+                crate::ofn::parse(content)?
+                    .into_iter()
+                    .map(|t| t.in_graph(GraphName::DefaultGraph))
+                    .collect(),
+                crate::ofn::declared_prefixes(content),
+            )),
             SourceFormat::Rdf(format) => {
                 // A document's own location is its default base, per RFC 3986.
                 // Without it, any file using relative IRIs fails to parse at
@@ -336,9 +364,16 @@ impl GraphStore {
                 if let Some(base) = Self::file_base_iri(path) {
                     parser = parser.with_base_iri(base)?;
                 }
-                Ok(parser
-                    .for_reader(Cursor::new(content.as_bytes()))
-                    .collect::<Result<_, _>>()?)
+                let mut reader = parser.for_reader(Cursor::new(content.as_bytes()));
+                let mut quads = Vec::new();
+                for quad in &mut reader {
+                    quads.push(quad?);
+                }
+                let prefixes = reader
+                    .prefixes()
+                    .map(|(name, iri)| (name.to_string(), iri.to_string()))
+                    .collect();
+                Ok((quads, prefixes))
             }
         }
     }
