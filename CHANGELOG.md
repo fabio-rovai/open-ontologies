@@ -28,6 +28,129 @@ All notable changes to Open Ontologies are documented here.
   that the reader accepts (5 of the 1,555 are refused by the reader; the 363
   larger files were not run). Conversion reads the document without a store,
   because the store retypes `xsd:nonNegativeInteger` as `xsd:integer`.
+- **`onto_shacl` and `shacl` write a W3C `sh:ValidationReport` graph**
+  (#318, reported by @noahgift). `report_format: "turtle" | "ntriples"`
+  (`--report-format` on the CLI) returns the report as RDF, carrying
+  `sh:conforms` and, per result, `sh:focusNode`, `sh:resultPath`, `sh:value`,
+  `sh:sourceShape`, `sh:sourceConstraintComponent`, `sh:resultSeverity` and
+  `sh:resultMessage`; a custom severity IRI and a language-tagged `sh:message`
+  are written as declared. An undetermined run (`conforms: null`) is written
+  `sh:conforms false` plus `oo:undetermined true` and its reason, never
+  `sh:conforms true`, and keeps the results it found. The CLI exit code is
+  still taken from the verdict (0, 1, 2) in every format. JSON stays the
+  default and is unchanged apart from `value`. Measured against the W3C suite:
+  48 of the 56 `core/` cases that pass today produce a report matching the
+  expected one after RDFC-1.0 canonicalisation; the 8 that differ are named in
+  `tests/shacl_validation_report_w3c_test.rs` with their causes, which include
+  an `sh:or` false negative on IRI and ill-typed values.
+
+### Fixed
+
+- **`diff` and `drift` no longer hang on a symmetric blank-node graph** (#293).
+  Both canonicalised blank nodes through oxrdf's RDFC-1.0, which sets no limit
+  on `hash_n_degree_quads` calls, so the cost was factorial: a 7-node
+  blank-node clique took 17 to 23 seconds to diff against itself and an 8-node
+  clique was still running when killed at 120 seconds. They now use the
+  repository's own `canon` module, the same Recommendation gated on the W3C
+  suite and bounded by its 4000-call budget; Pizza gets the same canonical
+  labels as before. When either snapshot exhausts the budget, both are cut to
+  the triples that mention no blank node and the report says so: `exact:
+  false`, `approximate_reason`, and the omitted counts (`omitted_old`/
+  `omitted_new` for diff, `omitted_v1`/`omitted_v2` for drift). `kgcl_json`
+  carries the flag; the `kgcl` CNL format cannot, so it refuses an
+  approximate drift and names the formats that can. Every report now carries
+  `exact`, true on ordinary input. `canon` itself built all k! neighbour
+  permutations before its first budget check, so two identical 11-leaf
+  blank-node stars cost 10 s and 1.78 GB to refuse; permutations are now
+  generated lazily in the same order, and the same input takes 0.04 s and
+  17 MB.
+- **Lint and enforce feedback can no longer waive an error, and never drop an
+  issue without a record** (#325, reported by @noahgift). After
+  `suppress_threshold` dismissals (default 3) an issue was removed whatever its
+  severity, leaving only `suppressed_count`, so the orchestrator that loops
+  until enforce is clean could dismiss an error three times and read
+  "0 violations, 1 suppressed" with no rule, entity or severity anywhere. An
+  `error` is now never suppressed or downgraded (a dismissed one stays in
+  `issues`/`violations` at `error` and carries `dismissals`); a warning or info
+  that reaches the threshold moves to a new `suppressed[]` list with `rule`,
+  `entity`, `original_severity`, `dismissals` and `message`. `issue_count`,
+  `compliance` and `suppressed_count` are computed as before.
+  `tests/feedback_suppression_test.rs` holds it for both tools.
+- **A malformed SHACL count bound no longer turns a shape into a no-op** (#321,
+  reported by @noahgift). `sh:minCount` fell back to 0 and `sh:maxCount` to
+  `u64::MAX` when the bound did not parse, and a bad `sh:qualifiedMinCount` /
+  `sh:qualifiedMaxCount` skipped the row in silence, so `sh:minCount "one"` or
+  `sh:maxCount -1` over a node with no value returned `conforms: true`. All
+  four now go to `skipped_constraints` with the reason, which makes the verdict
+  `conforms: null`, as `sh:minLength` already did. The bound must be a
+  non-negative `xsd:integer` literal: the datatype is checked because the
+  store renders Turtle `1.0` as `"1"^^xsd:decimal`. The verified path
+  (`verified: true`) refuses the same bounds before running `oo-shacl`, whose
+  `readNat` declined "one" and -1 but evaluated `1.0` as 1. `onto_shacl_check`
+  reports every ill-formed count or length literal as `ill_formed_literal`
+  with its reason. `tests/shacl_count_bound_test.rs` holds it.
+- **`onto_classify_el` is an EL classifier now, and says when its table is not
+  complete** (reported by @noahgift in #324). It ran the OWL-RL-ext rules
+  under a header saying they were "sufficient for the EL fragment" and returned
+  "the full classification table". RL derives through a left-hand conjunction
+  or existential only for an individual, so `A ⊑ B, A ⊑ C, B ⊓ C ⊑ D` came back
+  without `A ⊑ D`, as did an existential reached through a conjunctive filler,
+  a domain, a range or a transitive role (MEASURED: all five missing before,
+  all five returned after). The issue's second example,
+  `A ⊑ ∃r.B, B ⊑ C, ∃r.C ⊑ D`, was already returned, through `scm-svf1`. The
+  read-back also stopped at 100,000 rows with no field to say so: a 460-class
+  chain (105,570 pairs) came back as 100,000 after about 420 s; it now
+  returns all 105,570 in 5.6 s (both debug builds). The tool now normalises the axioms the tableau's
+  parser reads and saturates them with the EL completion rules (CR1-CR4,
+  ⊥-propagation, role hierarchy, transitive roles, ranges compiled into
+  fillers). The report gains `complete` (true only inside EL with nothing set
+  aside), `incompleteness`, `consistent`, `truncated` (no cap remains, always
+  false) and `unsatisfiable`; outside EL the RL rules are still unioned in.
+  `tests/classify_el_differential_test.rs` checks it against the `owl-dl`
+  tableau on 120 generated EL TBoxes (no disagreement; dropping the range
+  rule makes it report 6) and against HermiT's
+  Pizza classification (every reported pair entailed).
+- **The W3C SHACL conformance harness can say no, field by field, and
+  ratchets a second, full-tuple column** (reported by @noahgift in #319). It
+  compared `sh:conforms` and the set of (focus, source shape, component) and
+  collapsed every blank-node source shape to `_:`, so two different property
+  shapes compared equal, and nothing showed the comparison could reject
+  anything. Blank property shapes are now keyed by parent node shape plus
+  `sh:path` (the gated column stays at 61 of 120 PASS). A second column,
+  ratcheted on its own in `tests/w3c_shacl_baseline.json`, compares the
+  multiset of (focus, path, value, source shape, component, severity) with
+  paths compared structurally: 12 of 120 PASS, 48 of the gap being `sh:value`,
+  which the engine does not emit (#318). Severity went into the new column and
+  not the gated one because it drops the gated column from 61 to 60: the
+  engine keeps only the local name of a custom `sh:severity`
+  (`core/misc/severity-002`). The header's reason for ignoring severity, that
+  the engine did not read `sh:severity`, had been false since #206 and is gone.
+  A planted control mutates one PASS case's expected report in each of the six
+  fields and requires each copy to be rejected by name.
+- **`tools/shacl_differential.py` can no longer go green on nothing**
+  (reported by @noahgift in #320). It exited 0 on everything but a FALSE_CLEAN,
+  including no cases, no pyshacl and no comparisons, and the CI job's
+  case-studies corpus yields 4 pairs that all come back UNDETERMINED. It now
+  exits 2 (NOT MEASURED) for a missing or unpinned oracle, a missing engine,
+  empty discovery, fewer pairs run than discovered, or no pair compared; plants
+  a must-agree control and four mutated copies of pyshacl's report on every run
+  and exits 1 if any is misclassified; keys results on (focus, path, severity,
+  source shape, component) instead of (focus, path); records pyshacl, rdflib,
+  the engine binary's sha256 and every input's sha256; and with `--w3c`
+  arbitrates each disagreement against the W3C expected report. CI pins
+  pyshacl 0.40.1 and rdflib 7.6.0 and runs the corpus and the W3C suite
+  together: 117 pairs, 73 compared, 0 blocking, with 12 W3C-confirmed
+  FALSE_CLEANs reported as KNOWN because the conformance ratchet already
+  holds each as FAIL. `tools/fol_differential.py`
+  (every goal undetermined) and `tools/horn_differential.py` (every case not
+  run) had the same exit-0-on-nothing and now exit 2.
+
+- **Default-path SHACL results now carry the value node** (#318, reported by
+  @noahgift). The `sh:class`, `sh:datatype`, `sh:nodeKind`, `sh:pattern`,
+  `sh:in`, `sh:or`, `sh:not`, length and range queries selected the offending
+  value and dropped it, so `value` appeared only on `sh:sparql` results. It is
+  now on every result whose query binds it, and on node-shape results as the
+  focus node.
 
 ## [2.1.0] - 2026-10-23
 

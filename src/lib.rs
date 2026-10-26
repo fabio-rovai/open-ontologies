@@ -114,6 +114,7 @@ pub mod schema;
 pub mod segment_retrieve;
 pub mod server;
 pub mod shacl;
+pub mod shacl_report;
 pub mod shacl_verified;
 #[cfg(unix)]
 pub mod socket;

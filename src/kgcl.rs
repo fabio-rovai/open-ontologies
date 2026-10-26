@@ -76,10 +76,18 @@ impl KgclChange {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KgclReport {
     pub changes: Vec<KgclChange>,
+    /// Set when the drift report it came from was approximate (issue #293):
+    /// the changes then cover only the snapshots' ground triples.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approximate_reason: Option<String>,
 }
 
 impl KgclReport {
     /// CNL representation, one change per line.
+    ///
+    /// CNL has no place to say a report is approximate, so a caller holding
+    /// one with `approximate_reason` set must not hand this out on its own;
+    /// `onto_drift` refuses the `kgcl` format in that case.
     pub fn to_cnl(&self) -> String {
         self.changes
             .iter()
@@ -90,10 +98,15 @@ impl KgclReport {
 
     /// Structured JSON representation (for machine consumers).
     pub fn to_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        let mut json = serde_json::json!({
             "@context": "http://w3id.org/kgcl/",
             "changes": self.changes,
-        })
+            "exact": self.approximate_reason.is_none(),
+        });
+        if let Some(reason) = &self.approximate_reason {
+            json["approximate_reason"] = serde_json::json!(reason);
+        }
+        json
     }
 }
 
@@ -196,7 +209,8 @@ pub fn drift_to_kgcl(
         });
     }
 
-    KgclReport { changes }
+    let approximate_reason = drift_json["approximate_reason"].as_str().map(String::from);
+    KgclReport { changes, approximate_reason }
 }
 
 #[cfg(test)]
@@ -357,6 +371,7 @@ mod tests {
                 about_node: "http://example.org/Cat".to_string(),
                 node_kind: "class".to_string(),
             }],
+            approximate_reason: None,
         };
         let j = report.to_json();
         assert_eq!(j["@context"].as_str().unwrap(), "http://w3id.org/kgcl/");

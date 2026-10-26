@@ -1290,35 +1290,45 @@ fn parse_card_value(literal: &str) -> Option<u32> {
     literal.parse().ok()
 }
 
-struct ParseResult {
-    interner: Interner,
-    axioms: Vec<(Concept, Concept)>,
-    named_classes: HashSet<u32>,
-    thing_id: u32,
-    nothing_id: u32,
-    transitive_roles: HashSet<u32>,
-    sub_to_super: HashMap<u32, HashSet<u32>>,
-    disjoint_pairs: Vec<(Concept, Concept)>,
-    inverse_roles: HashMap<u32, u32>,
-    functional_roles: HashSet<u32>,
-    inv_functional_roles: HashSet<u32>,
+pub(crate) struct ParseResult {
+    pub(crate) interner: Interner,
+    pub(crate) axioms: Vec<(Concept, Concept)>,
+    pub(crate) named_classes: HashSet<u32>,
+    pub(crate) thing_id: u32,
+    pub(crate) nothing_id: u32,
+    pub(crate) transitive_roles: HashSet<u32>,
+    pub(crate) sub_to_super: HashMap<u32, HashSet<u32>>,
+    pub(crate) disjoint_pairs: Vec<(Concept, Concept)>,
+    pub(crate) inverse_roles: HashMap<u32, u32>,
+    pub(crate) functional_roles: HashSet<u32>,
+    pub(crate) inv_functional_roles: HashSet<u32>,
     /// rdfs:domain / rdfs:range, kept as ROLE METADATA rather than GCIs.
     /// Encoding them as axioms puts a non-atomic left-hand side into the GCI
     /// list, which lands a disjunction on every node and multiplies branching.
-    role_domains: Vec<(u32, Concept)>,
-    role_ranges: Vec<(u32, Concept)>,
-    individual_types: HashMap<u32, HashSet<u32>>,
+    pub(crate) role_domains: Vec<(u32, Concept)>,
+    pub(crate) role_ranges: Vec<(u32, Concept)>,
+    pub(crate) individual_types: HashMap<u32, HashSet<u32>>,
     /// Individuals typed directly by an ANONYMOUS class expression
     /// (`:a rdf:type [ owl:Restriction … ]`, an intersection/union/complement).
     /// These carry no named-class id, so they cannot live in `individual_types`,
     /// but the constraint they impose is real and an inconsistency arising from
     /// it must be found rather than silently dropped.
-    individual_anon_types: HashMap<u32, Vec<Concept>>,
-    role_assertions: Vec<(u32, u32, u32)>,
+    pub(crate) individual_anon_types: HashMap<u32, Vec<Concept>>,
+    pub(crate) role_assertions: Vec<(u32, u32, u32)>,
     /// Datatype-property assertions, for realization only; never tableau edges.
-    data_assertions: Vec<(u32, u32, u32)>,
+    pub(crate) data_assertions: Vec<(u32, u32, u32)>,
     /// Named class → the concept it is defined as being equivalent to.
-    definitions: HashMap<u32, Concept>,
+    pub(crate) definitions: HashMap<u32, Concept>,
+}
+
+/// The OWL parser's reading of a triple set, before `ProcessedTBox` absorbs it.
+///
+/// `onto_classify_el` normalises these axioms for EL completion rather than
+/// writing a second RDF-to-DL reader: one parser means the tableau and the EL
+/// saturation disagree only where their rules do, never where their reading
+/// of `owl:Restriction` or `rdf:List` does.
+pub(crate) fn parse_owl(triples: Vec<(String, String, String)>) -> ParseResult {
+    OwlParser::new(triples).parse()
 }
 
 // ── Absorption ──────────────────────────────────────────────────────────

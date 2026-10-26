@@ -855,6 +855,13 @@ def main() -> int:
             else:
                 print(f"{row['verdict']:<20} {row['name']}  ({row['detail']})", flush=True)
     shutil.rmtree(specdir, ignore_errors=True)
+    # The empty-corpus check above runs before the size cap and the workers, so
+    # a corpus whose every case was capped, timed out or crashed reached the
+    # exit at the bottom with zero rows and returned 0 (#320). Nothing compared
+    # is not agreement.
+    if not rows:
+        print(f"all {len(cases)} case(s) were NOT_RUN: the differential compared nothing", flush=True)
+        return 2
 
     counts = {}
     for r in rows:

@@ -1386,7 +1386,7 @@ impl OpenOntologiesServer {
         result.to_string()
     }
 
-    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true. An entry there is one CONSTRAINT-EVALUATION SITE and not one shape: a single `sh:property` block carrying both `sh:minCount` and `sh:node` can produce a violation from the first and a skip entry from the second, so the SAME shape can appear in `violations` and in `skipped_constraints` at once and that is not a contradiction. Every entry names the `shape` it was written on and the `constraint` predicate that was not evaluated, which is what separates a constraint that did not run from one that ran and selected nothing. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`, plus `scope`, which names the graphs the run READ. By default every graph in the store is read. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) that union is a state that held at no instant, so a run with no instant named is REFUSED rather than answered: pass `valid_at` (what was TRUE then), `as_of` (what was KNOWN then) or `all_versions: true` to say the union is what you meant. A scoped run evaluates every data-side query, `sh:sparql` included, against the in-scope named graphs plus the default graph and nothing else. A snapshot that selects no graph returns `conforms: null` with its own reason rather than conforming vacuously. Class and property DECLARATION lookups are never scoped: a declaration is context-free and has the same answer at every instant.")]
+    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true; that includes a count or length bound that is not a non-negative integer (`sh:minCount \"one\"`, `sh:maxCount -1`), which is never read as 0 or as unbounded. An entry there is one CONSTRAINT-EVALUATION SITE and not one shape: a single `sh:property` block carrying both `sh:minCount` and `sh:node` can produce a violation from the first and a skip entry from the second, so the SAME shape can appear in `violations` and in `skipped_constraints` at once and that is not a contradiction. Every entry names the `shape` it was written on and the `constraint` predicate that was not evaluated, which is what separates a constraint that did not run from one that ran and selected nothing. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`, plus `scope`, which names the graphs the run READ. By default every graph in the store is read. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) that union is a state that held at no instant, so a run with no instant named is REFUSED rather than answered: pass `valid_at` (what was TRUE then), `as_of` (what was KNOWN then) or `all_versions: true` to say the union is what you meant. A scoped run evaluates every data-side query, `sh:sparql` included, against the in-scope named graphs plus the default graph and nothing else. A snapshot that selects no graph returns `conforms: null` with its own reason rather than conforming vacuously. Class and property DECLARATION lookups are never scoped: a declaration is context-free and has the same answer at every instant. `report_format: \"turtle\"` or `\"ntriples\"` returns a W3C sh:ValidationReport graph instead of JSON; an undetermined run is written sh:conforms false plus oo:undetermined true, never sh:conforms true.")]
     async fn onto_shacl(&self, Parameters(input): Parameters<OntoShaclInput>) -> String {
         use crate::shacl::ShaclValidator;
         let shapes = if input.inline.unwrap_or(false) {
@@ -1397,7 +1397,20 @@ impl OpenOntologiesServer {
                 Err(e) => return Self::err_json(format!("Cannot read shapes file: {}", e)),
             }
         };
+        let format = match crate::shacl_report::ReportFormat::parse(input.report_format.as_deref()) {
+            Ok(f) => f,
+            Err(e) => return Self::err_json(e),
+        };
         if input.verified.unwrap_or(false) {
+            if format != crate::shacl_report::ReportFormat::Json {
+                return Self::err_json(
+                    "verified: true cannot be combined with a report_format other than json. \
+                     The verified evaluator returns its own report structure, which the \
+                     sh:ValidationReport writer does not read, so the format would be silently \
+                     dropped."
+                        .to_string(),
+                );
+            }
             // Refused rather than ignored. The verified evaluator reads one
             // N-Triples dump of the store and has no notion of a temporal
             // scope, so honouring the argument is impossible and dropping it
@@ -1424,7 +1437,8 @@ impl OpenOntologiesServer {
             Ok(r) => r,
             Err(e) => return Self::err_json(e),
         };
-        ShaclValidator::validate_scoped(&self.graph, &shapes, &request)
+        ShaclValidator::report_scoped(&self.graph, &shapes, &request)
+            .and_then(|report| report.render(format))
             .unwrap_or_else(Self::err_json)
     }
 
@@ -1482,7 +1496,7 @@ impl OpenOntologiesServer {
         report.to_string()
     }
 
-    #[tool(name = "onto_shacl_check", description = "Dry-run structural check on proposed SHACL shapes against the loaded ontology. Verifies that shapes parse as Turtle and that every IRI they reference (sh:targetClass, sh:path, sh:class) exists in the ontology, plus a lightweight XSD-prefix check on sh:datatype. Does NOT validate data — use onto_shacl for that. Use this to iterate on LLM-generated SHACL before applying.")]
+    #[tool(name = "onto_shacl_check", description = "Dry-run structural check on proposed SHACL shapes against the loaded ontology. Verifies that shapes parse as Turtle and that every IRI they reference (sh:targetClass, sh:path, sh:class) exists in the ontology, plus a lightweight XSD-prefix check on sh:datatype, and that every sh:minCount, sh:maxCount, sh:qualifiedMinCount, sh:qualifiedMaxCount, sh:minLength and sh:maxLength value is a non-negative xsd:integer literal (reported as kind ill_formed_literal with the reason). Does NOT validate data — use onto_shacl for that. Use this to iterate on LLM-generated SHACL before applying.")]
     async fn onto_shacl_check(&self, Parameters(input): Parameters<OntoShaclCheckInput>) -> String {
         use crate::shacl::ShaclValidator;
         let shapes = if input.inline.unwrap_or(false) {
@@ -1595,7 +1609,7 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| Self::err_json(format!("serialization: {}", e)))
     }
 
-    #[tool(name = "onto_classify_el", description = "Classify the loaded ontology in the OWL-EL fragment (#30). Materialises OWL-RL-ext entailments in a sandbox copy of the graph and emits every distinct subsumption `?sub rdfs:subClassOf ?super` (transitive closure, deduplicated, owl:Thing-trivial pairs removed). For deep SHIQ subsumption, use `onto_dl_check` / `onto_dl_explain`.")]
+    #[tool(name = "onto_classify_el", description = "Classify the loaded ontology by OWL 2 EL completion (#30, #324): conjunction and existentials on both sides, domains, ranges, disjointness, role hierarchy, transitive roles. Returns every derived subsumption between named classes (`owl:Thing` and `X ⊑ X` left out, unsatisfiable classes listed separately), no row cap. `complete: true` only when the input is inside EL and nothing was set aside; otherwise `complete: false`, `incompleteness` names each cause, and the OWL-RL-ext rules are unioned in (sound, not complete). For a complete classification outside EL, use `onto_reason` with `owl-dl`.")]
     async fn onto_classify_el(&self) -> String {
         match crate::classify_el::classify(&self.graph) {
             Ok(r) => serde_json::to_string(&r)
@@ -2589,6 +2603,11 @@ impl OpenOntologiesServer {
         let threshold = input.rename_threshold.unwrap_or(0.7);
         match format {
             "kgcl" => match detector.detect_kgcl(&input.version_a, &input.version_b, threshold) {
+                Ok(report) if report.approximate_reason.is_some() => Self::err_json(anyhow::anyhow!(
+                    "the drift is approximate and KGCL CNL cannot say so; use format 'json' or \
+                     'kgcl_json', which carry `exact: false` and the reason: {}",
+                    report.approximate_reason.unwrap_or_default()
+                )),
                 Ok(report) => {
                     self.lineage()
                         .record(&self.session_id, "D", "drift", "detected:kgcl");
@@ -3075,7 +3094,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_lint_feedback", description = "Accept or dismiss a lint issue to improve future lint runs. Dismissed issues are suppressed after 3 dismissals. Stores feedback for self-calibrating severity.")]
+    #[tool(name = "onto_lint_feedback", description = "Accept or dismiss a lint issue to improve future lint runs. A warning or info is downgraded after 2 dismissals and suppressed after 3 (configurable in [feedback]); a suppressed issue moves to the suppressed[] list of the lint output with its rule, entity, original severity and dismissal count. Error-severity issues are never downgraded or suppressed. Stores feedback for self-calibrating severity.")]
     async fn onto_lint_feedback(&self, Parameters(input): Parameters<OntoLintFeedbackInput>) -> String {
         match crate::feedback::record_tool_feedback(&self.db, "lint", &input.rule_id, &input.entity, input.accepted) {
             Ok(result) => {
@@ -3086,7 +3105,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_enforce_feedback", description = "Accept or dismiss an enforce violation to improve future enforce runs. Dismissed violations are suppressed after 3 dismissals. Stores feedback for self-calibrating compliance.")]
+    #[tool(name = "onto_enforce_feedback", description = "Accept or dismiss an enforce violation to improve future enforce runs. A warning or info is downgraded after 2 dismissals and suppressed after 3 (configurable in [feedback]); a suppressed violation moves to the suppressed[] list of the enforce output with its rule, entity, original severity and dismissal count. Error-severity violations are never downgraded or suppressed. Stores feedback for self-calibrating compliance.")]
     async fn onto_enforce_feedback(&self, Parameters(input): Parameters<OntoEnforceFeedbackInput>) -> String {
         match crate::feedback::record_tool_feedback(&self.db, "enforce", &input.rule_id, &input.entity, input.accepted) {
             Ok(result) => {

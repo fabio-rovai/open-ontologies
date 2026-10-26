@@ -98,7 +98,7 @@ it withheld.
 | `onto_cache_remove` | Remove a cached ontology by name. |
 | `onto_cache_status` | Inspect the compile cache: active ontology, all cached entries, and the cache configuration (TTL, auto_refresh, dir). |
 | `onto_certify_action` | CIVeX-style causal certificate for a proposed state-changing ontology action. |
-| `onto_classify_el` | Classify the loaded ontology in the OWL-EL fragment (#30). |
+| `onto_classify_el` | Classify the loaded ontology by OWL 2 EL completion (#30, #324); `complete: true` only when the input is inside EL. |
 | `onto_clear` | Clear all triples from the in-memory ontology store and unload the active registry slot (cache file is preserved) |
 | `onto_closure_diff` | Which CONCLUSIONS a projection preserves, with no goals supplied. |
 | `onto_coevolve_dependency_graph` | Build the shape→OWL-dependency map for a SHACL document. |

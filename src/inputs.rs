@@ -259,6 +259,17 @@ pub struct OntoShaclInput {
     /// Temporal scoping is not applied on this path and a scope argument
     /// alongside it is refused rather than silently ignored.
     pub verified: Option<bool>,
+    /// `"json"` (the default), `"turtle"` or `"ntriples"`. The RDF forms are a
+    /// W3C `sh:ValidationReport` graph carrying `sh:conforms` and, per result,
+    /// `sh:focusNode`, `sh:resultPath`, `sh:value`, `sh:sourceShape`,
+    /// `sh:sourceConstraintComponent`, `sh:resultSeverity` and
+    /// `sh:resultMessage`, so the report can be loaded into a store or
+    /// compared with pyshacl's or Jena's. An undetermined run (`conforms:
+    /// null`) is written `sh:conforms false` plus
+    /// `<https://open-ontologies.org/shacl#undetermined> true` and its reason,
+    /// never `sh:conforms true`. Refused with `verified: true`, whose report
+    /// is a different structure.
+    pub report_format: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]

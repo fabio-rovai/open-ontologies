@@ -38,36 +38,8 @@ impl Enforcer {
         // Also run custom rules for this pack
         self.run_custom_rules(rule_pack, &mut violations, &mut total_rules, &mut passed_rules);
 
-        // Apply feedback adjustments
-        let mut filtered_violations: Vec<serde_json::Value> = Vec::new();
-        let mut suppressed_count: u64 = 0;
-
-        for violation in violations {
-            if let Some(db) = feedback_db {
-                let rule = violation["rule"].as_str().unwrap_or("");
-                let entity = violation["entity"].as_str().unwrap_or("");
-                match crate::feedback::get_feedback_adjustment(db, "enforce", rule, entity) {
-                    crate::feedback::FeedbackAction::Suppress => {
-                        suppressed_count += 1;
-                        continue;
-                    }
-                    crate::feedback::FeedbackAction::Downgrade => {
-                        let original = violation["severity"].as_str().unwrap_or("info");
-                        let downgraded = crate::feedback::downgrade_severity(original);
-                        let mut adjusted = violation.clone();
-                        adjusted["original_severity"] = serde_json::json!(original);
-                        adjusted["adjusted_severity"] = serde_json::json!(downgraded);
-                        adjusted["severity"] = serde_json::json!(downgraded);
-                        filtered_violations.push(adjusted);
-                    }
-                    crate::feedback::FeedbackAction::Keep => {
-                        filtered_violations.push(violation);
-                    }
-                }
-            } else {
-                filtered_violations.push(violation);
-            }
-        }
+        let (filtered_violations, suppressed) =
+            crate::feedback::apply_feedback(feedback_db, "enforce", "rule", violations);
 
         let compliance = if total_rules > 0 {
             passed_rules as f64 / total_rules as f64
@@ -81,7 +53,8 @@ impl Enforcer {
             "total_rules": total_rules,
             "passed_rules": passed_rules,
             "compliance": compliance,
-            "suppressed_count": suppressed_count,
+            "suppressed_count": suppressed.len(),
+            "suppressed": suppressed,
         });
 
         Ok(result.to_string())

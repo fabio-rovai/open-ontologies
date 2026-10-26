@@ -636,6 +636,17 @@ impl BatchRunner {
             Some(p) => p,
             None => return json!({"error": "shacl requires a shapes file path"}),
         };
+        // A batch result is a JSON value, so an RDF report has nowhere to go.
+        // The CLI keeps such an invocation local for that reason; one written
+        // into a batch file by hand is refused rather than answered in JSON.
+        if let Some(f) = Self::flag_value(args, "--report-format")
+            && f != "json"
+        {
+            return json!({"error": format!(
+                "--report-format {f} is not available in a batch: batch results are JSON. \
+                 Run `shacl --report-format {f}` directly."
+            )});
+        }
         if args.iter().any(|a| a == "--verified") {
             // Refused rather than ignored, the same answer `onto_shacl` gives.
             // The verified evaluator reads one N-Triples dump of the store and

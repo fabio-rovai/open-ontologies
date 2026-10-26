@@ -47,6 +47,46 @@ use std::sync::Arc;
 /// form selected the shape, and suppress the verdict.
 pub struct ShaclValidator;
 
+/// One run's report, before it is written out in any format.
+///
+/// The verdict is read from here and not from the text: the CLI's exit code is
+/// a function of `conforms`, and a Turtle report has no `conforms` key to read
+/// (`gate_exit_code` in `src/main.rs`, #329).
+pub struct ShaclReport {
+    /// The JSON report, with each violation's [`RdfTerms`] still attached.
+    report: serde_json::Value,
+}
+
+impl ShaclReport {
+    /// The three-valued verdict: `Some(true)` conforms, `Some(false)` does
+    /// not, `None` undetermined.
+    pub fn conforms(&self) -> Option<bool> {
+        self.report["conforms"].as_bool()
+    }
+
+    /// The JSON report exactly as `onto_shacl` has always returned it.
+    pub fn to_json_string(&self) -> String {
+        let mut report = self.report.clone();
+        if let Some(vs) = report["violations"].as_array_mut() {
+            for v in vs {
+                if let Some(obj) = v.as_object_mut() {
+                    obj.remove(crate::shacl_report::RDF_TERMS_KEY);
+                }
+            }
+        }
+        report.to_string()
+    }
+
+    /// The report in `format`. JSON is [`to_json_string`](Self::to_json_string);
+    /// Turtle and N-Triples are a W3C `sh:ValidationReport` graph.
+    pub fn render(&self, format: crate::shacl_report::ReportFormat) -> anyhow::Result<String> {
+        match format {
+            crate::shacl_report::ReportFormat::Json => Ok(self.to_json_string()),
+            rdf => crate::shacl_report::to_rdf(&self.report, rdf),
+        }
+    }
+}
+
 impl ShaclValidator {
     /// Validate the data in `graph` against SHACL shapes (inline Turtle).
     /// Returns a JSON report: `{conforms, violation_count, violations[]}`.
@@ -57,6 +97,16 @@ impl ShaclValidator {
     /// can be read back as the findings table it is (#131). The keys that
     /// predate those (`constraint`, `focus_node`, `message`, `severity`,
     /// `path`) are unchanged.
+    ///
+    /// `value` is the offending value node (`sh:value`) wherever the query
+    /// that found the violation binds it (#318). The value queries selected it
+    /// all along and the report dropped it, so whoever repaired the data had to
+    /// query the store again for what the validator already knew. It is absent
+    /// where SHACL gives a result no value (`sh:minCount`, `sh:maxCount`,
+    /// `sh:hasValue`, the qualified counts) and for `sh:lessThan`,
+    /// `sh:lessThanOrEquals` and `sh:node`, whose queries select
+    /// `DISTINCT ?focus`: projecting the value there would change how many
+    /// results they emit, which is a different change from this one.
     ///
     /// Reads the whole store. Over a store that uses the temporal vocabulary
     /// that is now REFUSED rather than done silently — see
@@ -91,6 +141,17 @@ impl ShaclValidator {
         shapes_ttl: &str,
         request: &ScopeRequest,
     ) -> anyhow::Result<String> {
+        Ok(Self::report_scoped(graph, shapes_ttl, request)?.to_json_string())
+    }
+
+    /// [`validate_scoped`](Self::validate_scoped), returned as a
+    /// [`ShaclReport`] so the caller can choose the serialisation (#318) and
+    /// read the verdict without parsing whichever one it chose.
+    pub fn report_scoped(
+        graph: &Arc<GraphStore>,
+        shapes_ttl: &str,
+        request: &ScopeRequest,
+    ) -> anyhow::Result<ShaclReport> {
         let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         Self::validate_in_scope(graph, shapes_ttl, &scope, &manifest)
     }
@@ -100,7 +161,7 @@ impl ShaclValidator {
         shapes_ttl: &str,
         scope: &ReadScope,
         manifest: &ScopeManifest,
-    ) -> anyhow::Result<String> {
+    ) -> anyhow::Result<ShaclReport> {
         // 1. Parse shapes Turtle into a temporary store
         let shapes_store = Store::new()?;
         let reader = Cursor::new(shapes_ttl.as_bytes());
@@ -474,6 +535,10 @@ impl ShaclValidator {
                     })
                     .unwrap_or_else(|| "Violation".to_string());
                 let own_flags = pick("flags").map(|f| strip_quotes(&f));
+                let own_rdf = RdfTerms::new(
+                    pick("severity"),
+                    pick("message").filter(|_| !own_message.is_empty()),
+                );
 
                 // (constraint, SPARQL test that is TRUE for a violating focus node, default message)
                 let mut checks: Vec<(String, String, String)> = Vec::new();
@@ -602,12 +667,21 @@ impl ShaclValidator {
                     for row in &graph_sparql_select(graph, scope, &query)? {
                         if let Some(focus) = row.get("focus") {
                             let msg = if own_message.is_empty() { default_msg.clone() } else { own_message.clone() };
-                            violations.push(attribute(&shape_iri, &shape_iri, serde_json::json!({
+                            let mut v = serde_json::json!({
                                 "severity": own_severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "constraint": constraint,
                                 "message": msg,
-                            })));
+                            });
+                            // The value node of a node shape is the focus node
+                            // (SHACL 2.1.2), so every result here names it as
+                            // `value`, except `sh:hasValue`: SHACL 4.8.2 reports the
+                            // ABSENCE of a term and gives the result no value,
+                            // and W3C core/node/hasValue-001 expects none.
+                            if constraint != "hasValue" {
+                                v["value"] = serde_json::json!(strip_angle_brackets(focus));
+                            }
+                            violations.push(attribute(&shape_iri, &shape_iri, &own_rdf, v));
                         }
                     }
                 }
@@ -1019,7 +1093,7 @@ impl ShaclValidator {
                         .collect();
                     members.sort();
                     let disjunction = members.join(" || ");
-                    let node_message = query_solutions(
+                    let node_message_term = query_solutions(
                         &shapes_store,
                         &format!(
                             r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
@@ -1028,8 +1102,13 @@ impl ShaclValidator {
                         ),
                     )?
                     .first()
-                    .and_then(|r| r.get("m").map(|m| strip_quotes(m)))
-                    .unwrap_or_default();
+                    .and_then(|r| r.get("m").cloned());
+                    let node_message =
+                        node_message_term.as_deref().map(strip_quotes).unwrap_or_default();
+                    let node_or_rdf = RdfTerms::new(
+                        None,
+                        node_message_term.filter(|_| !node_message.is_empty()),
+                    );
                     let query = format!(
                         r#"SELECT DISTINCT ?focus WHERE {{
                             {focus_pattern}
@@ -1043,9 +1122,10 @@ impl ShaclValidator {
                             } else {
                                 node_message.clone()
                             };
-                            violations.push(attribute(&shape_iri, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&shape_iri, &shape_iri, &node_or_rdf, serde_json::json!({
                                 "severity": "Violation",
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": strip_angle_brackets(focus),
                                 "constraint": "or",
                                 "message": msg,
                             })));
@@ -1111,6 +1191,10 @@ impl ShaclValidator {
                             .to_string()
                     })
                     .unwrap_or_else(|| "Violation".to_string());
+                let q_rdf = RdfTerms::new(
+                    row.get("severity").cloned(),
+                    row.get("message").cloned().filter(|_| !q_message.is_empty()),
+                );
 
                 let clause = if row.get("other").is_some() {
                     None
@@ -1134,8 +1218,17 @@ impl ShaclValidator {
                     }));
                     continue;
                 };
-                let q_min = row.get("qmin").and_then(|v| strip_quotes(v).parse::<i64>().ok());
-                let q_max = row.get("qmax").and_then(|v| strip_quotes(v).parse::<i64>().ok());
+                // A malformed qualified bound used to `continue` past the whole
+                // row with no record, so the qualified constraint vanished and
+                // the verdict could still be true (#321). It is now skipped by
+                // name, which nulls the verdict; a well-formed sibling bound on
+                // the same row is still evaluated.
+                let q_min = row
+                    .get("qmin")
+                    .and_then(|v| count_bound(v, "qualifiedMinCount", &shape_iri, Some(&q_path), &mut skipped));
+                let q_max = row
+                    .get("qmax")
+                    .and_then(|v| count_bound(v, "qualifiedMaxCount", &shape_iri, Some(&q_path), &mut skipped));
                 if q_min.is_none() && q_max.is_none() {
                     continue;
                 }
@@ -1152,7 +1245,7 @@ impl ShaclValidator {
                     let (Some(focus), Some(n_raw)) = (result.get("focus"), result.get("n")) else {
                         continue;
                     };
-                    let Ok(n) = strip_quotes(n_raw).parse::<i64>() else {
+                    let Ok(n) = strip_quotes(n_raw).parse::<u64>() else {
                         continue;
                     };
                     for (bound, breached, constraint, wording) in [
@@ -1170,7 +1263,7 @@ impl ShaclValidator {
                         } else {
                             q_message.clone()
                         };
-                        violations.push(attribute(&q_shape, &shape_iri, serde_json::json!({
+                        violations.push(attribute(&q_shape, &shape_iri, &q_rdf, serde_json::json!({
                             "severity": q_severity,
                             "focus_node": strip_angle_brackets(focus),
                             "path": q_path,
@@ -1260,47 +1353,55 @@ impl ShaclValidator {
                         s.rsplit('#').next().unwrap_or("Violation").to_string()
                     })
                     .unwrap_or_else(|| "Violation".to_string());
+                let rdf = RdfTerms::new(
+                    prop.get("severity").cloned(),
+                    prop.get("message").cloned().filter(|_| !message.is_empty()),
+                );
 
-                // sh:minCount
-                if let Some(min_count_str) = prop.get("minCount") {
-                    let min_count = strip_quotes(min_count_str)
-                        .parse::<u64>()
-                        .unwrap_or(0);
-                    if min_count > 0 {
-                        let query = format!(
-                            r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
-                                {focus_pattern}
-                                OPTIONAL {{ ?focus {path_expr} ?val }}
-                            }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) < {min_count})"#
-                        );
-                        let results = graph_sparql_select(graph, scope, &query)?;
-                        for row in &results {
-                            if let Some(focus) = row.get("focus") {
-                                let msg = if message.is_empty() {
-                                    format!(
-                                        "Property <{}> has fewer than {} values",
-                                        path, min_count
-                                    )
-                                } else {
-                                    message.clone()
-                                };
-                                violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
-                                    "severity": severity,
-                                    "focus_node": strip_angle_brackets(focus),
-                                    "path": path,
-                                    "constraint": "minCount",
-                                    "message": msg,
-                                })));
-                            }
+                // sh:minCount. A bound that is not a non-negative integer is
+                // recorded as skipped, as sh:minLength is. It used to read as 0
+                // through `unwrap_or(0)`, so `sh:minCount "one"` ran no check and
+                // a node with no value came back `conforms: true` (#321).
+                // A bound of 0 holds of every focus node, so no query is run.
+                if let Some(min_count) = prop
+                    .get("minCount")
+                    .and_then(|raw| count_bound(raw, "minCount", &shape_iri, Some(&path), &mut skipped))
+                    .filter(|&n| n > 0)
+                {
+                    let query = format!(
+                        r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
+                            {focus_pattern}
+                            OPTIONAL {{ ?focus {path_expr} ?val }}
+                        }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) < {min_count})"#
+                    );
+                    let results = graph_sparql_select(graph, scope, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!(
+                                    "Property <{}> has fewer than {} values",
+                                    path, min_count
+                                )
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "minCount",
+                                "message": msg,
+                            })));
                         }
                     }
                 }
 
-                // sh:maxCount
-                if let Some(max_count_str) = prop.get("maxCount") {
-                    let max_count = strip_quotes(max_count_str)
-                        .parse::<u64>()
-                        .unwrap_or(u64::MAX);
+                // sh:maxCount. The old fallback was `u64::MAX`, a bound no count
+                // reaches, so `sh:maxCount -1` never fired (#321).
+                if let Some(max_count) = prop
+                    .get("maxCount")
+                    .and_then(|raw| count_bound(raw, "maxCount", &shape_iri, Some(&path), &mut skipped))
+                {
                     let query = format!(
                         r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
                             {focus_pattern}
@@ -1318,7 +1419,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1353,9 +1454,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "class",
                                 "message": msg,
@@ -1424,9 +1526,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "datatype",
                                 "message": msg,
@@ -1456,9 +1559,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "pattern",
                                 "message": msg,
@@ -1498,9 +1602,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "or",
                                 "message": msg,
@@ -1544,9 +1649,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": constraint,
                                 "message": msg,
@@ -1587,7 +1693,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1623,7 +1729,7 @@ impl ShaclValidator {
                                     } else {
                                         message.clone()
                                     };
-                                    violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                    violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
                                         "path": path,
@@ -1665,9 +1771,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "not",
                                 "message": msg,
@@ -1696,9 +1803,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "in",
                                 "message": msg,
@@ -1741,9 +1849,10 @@ impl ShaclValidator {
                                     } else {
                                         message.clone()
                                     };
-                                    violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                    violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
+                                        "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                         "path": path,
                                         "constraint": "nodeKind",
                                         "message": msg,
@@ -1780,7 +1889,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1824,9 +1933,10 @@ impl ShaclValidator {
                                 } else {
                                     message.clone()
                                 };
-                                violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                     "severity": severity,
                                     "focus_node": strip_angle_brackets(focus),
+                                    "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                     "path": path,
                                     "constraint": key,
                                     "message": msg,
@@ -2029,17 +2139,22 @@ impl ShaclValidator {
                                 // 5.3.2 again: a bound ?message overrides
                                 // sh:message, ?path is sh:resultPath and
                                 // ?value is sh:value.
-                                let msg = row
+                                let bound_message = row
                                     .get("message")
-                                    .map(|m| strip_quotes(m))
-                                    .filter(|m| !m.is_empty())
-                                    .unwrap_or_else(|| {
-                                        if message.is_empty() {
-                                            "SPARQL constraint violated".to_string()
-                                        } else {
-                                            message.clone()
-                                        }
-                                    });
+                                    .filter(|m| !strip_quotes(m).is_empty());
+                                let msg = bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
+                                    if message.is_empty() {
+                                        "SPARQL constraint violated".to_string()
+                                    } else {
+                                        message.clone()
+                                    }
+                                });
+                                let rdf = RdfTerms::new(
+                                    constraint.get("severity").cloned(),
+                                    bound_message.cloned().or_else(|| {
+                                        constraint.get("message").cloned().filter(|_| !message.is_empty())
+                                    }),
+                                );
                                 let mut v = serde_json::json!({
                                     "severity": severity,
                                     "focus_node": strip_angle_brackets(&focus_str),
@@ -2052,7 +2167,7 @@ impl ShaclValidator {
                                 if let Some(val) = row.get("value") {
                                     v["value"] = serde_json::json!(strip_angle_brackets(val));
                                 }
-                                violations.push(attribute(&shape_iri, &shape_iri, v));
+                                violations.push(attribute(&shape_iri, &shape_iri, &rdf, v));
                             }
                         }
                     }
@@ -2162,7 +2277,7 @@ impl ShaclValidator {
             if !skipped.is_empty() {
                 report["skipped_constraints"] = serde_json::Value::Array(skipped);
             }
-            return Ok(report.to_string());
+            return Ok(ShaclReport { report });
         }
         if nothing_matched && skipped.is_empty() {
             // Every shape targeted a class with no instances in the data, so
@@ -2195,14 +2310,17 @@ impl ShaclValidator {
             });
         }
 
-        Ok(report.to_string())
+        Ok(ShaclReport { report })
     }
 
     /// Structural dry-run check on proposed SHACL shapes.
     ///
     /// Verifies that the shapes parse as Turtle and that every IRI they reference
     /// (`sh:targetClass`, `sh:path`, `sh:class`) actually exists in the loaded
-    /// ontology, plus a lightweight XSD-prefix check on `sh:datatype`. Does NOT
+    /// ontology, plus a lightweight XSD-prefix check on `sh:datatype`, and that
+    /// every count and length bound (`sh:minCount`, `sh:maxCount`, the qualified
+    /// pair, `sh:minLength`, `sh:maxLength`) is a non-negative `xsd:integer`
+    /// literal (`kind: "ill_formed_literal"`, with the reason). Does NOT
     /// validate data against the shapes — that's `validate`. This is the primitive
     /// the orchestrating LLM needs to iterate on proposed SHACL before applying.
     ///
@@ -2362,6 +2480,13 @@ impl ShaclValidator {
             }));
         }
 
+        // 3. Count and length literals, over every subject in the shapes graph
+        //    rather than only the shapes walked above, because a malformed
+        //    bound on a shape with no sh:targetClass is just as silent. The
+        //    validator skips such a bound and nulls its verdict (#321); this is
+        //    where the author learns which literal and why before running it.
+        issues.extend(ill_formed_bounds(&shapes_store)?);
+
         let ok = issues.is_empty();
         Ok(serde_json::json!({
             "ok": ok,
@@ -2373,6 +2498,40 @@ impl ShaclValidator {
         })
         .to_string())
     }
+}
+
+/// Every count or length bound in a shapes graph that `count_literal`
+/// rejects, as `check_shapes` issues. Also the verified path's pre-check: see
+/// `shacl_verified::validate_verified`.
+pub(crate) fn ill_formed_bounds(shapes_store: &Store) -> anyhow::Result<Vec<serde_json::Value>> {
+    let rows = query_solutions(
+        shapes_store,
+        r#"
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        SELECT ?s ?p ?o WHERE {
+            ?s ?p ?o .
+            FILTER(?p IN (sh:minCount, sh:maxCount, sh:qualifiedMinCount,
+                          sh:qualifiedMaxCount, sh:minLength, sh:maxLength))
+        }
+        "#,
+    )?;
+    let mut issues = Vec::new();
+    for row in &rows {
+        let (Some(subject), Some(pred), Some(obj)) = (row.get("s"), row.get("p"), row.get("o")) else {
+            continue;
+        };
+        if let Err(reason) = count_literal(obj) {
+            let constraint = format!("sh:{}", short_sh(pred));
+            issues.push(serde_json::json!({
+                "shape": strip_angle_brackets(subject),
+                "kind": "ill_formed_literal",
+                "constraint": constraint,
+                "value": obj.trim(),
+                "message": format!("{constraint} {}: {reason}", obj.trim()),
+            }));
+        }
+    }
+    Ok(issues)
 }
 
 /// Run a SPARQL SELECT against a temporary shapes `Store` and return results
@@ -3046,7 +3205,16 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 /// here, and this now agrees with it. The enclosing node shape is still
 /// reported, under `node_shape`, because it is what selected the focus node
 /// and a consumer that wants to group by rule set needs it.
-fn attribute(source_shape: &str, node_shape: &str, mut v: serde_json::Value) -> serde_json::Value {
+fn attribute(
+    source_shape: &str,
+    node_shape: &str,
+    rdf: &RdfTerms,
+    mut v: serde_json::Value,
+) -> serde_json::Value {
+    v[crate::shacl_report::RDF_TERMS_KEY] = serde_json::json!({
+        "severity": rdf.severity,
+        "message": rdf.message,
+    });
     v["source_shape"] = serde_json::Value::String(strip_angle_brackets(source_shape));
     v["node_shape"] = serde_json::Value::String(strip_angle_brackets(node_shape));
     let constraint = v["constraint"].as_str().unwrap_or("").to_string();
@@ -3058,6 +3226,34 @@ fn attribute(source_shape: &str, node_shape: &str, mut v: serde_json::Value) -> 
         v["result_path"] = path;
     }
     v
+}
+
+/// The shapes-graph terms a result was built from, in the N-Triples form the
+/// store printed them, for the RDF report and for nothing else.
+///
+/// The JSON report keeps a reduced form of both and cannot be changed without
+/// breaking its readers: `severity` is the IRI's local name and `message` is
+/// the literal's lexical value. Neither reduction is reversible. W3C
+/// `core/misc/severity-002` declares `sh:severity ex:MySeverity`, which the
+/// JSON carries as `"MySeverity"` and a writer reading it back can only guess
+/// the namespace of; `core/misc/message-001` declares `"Test message"@en`, and
+/// the language tag is gone. SHACL 3.6.2 makes `sh:resultSeverity` the shape's
+/// `sh:severity` and `sh:resultMessage` a copy of its `sh:message`, so the
+/// writer needs the terms as written. They travel inside each violation under
+/// [`crate::shacl_report::RDF_TERMS_KEY`] and the JSON renderer removes them.
+///
+/// `message` is `None` whenever the result carries this engine's default text,
+/// which is then written as a plain string. `severity` is `None` where SHACL's
+/// default `sh:Violation` applies.
+struct RdfTerms {
+    severity: Option<String>,
+    message: Option<String>,
+}
+
+impl RdfTerms {
+    fn new(severity: Option<String>, message: Option<String>) -> Self {
+        Self { severity, message }
+    }
 }
 
 /// The `sh:*ConstraintComponent` IRI for the short constraint name a violation
@@ -3153,6 +3349,69 @@ fn strip_quotes(s: &str) -> String {
         // return the input untouched, because a caller that parsed a number
         // out of it still needs the quotes gone.
         Err(_) => unescape_literal(s.trim_matches('"')),
+    }
+}
+
+/// Read a cardinality bound (`sh:minCount`, `sh:maxCount` and the qualified
+/// pair), or record it in `skipped` and return None.
+///
+/// "one", `1.0` and `-1` used to parse to a fallback (0, `u64::MAX`) or be
+/// dropped without a trace, and each fallback is a bound no data can breach, so
+/// the constraint disappeared and the shape passed vacuously (#321). The skip
+/// entry uses the `sh:minLength` wording so a reader sees one rule, plus the
+/// specific reason from `count_literal`.
+fn count_bound(
+    raw: &str,
+    constraint: &str,
+    shape_iri: &str,
+    path: Option<&str>,
+    skipped: &mut Vec<serde_json::Value>,
+) -> Option<u64> {
+    let detail = match count_literal(raw) {
+        Ok(n) => return Some(n),
+        Err(detail) => detail,
+    };
+    let mut entry = serde_json::json!({
+        "shape": strip_angle_brackets(shape_iri),
+        "constraint": format!("sh:{constraint}"),
+        "value": raw.trim(),
+        "reason": format!("bound is not a non-negative integer ({detail}); it was not evaluated"),
+    });
+    if let Some(path) = path {
+        entry["path"] = serde_json::json!(path);
+    }
+    skipped.push(entry);
+    None
+}
+
+/// The value of a count or length literal, or why it is ill-formed.
+///
+/// SHACL 4.2.1, 4.2.2, 4.4.1, 4.4.2 and 4.7.3 require these values to be
+/// literals of datatype `xsd:integer`. The datatype is checked, not only the
+/// lexical form, because the store does not keep the lexical form of a
+/// decimal: Turtle `1.0` comes back as `"1"^^xsd:decimal`, which a lexical
+/// parse reads as 1 (measured; the verified evaluator's `readNat` in
+/// `lean/Shacl/Compile.lean` reads only the lexical form and does evaluate it).
+/// A negative value is refused rather than read by the letter of the spec, where
+/// `sh:minCount -1` holds of everything and `sh:maxCount -1` of nothing: no
+/// author means either, and `readNat` refuses it too. Shared by the validator
+/// (`count_bound`) and `check_shapes`, so the dry run reports exactly what the
+/// run would skip.
+fn count_literal(raw: &str) -> Result<u64, String> {
+    const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    let Ok(Term::Literal(lit)) = raw.trim().parse::<Term>() else {
+        return Err("value is not a literal".to_string());
+    };
+    if lit.datatype().as_str() != XSD_INTEGER {
+        return Err(format!(
+            "value has datatype <{}>; SHACL requires xsd:integer",
+            lit.datatype().as_str()
+        ));
+    }
+    match lit.value().parse::<i128>() {
+        Ok(n) if n < 0 => Err("value is negative; a count or length cannot be".to_string()),
+        Ok(n) => u64::try_from(n).map_err(|_| "value is too large to evaluate".to_string()),
+        Err(_) => Err("value is not a valid xsd:integer".to_string()),
     }
 }
 

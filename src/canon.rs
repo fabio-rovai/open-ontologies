@@ -288,7 +288,7 @@ impl<'a> State<'a> {
 
             nodes.sort();
             nodes.dedup_by(|a, b| a == b && false); // keep duplicates: they are distinct positions
-            for permutation in permutations(&nodes) {
+            for permutation in Permutations::new(&nodes) {
                 let mut issuer_copy = issuer.clone();
                 let mut path = String::new();
                 let mut recursion: Vec<String> = Vec::new();
@@ -346,22 +346,41 @@ impl<'a> State<'a> {
     }
 }
 
-/// Every permutation of `items`, in a deterministic order.
-fn permutations(items: &[String]) -> Vec<Vec<String>> {
-    if items.is_empty() {
-        return vec![Vec::new()];
+/// Every permutation of `items`, in lexicographic order of position, one at a
+/// time.
+///
+/// Lazy because the budget is checked per `hash_n_degree` call and a list of
+/// all k! permutations is built before the first of them. Built eagerly, two
+/// identical blank-node stars of 11 leaves took 10 s of CPU and 1.78 GB of
+/// resident memory to reach the budget (issue #293), and each further leaf
+/// multiplies that. The order is the one the eager recursion produced, so
+/// which path wins a tie, and therefore every label, is unchanged.
+struct Permutations<'a> {
+    items: &'a [String],
+    indices: Vec<usize>,
+    started: bool,
+}
+
+impl<'a> Permutations<'a> {
+    fn new(items: &'a [String]) -> Self {
+        Self { items, indices: (0..items.len()).collect(), started: false }
     }
-    let mut out = Vec::new();
-    for i in 0..items.len() {
-        let mut rest = items.to_vec();
-        let head = rest.remove(i);
-        for mut tail in permutations(&rest) {
-            let mut one = vec![head.clone()];
-            one.append(&mut tail);
-            out.push(one);
+}
+
+impl Iterator for Permutations<'_> {
+    type Item = Vec<String>;
+
+    fn next(&mut self) -> Option<Vec<String>> {
+        if self.started {
+            // Next index sequence in lexicographic order, or the end.
+            let i = self.indices.windows(2).rposition(|w| w[0] < w[1])?;
+            let j = self.indices.iter().rposition(|&x| x > self.indices[i])?;
+            self.indices.swap(i, j);
+            self.indices[i + 1..].reverse();
         }
+        self.started = true;
+        Some(self.indices.iter().map(|&k| self.items[k].clone()).collect())
     }
-    out
 }
 
 /// Canonical blank-node labels for a dataset, as a map from the input label.
@@ -430,6 +449,21 @@ pub fn canonical_labels(
         .collect())
 }
 
+/// The dataset with its blank nodes relabelled `c14n0`, `c14n1`, ..., in
+/// input order. The quads themselves are what `GraphStore` loads back into a
+/// store; [`canonical_nquads`] is the same relabelling serialised for hashing.
+pub fn canonical_quads(
+    quads: &[Quad],
+    budget: usize,
+    hash: HashAlgorithm,
+) -> Result<Vec<Quad>, CanonError> {
+    let labels = canonical_labels(quads, budget, hash)?;
+    Ok(quads
+        .iter()
+        .map(|q| relabel(q, &mut |b| labels.get(b).cloned().unwrap_or_else(|| b.to_string())))
+        .collect())
+}
+
 /// The dataset in canonical N-Quads: blank nodes relabelled `c14n0`, `c14n1`,
 /// ..., every quad serialised, sorted, and concatenated.
 ///
@@ -440,15 +474,8 @@ pub fn canonical_nquads(
     budget: usize,
     hash: HashAlgorithm,
 ) -> Result<String, CanonError> {
-    let labels = canonical_labels(quads, budget, hash)?;
-    let mut lines: Vec<String> = quads
-        .iter()
-        .map(|q| {
-            nquad(&relabel(q, &mut |b| {
-                labels.get(b).cloned().unwrap_or_else(|| b.to_string())
-            }))
-        })
-        .collect();
+    let mut lines: Vec<String> =
+        canonical_quads(quads, budget, hash)?.iter().map(nquad).collect();
     lines.sort();
     lines.dedup();
     Ok(lines.concat())

@@ -8,8 +8,8 @@ over the same documents — ran its preflight, found neither of the two tools it
 needs, skipped every test in the file, and exited 0.
 
 This page is the answer to "does a green tick mean this ran?", so that nobody has
-to work it out again from six workflow files and the thirty-four test files that
-can skip — twenty-five Rust, nine Python. It is a statement about CI
+to work it out again from six workflow files and the test files that can skip —
+twenty-five Rust, fourteen Python. It is a statement about CI
 configuration, which changes. Its Rust half is now checked by a test rather than
 by hand (`tests/ci_gate_coverage_test.rs`), because the by-hand version went
 stale exactly where it mattered; the Python half still carries a date at the
@@ -40,7 +40,17 @@ Two tool scripts mirror the variable under their own names because they are CLIs
 rather than test suites, and say so where they define it:
 `HORN_DIFF_REQUIRE_TOOLS=1` in `tools/horn_differential.py` and
 `FOL_DIFF_REQUIRE_ATP=1` in `tools/fol_differential.py`. Both exit 2 rather than
-panicking.
+panicking. Both also exit 2, flag or no flag, when the tools ARE present and the
+run compared nothing: every case NOT_RUN in the first, every goal UNDETERMINED
+or none asked in the second (#320).
+
+`tools/shacl_differential.py` has no opt-out flag, because its CI job always
+provides the oracle. It exits 2, NOT MEASURED, when pyshacl is missing or is not
+the pinned version, when the engine binary is missing, when discovery finds
+nothing, when fewer pairs ran than were discovered, and when no pair yielded a
+comparison; it exits 1 when one of its planted controls is misclassified. Before
+#320 all of those exited 0, and the `shacl-differential` job was green over a
+corpus whose 4 pairs were all UNDETERMINED.
 
 ## The table
 
@@ -59,6 +69,7 @@ job invokes the file at all.
 | `shacl_core_verified_test.rs` | lake + vendored W3C SHACL suite | `lean` job | **strict** |
 | `dl_model_certificate_test.rs` | lake + `oo-dlmodel` | `lean` job | **strict** |
 | `shacl_verified_tool_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
+| `shacl_count_bound_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
 | `matcert_numeric_test.rs` | lake + `oo-matcert` | `lean` job | **strict** |
 | `certified_claims_asset_test.rs` | lake + `oo-matcert` | `lean` job | **strict** |
 | `shacl_ignored_is_named_test.rs` | lake + `oo-shacl` | `lean` job | **strict** |
@@ -83,6 +94,7 @@ job invokes the file at all.
 | `preserve_cli_test.rs` | lake | `lean` job | **strict** |
 | `gate_demonstration_test.rs` | lake | `lean` job | **strict** |
 | `w3c_shacl_conformance_test.rs` | vendored W3C SHACL suite (in tree) | `w3c-shacl` job | **strict** |
+| `shacl_validation_report_w3c_test.rs` | vendored W3C SHACL suite (in tree) | `w3c-shacl` job | **strict** |
 | `certificate_boundary_proptest.rs` | lake | `lean` job | **strict** |
 | `premise_order_test.rs` | `lean/OOCert/Rules.lean` (in tree) | every job that runs `cargo test` | **runs everywhere**: it READS the Lean source rather than building it, so TCB-14 is gated without a toolchain |
 | `reason_rl_coverage_test.rs` | lake | `lean` job | **strict** |
@@ -118,6 +130,11 @@ path to make strict. `module_extract_test.rs` reads
 | `test_horn_rule_table.py` | `tests/fixtures/horn/` + git | `python` job | **strict** |
 | `test_shacl.py` | `pyshacl` (the `shacl` extra) | `python` job installs it | **strict** |
 | `test_shacl_vacuous.py` | `pyshacl` | `python` job | **strict** |
+| `test_shacl_differential_harness.py` | `pyshacl` | `python` job | **strict** |
+| `test_shacl_falsy_terms.py` | `pyshacl` | `python` job installs it | **runs, not strict**: not in the strict leg, so a skip would pass |
+| `test_shacl_targeted_shapes.py` | `pyshacl` | `python` job installs it | **runs, not strict** |
+| `test_align_failed_insertion.py` | `hnswlib` | `python` job installs it | **runs, not strict** |
+| `test_horn_checker_relative.py` | a symlink to an executable in a temp directory | any POSIX runner | **runs, not strict** |
 | `test_align.py` | `hnswlib` (the `align` extra) | `python` job installs it | **strict** |
 | `test_vocab_check.py` | `pyoxigraph` (a base dependency) | always present | **strict** |
 | `test_dataframe.py` | `fenic` | **nothing** — `fenic` is in no extra and no dependency list | **skips** |
@@ -154,7 +171,15 @@ The other seven files under `python/tests/` have no skip path.
   is absent or the tree is not a checkout, which on a GitHub runner after
   `actions/checkout` cannot happen. Measured on the current tree: the eight
   strict Python files are 67 passed, 1 skipped, and the one skip is the
-  `oo_opt_in` twelve-minute differential.
+  `oo_opt_in` twelve-minute differential. The ninth,
+  `test_shacl_differential_harness.py`, adds 9 passed (measured 24 October
+  2026 against pyshacl 0.40.1).
+- **Four Python files can skip and are in no strict leg**:
+  `test_shacl_falsy_terms.py`, `test_shacl_targeted_shapes.py`,
+  `test_align_failed_insertion.py` and `test_horn_checker_relative.py`. The
+  `python` job provides what each needs, so they run there today, but a skip in
+  any of them would pass. They were missing from this page until 24 October
+  2026, when the count below was re-taken and came to fourteen rather than nine.
 - **The `features/breadth` job runs no tests** (`test: false`); it is
   `cargo check` plus clippy across all features. That is deliberate and is not a
   skip, but it does mean an all-features build is type-checked and never run.
@@ -207,13 +232,13 @@ property is that CI cannot skip in silence, not that a laptop cannot skip at all
 The Python half is still by hand:
 
 ```bash
-# every Python file that can skip: 11 hits. conftest.py is the mechanism and
+# every Python file that can skip: 16 hits. conftest.py is the mechanism and
 # not a test, and test_conftest_collection_skip.py tests it: it writes a
-# skipping module into a temp directory and cannot skip itself. So 9, and the
-# table has 9 rows
+# skipping module into a temp directory and cannot skip itself. So 14, and the
+# table has 14 rows
 grep -rln 'pytest.skip\|importorskip\|skipif' python/tests/*.py
 # every leg CI makes strict
 grep -rn 'OO_REQUIRE_FIXTURES=1' .github/workflows/
 ```
 
-Last checked against `.github/workflows/` on 15 September 2026.
+Last checked against `.github/workflows/` on 24 October 2026.

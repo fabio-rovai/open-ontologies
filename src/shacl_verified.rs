@@ -128,6 +128,30 @@ pub fn validate_verified(
     scratch.load_turtle(shapes_ttl, None)?;
     let shapes_nt = scratch.snapshot("ntriples")?;
 
+    // Refuse an ill-formed count or length bound before the evaluator sees it.
+    // `readNat` in `Shacl/Compile.lean` already declines "one" and -1, but it
+    // reads only the lexical form, and the store renders Turtle `1.0` as
+    // `"1"^^xsd:decimal`, which it then evaluates as 1 (#321). A refusal here
+    // is outside the theorem and needs no cover from it: declining to judge is
+    // never a false verdict.
+    let bound_store = oxigraph::store::Store::new()?;
+    for quad in oxigraph::io::RdfParser::from_format(oxigraph::io::RdfFormat::NTriples)
+        .for_reader(std::io::Cursor::new(shapes_nt.as_bytes()))
+    {
+        bound_store.insert(&quad?)?;
+    }
+    let ill_formed = crate::shacl::ill_formed_bounds(&bound_store)?;
+    if !ill_formed.is_empty() {
+        return Ok(serde_json::json!({
+            "verified": false,
+            "conforms": serde_json::Value::Null,
+            "error": "the shapes graph has count or length bounds that are not non-negative \
+                      xsd:integer literals; refused before evaluation",
+            "ill_formed": ill_formed,
+            "note": "a refusal, not a conformance answer. onto_shacl_check reports the same list.",
+        }));
+    }
+
     // A directory per CALL, not per process.
     //
     // This was keyed on the pid alone, which is the same for every call in a

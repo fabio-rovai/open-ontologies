@@ -28,41 +28,80 @@
 //! isomorphic to the expected one over a fixed predicate list. This harness
 //! sits between them, deliberately, and the line is:
 //!
-//! COMPARED
+//! There are two columns, judged from the same engine answer and ratcheted
+//! separately. The first is the one this harness has gated on since it was
+//! written; the second is the next step towards full compliance (#319).
+//!
+//! THE GATED COLUMN compares
 //!   * the `sh:conforms` verdict, whenever the engine gives one;
 //!   * the SET of `(focus node, sh:sourceShape, sh:sourceConstraintComponent)`
 //!     triples, one per validation result, on both sides. The engine emits
 //!     `source_shape` and `source_constraint_component` on every violation
 //!     (#131), so this is a real comparison and not a proxy.
 //!
-//! IGNORED, each for a stated reason
-//!   * `sh:resultPath`. Paths are blank-node structures for anything past a
-//!     plain predicate (`sh:inversePath`, `sh:alternativePath`, sequences), and
-//!     comparing them needs the graph-isomorphism step full compliance
-//!     requires. Comparing only the easy half would silently pass the hard
-//!     half, which is the failure mode this repository exists to catch.
-//!   * `sh:value`. Same argument, and it is redundant with the focus node for
-//!     most node-shape tests.
-//!   * `sh:resultSeverity`. The engine's `severity` field is not yet driven by
-//!     `sh:severity` in the shapes graph; including it would collapse a
-//!     specific, nameable gap into a generic mismatch on dozens of tests
-//!     instead of leaving it visible as its own future comparison.
+//! THE FULL-TUPLE COLUMN compares the same verdict and the MULTISET of
+//! `(focus, sh:resultPath, sh:value, source shape, component,
+//! sh:resultSeverity)`. Paths are compared structurally: `path_form` renders
+//! a path subgraph canonically, which for SHACL's acyclic path language
+//! decides exactly what an RDFC-1.0 isomorphism check would. Measured on
+//! 2026-10-24 at suite commit 94d8bc2 it scores PASS 12 of 120 against the gated
+//! column's 61. Of the 49 tests that pass the gated column and not this one,
+//! 48 differ in `sh:value`, which the engine does not emit on the default path
+//! (#318); one, `core/misc/severity-002`, also differs in severity, because the
+//! engine keeps only the local name of `sh:severity` and so reports the custom
+//! `ex:MySeverity` as if it were `sh:MySeverity`; and one,
+//! `core/targets/targetSubjectsOf-002`, differs only in multiplicity. No test
+//! differs in path.
+//!
+//! With #318 landed, default-path results carry `sh:value` and the column
+//! scores PASS 51 (measured 2026-10-24, same suite commit). The ten tests that
+//! still pass the gated column and not this one: `severity-002` (the local-name
+//! severity above), `class-003` and `targetSubjectsOf-002` (a node selected by
+//! two targets is reported twice), `lessThan-001`, `lessThanOrEquals-001` and
+//! `node-002` (no `sh:value`: their queries select DISTINCT ?focus),
+//! `or-datatypes-001` (an `sh:or` false negative), and `pre-binding-001`,
+//! `-002` and `-007` under `sparql/`.
+//!
+//! Severity is in the full-tuple column and NOT in the gated one, by
+//! measurement rather than by principle. The old reason for leaving it out
+//! ("the engine's `severity` field is not yet driven by `sh:severity`") is
+//! false since #206: `src/shacl.rs` reads `sh:severity`. But adding it to the
+//! gated key drops that column from 61 to 60 PASS (`severity-002` above), and
+//! the gated column is a ratchet in a required check. The defect is held by
+//! the full-tuple column's ratchet instead, where fixing it shows as a gain.
+//!
+//! IGNORED by both columns, each for a stated reason
 //!   * `sh:resultMessage`. The suite itself only compares messages that the
 //!     expected graph names explicitly.
-//!   * MULTIPLICITY. The comparison is over sets, not multisets. One test in
-//!     the suite turns on multiplicity, `core/validation-reports/shared`, whose
-//!     own comment records that the Working Group has not settled whether a
-//!     nested shape reached twice is reported twice. `src/shacl.rs` documents a
+//!
+//! IGNORED by the gated column only
+//!   * `sh:resultPath`, `sh:value` and `sh:resultSeverity`, for the measured
+//!     reason above: the gated column is the committed floor, and each of
+//!     these is held by the full-tuple column instead.
+//!   * MULTIPLICITY. The gated comparison is over sets. One test in the suite
+//!     turns on multiplicity, `core/validation-reports/shared`, whose own
+//!     comment records that the Working Group has not settled whether a nested
+//!     shape reached twice is reported twice. `src/shacl.rs` documents a
 //!     deliberate non-deduplication that inflates counts in the other
-//!     direction. Set comparison is the answer that does not encode either
-//!     unsettled choice into a gate.
-//!   * Blank node IDENTITY. A blank node on either side canonicalises to the
-//!     opaque token `_:`. Labels are not portable across two parses of the same
-//!     file, let alone across engines, and the suite's own guidance is to avoid
-//!     blank nodes as `sh:sourceShape` values for this reason. Tests that do
-//!     use them (`core/complex/personexample`, `core/property/nodeKind-001`)
-//!     are therefore compared more loosely than the rest, and that is named
-//!     here rather than hidden.
+//!     direction. The full-tuple column compares multisets, as an isomorphism
+//!     check on the report graph would, and names a multiplicity difference as
+//!     such so it is not mistaken for a wrong field.
+//!
+//! Blank node IDENTITY. A blank-node property shape in `sh:sourceShape` is
+//! keyed, in both columns, by the IRI of the node shape that holds it under
+//! `sh:property` plus its `sh:path`: that identity survives two parses and two
+//! engines, where a blank label survives neither. Anything else blank (a blank
+//! focus node or value, a blank node shape, a property shape with no single
+//! IRI parent) still canonicalises to the opaque token `_:`, so tests turning
+//! on those are compared more loosely than the rest, and that is named here
+//! rather than hidden. Before #319 every blank source shape collapsed to `_:`,
+//! which made two different property shapes compare equal; measured on the
+//! same run, the re-keying left the gated column at 61 PASS.
+//!
+//! The comparator is shown to say no by
+//! `the_comparator_names_every_planted_mutation`, which mutates one PASS case's
+//! expected report in each of the six fields in turn and requires the full
+//! tuple to reject each copy by name.
 //!
 //! # The yardstick is calibrated, not asserted
 //!
@@ -74,6 +113,13 @@
 //! The comparison is therefore not the reason the number is low. Re-run that
 //! script whenever this file's comparison changes; it is not in CI, because a
 //! gate should not move when someone else's engine does.
+//!
+//! That figure is for the gated column as it stood before #319, with every
+//! blank source shape collapsed to `_:`; the script still applies that lens.
+//! Per-case arbitration of this engine against pyshacl on the W3C expected
+//! reports, with severity and the re-keyed source shape in the key, is
+//! `tools/shacl_differential.py --w3c tests/w3c-shacl`, which the
+//! `shacl-differential` CI job runs.
 //!
 //! # Four buckets, because this engine has three answers
 //!
@@ -134,6 +180,7 @@ mod common;
 use open_ontologies::graph::GraphStore;
 use open_ontologies::shacl::ShaclValidator;
 use oxigraph::io::{RdfFormat, RdfParser};
+use oxigraph::model::{NamedNode, NamedOrBlankNodeRef, Term};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
@@ -206,6 +253,7 @@ fn skip() -> bool {
 // Manifest parsing
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// The gated column's key: what one validation result is compared on.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct ResultKey {
     focus: String,
@@ -219,6 +267,39 @@ impl std::fmt::Display for ResultKey {
     }
 }
 
+/// Everything the suite's full-compliance lens compares on one result, except
+/// `sh:resultMessage` (see the module docs). The second, separately ratcheted
+/// column compares a MULTISET of these.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct FullKey {
+    focus: String,
+    path: String,
+    value: String,
+    shape: String,
+    component: String,
+    severity: String,
+}
+
+/// Field names in the order `FullKey::fields` returns them. A mismatch names
+/// fields from this list, and the planted controls assert on these names.
+const FULL_FIELDS: [&str; 6] = ["focus", "path", "value", "source shape", "component", "severity"];
+
+impl FullKey {
+    fn fields(&self) -> [&str; 6] {
+        [&self.focus, &self.path, &self.value, &self.shape, &self.component, &self.severity]
+    }
+    fn gated(&self) -> ResultKey {
+        ResultKey { focus: self.focus.clone(), shape: self.shape.clone(), component: self.component.clone() }
+    }
+}
+
+impl std::fmt::Display for FullKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let parts: Vec<String> = self.fields().iter().map(|x| short(x)).collect();
+        write!(f, "({})", parts.join(", "))
+    }
+}
+
 #[derive(Debug, Clone)]
 enum Expectation {
     /// `mf:result sht:Failure`: the engine is required to report a failure
@@ -226,7 +307,8 @@ enum Expectation {
     Failure,
     Report {
         conforms: bool,
-        results: BTreeSet<ResultKey>,
+        /// One entry per expected `sh:result`, sorted, duplicates kept.
+        results: Vec<FullKey>,
     },
 }
 
@@ -269,7 +351,7 @@ impl Outcome {
 /// Last path segment or fragment of an IRI, for readable tables. Left alone if
 /// it is not an IRI, so literals and the `_:` token survive unharmed.
 fn short(iri: &str) -> String {
-    if iri.starts_with('"') || iri.starts_with("_:") || !iri.contains(['#', '/']) {
+    if iri.starts_with('"') || iri.starts_with("_:") || iri.contains(' ') || !iri.contains(['#', '/']) {
         return iri.to_string();
     }
     iri.rsplit(['#', '/']).next().unwrap_or(iri).to_string()
@@ -278,8 +360,8 @@ fn short(iri: &str) -> String {
 /// Canonical comparison form for one RDF term printed in N-Triples style.
 ///
 /// IRIs lose their angle brackets (the engine already strips them, so this
-/// makes the two sides symmetric). Blank nodes collapse to `_:`; see the
-/// module docs for why. Literals are left exactly as oxigraph printed them,
+/// makes the two sides symmetric). Blank nodes collapse to `_:`; a blank
+/// source shape is keyed by `shape_key` before it reaches here. Literals are left exactly as oxigraph printed them,
 /// which is the N-Triples canonical form on both sides.
 fn canon(term: &str) -> String {
     let t = term.trim();
@@ -290,6 +372,152 @@ fn canon(term: &str) -> String {
         return inner.to_string();
     }
     t.to_string()
+}
+
+const SH: &str = "http://www.w3.org/ns/shacl#";
+const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+
+/// Objects of `(s, p, ?)` in `store`, through the store API rather than SPARQL,
+/// because a blank node cannot be named in a query and every interesting
+/// subject here (a result, a property shape, a path) is one.
+fn objects(store: &Store, s: &Term, p: &str) -> Vec<Term> {
+    let subject = match s {
+        Term::NamedNode(n) => NamedOrBlankNodeRef::from(n.as_ref()),
+        Term::BlankNode(b) => NamedOrBlankNodeRef::from(b.as_ref()),
+        _ => return Vec::new(),
+    };
+    let predicate = NamedNode::new_unchecked(p);
+    store
+        .quads_for_pattern(Some(subject), Some(predicate.as_ref()), None, None)
+        .filter_map(Result::ok)
+        .map(|q| q.object)
+        .collect()
+}
+
+fn subjects(store: &Store, p: &str, o: &Term) -> Vec<Term> {
+    let predicate = NamedNode::new_unchecked(p);
+    store
+        .quads_for_pattern(None, Some(predicate.as_ref()), Some(o.as_ref()), None)
+        .filter_map(Result::ok)
+        .map(|q| Term::from(q.subject))
+        .collect()
+}
+
+fn one(store: &Store, s: &Term, p: &str) -> Option<Term> {
+    objects(store, s, p).into_iter().next()
+}
+
+/// Canonical text for a SHACL property path, read structurally from the graph.
+///
+/// A well-formed SHACL path (spec 2.3.1) is a finite tree over a closed
+/// vocabulary with no cycles, so rendering it recursively is a canonical form:
+/// two path subgraphs are isomorphic exactly when their renderings are equal,
+/// which is what RDFC-1.0 would decide for this sublanguage, without carrying a
+/// canonicaliser in a test. The rendering matches what the engine prints in
+/// `path`: a bare IRI for a predicate and `^IRI` for `sh:inversePath`.
+fn path_form(store: &Store, t: &Term, depth: usize) -> String {
+    if depth > 32 {
+        return "(path too deep)".to_string();
+    }
+    let Term::BlankNode(_) = t else { return canon(&t.to_string()) };
+    let sub = |x: &Term| path_form(store, x, depth + 1);
+    let list = |head: &Term, sep: &str| -> String {
+        let mut items = Vec::new();
+        let mut cur = head.clone();
+        while let Some(first) = one(store, &cur, &format!("{RDF}first")) {
+            items.push(sub(&first));
+            match one(store, &cur, &format!("{RDF}rest")) {
+                Some(rest) => cur = rest,
+                None => break,
+            }
+        }
+        format!("({})", items.join(sep))
+    };
+    if let Some(x) = one(store, t, &format!("{SH}inversePath")) {
+        return format!("^{}", sub(&x));
+    }
+    if let Some(x) = one(store, t, &format!("{SH}alternativePath")) {
+        return list(&x, "|");
+    }
+    for (pred, op) in [("zeroOrMorePath", "*"), ("oneOrMorePath", "+"), ("zeroOrOnePath", "?")] {
+        if let Some(x) = one(store, t, &format!("{SH}{pred}")) {
+            return format!("({}){op}", sub(&x));
+        }
+    }
+    if one(store, t, &format!("{RDF}first")).is_some() {
+        return list(t, "/");
+    }
+    "_:".to_string()
+}
+
+/// The comparison key for a source shape.
+///
+/// An IRI is itself. A blank-node property shape is keyed by the IRI of the
+/// node shape that holds it under `sh:property` plus its `sh:path`, which is
+/// the identity a blank property shape actually has: two parses of one file
+/// agree on it, and so do two engines. Anything that key cannot name (a blank
+/// node shape, a property shape reached from two parents or from a blank one)
+/// stays the opaque `_:`, and stays counted as looser than the rest.
+fn shape_key(parent: &str, path: &str) -> String {
+    format!("{parent} sh:property [sh:path {path}]")
+}
+
+fn expected_shape(store: &Store, shape: Option<Term>) -> String {
+    let Some(shape) = shape else { return "(none)".to_string() };
+    if !matches!(shape, Term::BlankNode(_)) {
+        return canon(&shape.to_string());
+    }
+    let parents = subjects(store, &format!("{SH}property"), &shape);
+    match (parents.as_slice(), one(store, &shape, &format!("{SH}path"))) {
+        ([Term::NamedNode(parent)], Some(path)) => {
+            shape_key(parent.as_str(), &path_form(store, &path, 0))
+        }
+        _ => "_:".to_string(),
+    }
+}
+
+/// Severity as a full IRI. The engine reports the local name only (it keeps
+/// what follows the last `#` of `sh:severity`), so a bare name is read as
+/// being in the SHACL namespace. A custom severity outside it therefore does
+/// not round-trip, and `core/misc/severity-002` is where that shows.
+fn severity_iri(s: &str) -> String {
+    if s.contains(':') { canon(s) } else { format!("{SH}{s}") }
+}
+
+/// One expected `sh:result`, read in full.
+fn expected_result(store: &Store, res: &Term) -> FullKey {
+    let get = |p: &str| one(store, res, &format!("{SH}{p}"));
+    let term = |p: &str| get(p).map(|t| canon(&t.to_string())).unwrap_or_else(|| "(none)".to_string());
+    FullKey {
+        focus: term("focusNode"),
+        path: get("resultPath").map(|p| path_form(store, &p, 0)).unwrap_or_else(|| "(none)".to_string()),
+        value: term("value"),
+        shape: expected_shape(store, get("sourceShape")),
+        component: term("sourceConstraintComponent"),
+        severity: term("resultSeverity"),
+    }
+}
+
+/// One result as the engine reported it, in the same key space.
+fn actual_result(v: &serde_json::Value) -> FullKey {
+    let field = |k: &str| v[k].as_str().filter(|s| !s.is_empty());
+    let path = field("result_path").or_else(|| field("path")).map(canon);
+    let shape = match field("source_shape") {
+        None => "(none)".to_string(),
+        Some(s) if s.starts_with("_:") => match (field("node_shape"), path.as_deref()) {
+            (Some(parent), Some(p)) if !parent.starts_with("_:") => shape_key(&canon(parent), p),
+            _ => "_:".to_string(),
+        },
+        Some(s) => canon(s),
+    };
+    FullKey {
+        focus: canon(field("focus_node").unwrap_or("(none)")),
+        path: path.unwrap_or_else(|| "(none)".to_string()),
+        value: field("value").map(canon).unwrap_or_else(|| "(none)".to_string()),
+        shape,
+        component: canon(field("source_constraint_component").unwrap_or("(none)")),
+        severity: field("severity").map(severity_iri).unwrap_or_else(|| "(none)".to_string()),
+    }
 }
 
 fn rows(store: &Store, query: &str) -> anyhow::Result<Vec<HashMap<String, String>>> {
@@ -477,25 +705,17 @@ fn read_entry(store: &Store, manifest: &Path, entry: &str) -> anyhow::Result<Tes
             anyhow::anyhow!("{}: entry {entry} has neither sh:conforms nor sht:Failure", rel(manifest))
         })?;
 
-        let mut results = BTreeSet::new();
+        let mut results = Vec::new();
         for row in rows(
             store,
-            &format!(
-                "{PREFIXES}
-                 SELECT ?f ?sh ?c WHERE {{
-                     {entry} mf:result ?r . ?r sh:result ?res .
-                     OPTIONAL {{ ?res sh:focusNode ?f }}
-                     OPTIONAL {{ ?res sh:sourceShape ?sh }}
-                     OPTIONAL {{ ?res sh:sourceConstraintComponent ?c }}
-                 }}"
-            ),
+            &format!("{PREFIXES} SELECT ?res WHERE {{ {entry} mf:result ?r . ?r sh:result ?res . }}"),
         )? {
-            results.insert(ResultKey {
-                focus: canon(&cell(&row, "f")),
-                shape: canon(&cell(&row, "sh")),
-                component: canon(&cell(&row, "c")),
-            });
+            let res: Term = cell(&row, "res")
+                .parse()
+                .map_err(|e| anyhow::anyhow!("{}: unreadable sh:result node: {e}", rel(manifest)))?;
+            results.push(expected_result(store, &res));
         }
+        results.sort();
         Expectation::Report { conforms, results }
     };
 
@@ -513,16 +733,19 @@ fn read_entry(store: &Store, manifest: &Path, entry: &str) -> anyhow::Result<Tes
 // Running one test
 // ─────────────────────────────────────────────────────────────────────────────
 
-fn run_case(tc: &TestCase) -> Outcome {
+/// What the engine answered for one test: its verdict and its results, or the
+/// outcome that ends the test before any comparison. Run once per test and
+/// judged once per column.
+fn engine_answer(tc: &TestCase) -> Result<(bool, Vec<FullKey>), Outcome> {
     // Data graph: loaded with its own IRI as base, so `<>` and friends resolve
     // to the same terms the expected report names.
     let data = Arc::new(GraphStore::new());
     let data_text = match std::fs::read_to_string(&tc.data) {
         Ok(t) => t,
-        Err(e) => return Outcome::Error(format!("data graph unreadable: {e}")),
+        Err(e) => return Err(Outcome::Error(format!("data graph unreadable: {e}"))),
     };
     if let Err(e) = data.load_turtle(&data_text, Some(&base_of(&tc.data))) {
-        return Outcome::Error(format!("data graph does not parse: {}", first_line(&e.to_string())));
+        return Err(Outcome::Error(format!("data graph does not parse: {}", first_line(&e.to_string()))));
     }
 
     // Shapes graph: through a store and back out as N-Triples. See the module
@@ -531,14 +754,14 @@ fn run_case(tc: &TestCase) -> Outcome {
     let shapes_store = GraphStore::new();
     let shapes_text = match std::fs::read_to_string(&tc.shapes) {
         Ok(t) => t,
-        Err(e) => return Outcome::Error(format!("shapes graph unreadable: {e}")),
+        Err(e) => return Err(Outcome::Error(format!("shapes graph unreadable: {e}"))),
     };
     if let Err(e) = shapes_store.load_turtle(&shapes_text, Some(&base_of(&tc.shapes))) {
-        return Outcome::Error(format!("shapes graph does not parse: {}", first_line(&e.to_string())));
+        return Err(Outcome::Error(format!("shapes graph does not parse: {}", first_line(&e.to_string()))));
     }
     let shapes_nt = match shapes_store.serialize("ntriples") {
         Ok(s) => s,
-        Err(e) => return Outcome::Error(format!("shapes graph will not re-serialise: {e}")),
+        Err(e) => return Err(Outcome::Error(format!("shapes graph will not re-serialise: {e}"))),
     };
 
     let raw = match ShaclValidator::validate(&data, &shapes_nt) {
@@ -546,40 +769,41 @@ fn run_case(tc: &TestCase) -> Outcome {
         Err(e) => {
             // The suite's rule: a test whose mf:result is sht:Failure passes if
             // the validation reported a failure. An error IS that report.
-            return match tc.expected {
+            return Err(match tc.expected {
                 Expectation::Failure => Outcome::Pass,
                 _ => Outcome::Error(format!("validate returned Err: {}", first_line(&e.to_string()))),
-            };
+            });
         }
     };
     let report: serde_json::Value = match serde_json::from_str(&raw) {
         Ok(v) => v,
-        Err(e) => return Outcome::Error(format!("report is not JSON: {e}")),
+        Err(e) => return Err(Outcome::Error(format!("report is not JSON: {e}"))),
     };
 
     // The third answer, before any comparison. An engine that declined to
     // answer has not passed and has not failed, whatever the expectation was.
     if report["conforms"].is_null() {
-        return Outcome::Undetermined(why_undetermined(&report));
+        return Err(Outcome::Undetermined(why_undetermined(&report)));
     }
 
     let Some(actual_conforms) = report["conforms"].as_bool() else {
-        return Outcome::Error(format!("conforms is neither bool nor null: {}", report["conforms"]));
+        return Err(Outcome::Error(format!("conforms is neither bool nor null: {}", report["conforms"])));
     };
 
-    let actual: BTreeSet<ResultKey> = report["violations"]
+    let mut actual: Vec<FullKey> = report["violations"]
         .as_array()
-        .map(|vs| {
-            vs.iter()
-                .map(|v| ResultKey {
-                    focus: canon(v["focus_node"].as_str().unwrap_or("(none)")),
-                    shape: canon(v["source_shape"].as_str().unwrap_or("(none)")),
-                    component: canon(v["source_constraint_component"].as_str().unwrap_or("(none)")),
-                })
-                .collect()
-        })
+        .map(|vs| vs.iter().map(actual_result).collect())
         .unwrap_or_default();
+    actual.sort();
+    Ok((actual_conforms, actual))
+}
 
+/// One column's outcome for one test.
+fn judge(tc: &TestCase, column: Column, answer: &Result<(bool, Vec<FullKey>), Outcome>) -> Outcome {
+    let (actual_conforms, actual) = match answer {
+        Ok((c, a)) => (*c, a),
+        Err(o) => return o.clone(),
+    };
     match &tc.expected {
         Expectation::Failure => Outcome::Fail(format!(
             "verdict: the suite requires a reported failure for this shapes graph; \
@@ -594,21 +818,106 @@ fn run_case(tc: &TestCase) -> Outcome {
                     actual.len()
                 ));
             }
-            if actual == *results {
-                return Outcome::Pass;
+            match compare(column, results, actual) {
+                None => Outcome::Pass,
+                Some(why) => Outcome::Fail(format!("results: verdict agrees (conforms={conforms}) but {why}")),
             }
-            let missing: Vec<String> = results.difference(&actual).map(|k| k.to_string()).collect();
-            let extra: Vec<String> = actual.difference(results).map(|k| k.to_string()).collect();
-            Outcome::Fail(format!(
-                "results: verdict agrees (conforms={conforms}) but the result set differs; \
-                 {} missing {}, {} unexpected {}",
+        }
+    }
+}
+
+/// The two ratcheted columns. Both see the same report and the same verdict
+/// and differ only in how a result set is compared.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Column {
+    /// The SET of (focus, source shape, component). The original column.
+    Gated,
+    /// The MULTISET of all six `FULL_FIELDS`.
+    FullTuple,
+}
+
+/// `None` when the result sets agree under `column`, otherwise a description
+/// of the difference that, for the full tuple, names the differing fields.
+fn compare(column: Column, expected: &[FullKey], actual: &[FullKey]) -> Option<String> {
+    match column {
+        Column::Gated => {
+            let e: BTreeSet<ResultKey> = expected.iter().map(FullKey::gated).collect();
+            let a: BTreeSet<ResultKey> = actual.iter().map(FullKey::gated).collect();
+            if e == a {
+                return None;
+            }
+            let missing: Vec<String> = e.difference(&a).map(|k| k.to_string()).collect();
+            let extra: Vec<String> = a.difference(&e).map(|k| k.to_string()).collect();
+            Some(format!(
+                "the result set differs; {} missing {}, {} unexpected {}",
                 missing.len(),
                 preview(&missing),
                 extra.len(),
                 preview(&extra)
             ))
         }
+        Column::FullTuple => {
+            let (missing, extra) = multiset_difference(expected, actual);
+            if missing.is_empty() && extra.is_empty() {
+                return None;
+            }
+            // Name the fields: pair each missing result with the unexpected one
+            // it is closest to and list where the two differ. A missing result
+            // with nothing to pair against is a dropped or a duplicated result,
+            // and is named as multiplicity.
+            let mut fields: BTreeSet<&str> = BTreeSet::new();
+            for m in &missing {
+                match extra.iter().map(|x| differing_fields(m, x)).min_by_key(Vec::len) {
+                    Some(d) => fields.extend(d),
+                    None => {
+                        fields.insert("multiplicity");
+                    }
+                }
+            }
+            if missing.is_empty() {
+                fields.insert("multiplicity");
+            }
+            let shown = |v: &[&FullKey]| preview(&v.iter().map(|k| k.to_string()).collect::<Vec<_>>());
+            Some(format!(
+                "the full tuple differs in [{}]; {} missing {}, {} unexpected {}",
+                fields.into_iter().collect::<Vec<_>>().join(", "),
+                missing.len(),
+                shown(&missing),
+                extra.len(),
+                shown(&extra)
+            ))
+        }
     }
+}
+
+fn multiset_difference<'a>(expected: &'a [FullKey], actual: &'a [FullKey]) -> (Vec<&'a FullKey>, Vec<&'a FullKey>) {
+    let mut count: BTreeMap<&FullKey, i64> = BTreeMap::new();
+    for k in expected {
+        *count.entry(k).or_default() += 1;
+    }
+    for k in actual {
+        *count.entry(k).or_default() -= 1;
+    }
+    let mut missing = Vec::new();
+    let mut extra = Vec::new();
+    for (k, n) in count {
+        for _ in 0..n.max(0) {
+            missing.push(k);
+        }
+        for _ in 0..(-n).max(0) {
+            extra.push(k);
+        }
+    }
+    (missing, extra)
+}
+
+fn differing_fields(a: &FullKey, b: &FullKey) -> Vec<&'static str> {
+    FULL_FIELDS
+        .iter()
+        .zip(a.fields().iter().zip(b.fields().iter()))
+        .filter(|(_, (x, y))| x != y)
+        .map(|(name, _)| *name)
+        .collect()
 }
 
 /// Which of the two routes to `conforms: null` this report took, and what it
@@ -686,10 +995,14 @@ fn area(tc: &TestCase) -> String {
 
 struct Run {
     cases: Vec<TestCase>,
+    /// The gated column, per test.
     outcomes: Vec<Outcome>,
+    /// The full-tuple column, per test, from the same engine answer.
+    full_outcomes: Vec<Outcome>,
     /// Test files carrying an entry that no manifest includes.
     orphans: Vec<String>,
     counts: Counts,
+    full_counts: Counts,
     /// Tests that agreed on `sh:conforms` whatever the result set did. The
     /// suite calls this partial compliance; it is the number this engine could
     /// report to the Working Group today, and it is not the gated number.
@@ -709,6 +1022,28 @@ struct Counts {
     error: usize,
 }
 
+impl Counts {
+    fn of(outcomes: &[Outcome]) -> Counts {
+        let mut c = Counts { total: outcomes.len(), ..Default::default() };
+        for o in outcomes {
+            match o {
+                Outcome::Pass => c.pass += 1,
+                Outcome::Fail(_) => c.fail += 1,
+                Outcome::Undetermined(_) => c.undetermined += 1,
+                Outcome::Error(_) => c.error += 1,
+            }
+        }
+        c
+    }
+}
+
+/// One column's committed floor.
+#[derive(Debug, Serialize, Deserialize)]
+struct ColumnBaseline {
+    counts: Counts,
+    outcomes: BTreeMap<String, String>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Baseline {
     /// For the reader of the file, ignored by the gate.
@@ -718,6 +1053,8 @@ struct Baseline {
     partial_compliance: usize,
     /// Per test, so a swap that leaves the counts flat is still a diff.
     outcomes: BTreeMap<String, String>,
+    /// The second column, ratcheted by the same three rules on its own.
+    full_tuple: ColumnBaseline,
 }
 
 fn run() -> &'static Run {
@@ -726,42 +1063,35 @@ fn run() -> &'static Run {
         let (cases, reached) = collect_tests().expect("walk the vendored W3C SHACL manifests");
         let orphans = unreachable_tests(&reached);
         let mut outcomes = Vec::with_capacity(cases.len());
-        let mut counts = Counts { total: cases.len(), ..Default::default() };
+        let mut full_outcomes = Vec::with_capacity(cases.len());
         let mut partial = 0usize;
         let mut failure_via_undetermined = 0usize;
         for tc in &cases {
-            let o = run_case(tc);
+            let answer = engine_answer(tc);
+            let o = judge(tc, Column::Gated, &answer);
             match &o {
-                Outcome::Pass => {
-                    counts.pass += 1;
-                    partial += 1;
+                Outcome::Pass => partial += 1,
+                // "results:" means the verdict was right and only the result
+                // set was wrong, which is partial compliance.
+                Outcome::Fail(d) if d.starts_with("results:") => partial += 1,
+                Outcome::Undetermined(_) if matches!(tc.expected, Expectation::Failure) => {
+                    failure_via_undetermined += 1
                 }
-                Outcome::Fail(d) => {
-                    counts.fail += 1;
-                    // "results:" means the verdict was right and only the
-                    // result set was wrong, which is partial compliance.
-                    if d.starts_with("results:") {
-                        partial += 1;
-                    }
-                }
-                Outcome::Undetermined(_) => {
-                    counts.undetermined += 1;
-                    if matches!(tc.expected, Expectation::Failure) {
-                        failure_via_undetermined += 1;
-                    }
-                }
-                Outcome::Error(_) => counts.error += 1,
+                _ => {}
             }
+            full_outcomes.push(judge(tc, Column::FullTuple, &answer));
             outcomes.push(o);
         }
-        Run { cases, outcomes, orphans, counts, partial, failure_via_undetermined }
+        let counts = Counts::of(&outcomes);
+        let full_counts = Counts::of(&full_outcomes);
+        Run { cases, outcomes, full_outcomes, orphans, counts, full_counts, partial, failure_via_undetermined }
     })
 }
 
-fn outcome_map(r: &Run) -> BTreeMap<String, String> {
+fn outcome_map(r: &Run, outcomes: &[Outcome]) -> BTreeMap<String, String> {
     r.cases
         .iter()
-        .zip(r.outcomes.iter())
+        .zip(outcomes.iter())
         .map(|(c, o)| (c.name.clone(), o.bucket().to_string()))
         .collect()
 }
@@ -954,6 +1284,39 @@ fn the_conformance_report() {
     for (tc, o) in r.cases.iter().zip(r.outcomes.iter()) {
         eprintln!("  {:<12} {:<42} {} {}", o.bucket(), tc.name, tc.label, o.detail());
     }
+
+    let f = r.full_counts;
+    eprintln!(
+        "\n-- full tuple (focus, path, value, source shape, component, severity; multiset) --"
+    );
+    eprintln!(
+        "  PASS {} ({:.1}%)  FAIL {}  UNDETERMINED {}  ERROR {}",
+        f.pass,
+        pct(f.pass, f.total),
+        f.fail,
+        f.undetermined,
+        f.error
+    );
+    let mut by_field: BTreeMap<&str, usize> = BTreeMap::new();
+    for (tc, o) in r.cases.iter().zip(r.full_outcomes.iter()) {
+        if let Outcome::Fail(d) = o
+            && d.starts_with("results:")
+        {
+            for field in FULL_FIELDS.iter().copied().chain(["multiplicity"]) {
+                let listed = d
+                    .split_once("differs in [")
+                    .and_then(|(_, rest)| rest.split_once(']'))
+                    .is_some_and(|(inside, _)| inside.split(", ").any(|x| x == field));
+                if listed {
+                    *by_field.entry(field).or_default() += 1;
+                }
+            }
+            eprintln!("  FAIL         {:<42} {}", tc.name, o.detail());
+        }
+    }
+    for (field, n) in &by_field {
+        eprintln!("  tests whose full tuple differs in {field:<13} {n}");
+    }
     eprintln!("===================================================\n");
 
     assert_eq!(
@@ -970,12 +1333,15 @@ fn the_conformance_ratchet_holds() {
         return;
     }
     let r = run();
-    let now = outcome_map(r);
+    let now = outcome_map(r, &r.outcomes);
+    let now_full = outcome_map(r, &r.full_outcomes);
 
     if std::env::var("OO_W3C_SHACL_UPDATE_BASELINE").as_deref() == Ok("1") {
         let b = Baseline {
-            note: "W3C SHACL test suite conformance, ratcheted. PASS may not drop, FAIL may not \
-                   rise, and no named PASS may regress. Regenerate with \
+            note: "W3C SHACL test suite conformance, ratcheted in two columns. In each, PASS may \
+                   not drop, FAIL may not rise, and no named PASS may regress. `counts` and \
+                   `outcomes` are the (focus, source shape, component) set; `full_tuple` adds \
+                   path, value and severity and compares multisets. Regenerate with \
                    OO_W3C_SHACL_UPDATE_BASELINE=1 cargo test --test w3c_shacl_conformance_test. \
                    Lowering any number here is a deliberate act and should say why."
                 .to_string(),
@@ -983,6 +1349,7 @@ fn the_conformance_ratchet_holds() {
             counts: r.counts,
             partial_compliance: r.partial,
             outcomes: now,
+            full_tuple: ColumnBaseline { counts: r.full_counts, outcomes: now_full },
         };
         std::fs::write(baseline_path(), format!("{}\n", serde_json::to_string_pretty(&b).unwrap()))
             .expect("write the baseline");
@@ -1010,50 +1377,68 @@ fn the_conformance_ratchet_holds() {
         );
     }
 
-    let broken = ratchet_verdict(&base.counts, &base.outcomes, &r.counts, &now);
-    if !broken.is_empty() {
-        // Name what each regressed test now does, so the failure is a diagnosis
-        // and not a number.
-        let detail: Vec<String> = r
-            .cases
-            .iter()
-            .zip(r.outcomes.iter())
-            .filter(|(c, o)| {
-                base.outcomes.get(&c.name).map(String::as_str) == Some("PASS")
-                    && !matches!(o, Outcome::Pass)
-            })
-            .map(|(c, o)| format!("  {} -> {} ({})", c.name, o.bucket(), o.detail()))
-            .collect();
+    let columns = [
+        ("set (focus, source shape, component)", &base.counts, &base.outcomes, &r.counts, &now, &r.outcomes),
+        (
+            "full tuple",
+            &base.full_tuple.counts,
+            &base.full_tuple.outcomes,
+            &r.full_counts,
+            &now_full,
+            &r.full_outcomes,
+        ),
+    ];
+    let mut failures = Vec::new();
+    for (name, base_counts, base_outcomes, now_counts, now_outcomes, outcomes) in columns {
+        let broken = ratchet_verdict(base_counts, base_outcomes, now_counts, now_outcomes);
+        if !broken.is_empty() {
+            // Name what each regressed test now does, so the failure is a
+            // diagnosis and not a number.
+            let detail: Vec<String> = r
+                .cases
+                .iter()
+                .zip(outcomes.iter())
+                .filter(|(c, o)| {
+                    base_outcomes.get(&c.name).map(String::as_str) == Some("PASS")
+                        && !matches!(o, Outcome::Pass)
+                })
+                .map(|(c, o)| format!("  {} -> {} ({})", c.name, o.bucket(), o.detail()))
+                .collect();
+            failures.push(format!(
+                "column {name}:\n  {}\n{}\nbaseline {:?}\nnow      {:?}",
+                broken.join("\n  "),
+                detail.join("\n"),
+                base_counts,
+                now_counts
+            ));
+        }
+        let gained = now_counts.pass as i64 - base_counts.pass as i64;
+        eprintln!(
+            "column {name}: PASS {} (baseline {}, {gained:+}), FAIL {} (baseline {}), \
+             UNDETERMINED {}, ERROR {}",
+            now_counts.pass,
+            base_counts.pass,
+            now_counts.fail,
+            base_counts.fail,
+            now_counts.undetermined,
+            now_counts.error
+        );
+        if gained > 0 {
+            eprintln!(
+                "NOTE: {gained} more test(s) pass in column {name} than the baseline records. \
+                 Re-cut it so the gate holds the new floor, or the gain can be lost again silently."
+            );
+        }
+    }
+    if !failures.is_empty() {
         panic!(
-            "W3C SHACL conformance regressed:\n  {}\n{}\nbaseline {:?}\nnow      {:?}\n\n\
+            "W3C SHACL conformance regressed:\n{}\n\n\
              If this is a deliberate, justified move, re-cut the baseline with \
              OO_W3C_SHACL_UPDATE_BASELINE=1 and say why in the commit message.",
-            broken.join("\n  "),
-            detail.join("\n"),
-            base.counts,
-            r.counts
+            failures.join("\n\n")
         );
     }
-
-    let gained = r.counts.pass as i64 - base.counts.pass as i64;
-    eprintln!(
-        "ratchet ok: PASS {} (baseline {}, {gained:+}), FAIL {} (baseline {}), \
-         UNDETERMINED {}, ERROR {}, partial compliance {} (baseline {})",
-        r.counts.pass,
-        base.counts.pass,
-        r.counts.fail,
-        base.counts.fail,
-        r.counts.undetermined,
-        r.counts.error,
-        r.partial,
-        base.partial_compliance
-    );
-    if gained > 0 {
-        eprintln!(
-            "NOTE: {gained} more test(s) pass than the baseline records. Re-cut it so the gate \
-             holds the new floor, or the gain can be lost again silently."
-        );
-    }
+    eprintln!("ratchet ok: partial compliance {} (baseline {})", r.partial, base.partial_compliance);
 }
 
 /// A gate that cannot fail is not a gate.
@@ -1102,5 +1487,91 @@ fn the_ratchet_can_say_no() {
     assert!(
         msgs.iter().any(|m| m.contains("no longer pass") && m.contains('b')),
         "a test swapped out of PASS with both counts unchanged must be caught, got {msgs:?}"
+    );
+}
+
+/// The W3C case whose expected report the planted controls mutate. Chosen
+/// because it is a PASS in the gated column and each of its two expected
+/// results carries all six fields, a plain IRI path and a typed-literal value,
+/// so no mutation lands on an absent field.
+const CONTROL_CASE: &str = "core/property/datatype-001";
+
+/// The comparator can say no, and says which field.
+///
+/// `the_ratchet_can_say_no` proves the ratchet bites; this proves the thing it
+/// ratchets can tell two reports apart. One PASS case's expected report is
+/// mutated in exactly one field, six times over, and the full-tuple comparison
+/// must reject each copy and name that field and no other. The gated column is
+/// held to its own documented key at the same time: it must see the three
+/// mutations it compares and must NOT see the three it does not, so the module
+/// docs cannot drift from what the code compares. A dropped result and a
+/// duplicated one are planted as well, because a multiset comparison that
+/// quietly became a set comparison would pass the six field mutations.
+#[test]
+fn the_comparator_names_every_planted_mutation() {
+    if skip() {
+        return;
+    }
+    let r = run();
+    let i = r
+        .cases
+        .iter()
+        .position(|c| c.name == CONTROL_CASE)
+        .unwrap_or_else(|| panic!("{CONTROL_CASE} is not in the suite"));
+    assert_eq!(r.outcomes[i], Outcome::Pass, "{CONTROL_CASE} must be a PASS case to be the control");
+    let Expectation::Report { results, .. } = &r.cases[i].expected else {
+        panic!("{CONTROL_CASE} must carry an expected report")
+    };
+    let target = results
+        .iter()
+        .position(|k| k.fields().iter().all(|f| *f != "(none)" && *f != "_:"))
+        .unwrap_or_else(|| panic!("{CONTROL_CASE} has no expected result with all six fields"));
+
+    assert_eq!(compare(Column::FullTuple, results, results), None, "a report must equal itself");
+    assert_eq!(compare(Column::Gated, results, results), None, "a report must equal itself");
+
+    let gated_fields = ["focus", "source shape", "component"];
+    for (n, name) in FULL_FIELDS.iter().enumerate() {
+        let mut mutated = results.clone();
+        let k = &mut mutated[target];
+        let slot = match n {
+            0 => &mut k.focus,
+            1 => &mut k.path,
+            2 => &mut k.value,
+            3 => &mut k.shape,
+            4 => &mut k.component,
+            _ => &mut k.severity,
+        };
+        slot.push_str("-planted");
+        mutated.sort();
+
+        let why = compare(Column::FullTuple, results, &mutated)
+            .unwrap_or_else(|| panic!("a planted change to {name} went unseen by the full tuple"));
+        assert!(
+            why.contains(&format!("differs in [{name}]")),
+            "the full tuple must name exactly `{name}` for a change to {name}, got: {why}"
+        );
+        assert_eq!(
+            compare(Column::Gated, results, &mutated).is_some(),
+            gated_fields.contains(name),
+            "the gated column's key is (focus, source shape, component); a change to {name} \
+             must be seen by it exactly when {name} is in that key"
+        );
+    }
+
+    let mut dropped = results.clone();
+    dropped.remove(target);
+    let why = compare(Column::FullTuple, results, &dropped).expect("a dropped result must be seen");
+    assert!(why.contains("[multiplicity]"), "a dropped result must be named multiplicity, got: {why}");
+
+    let mut doubled = results.clone();
+    doubled.push(results[target].clone());
+    doubled.sort();
+    let why = compare(Column::FullTuple, results, &doubled).expect("a duplicated result must be seen");
+    assert!(why.contains("[multiplicity]"), "a duplicated result must be named multiplicity, got: {why}");
+    assert_eq!(
+        compare(Column::Gated, results, &doubled),
+        None,
+        "the gated column compares sets, so a duplicate is invisible to it by design"
     );
 }

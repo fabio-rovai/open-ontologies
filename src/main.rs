@@ -145,7 +145,8 @@ data_dir = "~/.open-ontologies"
 
 # [feedback]
 # Lint / enforce self-calibration thresholds (number of dismissals before
-# downgrading then suppressing a (tool, rule_id, entity) triple).
+# downgrading then suppressing a (tool, rule_id, entity) triple). Suppressed
+# issues are listed in the output's `suppressed[]`; errors are never touched.
 # suppress_threshold = 3
 # downgrade_threshold = 2
 
@@ -489,6 +490,13 @@ enum Commands {
         /// impossible and dropping it would answer a different question.
         #[arg(long)]
         verified: bool,
+        /// `json`, `turtle` or `ntriples`. The RDF forms are a W3C
+        /// `sh:ValidationReport` graph. An undetermined run is written
+        /// `sh:conforms false` plus `oo:undetermined true`, and the exit code
+        /// is taken from the verdict, never from the text, so it is the same
+        /// in every format.
+        #[arg(long, default_value = "json")]
+        report_format: String,
     },
     /// Closed-world vocab check: flag data terms not declared in the loaded ontology
     VocabCheck { data: String },
@@ -1310,13 +1318,19 @@ impl Commands {
                 }
                 cmd("trace-label", a)
             }
+            // The batch runner answers in JSON, so an RDF report runs locally
+            // rather than being proxied and coming back in the wrong format.
             Commands::Shacl {
                 shapes,
                 valid_at,
                 as_of,
                 all_versions,
                 verified,
+                report_format,
             } => {
+                if report_format != "json" {
+                    return None;
+                }
                 let mut a = vec![absolutize(shapes)];
                 if let Some(v) = valid_at {
                     a.push("--valid-at".into());
@@ -3200,8 +3214,31 @@ async fn async_main() -> anyhow::Result<()> {
             as_of,
             all_versions,
             verified,
+            report_format,
         } => {
             use open_ontologies::shacl::ShaclValidator;
+            use open_ontologies::shacl_report::ReportFormat;
+            let format = match ReportFormat::parse(Some(&report_format)) {
+                Ok(f) => f,
+                Err(e) => {
+                    output_result_gated(&serde_json::json!({"error": e}).to_string(), cli.pretty, Gate::Shacl);
+                    return Ok(());
+                }
+            };
+            // Refused before the store is opened: nothing here needs it.
+            if verified && format != ReportFormat::Json {
+                output_result_gated(
+                    &serde_json::json!({"error":
+                        "--verified cannot be combined with --report-format other than json. \
+                         The verified evaluator returns its own report structure, which the \
+                         sh:ValidationReport writer does not read, so the format would be \
+                         silently dropped."})
+                    .to_string(),
+                    cli.pretty,
+                    Gate::Shacl,
+                );
+                return Ok(());
+            }
             let (_db, graph) = setup(&cli.data_dir)?;
             let shapes_content = std::fs::read_to_string(&shapes)?;
             if verified {
@@ -3223,16 +3260,45 @@ async fn async_main() -> anyhow::Result<()> {
                 output_result_gated(&result.to_string(), cli.pretty, Gate::Shacl);
                 return Ok(());
             }
-            let result = match open_ontologies::temporal::ScopeRequest::from_args(
+            let report = open_ontologies::temporal::ScopeRequest::from_args(
                 valid_at.as_deref(),
                 as_of.as_deref(),
                 all_versions,
-            ) {
-                Ok(request) => ShaclValidator::validate_scoped(&graph, &shapes_content, &request)
-                    .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
-                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
+            )
+            .and_then(|request| ShaclValidator::report_scoped(&graph, &shapes_content, &request));
+            let report = match report {
+                Ok(r) => r,
+                Err(e) => {
+                    output_result_gated(
+                        &serde_json::json!({"error": e.to_string()}).to_string(),
+                        cli.pretty,
+                        Gate::Shacl,
+                    );
+                    return Ok(());
+                }
             };
-            output_result_gated(&result, cli.pretty, Gate::Shacl);
+            if format == ReportFormat::Json {
+                output_result_gated(&report.to_json_string(), cli.pretty, Gate::Shacl);
+                return Ok(());
+            }
+            // The code comes from the JSON verdict through the same mapping
+            // every format uses (#329), not from the Turtle: a graph has no
+            // `conforms` key, and `sh:conforms false` is written for both a
+            // failing run and an undetermined one, which exit 1 and 2.
+            let code = gate_exit_code(Gate::Shacl, &report.to_json_string());
+            match report.render(format) {
+                Ok(rdf) => {
+                    print!("{rdf}");
+                    if code != 0 {
+                        std::process::exit(code);
+                    }
+                }
+                Err(e) => output_result_gated(
+                    &serde_json::json!({"error": e.to_string()}).to_string(),
+                    cli.pretty,
+                    Gate::Shacl,
+                ),
+            }
         }
         Commands::VocabCheck { data } => {
             let (_db, graph) = setup(&cli.data_dir)?;
@@ -4068,13 +4134,13 @@ mod proxy_serialization_tests {
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false, report_format: "json".into() },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false, report_format: "json".into() },
             // The verified form proxies too, for the reason the scoped `reason`
             // form above is here: a daemon-backed `shacl --verified` that
             // silently dropped the flag would run the UNVERIFIED evaluator and
             // answer with a conformance verdict that no theorem stands behind.
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true, report_format: "json".into() },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
             Commands::Push { endpoint: "http://example.org".into(), graph: None },

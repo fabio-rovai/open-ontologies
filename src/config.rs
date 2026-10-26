@@ -553,11 +553,12 @@ impl Default for ReasonerConfig {
 #[serde(default)]
 pub struct FeedbackConfig {
     /// Number of consecutive dismissals after which a lint/enforce issue
-    /// is fully suppressed for that (tool, rule_id, entity) tuple. Default 3.
+    /// is fully suppressed for that (tool, rule_id, entity) tuple: moved to
+    /// the output's `suppressed[]` list. Errors are exempt. Default 3.
     pub suppress_threshold: i64,
     /// Number of consecutive dismissals after which a lint/enforce issue
-    /// is downgraded one severity level. Must be `< suppress_threshold` to
-    /// take effect. Default 2.
+    /// is downgraded one severity level (warning to info; errors are exempt).
+    /// Must be `< suppress_threshold` to take effect. Default 2.
     pub downgrade_threshold: i64,
 }
 impl Default for FeedbackConfig {
