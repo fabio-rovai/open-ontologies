@@ -3437,18 +3437,14 @@ fn severity_name(raw: &str) -> String {
 /// timezone is `Z` or a signed offset up to fourteen hours, with no minutes on
 /// the fourteenth.
 ///
-/// **The expression judges `STR()` of the value inside the query, and for an
-/// `xsd:dateTime` that is not always the form that was written.** The store
-/// keeps a literal as written, but `spareval` reads an `xsd:dateTime` it can
-/// parse as a value before any function sees it, and its parser accepts a 24
-/// hour with non-zero minutes, seconds or fraction and rolls it over. So
-/// `"2026-01-01T24:00:01"^^xsd:dateTime`, outside the lexical space as
-/// written, reaches this regex as `2026-01-02T00:00:01` and conforms at every
-/// site, while `oo-shacl`, reading the written form, reports it. No SPARQL
-/// expression can see the written form there, and the Rust judgement this
-/// replaced could not either: its pre-filter vouched for the rolled-over form,
-/// so the row never came back to be judged. Decision 0018 records it, and
-/// `the_store_keeps_the_twenty_four_hour_forms_and_the_query_engine_rolls_them_over`
+/// **The expression judges `STR()` of the value inside the query.** Under the
+/// 0.5.9 pin `spareval` rolled an `xsd:dateTime` with a 24 hour and a non-zero
+/// field over before any function saw it, so `"2026-01-01T24:00:01"` reached
+/// this regex as `2026-01-02T00:00:01` and conformed. The pin on 0.5.13
+/// carries the STR fix (#343), which returns the written form, so the regex
+/// judges what was written and agrees with `oo-shacl`. Decision 0018 records
+/// both stages, and
+/// `the_store_and_the_query_engine_keep_the_twenty_four_hour_forms_as_written`
 /// pins it. The 24-hour branch is in the regex because the lexical space has
 /// it; `calendar_expression_tests` at the end of this file reaches it over
 /// plain strings, which nothing rolls over.

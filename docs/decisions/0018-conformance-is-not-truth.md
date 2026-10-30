@@ -461,6 +461,17 @@ An earlier draft of this test asserted that "no consumer can read it as a pass".
 false about this repository and has been removed. The test now reads `src/server.rs` and fails if
 that gate is ever widened, so the claim is pinned to the source rather than to a comment.
 
+**Amended 30 October (#343): the control now has a verdict.** The pin on Oxigraph 0.5.13 carries
+upstream's DATATYPE fix, so `DATATYPE()` reads `"300"^^xsd:byte` as `xsd:byte`, as written, and
+`datatype_is_indistinguishable_in_store` is deleted at every site. Range is now checked by
+`derived_lexical_space_regexes`, which gives each of the twelve integer-derived types and
+`xsd:dateTimeStamp` its exact lexical space inside the expression every site splices. The control is
+renamed `an_out_of_range_byte_is_a_violation_rather_than_no_verdict` and asserts `conforms: false`,
+and W3C `core/property/datatype-ill-formed` moves from UNDETERMINED to PASS. The mutation named
+below that removes `"byte"` from the skip list has no target any more; its counterpart is deleting
+the `byte` arm of `derived_lexical_space_regexes`, which by construction leaves nothing in the
+expression to tell `300` from a byte.
+
 ## What is DESIGNED AND NOT BUILT
 
 Only one thing shipped: `focus_nodes_by_target`. Everything else in the defence is a design.
