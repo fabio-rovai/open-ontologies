@@ -3017,11 +3017,7 @@ async fn async_main() -> anyhow::Result<()> {
                 }
                 None => report["written"] = serde_json::Value::Null,
             }
-            if json_mode() || cli.pretty {
-                output_json(&report, cli.pretty);
-            } else {
-                println!("{}", open_ontologies::exceptions::render_human(&report));
-            }
+            output_json(&report, cli.pretty);
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;

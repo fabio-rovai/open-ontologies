@@ -85,6 +85,7 @@ pub fn renderer_for(command: &str) -> Option<Renderer> {
         "trace-label" => render_trace_label,
         // Lifecycle
         "plan" => render_plan,
+        "compile-exceptions" => crate::exceptions::render_human,
         "apply" => render_apply,
         "lock" => render_lock,
         "drift" => render_drift,
