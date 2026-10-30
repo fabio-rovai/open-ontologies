@@ -101,14 +101,17 @@ const PREFIXES: &str = r#"
 // positional and counts digits. `2026-02-31` matched it. So did `2026-13-01`.
 // Both conformed, on both evaluation paths.
 //
-// The fix does not make the regex cleverer. The month lengths are regex work
-// and are now in the regex, but 29 February needs the proleptic Gregorian leap
-// rule over a year of unbounded length, and `xsd:dateTime` needs hour, minute,
-// second and timezone ranges the old regex never looked at. So for those two
-// datatypes the regex is now a PRE-FILTER that vouches for the forms it is
-// sure of, and `xsd_temporal_lex` in `src/shacl.rs` decides the rest by
-// parsing, the way `parseDateBody` in `lean/Shacl/Term.lean` always has. Both
-// evaluation paths run it, because E2 is what happens when they diverge.
+// The fix puts the calendar in the regex. The month lengths are regex work,
+// and so is the proleptic Gregorian leap rule, because divisibility by 4, 100
+// and 400 depends only on a year's last four digits, however long the year.
+// `xsd:dateTime` also gets the hour, minute, second and timezone ranges the old
+// regex never looked at. `CALENDAR_DATE` in `src/shacl.rs` judges the form the
+// way `parseDateBody` in `lean/Shacl/Term.lean` always has, and because it is
+// inside `datatype_conforms` every site that asks the datatype question asks
+// it in the same words: both evaluation paths, because E2 is what happens when
+// they diverge, and the `sh:or`, `sh:not`, `sh:qualifiedValueShape` and nested
+// `sh:node` sites that splice it positively. An earlier version judged the day
+// in Rust after the query, which only the two direct paths could run.
 //
 // The verified evaluator agreed with this engine's OLD answer on nothing and
 // agrees with its new one. Run by hand on 28 September 2026 against

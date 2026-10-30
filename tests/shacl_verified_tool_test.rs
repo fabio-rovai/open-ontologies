@@ -357,6 +357,49 @@ fn the_lean_evaluator_declines_the_years_this_one_declines() {
     }
 }
 
+/// The calendar form on which the two evaluators still differ, measured.
+///
+/// Since the oxigraph pin moved (#335) the store keeps
+/// `"2026-01-01T24:00:01"^^xsd:dateTime` as written, and that form is outside
+/// the lexical space: a 24 hour admits no other non-zero field. `oo-shacl`
+/// reads the written form and reports it. This engine judges `STR()` of the
+/// value inside the query, and the query engine parses the form as a value and
+/// rolls it over to `2026-01-02T00:00:01`, which is well formed, so it reports
+/// nothing. `24:00:00` is well formed and neither reports it. Decision 0018
+/// records the gap; this test is what stops that paragraph from going stale,
+/// and it fails the day the query engine stops rolling the form over.
+#[test]
+fn the_twenty_four_hour_rollover_is_where_the_two_evaluators_still_differ() {
+    if skip() {
+        return;
+    }
+    let table = [("2026-01-01T24:00:00", false), ("2026-01-01T24:00:01", true)];
+    let (data, shapes) = calendar_store(&table, "xsd:dateTime");
+    let g = Arc::new(GraphStore::new());
+    g.load_turtle(&format!("{PREFIXES}{data}"), None).expect("data");
+    let rust: serde_json::Value = serde_json::from_str(
+        &open_ontologies::shacl::ShaclValidator::validate(&g, &format!("{PREFIXES}{shapes}"))
+            .expect("the unverified evaluator runs"),
+    )
+    .expect("json");
+    let lean = validate_verified(&g, &format!("{PREFIXES}{shapes}")).expect("the checker runs");
+    assert_eq!(
+        lean["theorem"],
+        serde_json::json!("Shacl.validate_spec"),
+        "the comparison is only worth taking against a verdict the theorem covers: {lean}"
+    );
+    assert_eq!(
+        reported(&lean),
+        expected(&table),
+        "the Lean is expected to report the written 24:00:01 and only it: {lean}"
+    );
+    assert_eq!(
+        reported(&rust),
+        std::collections::BTreeSet::new(),
+        "this engine is expected to see the rolled-over form and report nothing: {rust}"
+    );
+}
+
 /// The two fixture lists are copies, so a copy that rots is a gate that stops
 /// measuring. This reads the other file and fails if a form was added or
 /// removed on one side only.

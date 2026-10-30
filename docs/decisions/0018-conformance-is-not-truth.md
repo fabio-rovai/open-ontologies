@@ -4,6 +4,9 @@
 fixed.** The amendment is in place rather than appended, because a record whose table says a defect
 is open is read by the table and not by a footnote. Every sentence that changed is marked, and the
 deferral argument is kept rather than deleted, because it is the reason the fix has the shape it has.
+**Amended again 30 October 2026: the calendar moved into the SPARQL expression (option 2 of PR #348),
+so E1 is fixed at every site that asks the datatype question and not only on the two direct paths.**
+Sentences changed by that amendment are marked "Amended 30 October".
 
 ## The thesis
 
@@ -90,29 +93,36 @@ measurement is the gate on the fix rather than a formality after it.
 
 That reasoning is why the fix is NOT a cleverer regex.
 
-### What was actually built, and why it is not a regex
+**Amended 30 October.** It is a regex now, and the reasoning above still holds, because what it
+objected to was a regex nobody had measured. The one that shipped is checked against an arithmetic
+calendar over 94,308 forms and the W3C ratchet was re-taken on it. Why the shape changed is in the
+section after next.
 
-Month lengths are regex work and they are in the regex. Two things are not.
+### What was built first, and why it was not a regex
 
-The first is 29 February, which is the only day whose existence depends on the year, under the
-proleptic Gregorian rule `(y mod 4 = 0 and y mod 100 != 0) or y mod 400 = 0`, over a year XSD does not
-bound in length. A regex CAN encode that: divisibility by 400 depends only on a decimal number's last
-four digits, so the automaton is finite. It is also unreadable, unreviewable, and wrong in the
-direction the paragraph above says is the dangerous one if a single alternative is mistyped.
+**Amended 30 October:** this section describes the fix as it was first built on 28 September, in the
+past tense. It is kept because the next section is a response to it.
 
-The second is `xsd:dateTime`, which carries the whole date portion and three more fields the old
-regex never ranged at all: `[0-9]{2}:[0-9]{2}:[0-9]{2}` accepted `99:99:99`, and
-`[+-][0-9]{2}:[0-9]{2}` accepted a `+99:99` timezone. Closing only the day would have left two more
-fields open in the same helper, which is the shape of E2 wearing a different datatype.
+Month lengths are regex work and they went into the regex. 29 February and `xsd:dateTime` did not.
 
-So the regex became an UNDER-approximation and is now a PRE-FILTER rather than a verdict. `CERTAIN_DATE`
-matches only forms that are certainly in the lexical space: 31-day months to 31, 30-day months to 30,
-February to 28, four-digit year, and a timezone up to 13:59. Everything it cannot vouch for is handed
-to `xsd_temporal_lex`, which parses the form the way `parseDateBody`, `parseTimeBody` and `parseTzEnd`
-in `lean/Shacl/Term.lean` do. The pre-filter earns its place on volume: over a store of dates the
-parser sees the ill-formed ones plus 29 February and nothing else.
+29 February is the only day whose existence depends on the year, under the proleptic Gregorian rule
+`(y mod 4 = 0 and y mod 100 != 0) or y mod 400 = 0`, over a year XSD does not bound in length. A regex
+CAN encode that: divisibility by 400 depends only on a decimal number's last four digits, so the
+automaton is finite. The first build judged it unreadable, unreviewable, and wrong in the direction
+the paragraph above says is the dangerous one if a single alternative is mistyped.
 
-**Both evaluation paths run it.** E2 below is what happens when they do not, so the node-shape path
+`xsd:dateTime` carries the whole date portion and three more fields the old regex never ranged at
+all: `[0-9]{2}:[0-9]{2}:[0-9]{2}` accepted `99:99:99`, and `[+-][0-9]{2}:[0-9]{2}` accepted a `+99:99`
+timezone. Closing only the day would have left two more fields open in the same helper, which is the
+shape of E2 wearing a different datatype.
+
+So the regex became an UNDER-approximation and a PRE-FILTER rather than a verdict. `CERTAIN_DATE`
+matched only forms that are certainly in the lexical space: 31-day months to 31, 30-day months to 30,
+February to 28, four-digit year, and a timezone up to 13:59. Everything it could not vouch for was
+handed to `xsd_temporal_lex`, which parsed the form the way `parseDateBody`, `parseTimeBody` and
+`parseTzEnd` in `lean/Shacl/Term.lean` do, after the SPARQL query had returned.
+
+**Both evaluation paths ran it.** E2 below is what happens when they do not, so the node-shape path
 and the `sh:property` path were changed together and
 `tests/shacl_xsd_date_lexical_test.rs` asserts every fixture through both. Two mutations were run to
 prove that is not decoration: fixing only the `sh:property` path and fixing only the node-shape path
@@ -122,11 +132,66 @@ each redden the table, and each failure message names the path left behind.
 by 400, so it is not a leap year and `1900-02-29` is reported. 2000 is divisible by 400, so it is, and
 `2000-02-29` is not reported. 1600 and 2100 are in the table for the same reason.
 `the_leap_rule_is_gregorian_so_1900_is_not_a_leap_year_and_2000_is` exists because a rule of
-"divisible by four" passes every other fixture in the file.
+"divisible by four" passes every other fixture in the file. That is still true of the fix that
+replaced this one.
 
-**Only the year modulo 400 is ever computed**, folded digit by digit, so a forty-digit year overflows
-nothing. That is the one place the Rust differs mechanically from the Lean's arbitrary-precision
-`Nat`, and it agrees with it on every input, because 400 is a multiple of both 4 and 100.
+### What replaced it: the calendar in the expression (amended 30 October)
+
+The first build was cut on 28 September, before #333 folded the datatype test into
+`datatype_conforms`. On `main` that one expression is spliced at eight sites, and six of them use it
+POSITIVELY: `sh:or` members on a property, `sh:or` over member shapes on a node, `sh:not`,
+`sh:qualifiedValueShape`, and a nested `sh:node` with the datatype on the shape or on its property.
+The Rust judgement could only follow the two direct `sh:datatype` queries, because those are the only
+ones whose rows come back to Rust one value at a time. At a positive site an under-approximating
+regex with nothing after it rejects every form it cannot vouch for, which was every 29 February. The
+merge with `main` would have made `"2024-02-29"^^xsd:date` fail `sh:or ( [ sh:datatype xsd:date ] )`,
+the exact failure the deferral argument above was written to prevent, at six sites the W3C ratchet
+barely touches.
+
+PR #348 set out the resolutions: keep the syntactic regex at the positive sites and
+record that an impossible date passes inside `sh:or`; put the whole calendar in the expression; or run
+the Rust judgement after every site. The calendar in the expression was chosen, because it is the only one that keeps "one
+expression, every site", which is what #333 was for.
+
+**The leap year is read off the last four digits, which is exact, and short.** `y mod 4` is the last
+two digits mod 4, because 100 is a multiple of 4. `y mod 100 = 0` exactly when those two digits are
+`00`, and then `y mod 400 = 0` exactly when the two digits before them are a multiple of four. Two
+digits are a multiple of four when the tens digit is even and the units digit is 0, 4 or 8, or the
+tens digit is odd and the units digit is 2 or 6, which is `([02468][048]|[13579][26])`. So 29 February
+is admitted after a year ending in such a pair other than `00`, or after a year ending in such a pair
+followed by `00`, and nowhere else. That is two alternatives, written out with their reasoning beside
+`CALENDAR_DATE` in `src/shacl.rs`, and the regex never reads more than the last four digits of a year
+of any length, so nothing overflows. The month lengths are the first build's: 01 03 05 07 08 10 12 to
+31, 04 06 09 11 to 30, February to 28. The year is four digits, or more than four with no leading
+zero.
+
+**The clock and the timezone are the first build's rules, now in the regex.** Hours 00 to 23, minutes
+and seconds 00 to 59, a fraction of at least one digit, and `24:00:00` only with every other field
+zero, fraction included. The timezone is `Z` or a signed offset up to fourteen hours, with no minutes
+on the fourteenth.
+
+**The Rust judgement is deleted, not kept.** `xsd_temporal_lex`, `calendar_violation`,
+`calendar_datatype`, the `CERTAIN_*` pre-filter and the per-query map that routed rows to the parser
+are all gone. Nothing they judged is outside the expression: the decline, the leading-zero rule, the
+leap rule, the clock and the timezone are each in the regex, and the two direct paths now negate the
+same expression the six positive sites splice.
+
+**Measured, against an oracle that is not a regex.** `calendar_expression_tests` in `src/shacl.rs`
+runs the regex through the SPARQL engine every site uses, over PLAIN string literals so that nothing
+canonicalises a form first, and compares it with an arithmetic calendar over the whole year as an
+integer. That arithmetic is itself checked against `chrono` wherever `chrono` can hold the year.
+`xsd:date`: 55,988 forms, every month 00 to 13 and every day 00 to 32 of 121 year spellings around each
+boundary the rule has (0004, 0100, 0400, 1600, 1900, 2000, 2100, 2400, 10000, 100000, and a
+thirty-one-digit year around a multiple of 400), plus spellings the year rule rejects, the declined
+years, and sixteen timezones on five dates. `xsd:dateTime`: 38,320 forms, the date grid over ten of
+those years at a valid time plus every hour 00 to 25 against the edges of every other field. 94,308
+forms in all, and no disagreement. Through a store,
+`every_site_agrees_with_chrono_on_every_day_of_six_boundary_years` in
+`tests/shacl_xsd_date_lexical_test.rs` runs 2,772 forms through all eight sites, 22,176 verdicts, with
+`chrono` as the answer key, and
+`every_site_that_asks_the_datatype_question_gets_the_calendar_answer` names the four dates that matter:
+`2024-02-29` and `2000-02-29` accepted at every site, `2026-02-31` and `1900-02-29` judged not to be
+dates at every site, which under `sh:not` means they CONFORM and the real dates are reported.
 
 ### The Lean and the Rust answers, measured rather than asserted
 
@@ -144,6 +209,11 @@ this is not two engines being wrong together. The Lean verdict is only accepted 
 Twelve mutations were run against those two tests and the rest of the corpus. The table is at the end
 of this record.
 
+**Amended 30 October:** both agreement tests pass unchanged with the calendar in the expression and
+the Rust judgement deleted, with the same 18 of 29 and 7 of 11. One `xsd:dateTime` form now separates
+the two evaluators, and it is new with the oxigraph pin rather than with this fix; it is in the next
+section.
+
 ### `xsd:dateTime` was fixed at the same time, and this says so rather than implying it
 
 It carries the same date portion. Leaving it would have meant `"2026-02-31"^^xsd:date` reported and
@@ -158,6 +228,34 @@ hole. Oxigraph canonicalises the 24-hour form on the way in: `2026-01-01T24:00:0
 either direction. `the_store_rewrites_the_twenty_four_hour_forms` pins that measurement, and
 `verdict()` in the same file asserts every other fixture survives the store, so a future Oxigraph
 that starts rewriting one fails loudly instead of quietly changing what is measured.
+
+**Amended 30 October: that future arrived with the oxigraph pin (#335), and it opened a gap.** Merged
+with `main`, `the_store_rewrites_the_twenty_four_hour_forms` failed, as it was written to: the store
+now keeps `2026-01-01T24:00:01` as written. The query engine does not. `spareval` reads an
+`xsd:dateTime` it can parse as a VALUE before any function sees it, its parser accepts a 24 hour with
+non-zero minutes, seconds or fraction and rolls it over, and `STR()` inside the query returns the
+rolled-over form. Measured through the store: `24:00:00` and `24:00:00.5` reach the expression as
+`2026-01-02T00:00:00` and `2026-01-02T00:00:00.5`, `24:00:01` as `2026-01-02T00:00:01`, `24:30:00` as
+`2026-01-02T00:30:00`, and `24:59:59`, which the parser refuses, as written. So this engine reports
+`24:59:59` and nothing else among them, at every site, while `oo-shacl` reads the written form off
+the same store and reports `24:00:00.5`, `24:00:01` and `24:30:00` as well. That is a Rust and Lean
+disagreement on a form outside the lexical space, and the Rust side is the false clean.
+
+It is not closed here, and the reason is mechanical rather than a preference. No SPARQL expression
+can see the written form of a value `spareval` has parsed, so option 2 cannot reach it. The Rust
+judgement this amendment deleted could not reach it either: its pre-filter vouched for the
+rolled-over form, so the row never came back to be judged. A Rust pass that re-read every
+`xsd:dateTime` on the two direct paths could catch it there and nowhere else, which would make
+`sh:datatype` and `sh:or ( [ sh:datatype xsd:dateTime ] )` disagree on one form, the E2 shape this
+amendment exists to remove. The fix belongs in the query engine, by having it refuse the form or by
+exposing the written lexical form to `STR()`, and it is owed an issue.
+`the_store_keeps_the_twenty_four_hour_forms_and_the_query_engine_rolls_them_over` replaces the old
+test and pins both halves of the measurement, and
+`the_twenty_four_hour_rollover_is_where_the_two_evaluators_still_differ` in
+`tests/shacl_verified_tool_test.rs` pins the Lean side, so the day the query engine changes, both
+fail and this paragraph gets amended. `verdict()` now asserts that each fixture reaches the
+EXPRESSION as written, which is the property it was always meant to guard, rather than that the store
+hands it back.
 
 ### The residual gap, which is narrower and is NOT closed
 
@@ -179,6 +277,26 @@ either. `the_lean_evaluator_declines_the_years_this_one_declines` measures both 
 paragraph cannot go stale. Closing it would mean per-VALUE entries in `skipped_constraints`, which
 turns `conforms` to `null` for any store holding one BCE date, and that is a decision about what a
 validation report is for rather than a bug fix. It is stated as open rather than quietly carried.
+
+**Amended 30 October: what declining means once the calendar is in the expression.** The decline is
+`CALENDAR_DECLINED` in `src/shacl.rs`, and its boundary is exactly `yearJudgeable`'s: a lexical form
+whose first character is `-`, or whose leading run of digits is four or more zeros. A declined form
+satisfies the expression, so it counts as having the datatype at EVERY site, which is what reporting
+nothing means on the direct paths and has a visible consequence at the one negative site:
+`sh:not [ sh:datatype xsd:date ]` reports `"-0044-03-15"^^xsd:date` as a date. A two-valued
+expression has to put the declined forms on one side, and this is the side the first build chose.
+
+**A correction to the paragraph above, found while moving the decline into the regex.** "Nothing
+about them changed" is true of the forms the old regex matched (`-0044-03-15`, `0000-02-30`) and false
+of a malformed form that merely starts with `-`: the old regex reported `"-garbage"^^xsd:date`, and
+since the first build of this fix nothing does, because `yearJudgeable` declines on the first
+character alone. The Lean answers `undetermined` there, so the two evaluators are still not opposite,
+but this engine went from a correct violation to silence on that form. The Lean's decline is also
+about day numbers, which only value comparisons need; the lexical space of a negative year is
+unambiguous in XSD 1.1, and divisibility by 4, 100 and 400 does not depend on the sign. Narrowing
+the decline to well-spelled negative and zero years, or judging them outright, is a one-line change
+to `CALENDAR_DECLINED`. It is not made here, because it moves the boundary away from the Lean's and
+that is a decision for this record rather than a side effect of a merge.
 
 ### The test that recorded the defect, flipped and not weakened
 
@@ -434,6 +552,27 @@ became a violation. The ratchet caught it:
 The mutation was reverted and the suite went green again. A zero delta from a gate proved able to move
 is a measurement; a zero delta from a gate nobody tried to move is not.
 
+### Re-measured with the calendar in the expression (amended 30 October)
+
+Taken on the merge of `main` at `2ecb50c2` into this branch, with option 2 in place and the Rust
+judgement deleted:
+
+```
+  PASS            61  (50.8%)
+  FAIL            15  (12.5%)
+  UNDETERMINED    44  (36.7%)
+  ERROR            0  (0.0%)
+  partial compliance (sh:conforms agrees, result set ignored): 61 of 120 (50.8%)
+  ratchet ok: partial compliance 61 (baseline 61)
+```
+
+`tests/w3c_shacl_baseline.json` was regenerated under `OO_W3C_SHACL_UPDATE_BASELINE=1` and came back
+byte-identical to the file on `main`, so none of the 120 named outcomes moved, and
+`shacl_validation_report_w3c_test` passes over the same suite. The re-measurement matters more for
+this shape of fix than for the first one, because the regex is now the whole verdict at every site
+and the suite carries `sh:datatype xsd:date` in `core/property/datatype-001`, and `sh:or` over
+datatypes in `core/property/or-datatypes-001`.
+
 ## Every gate in the E1 amendment was proved able to fail
 
 Twelve mutations, each applied, run, recorded and reverted. The three columns count FAILING tests in
@@ -471,6 +610,30 @@ the store rewrote 1., so nothing below is about the validator:
 The adversarial file's own E1 test stays GREEN under the leap-rule mutation, because its two fixtures
 are both in 2026 and neither is 29 February. That is a statement about what that file covers rather
 than a defect in it, and it is why the leap rule has a fixture table of its own.
+
+### The gates on the calendar in the expression (amended 30 October)
+
+The table above mutated code that no longer exists (`is_leap_year`, the parser, the per-path Rust
+pass). Five mutations were run against the regex that replaced it, each applied to `src/shacl.rs`,
+run, recorded and reverted. The columns count FAILING tests in `calendar_expression_tests` in
+`src/shacl.rs` and in the three files above, which are 2, 8, 15 and 10 tests green.
+
+| mutation | unit | lexical | adversarial | verified |
+| --- | --- | --- | --- | --- |
+| every century a leap year (`[0-9]{2}00` in place of the century pair) | 2 | 5 | 0 | 2 |
+| no leap alternative at all, which is the first build's pre-filter with nothing after it | 2 | 5 | 1 | 2 |
+| drop the `24:00:00` branch | 1 | 0 | 0 | 0 |
+| decline only a leading `-`, not a year of zeros | 2 | 1 | 0 | 0 |
+| let thirty-day months run to 31 | 2 | 2 | 0 | 1 |
+
+The second row is the state a merge with `main` would have shipped without option 2, and
+`every_site_that_asks_the_datatype_question_gets_the_calendar_answer` is among the five lexical
+failures, so the positive sites are gated and not only the direct paths. The third row reddens only
+the unit test, because through a store the query engine rolls a 24-hour form over before the regex
+sees it, which is the gap recorded above; that is why the unit test runs over plain strings. The
+fourth row leaves `the_lean_evaluator_declines_the_years_this_one_declines` green, because its
+`0000-01-01` is a valid date even when it is judged rather than declined; `0000-02-30` in the lexical
+file is the fixture that tells the two apart.
 
 ## Every gate in this corpus was proved able to fail
 

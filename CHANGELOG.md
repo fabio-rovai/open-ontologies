@@ -89,6 +89,32 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **An impossible date violates `sh:datatype`, at every site that asks the
+  datatype question** (#348, engine defect E1 in decision 0018).
+  `"2026-02-31"^^xsd:date` and `"1900-02-29"^^xsd:date` used to conform,
+  because the `xsd:date` and `xsd:dateTime` lexical tests were regexes that
+  counted digits. The calendar is now in the regex `datatype_conforms`
+  splices: days per month by month, and 29 February only in a leap year,
+  which a regex can decide exactly because divisibility by 4, 100 and 400
+  depends only on a year's last four digits (2000 is a leap year, 1900 and
+  2100 are not, and a year of any length is read the same way).
+  `xsd:dateTime` also ranges its hour, minute, second and timezone, with
+  `24:00:00` allowed only with every other field zero. Because the test is in
+  the one expression, `sh:or` members, `sh:not`, `sh:qualifiedValueShape` and
+  nested `sh:node` give the same answer as the direct constraint: a valid
+  29 February 2024 is accepted at all eight sites, and under `sh:not`
+  `"2026-02-31"^^xsd:date` conforms because it is not a date. Negative years
+  and the year `0000` are declined exactly where the Lean evaluator declines
+  them, and a declined form still conforms. The expression is checked against
+  an arithmetic calendar, itself checked against `chrono`, over 94,308 forms,
+  and every site over 2,772 forms; the W3C SHACL baseline does not move, and
+  the Rust and Lean evaluators report the same focus nodes on every calendar
+  fixture. One form is still missed, and is pinned rather than hidden: since
+  the oxigraph pin the store keeps `"2026-01-01T24:00:01"^^xsd:dateTime` as
+  written, but the query engine parses it and rolls it over to
+  `2026-01-02T00:00:01` before any expression sees it, so it conforms here
+  while `oo-shacl` reports it. Decision 0018 records why no SPARQL expression
+  can reach the written form.
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code
