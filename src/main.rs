@@ -399,6 +399,40 @@ enum Commands {
         #[arg(long, default_value_t = open_ontologies::defects::Defects::MAX_PER_KIND)]
         limit: usize,
     },
+    /// Repair: the cheapest set of asserted axioms whose removal makes every
+    /// class coherent, judged in the atomic named-class fragment `defects`
+    /// judges (subClassOf, disjointWith, equivalentClass between IRIs).
+    ///
+    /// Conflicts and coherence are re-run; with `--certificate-dir`,
+    /// optimality is refuted by `oo-lrat`. The input file is not changed.
+    Repair {
+        input: String,
+        /// Annotation property carrying each axiom's weight on its
+        /// `owl:Axiom` reification. Omitted, every axiom gets the default.
+        #[arg(long)]
+        weight_property: Option<String>,
+        /// Weight of an axiom with no weight annotation.
+        #[arg(long, default_value_t = 1.0)]
+        default_weight: f64,
+        /// `cost`: minimise the summed weight dropped. `probability`: minimise
+        /// the summed log-odds ln(p/(1-p)) dropped, the most probable coherent
+        /// subset under independence.
+        #[arg(long, default_value = "cost")]
+        weights: String,
+        /// Write the optimality certificate (CNF, LRAT proof, variable table)
+        /// here and have `oo-lrat` check it.
+        #[arg(long)]
+        certificate_dir: Option<String>,
+        /// Branch-and-bound nodes per hitting-set computation.
+        #[arg(long, default_value_t = open_ontologies::repair::DEFAULT_MAX_NODES)]
+        max_nodes: usize,
+        /// Rounds of the implicit hitting set loop.
+        #[arg(long, default_value_t = open_ontologies::repair::DEFAULT_MAX_ROUNDS)]
+        max_rounds: usize,
+        /// Write the repaired graph here as Turtle.
+        #[arg(long)]
+        out: Option<String>,
+    },
     /// Convert between RDF formats, or to OWL 2 functional syntax (`--to ofn`)
     Convert {
         path: String,
@@ -2930,6 +2964,60 @@ async fn async_main() -> anyhow::Result<()> {
             let result = Defects::check_with_limit(&graph, limit)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
+        }
+        Commands::Repair {
+            input,
+            weight_property,
+            default_weight,
+            weights,
+            certificate_dir,
+            max_nodes,
+            max_rounds,
+            out,
+        } => {
+            use open_ontologies::repair::{RepairOptions, WeightKind, render_human, repair};
+            // The file alone, in a store of its own, exactly as `defects` reads
+            // it, so the two commands judge the same graph.
+            let pretty = cli.pretty;
+            fn exit_with(e: String, pretty: bool) -> ! {
+                output_json(&serde_json::json!({"error": e}), pretty);
+                std::process::exit(1)
+            }
+            let raw = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                std::fs::read_to_string(&input).unwrap_or_else(|e| exit_with(e.to_string(), pretty))
+            };
+            let content =
+                GraphStore::content_as_turtle(&input, raw).unwrap_or_else(|e| exit_with(e.to_string(), pretty));
+            let graph = std::sync::Arc::new(GraphStore::new());
+            if let Err(e) = graph.load_turtle(&content, None) {
+                exit_with(e.to_string(), pretty);
+            }
+            let weights = WeightKind::parse(&weights).unwrap_or_else(|e| exit_with(e.to_string(), pretty));
+            let opts = RepairOptions {
+                weight_property,
+                default_weight,
+                weights,
+                certificate_dir: certificate_dir.map(|d| std::path::PathBuf::from(expand_tilde(&d))),
+                max_nodes: max_nodes.max(1),
+                max_rounds,
+                out: out.map(|d| std::path::PathBuf::from(expand_tilde(&d))),
+            };
+            let value = repair(&graph, &opts).unwrap_or_else(|e| exit_with(e.to_string(), pretty));
+            if json_mode() || cli.pretty {
+                output_json(&value, cli.pretty);
+            } else {
+                println!("{}", render_human(&value));
+            }
+            // A solver and the search disagreeing about optimality is the one
+            // outcome that must fail the process; it says so under `exit_code`.
+            let code = value.get("exit_code").and_then(|c| c.as_i64()).unwrap_or(0) as i32;
+            if code != 0 {
+                std::process::exit(code);
+            }
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
