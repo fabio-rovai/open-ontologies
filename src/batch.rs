@@ -14,6 +14,7 @@ pub struct BatchRunner {
     db: StateDb,
     graph: Arc<GraphStore>,
     pretty: bool,
+    human: bool,
 }
 
 /// A parsed batch command with its arguments.
@@ -25,14 +26,24 @@ struct BatchCmd {
 
 impl BatchRunner {
     pub fn new(db: StateDb, graph: Arc<GraphStore>, pretty: bool) -> Self {
-        Self { db, graph, pretty }
+        Self { db, graph, pretty, human: false }
+    }
+
+    /// Print each result as human-readable text instead of an NDJSON envelope.
+    ///
+    /// `batch --human` printed NDJSON when it ran locally and rendered text when
+    /// a daemon ran it, because only the proxy path read the flag. Both now
+    /// render each result by the command its envelope names.
+    pub fn human(mut self, human: bool) -> Self {
+        self.human = human;
+        self
     }
 
     /// Parse input (auto-detect line vs JSON format) and run all commands,
     /// printing each result as it completes.
     /// Returns the process exit code (0 = success, 1 = at least one error).
     pub async fn run(&self, input: &str, bail: bool) -> i32 {
-        self.run_each(input, bail, |line| self.print_json(line)).await
+        self.run_each(input, bail, |line| self.print_result(line)).await
     }
 
     /// Run all commands and collect results into a Vec instead of printing.
@@ -109,11 +120,17 @@ impl BatchRunner {
         exit_code
     }
 
-    fn print_json(&self, value: &Value) {
-        if self.pretty {
-            println!("{}", serde_json::to_string_pretty(value).unwrap());
+    /// Print one envelope: as JSON, or under `--human` as its result rendered
+    /// by the command it names, exactly as `connect::proxy_batch` prints one.
+    fn print_result(&self, envelope: &Value) {
+        if self.human && !self.pretty {
+            let command = envelope.get("command").and_then(Value::as_str);
+            let result = envelope.get("result").unwrap_or(envelope);
+            println!("{}", crate::output::render_human_for(command, result));
+        } else if self.pretty {
+            println!("{}", serde_json::to_string_pretty(envelope).unwrap());
         } else {
-            println!("{}", value);
+            println!("{}", envelope);
         }
     }
 

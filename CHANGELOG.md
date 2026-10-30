@@ -89,6 +89,30 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`--human` renders each command's result by the command's name, so `diff`
+  counts the triples it found and an undetermined `shacl` run says so**
+  (#350, #345). The one-shot CLI called a renderer that picked a rendering by
+  which keys the JSON carried, and four commands printed a wrong answer rather
+  than an unformatted one. `diff` read its numeric counts as arrays and printed
+  `+0 -0` for any two files. An undetermined `shacl` run, exit 2, printed "No
+  violations found." because its empty `violations` matched the `enforce`
+  branch. `validate` printed class, property and individual counts it never
+  computed, as zeros, and `monitor` printed itself as server status. A
+  CONSTRUCT query printed "Triples: 0" over the triples it built. Eighteen of
+  55 offline invocations, `defects` among them, printed raw JSON. The CLI now
+  passes its subcommand path (`diff`, `daemon status`) and
+  `output::renderer_for` maps each name to its own renderer. Verdict commands
+  lead with the verdict (`conforms: true | false | undetermined`), `defects`
+  prints one line per defect or `No defects (N kinds checked).`, `drift`
+  reports terms, velocity and likely renames, and `plan`, `align`,
+  `vocab-check`, `reason` and `lineage` are rendered with their verdict and
+  counts first. A name with no renderer prints its JSON under a line saying no
+  human rendering exists for it, and is never matched by shape. `batch
+  --human` now renders each result by the command its envelope names when it
+  runs locally, as it already did through a daemon. Exit codes are unchanged.
+  A test in `src/main.rs` walks the clap command tree and fails for any
+  subcommand with no renderer registered.
+
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code

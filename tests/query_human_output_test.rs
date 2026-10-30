@@ -60,11 +60,12 @@ fn real_store_select_renders_flat_rows_on_both_entrypoints() {
     store.load_turtle(DATA, None).unwrap();
     let result: Value = serde_json::from_str(&store.sparql_select(QUERY).unwrap()).unwrap();
     assert_native_rows(&result);
-    for command in [None, Some("query")] {
-        let rendered = output::render_human_for(command, &result);
-        eprintln!("STORE {command:?}: {rendered}");
-        assert_native_table(&rendered);
-    }
+    // Both entrypoints name the command now: the one-shot CLI passes its
+    // subcommand and the proxy passes the batch envelope's (#350). The CLI
+    // tests below drive both end to end.
+    let rendered = output::render_human_for(Some("query"), &result);
+    eprintln!("STORE: {rendered}");
+    assert_native_table(&rendered);
 }
 
 #[test]
@@ -72,9 +73,7 @@ fn empty_store_select_renders_no_results() {
     let store = GraphStore::new();
     let result: Value = serde_json::from_str(&store.sparql_select(QUERY).unwrap()).unwrap();
     assert_eq!(result["results"], json!([]));
-    for command in [None, Some("query")] {
-        assert_eq!(output::render_human_for(command, &result), "No results.");
-    }
+    assert_eq!(output::render_human_for(Some("query"), &result), "No results.");
 }
 
 #[test]
@@ -84,38 +83,37 @@ fn standard_bindings_and_non_select_fallbacks_keep_their_rendering() {
         {"s": {"type": "uri", "value": "urn:other"}}
     ]}});
     let expected = "s          label\n---------  -----\nurn:item   Item \nurn:other";
-    for command in [None, Some("query")] {
-        assert_eq!(output::render_human_for(command, &standard), expected);
-        assert_eq!(
-            output::render_human_for(
-                command,
-                &json!({"variables":["s"],"results":{"bindings":[]}})
-            ),
-            "No results."
-        );
-        for value in [
-            json!({"result": true}),
-            json!({"results": [{"s": "ordinary result"}]}),
-        ] {
-            assert_eq!(
-                output::render_human_for(command, &value),
-                serde_json::to_string_pretty(&value).unwrap()
-            );
-        }
-        assert_eq!(
-            output::render_human_for(
-                command,
-                &json!({"error":"invalid SPARQL","variables":["s"],"results":[]})
-            ),
-            "Error: invalid SPARQL"
-        );
-    }
-    // Preserve the existing CONSTRUCT rendering, even though it shares the
-    // stats discriminator. This patch only changes SELECT recognition.
+    let command = Some("query");
+    assert_eq!(output::render_human_for(command, &standard), expected);
+    assert_eq!(
+        output::render_human_for(
+            command,
+            &json!({"variables":["s"],"results":{"bindings":[]}})
+        ),
+        "No results."
+    );
+    // An ASK answer is rendered as one. A results array with no variables
+    // is no SELECT the query command produces, so it is printed as
+    // labelled JSON rather than guessed at.
+    assert_eq!(output::render_human_for(command, &json!({"result": true})), "ASK: true");
+    let unknown = json!({"results": [{"s": "ordinary result"}]});
+    let rendered = output::render_human_for(command, &unknown);
+    assert!(rendered.starts_with(output::NO_RENDERING), "{rendered}");
+    assert!(rendered.ends_with(&serde_json::to_string_pretty(&unknown).unwrap()));
+    assert_eq!(
+        output::render_human_for(
+            command,
+            &json!({"error":"invalid SPARQL","variables":["s"],"results":[]})
+        ),
+        "Error: invalid SPARQL"
+    );
+    // A CONSTRUCT used to reach the stats rendering through its `triples` key
+    // and print "Triples: 0" over the triples it had built (#350). It is now
+    // one N-Triples line per triple.
     let construct = json!({"triples":[{"subject":"urn:s","predicate":"urn:p","object":"urn:o"}]});
     assert_eq!(
-        output::render_human(&construct),
-        "Triples:     0\nClasses:     0\nProperties:  0\nIndividuals: 0"
+        output::render_human_for(Some("query"), &construct),
+        "urn:s urn:p urn:o ."
     );
 }
 
@@ -183,10 +181,7 @@ fn check_cli_queries(dir: &tempfile::TempDir, path: &str, local: bool) {
         &human_flags,
         "ASK { ?s <https://example.org/label> ?label }",
     );
-    assert_eq!(
-        serde_json::from_str::<Value>(&ask).unwrap(),
-        json!({"result":true})
-    );
+    assert_eq!(ask.trim(), "ASK: true");
     assert_native_table(&human);
     assert_eq!(empty.trim(), "No results.");
 }

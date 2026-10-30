@@ -1629,6 +1629,33 @@ static JSON_MODE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 fn json_mode() -> bool {
     JSON_MODE.get().copied().unwrap_or(true)
 }
+
+/// The subcommand this process is running, by the name the human renderer
+/// looks it up under: `diff`, `vocab-check`, or `daemon status` for a nested
+/// one. Set once from clap's own matches, so it is the name clap parsed and
+/// never a guess from the arguments.
+static COMMAND: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+
+/// The running subcommand's name, for `output::render_human_for`.
+///
+/// The one-shot paths used to call the renderer with no name at all, and it
+/// guessed one from the keys of the JSON, which is how `diff`, `shacl`,
+/// `validate` and `monitor` printed another command's rendering of their
+/// results (#350).
+fn command_name() -> Option<&'static str> {
+    COMMAND.get().map(String::as_str)
+}
+
+/// A subcommand's full path through nested subcommands, space-separated.
+fn command_path(matches: &clap::ArgMatches) -> String {
+    let mut path = Vec::new();
+    let mut m = matches;
+    while let Some((name, sub)) = m.subcommand() {
+        path.push(name);
+        m = sub;
+    }
+    path.join(" ")
+}
 /// Whether the resolved storage backend keeps the graph in RAM only.
 ///
 /// One-shot CLI subcommands each build their own store, so in this mode nothing
@@ -1675,7 +1702,7 @@ fn output_json(value: &serde_json::Value, pretty: bool) {
             println!("{}", value);
         }
     } else {
-        println!("{}", open_ontologies::output::render_human(value));
+        println!("{}", open_ontologies::output::render_human_for(command_name(), value));
     }
 }
 
@@ -1801,7 +1828,7 @@ fn output_result(result: &str, pretty: bool) {
         }
     } else {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(result) {
-            println!("{}", open_ontologies::output::render_human(&v));
+            println!("{}", open_ontologies::output::render_human_for(command_name(), &v));
         } else {
             println!("{}", result);
         }
@@ -2010,7 +2037,12 @@ fn main() -> anyhow::Result<()> {
 
 #[tokio::main]
 async fn async_main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+    // Parsed in two steps, as `Cli::parse` does internally, so the matches that
+    // name the subcommand are still in hand for `COMMAND`.
+    let matches = <Cli as clap::CommandFactory>::command().get_matches();
+    let cli = <Cli as clap::FromArgMatches>::from_arg_matches(&matches)
+        .unwrap_or_else(|e| e.format(&mut <Cli as clap::CommandFactory>::command()).exit());
+    COMMAND.set(command_path(&matches)).ok();
 
     // Activate JSON mode when --json or --pretty is passed.
     JSON_MODE.set(cli.json || cli.pretty || !cli.human).ok();
@@ -2712,7 +2744,8 @@ async fn async_main() -> anyhow::Result<()> {
                 std::process::exit(code);
             }
             let (db, graph) = setup(&cli.data_dir)?;
-            let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty);
+            let runner = open_ontologies::batch::BatchRunner::new(db, graph, cli.pretty)
+                .human(!json_mode());
             let exit_code = runner.run(&batch_input, bail).await;
             std::process::exit(exit_code);
         }
@@ -4286,7 +4319,7 @@ mod proxy_serialization_tests {
     /// One instance of every variant `to_batch_command` will proxy. If a new
     /// proxy-able command is added and not listed here it simply goes uncovered;
     /// nothing here passes falsely because of it.
-    fn every_proxy_able_command() -> Vec<Commands> {
+    pub(super) fn every_proxy_able_command() -> Vec<Commands> {
         vec![
             Commands::Load { path: "x.ttl".into() },
             Commands::Save { path: "x.ttl".into(), format: "turtle".into() },
@@ -4392,5 +4425,80 @@ mod proxy_serialization_tests {
         assert!(Commands::Diff { old_path: "a.ttl".into(), new_path: "b.ttl".into() }
             .to_batch_command()
             .is_none());
+    }
+}
+
+#[cfg(test)]
+mod human_render_registry_tests {
+    use super::*;
+    use clap::CommandFactory;
+
+    /// The path of every runnable subcommand, nested ones included, spelled as
+    /// `command_path` spells the one a process is running.
+    fn leaf_paths(cmd: &clap::Command, prefix: &str, out: &mut Vec<String>) {
+        for sub in cmd.get_subcommands() {
+            // clap adds `help` itself; it prints usage and never a result.
+            if sub.get_name() == "help" {
+                continue;
+            }
+            let path = if prefix.is_empty() {
+                sub.get_name().to_string()
+            } else {
+                format!("{prefix} {}", sub.get_name())
+            };
+            if sub.has_subcommands() {
+                leaf_paths(sub, &path, out);
+            } else {
+                out.push(path);
+            }
+        }
+    }
+
+    /// The guard behind #350 and #345. A subcommand added without a renderer
+    /// fails here, rather than printing raw JSON under `--human`, or, as four
+    /// did, another command's rendering of its result. To fix a failure, add an
+    /// arm for the command to `output::renderer_for`, or, if it never prints a
+    /// JSON result, add it to `output::PRINTS_ITS_OWN_TEXT`.
+    #[test]
+    fn every_subcommand_has_a_human_renderer() {
+        let mut paths = Vec::new();
+        leaf_paths(&Cli::command(), "", &mut paths);
+        assert!(paths.len() > 50, "the walk found too few subcommands: {paths:?}");
+        let missing: Vec<&String> = paths
+            .iter()
+            .filter(|p| !open_ontologies::output::has_human_renderer(p))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "no human renderer is registered for {missing:?}; add an arm to \
+             output::renderer_for"
+        );
+    }
+
+    /// The daemon path renders by the name in the batch envelope, which is
+    /// the name `to_batch_command` sends, so every one of those must resolve
+    /// too.
+    #[test]
+    fn every_proxied_command_name_has_a_human_renderer() {
+        for cmd in proxy_serialization_tests::every_proxy_able_command() {
+            let v = cmd.to_batch_command().expect("proxy-able");
+            let name = v["command"].as_str().unwrap();
+            assert!(
+                open_ontologies::output::renderer_for(name).is_some(),
+                "`{name}` is proxied but has no human renderer"
+            );
+        }
+    }
+
+    #[test]
+    fn the_running_command_is_named_by_its_full_path() {
+        let m = Cli::command()
+            .try_get_matches_from(["open-ontologies", "--human", "daemon", "status"])
+            .unwrap();
+        assert_eq!(command_path(&m), "daemon status");
+        let m = Cli::command()
+            .try_get_matches_from(["open-ontologies", "vocab-check", "d.ttl", "--human"])
+            .unwrap();
+        assert_eq!(command_path(&m), "vocab-check");
     }
 }
