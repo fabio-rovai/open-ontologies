@@ -136,9 +136,9 @@ fn verdict(lex: &str, datatype: &str, shapes: &str) -> serde_json::Value {
         .unwrap_or_else(|e| panic!("{lex} has to reach the store before any verdict means anything: {e}"));
     // The form has to reach the expression as written, or the verdict below
     // is a measurement of Oxigraph and not of this validator. The expression
-    // judges `STR()` of the value INSIDE the query, which is not always the
-    // term the store hands back: see
-    // `the_store_keeps_the_twenty_four_hour_forms_and_the_query_engine_rolls_them_over`.
+    // judges `STR()` of the value INSIDE the query, which before the pin on
+    // 0.5.13 was not always the term the store hands back: see
+    // `the_store_and_the_query_engine_keep_the_twenty_four_hour_forms_as_written`.
     assert_eq!(
         as_queried(&store),
         std::collections::BTreeSet::from([lex.to_string()]),
@@ -286,34 +286,25 @@ fn as_queried(store: &Arc<GraphStore>) -> std::collections::BTreeSet<String> {
     out
 }
 
-/// The 24-hour forms, which the store keeps and the query engine does not.
+/// The 24-hour forms, which the store and the query engine both keep as written.
 ///
 /// XSD allows `24:00:00` and it denotes midnight starting the next day, so the
 /// 24 hour admits no other non-zero field. Before the oxigraph pin moved
-/// (#335) the store canonicalised these forms on the way in, so no verdict was
-/// about the written form and they were left out of the tables above. The
-/// store now keeps them as written. The SPARQL evaluator does not: `spareval`
-/// reads an `xsd:dateTime` it can parse as a VALUE before any function sees
-/// it, and its parser accepts a 24 hour with non-zero minutes, seconds or
-/// fraction and rolls it over, so `STR()` of `2026-01-01T24:00:01` is
-/// `2026-01-02T00:00:01`. Every site judges what `STR()` gives it, so
-/// `24:00:00` conforms, which is right, and `24:00:01` and `24:30:00` conform
-/// too, which is wrong: written that way they are outside the lexical space. A
-/// 24 hour the parser refuses, `24:59:59`, stays as written and is reported.
-///
-/// `oo-shacl` reads the written form off the store and reports `24:00:01`, so
-/// this is the calendar form on which the two evaluators still differ;
-/// `tests/shacl_verified_tool_test.rs` measures that side and decision 0018
-/// records it. It is pinned as an expectation, so that a query engine that
-/// stops rolling the form over fails here and the record is amended, which is
-/// what happened to E1's own test.
+/// (#335) the store canonicalised these forms on the way in. After it, the
+/// store kept them but `spareval` parsed each as a value and rolled it over,
+/// so `STR()` of `2026-01-01T24:00:01` was `2026-01-02T00:00:01` and the ill
+/// formed `24:00:01`, `24:00:00.5` and `24:30:00` conformed at every site.
+/// The pin on 0.5.13 carries the STR fix (#343, upstream 1392252f), so `STR()`
+/// returns the written form and every site judges what was written: `24:00:00`
+/// conforms and the other four are reported, as `oo-shacl` reports them
+/// (`tests/shacl_verified_tool_test.rs`). Decision 0018 records both stages.
 #[test]
-fn the_store_keeps_the_twenty_four_hour_forms_and_the_query_engine_rolls_them_over() {
+fn the_store_and_the_query_engine_keep_the_twenty_four_hour_forms_as_written() {
     for (written, queried, conforms_here) in [
-        ("2026-01-01T24:00:00", "2026-01-02T00:00:00", true),
-        ("2026-01-01T24:00:00.5", "2026-01-02T00:00:00.5", true),
-        ("2026-01-01T24:00:01", "2026-01-02T00:00:01", true),
-        ("2026-01-01T24:30:00", "2026-01-02T00:30:00", true),
+        ("2026-01-01T24:00:00", "2026-01-01T24:00:00", true),
+        ("2026-01-01T24:00:00.5", "2026-01-01T24:00:00.5", false),
+        ("2026-01-01T24:00:01", "2026-01-01T24:00:01", false),
+        ("2026-01-01T24:30:00", "2026-01-01T24:30:00", false),
         ("2026-01-01T24:59:59", "2026-01-01T24:59:59", false),
     ] {
         let store = Arc::new(GraphStore::new());

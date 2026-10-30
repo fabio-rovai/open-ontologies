@@ -257,6 +257,18 @@ fail and this paragraph gets amended. `verdict()` now asserts that each fixture 
 EXPRESSION as written, which is the property it was always meant to guard, rather than that the store
 hands it back.
 
+**Amended again 30 October: the gap closed when this branch met the pin on Oxigraph 0.5.13 (#349,
+#343).** That pin carries upstream's STR fix (1392252f), which is the second remedy named above:
+`STR()` now returns the written lexical form of a stored literal. Measured on the combined tree,
+`24:00:00.5`, `24:00:01`, `24:30:00` and `24:59:59` reach the expression as written and the
+property shape reports all four, `24:00:00` conforms, and `oo-shacl` reports the same four, so the
+Rust and Lean evaluators agree on every 24-hour form. Every other site splices the same expression,
+so it judges the same written form. The issue the paragraph above said was owed is not needed. The
+two tests were turned around rather than deleted:
+`the_store_and_the_query_engine_keep_the_twenty_four_hour_forms_as_written` and
+`the_two_evaluators_agree_on_the_twenty_four_hour_forms` pin the agreement, so a future pin that
+brings the rollover back fails both.
+
 ### The residual gap, which is narrower and is NOT closed
 
 A negative year, and the year `0000`, are well formed XSD 1.1. `lean/Shacl/Term.lean` declines to read

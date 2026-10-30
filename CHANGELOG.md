@@ -244,12 +244,11 @@ All notable changes to Open Ontologies are documented here.
   an arithmetic calendar, itself checked against `chrono`, over 94,308 forms,
   and every site over 2,772 forms; the W3C SHACL baseline does not move, and
   the Rust and Lean evaluators report the same focus nodes on every calendar
-  fixture. One form is still missed, and is pinned rather than hidden: since
-  the oxigraph pin the store keeps `"2026-01-01T24:00:01"^^xsd:dateTime` as
-  written, but the query engine parses it and rolls it over to
-  `2026-01-02T00:00:01` before any expression sees it, so it conforms here
-  while `oo-shacl` reports it. Decision 0018 records why no SPARQL expression
-  can reach the written form.
+  fixture. The 24-hour forms are judged as written too: with the Oxigraph pin
+  on 0.5.13 and its STR fix (#343), `"2026-01-01T24:00:01"^^xsd:dateTime`
+  reaches the expression as written instead of rolled over to
+  `2026-01-02T00:00:01`, so it is reported here as `oo-shacl` reports it, and
+  of the 24-hour forms only `24:00:00` with every other field zero conforms.
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code

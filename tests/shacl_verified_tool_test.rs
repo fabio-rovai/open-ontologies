@@ -357,19 +357,17 @@ fn the_lean_evaluator_declines_the_years_this_one_declines() {
     }
 }
 
-/// The calendar form on which the two evaluators still differ, measured.
+/// The 24-hour forms, on which the two evaluators used to differ, measured.
 ///
-/// Since the oxigraph pin moved (#335) the store keeps
-/// `"2026-01-01T24:00:01"^^xsd:dateTime` as written, and that form is outside
-/// the lexical space: a 24 hour admits no other non-zero field. `oo-shacl`
-/// reads the written form and reports it. This engine judges `STR()` of the
-/// value inside the query, and the query engine parses the form as a value and
-/// rolls it over to `2026-01-02T00:00:01`, which is well formed, so it reports
-/// nothing. `24:00:00` is well formed and neither reports it. Decision 0018
-/// records the gap; this test is what stops that paragraph from going stale,
-/// and it fails the day the query engine stops rolling the form over.
+/// `"2026-01-01T24:00:01"^^xsd:dateTime` is outside the lexical space: a 24
+/// hour admits no other non-zero field. `oo-shacl` reads the written form and
+/// reports it. This engine judges `STR()` of the value inside the query, and
+/// until the pin on 0.5.13 the query engine rolled the form over to
+/// `2026-01-02T00:00:01`, which is well formed, so it reported nothing. The STR
+/// fix (#343) returns the written form, and both evaluators now report
+/// `24:00:01` and leave `24:00:00` alone. Decision 0018 records both stages.
 #[test]
-fn the_twenty_four_hour_rollover_is_where_the_two_evaluators_still_differ() {
+fn the_two_evaluators_agree_on_the_twenty_four_hour_forms() {
     if skip() {
         return;
     }
@@ -395,8 +393,8 @@ fn the_twenty_four_hour_rollover_is_where_the_two_evaluators_still_differ() {
     );
     assert_eq!(
         reported(&rust),
-        std::collections::BTreeSet::new(),
-        "this engine is expected to see the rolled-over form and report nothing: {rust}"
+        expected(&table),
+        "this engine is expected to judge the written 24:00:01, as the Lean does: {rust}"
     );
 }
 
