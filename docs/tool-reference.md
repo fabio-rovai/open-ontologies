@@ -74,7 +74,7 @@ it withheld.
 ## Every tool
 
 
-122 tools.
+123 tools.
 
 | Tool | What it does |
 | --- | --- |
@@ -103,6 +103,7 @@ it withheld.
 | `onto_closure_diff` | Which CONCLUSIONS a projection preserves, with no goals supplied. |
 | `onto_coevolve_dependency_graph` | Build the shape→OWL-dependency map for a SHACL document. |
 | `onto_communities` | Detect communities in the loaded entity graph and return a SKELETON per community: size, top members by degree, internal relations, and the bridges connecting it to other communities. |
+| `onto_compile_exceptions` | Compile EXPLICIT exceptions to a disjointness (`exceptFor`) into ordinary disjointness axioms, in the loaded store, in place, with the cost of each exemption reported (#347, decision 0019). |
 | `onto_conservative_check` | Does adding these axioms change anything the ontology ALREADY said? Reasons base and base+extension to a fixpoint under one rule table and reports closure(base ∪ extension) minus closure(base), restricted to triples every name of which the base already used. |
 | `onto_convert` | Convert an ontology file to turtle, ntriples, rdfxml, nquads, trig or ofn (OWL 2 functional syntax, with every unexported construct named and counted). |
 | `onto_cq_run` | Run a batch of competency questions (CQs) against the loaded ontology (#29). |

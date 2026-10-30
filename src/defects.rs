@@ -120,6 +120,22 @@ impl Defects {
         let kinds_checked: Vec<&str> = checks.iter().map(|c| c.kind).collect();
         let findings = Self::findings(graph)?;
         let cap = if limit == 0 { usize::MAX } else { limit };
+        // A class declared an exception with `exceptFor` is still an error
+        // here, because the disjointness is still asserted and every reasoner
+        // still finds the class unsatisfiable; the tools must not disagree.
+        // The row says so and names the compile that resolves it (#347). It
+        // is decoration on the listing and not part of `Finding`, so `plan`,
+        // which compares findings, does not see an annotation as a change.
+        let declared = crate::exceptions::Exceptions::declared(graph)?;
+        let declared_exception = |f: &Finding| -> Option<String> {
+            if f.kind != "inherited_disjoint" || declared.is_empty() {
+                return None;
+            }
+            let get = |var: &str| f.bindings.iter().find(|(k, _)| k == var).map(|(_, v)| v.as_str());
+            let (first, second) = (get("first")?, get("second")?);
+            declared.covering(first, second, &f.subject).map(str::to_string)
+        };
+        let declared_count = findings.iter().filter(|f| declared_exception(f).is_some()).count();
 
         let mut defects: Vec<serde_json::Value> = Vec::new();
         let mut truncated = serde_json::Map::new();
@@ -157,7 +173,15 @@ impl Defects {
             if rows.len() > cap {
                 truncated.insert(check.kind.to_string(), serde_json::json!(rows.len()));
             }
-            defects.extend(rows.iter().take(cap).map(|f| f.to_json()));
+            defects.extend(rows.iter().take(cap).map(|f| {
+                let mut row = f.to_json();
+                if let Some(exception) = declared_exception(f) {
+                    row["declared_exception"] = serde_json::json!(true);
+                    row["hint"] = serde_json::json!(crate::exceptions::defects_hint(&exception));
+                    row["exception"] = serde_json::json!(exception);
+                }
+                row
+            }));
         }
 
         Ok(serde_json::json!({
@@ -170,6 +194,10 @@ impl Defects {
             // Always all three keys, so a reader never has to tell "none of
             // this kind" from "this key was not written".
             "severity_counts": {"error": errors, "warning": warnings, "info": infos},
+            // `inherited_disjoint` findings whose class is a declared
+            // `exceptFor` exception not yet compiled, listed or not. Still
+            // counted as errors above.
+            "declared_exceptions": declared_count,
             "reported_count": defects.len(),
             "limit_per_kind": limit,
             "defects": defects,

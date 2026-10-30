@@ -6,6 +6,35 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **An exception to a disjointness can be declared and compiled away, so
+  every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
+  reified `owl:disjointWith` axiom (`exc:` is
+  `https://open-ontologies.org/exceptions#`), in either direction, names the
+  classes the disjointness should not reach. `compile-exceptions FILE --out
+  COMPILED` (CLI; without `--out` it is a dry run), `compile-exceptions` in
+  `batch` and `onto_compile_exceptions` (MCP, the loaded store in place)
+  rewrite each annotated `X ⊥ Y` over the asserted hierarchy of named classes
+  under one reading: a class under X and a class under Y stay compatible
+  exactly when an exception, or a class below one, is told-below both. `X ⊥ Y`
+  is removed; with Z the exceptions, what is below them and all their
+  ancestors, `S ⊥ Y` is emitted for every S under X outside Z, `T ⊥ X` for
+  every T under Y outside Z, and `a ⊥ b` for each most general pair inside Z
+  with nothing licensed below both (two exceptions under different
+  intermediate classes keep those intermediates apart). On the issue's
+  example `Houseboat` and its subclass become satisfiable to the owl-dl
+  tableau, `FloatingRestaurant` (under both, not an exception) stays
+  unsatisfiable, and `Car ⊓ Building` is still unsatisfiable. An exception not under both sides is rejected by name
+  (`exception_not_under_both`). The cost is in the report:
+  `exempted_classes`, with `exempted_beyond_the_exceptions` naming those that
+  are not exceptions (here `Vehicle` and `Building`, so an individual typed
+  only as both is no longer a contradiction). The axiom becomes a record
+  (`exc:compiledDisjointWith`, an annotation property) rather than a dangling
+  reification, a re-run adds pairs for new subclasses and never retracts one,
+  and a run over a compiled graph changes nothing. `defects` on an uncompiled
+  store still reports the exception as an error, as every reasoner still
+  does, and marks the row `declared_exception: true` with a hint naming the
+  compile; `declared_exceptions` counts them. The issue's defeasible
+  semantics is not built, for four reasons given in decision 0019.
 - **A plan says whether the change breaks the ontology, and scores it `high`
   when it does** (#336, reported by @jpsanchezcalypso). `risk_score` came from
   removal counts alone, so a change that made a named class unsatisfiable (R1:

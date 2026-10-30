@@ -24,6 +24,9 @@ pub mod communities;
 pub mod config;
 pub mod cq;
 pub mod defects;
+/// Explicit exceptions to a disjointness (`exceptFor`), compiled into
+/// ordinary disjointness axioms before any reasoner reads them (#347).
+pub mod exceptions;
 pub mod dl_refute;
 pub mod crosswalk;
 pub mod matcert;
