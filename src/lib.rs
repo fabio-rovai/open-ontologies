@@ -106,6 +106,10 @@ pub mod provenance;
 /// Axiom pinpointing: the minimal sets of asserted triples responsible for a
 /// conclusion, or for a clash. Built over `provenance`'s DAG index.
 pub mod justify;
+/// Weighted repair: the cheapest set of asserted axioms whose removal makes
+/// every class coherent in the atomic named-class fragment, by implicit
+/// hitting sets, with optimality optionally refuted by `oo-lrat`.
+pub mod repair;
 /// Standard rule syntaxes (SWRL, RIF Core) into the Horn rule table
 /// `reason::run_horn` evaluates and `lean/`'s `oo-horn` checks.
 pub mod rulesyntax;

@@ -730,6 +730,24 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_consistency_differential_test -- --nocapture
       - name: Check the model ingestion, both front ends
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_model_ingest_test -- --nocapture
+      - name: Install picosat, the solver whose refutations oo-lrat checks
+        # Ubuntu's picosat package builds the solver twice and installs the
+        # build WITH proof traces as /usr/bin/picosat.trace; plain
+        # /usr/bin/picosat has no trace support, and `-T` is how src/sat.rs
+        # gets the proof it converts to LRAT. Read off the package's
+        # debian/rules and debian/install rather than assumed. The apt index is
+        # fresh from the model finders step above.
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y picosat
+          test -x /usr/bin/picosat.trace
+      - name: Refute a cheaper weighted repair through oo-lrat
+        # #346. A weighted repair is called optimal when its branch and bound
+        # closes; with a certificate the same claim is a CNF that picosat
+        # refutes and oo-lrat checks under Lrat.unsat_of_check. Strict, because
+        # the leg that matters needs both tools, and a skip here would leave
+        # the word `refuted` printed by no run that CI ever sees.
+        run: OO_SAT_SOLVER=/usr/bin/picosat.trace OO_REQUIRE_FIXTURES=1 cargo test --test repair_certificate_test -- --nocapture
       - name: Build the release binary the SMT differential drives
         # The differential compares the SMT-LIB THE PRODUCT EMITS, so it runs
         # the real binary rather than linking the library. `cargo test` does not

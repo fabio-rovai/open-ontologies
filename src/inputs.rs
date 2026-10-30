@@ -415,6 +415,40 @@ pub struct OntoJustifyInput {
     pub certificate_dir: Option<String>,
 }
 
+#[derive(Deserialize, JsonSchema, Default)]
+pub struct OntoRepairInput {
+    /// The annotation property that carries an axiom's weight, read from its
+    /// reification: `[] a owl:Axiom ; owl:annotatedSource S ;
+    /// owl:annotatedProperty P ; owl:annotatedTarget O ; <this> "0.62"`. A
+    /// full IRI, with or without angle brackets. Omitted, every axiom gets
+    /// `default_weight`.
+    pub weight_property: Option<String>,
+    /// The weight of an axiom with no weight annotation. Default 1. Under
+    /// `probability`, 1 makes unannotated axioms hard.
+    pub default_weight: Option<f64>,
+    /// `cost` (default): a weight is what dropping the axiom costs, and the
+    /// sum over the dropped axioms is minimised. `probability`: a weight is
+    /// the probability the axiom is right, and the sum over the dropped axioms
+    /// of ln(p / (1 - p)) is minimised, which is the most probable coherent
+    /// subset under independence. p = 1 is never dropped; p <= 0.5 is dropped
+    /// at no cost when it is in a conflict.
+    pub weights: Option<String>,
+    /// Write the optimality certificate here: a CNF saying no cheaper set of
+    /// soft axioms hits every collected conflict, refuted by picosat and
+    /// checked by `oo-lrat` (`Lrat.unsat_of_check`). Without picosat or
+    /// `oo-lrat` the status is `undetermined`, never `refuted`.
+    pub certificate_dir: Option<String>,
+    /// Branch-and-bound nodes one hitting-set computation may expand.
+    /// Default 100000. When it fires on the last round the answer says
+    /// `optimal: false` and names it.
+    pub max_nodes: Option<usize>,
+    /// Rounds of the implicit hitting set loop. Default 500. When it fires the
+    /// repair is completed greedily and `optimal` is false.
+    pub max_rounds: Option<usize>,
+    /// Write the repaired graph here as Turtle. The store is NOT changed.
+    pub out: Option<String>,
+}
+
 #[derive(Deserialize, JsonSchema)]
 pub struct ProvenanceWeight {
     /// One N-Triples triple that must be ASSERTED in the store.

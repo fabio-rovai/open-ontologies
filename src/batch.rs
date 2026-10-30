@@ -145,6 +145,7 @@ impl BatchRunner {
             "lint" => self.exec_lint(&cmd.args),
             "defects" => self.exec_defects(&cmd.args),
             "compile-exceptions" | "compile_exceptions" => self.exec_compile_exceptions(&cmd.args),
+            "repair" => self.exec_repair(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "certificate-check" | "certificate_check" => self.exec_certificate_check(&cmd.args),
             "fol" => self.exec_fol(&cmd.args),
@@ -388,6 +389,89 @@ impl BatchRunner {
             report["written"] = json!(out);
         }
         report
+    }
+
+    /// `repair [path] [--weight-property IRI] [--default-weight N]
+    /// [--weights cost|probability] [--certificate-dir DIR] [--max-nodes N]
+    /// [--max-rounds N] [--out FILE]`. With a path, the file is repaired alone,
+    /// as the CLI subcommand repairs it; without one, the batch's own store is,
+    /// so `load x.ttl` then `repair` repairs what was loaded. The store is never
+    /// changed; `--out` writes the repaired graph as Turtle.
+    fn exec_repair(&self, args: &[String]) -> Value {
+        use crate::repair::{RepairOptions, WeightKind, DEFAULT_MAX_NODES, DEFAULT_MAX_ROUNDS};
+        const VALUED: [&str; 7] = [
+            "--weight-property",
+            "--default-weight",
+            "--weights",
+            "--certificate-dir",
+            "--max-nodes",
+            "--max-rounds",
+            "--out",
+        ];
+        fn number<T: std::str::FromStr>(args: &[String], flag: &str, default: T) -> Result<T, Value> {
+            match BatchRunner::flag_value(args, flag) {
+                None => Ok(default),
+                Some(v) => v
+                    .parse::<T>()
+                    .map_err(|_| json!({"error": format!("{flag} takes a number, got '{v}'")})),
+            }
+        }
+        let weights = match WeightKind::parse(
+            Self::flag_value(args, "--weights").as_deref().unwrap_or("cost"),
+        ) {
+            Ok(w) => w,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        let default_weight = match number(args, "--default-weight", 1.0f64) {
+            Ok(n) => n,
+            Err(e) => return e,
+        };
+        let max_nodes = match number(args, "--max-nodes", DEFAULT_MAX_NODES) {
+            Ok(n) => n.max(1),
+            Err(e) => return e,
+        };
+        let max_rounds = match number(args, "--max-rounds", DEFAULT_MAX_ROUNDS) {
+            Ok(n) => n,
+            Err(e) => return e,
+        };
+        let opts = RepairOptions {
+            weight_property: Self::flag_value(args, "--weight-property"),
+            default_weight,
+            weights,
+            certificate_dir: Self::flag_value(args, "--certificate-dir").map(std::path::PathBuf::from),
+            max_nodes,
+            max_rounds,
+            out: Self::flag_value(args, "--out").map(std::path::PathBuf::from),
+        };
+        let mut skip_next = false;
+        let path = args.iter().find(|a| {
+            if std::mem::take(&mut skip_next) {
+                return false;
+            }
+            if VALUED.contains(&a.as_str()) {
+                skip_next = true;
+                return false;
+            }
+            !a.starts_with("--")
+        });
+        let graph = match path {
+            None => self.graph.clone(),
+            Some(p) => {
+                let content = match crate::graph::GraphStore::read_as_turtle(p) {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                let g = Arc::new(GraphStore::new());
+                if let Err(e) = g.load_turtle(&content, None) {
+                    return json!({"error": e.to_string()});
+                }
+                g
+            }
+        };
+        match crate::repair::repair(&graph, &opts) {
+            Ok(v) => v,
+            Err(e) => json!({"error": e.to_string()}),
+        }
     }
 
     fn exec_reason(&self, args: &[String]) -> Value {

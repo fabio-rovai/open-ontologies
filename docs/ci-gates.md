@@ -65,6 +65,7 @@ job invokes the file at all.
 |---|---|---|---|
 | `lean_certificate_test.rs` | lake | `lean` job | **strict** |
 | `justify_test.rs` | `benchmark/reference/pizza-reference.owl`, which ships with the repository | `lean` job | **strict** |
+| `repair_certificate_test.rs` | picosat with trace support + `oo-lrat`, for the one leg that refutes a cheaper repair; the other two need nothing | `lean` job installs Ubuntu's `picosat` and points `OO_SAT_SOLVER` at its `picosat.trace` | **strict** |
 | `provenance_test.rs` | the same shipped ontology | `lean` job | **strict** |
 | `shacl_core_verified_test.rs` | lake + vendored W3C SHACL suite | `lean` job | **strict** |
 | `dl_model_certificate_test.rs` | lake + `oo-dlmodel` | `lean` job | **strict** |

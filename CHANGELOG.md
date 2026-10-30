@@ -35,6 +35,39 @@ All notable changes to Open Ontologies are documented here.
   does, and marks the row `declared_exception: true` with a hint naming the
   compile; `declared_exceptions` counts them. The issue's defeasible
   semantics is not built, for four reasons given in decision 0019.
+
+- **`repair` returns the cheapest set of asserted axioms whose removal makes
+  every class coherent, and says what checked each half of that** (#346).
+  `defects` said that a class could have no instances and `onto_justify` said
+  which axioms were responsible; nothing said which to drop. `repair`
+  (CLI), `onto_repair` (MCP) and `repair` (`batch`) read per-axiom weights
+  from `owl:Axiom` reifications (`--weight-property`, `--default-weight`, 1 by
+  default) and return the dropped axioms with the conflicts each one hits, the
+  total weight, the classes made coherent, `optimal` with its basis, a
+  `lower_bound`, and `--out` writes the repaired Turtle. Coherence is judged in
+  the atomic named-class fragment `defects` judges (`subClassOf`,
+  `disjointWith`, and `equivalentClass` as one axiom with two edges, between
+  IRIs), plus a class disjoint with itself; every other triple is counted by
+  bucket under `scope` and never read. The search is the implicit hitting set
+  loop of Davies and Bacchus (CP 2011): a hitting set of the conflicts
+  collected so far is removed and the fragment re-checked, greedy in the
+  intermediate rounds and exact (branch and bound) once a greedy repair is
+  coherent, and an exact repair that comes out coherent is optimal by
+  monotonicity; it does not enumerate every MinA first. `--weights
+  probability` minimises the summed log-odds of what is dropped, the most
+  probable coherent subset under independence, because summing raw
+  probabilities is not: conflicts `{a=0.6, c=0.9}` and `{b=0.6, c=0.9}` drop
+  `c` under `cost` and `a` and `b` under `probability`, and both are pinned.
+  `p = 1` is hard and a conflict of hard axioms is reported `unrepairable`;
+  `p <= 0.5` is dropped at no cost with that reason. Conflicts are re-run,
+  coherence is re-run (and the `--out` file is read back through `defects`),
+  and with `--certificate-dir` optimality is written as CNF (one clause per
+  conflict, the cost bound as a reduced BDD), refuted by picosat and checked by
+  `oo-lrat` under `Lrat.unsat_of_check`; without either tool the status is
+  `undetermined`, never `refuted`. `max_nodes` and `max_rounds` bound the
+  search and name themselves when they fire. The `lean` CI job now installs
+  Ubuntu's `picosat` and runs `repair_certificate_test` strictly against its
+  `picosat.trace` build.
 - **A plan says whether the change breaks the ontology, and scores it `high`
   when it does** (#336, reported by @jpsanchezcalypso). `risk_score` came from
   removal counts alone, so a change that made a named class unsatisfiable (R1:

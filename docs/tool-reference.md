@@ -74,7 +74,7 @@ it withheld.
 ## Every tool
 
 
-123 tools.
+124 tools.
 
 | Tool | What it does |
 | --- | --- |
@@ -169,6 +169,7 @@ it withheld.
 | `onto_reason` | Run inference over the loaded ontology. |
 | `onto_reason_incremental` | Derive the consequences of newly added triples WITHOUT recomputing the whole closure. |
 | `onto_recompile` | Force-recompile an ontology from its source file, ignoring the on-disk cache. |
+| `onto_repair` | WEIGHTED REPAIR: the cheapest set of ASSERTED axioms whose removal makes every class coherent, with the conflicts each dropped axiom breaks. |
 | `onto_repo_list` | List RDF/OWL files in the configured ontology repository directories ([general] ontology_dirs). |
 | `onto_repo_load` | Load an ontology from one of the configured repository directories ([general] ontology_dirs) into the active store. |
 | `onto_rollback` | Restore the ontology store to a previously saved version |
