@@ -381,25 +381,24 @@ fn a_non_canonical_literal_is_kept_as_written_and_reported_as_written() {
     assert_eq!(j["violations"][0]["value"], decimal("4.0"), "{j}");
 }
 
-/// What #335's store fix does NOT reach, measured on the same pin. The SPARQL
-/// evaluator (`spareval`, unpatched in the fork) still turns a literal of a
-/// datatype it knows into its value before any function sees it, so inside a
-/// query `STR("4.0"^^xsd:decimal)` is `"4"` and `DATATYPE("5"^^xsd:int)` is
-/// `xsd:integer`, whether the literal came from the store or the query text.
-/// Two consequences stay in this engine:
+/// What #335's store fix did NOT reach, and #343 did. On the 0.5.9 pin the
+/// SPARQL evaluator turned a literal of a datatype it knew into its value
+/// before any function saw it, so inside a query `STR("4.0"^^xsd:decimal)`
+/// was `"4"` and `DATATYPE("5"^^xsd:int)` was `xsd:integer`, whether the
+/// literal came from the store or the query text. Two consequences followed:
 ///
-/// * a lexical constraint judges the canonical string, so `sh:pattern "\\.0$"`
-///   reports a lone `"4.0"^^xsd:decimal`, whose lexical form matches;
-/// * `DATATYPE()` cannot tell the twelve integer-derived types or
-///   `xsd:dateTimeStamp` from their base type, so
-///   `datatype_is_indistinguishable_in_store` keeps refusing them
-///   (`tests/datatype_preservation_test.rs` pins that set).
+/// * a lexical constraint judged the canonical string, so `sh:pattern "\\.0$"`
+///   reported a lone `"4.0"^^xsd:decimal`, whose lexical form matches;
+/// * `DATATYPE()` could not tell the twelve integer-derived types or
+///   `xsd:dateTimeStamp` from their base type, so the SHACL engine refused
+///   every constraint naming one.
 ///
-/// When this fails, the evaluator keeps lexical forms: turn the `sh:pattern`
-/// assertion round and re-measure that set.
+/// The pin now carries oxigraph 1392252f (STR) and the DATATYPE half of
+/// oxigraph/oxigraph#2010 on top of 0.5.13, so both functions read the term as
+/// written. This test pinned the old behaviour and now pins the fixed one;
+/// `tests/datatype_preservation_test.rs` checks the full datatype set.
 #[test]
-fn inside_a_query_a_known_datatype_literal_is_still_read_by_value() {
-    const FIXED: &str = "the SPARQL evaluator now keeps the lexical form: see this test's doc comment";
+fn inside_a_query_a_literal_is_read_as_written() {
     let data = r#"@prefix ex: <http://ex.org/> .
                   @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
                   ex:a a ex:Person ; ex:age "4.0"^^xsd:decimal ; ex:n "5"^^xsd:int ."#;
@@ -408,16 +407,28 @@ fn inside_a_query_a_known_datatype_literal_is_still_read_by_value() {
         .sparql_select("SELECT (STR(?a) AS ?s) (DATATYPE(?n) AS ?d) WHERE { ?x <http://ex.org/age> ?a ; <http://ex.org/n> ?n }")
         .unwrap();
     let row = &serde_json::from_str::<Value>(&json).unwrap()["results"][0];
-    assert_eq!(row["s"], "\"4\"", "{FIXED}: {json}");
-    assert_eq!(row["d"], "<http://www.w3.org/2001/XMLSchema#integer>", "{FIXED}: {json}");
+    assert_eq!(row["s"], "\"4.0\"", "STR() must give the lexical form as written: {json}");
+    assert_eq!(row["d"], "<http://www.w3.org/2001/XMLSchema#int>", "DATATYPE() must give the datatype as written: {json}");
 
+    // The lone "4.0" matches "\.0$", so the pattern constraint holds. On the
+    // old pin STR() read "4" and this reported one violation.
     let pattern = r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
                      @prefix ex: <http://ex.org/> .
                      ex:S a sh:NodeShape ; sh:targetClass ex:Person ;
                        sh:property [ sh:path ex:age ; sh:pattern "\\.0$" ] ."#;
     let j = json_report(data, pattern);
-    assert_eq!(j["violation_count"], 1, "{FIXED}: {j}");
-    assert_eq!(value_for(&j, "pattern"), Some("\"4.0\"^^<http://www.w3.org/2001/XMLSchema#decimal>".into()), "{j}");
+    assert_eq!(j["violation_count"], 0, "{j}");
+    assert_eq!(j["conforms"], true, "{j}");
+
+    // And the constraint still bites: "4" does not end in ".0".
+    let j = json_report(
+        r#"@prefix ex: <http://ex.org/> .
+           @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+           ex:a a ex:Person ; ex:age "4"^^xsd:decimal ."#,
+        pattern,
+    );
+    assert_eq!(j["violation_count"], 1, "{j}");
+    assert_eq!(value_for(&j, "pattern"), Some("\"4\"^^<http://www.w3.org/2001/XMLSchema#decimal>".into()), "{j}");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

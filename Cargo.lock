@@ -2849,8 +2849,8 @@ dependencies = [
 
 [[package]]
 name = "oxigraph"
-version = "0.5.9"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.5.13"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "dashmap",
  "getrandom 0.3.4",
@@ -2886,8 +2886,8 @@ checksum = "54b4ed3a7192fa19f5f48f99871f2755047fabefd7f222f12a1df1773796a102"
 
 [[package]]
 name = "oxjsonld"
-version = "0.2.5"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.7"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "json-event-parser",
  "oxiri",
@@ -2898,8 +2898,8 @@ dependencies = [
 
 [[package]]
 name = "oxrdf"
-version = "0.3.3"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.3.5"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "hex",
  "oxilangtag",
@@ -2912,8 +2912,8 @@ dependencies = [
 
 [[package]]
 name = "oxrdfio"
-version = "0.2.5"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.7"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "oxjsonld",
  "oxrdf",
@@ -2924,8 +2924,8 @@ dependencies = [
 
 [[package]]
 name = "oxrdfxml"
-version = "0.2.3"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.5"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "oxilangtag",
  "oxiri",
@@ -2936,8 +2936,8 @@ dependencies = [
 
 [[package]]
 name = "oxrocksdb-sys"
-version = "0.5.9"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.5.13"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "bindgen",
  "cc",
@@ -2945,16 +2945,16 @@ dependencies = [
 
 [[package]]
 name = "oxsdatatypes"
-version = "0.2.2"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.4"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "thiserror",
 ]
 
 [[package]]
 name = "oxttl"
-version = "0.2.3"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.5"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "memchr",
  "oxilangtag",
@@ -4052,8 +4052,8 @@ dependencies = [
 
 [[package]]
 name = "sparesults"
-version = "0.3.3"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.3.5"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "json-event-parser",
  "memchr",
@@ -4064,8 +4064,8 @@ dependencies = [
 
 [[package]]
 name = "spareval"
-version = "0.2.6"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.2.9"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "hex",
  "json-event-parser",
@@ -4086,8 +4086,8 @@ dependencies = [
 
 [[package]]
 name = "spargebra"
-version = "0.4.6"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.4.8"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "oxilangtag",
  "oxiri",
@@ -4099,8 +4099,8 @@ dependencies = [
 
 [[package]]
 name = "sparopt"
-version = "0.3.6"
-source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=6409fa1c8ad5880399d0ca69b38e43cbb2052ad7#6409fa1c8ad5880399d0ca69b38e43cbb2052ad7"
+version = "0.3.9"
+source = "git+https://github.com/fabio-rovai/oxigraph.git?rev=37db8e1522585ed2f9aa994be6c5c716859af5c8#37db8e1522585ed2f9aa994be6c5c716859af5c8"
 dependencies = [
  "oxrdf",
  "rand 0.9.4",

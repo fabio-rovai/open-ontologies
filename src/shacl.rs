@@ -551,16 +551,6 @@ impl ShaclValidator {
                         }
                         "datatype" => {
                             let dt = strip_angle_brackets(obj);
-                            if datatype_is_indistinguishable_in_store(&dt) {
-                                skipped.push(serde_json::json!({
-                                    "shape": strip_angle_brackets(&shape_iri),
-                                    "constraint": "sh:datatype",
-                                    "reason": format!(
-                                        "the SPARQL evaluator reads <{dt}> as the type it derives from, so DATATYPE() cannot tell a conforming value from one of that type; this cannot be decided"
-                                    ),
-                                }));
-                                continue;
-                            }
                             // A literal whose lexical form is not in the
                             // datatype's lexical space is ill-typed and violates
                             // sh:datatype (SHACL 4.1.2), and DATATYPE() alone
@@ -796,10 +786,6 @@ impl ShaclValidator {
             // and the run came back CLEAN. Same defect in sh:in and sh:not.
             let mut or_alternatives: HashMap<String, Vec<String>> = HashMap::new();
             let mut or_unsupported: HashSet<String> = HashSet::new();
-            // Property shape -> a member datatype DATATYPE() cannot report.
-            // The direct sh:datatype path refuses that question; a member
-            // answering it reported every widened value as matching nothing.
-            let mut or_unpreserved: HashMap<String, String> = HashMap::new();
             let or_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -839,12 +825,7 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    let dt = strip_angle_brackets(dt);
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        or_unpreserved.insert(p, dt);
-                        continue;
-                    }
-                    datatype_conforms(&dt, "val")
+                    datatype_conforms(&strip_angle_brackets(dt), "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -857,13 +838,6 @@ impl ShaclValidator {
                     continue;
                 };
                 or_alternatives.entry(p).or_default().push(clause);
-            }
-            for (p, dt) in &or_unpreserved {
-                or_alternatives.remove(p);
-                if !or_unsupported.contains(p) {
-                    let path = or_paths.get(p).cloned().unwrap_or_default();
-                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:or", &path, dt));
-                }
             }
             for p in &or_unsupported {
                 or_alternatives.remove(p);
@@ -892,10 +866,6 @@ impl ShaclValidator {
             // and 198 real violations were reported as a clean run.
             let mut not_clauses: HashMap<String, Vec<String>> = HashMap::new();
             let mut not_unsupported: HashSet<String> = HashSet::new();
-            // As `or_unpreserved`. Here answering anyway was a false clean: a
-            // value of the forbidden datatype read as xsd:integer, did not
-            // match, and satisfied the negation.
-            let mut not_unpreserved: HashMap<String, String> = HashMap::new();
             let not_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -938,12 +908,7 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    let dt = strip_angle_brackets(dt);
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        not_unpreserved.insert(p, dt);
-                        continue;
-                    }
-                    datatype_conforms(&dt, "val")
+                    datatype_conforms(&strip_angle_brackets(dt), "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -963,13 +928,6 @@ impl ShaclValidator {
                     continue;
                 };
                 not_clauses.entry(p).or_default().push(clause);
-            }
-            for (p, dt) in &not_unpreserved {
-                not_clauses.remove(p);
-                if !not_unsupported.contains(p) {
-                    let path = not_paths.get(p).cloned().unwrap_or_default();
-                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:not", &path, dt));
-                }
             }
             for p in &not_unsupported {
                 not_clauses.remove(p);
@@ -1079,10 +1037,6 @@ impl ShaclValidator {
                     }
                     if let Some(dt) = row.get("datatype") {
                         let dt = strip_angle_brackets(dt);
-                        if datatype_is_indistinguishable_in_store(&dt) {
-                            uncompilable = true;
-                            break;
-                        }
                         clauses.push(format!(
                             "NOT EXISTS {{ ?focus <{path}> ?{v} . FILTER(!{}) }}",
                             datatype_conforms(&dt, &v)
@@ -1226,17 +1180,6 @@ impl ShaclValidator {
                     row.get("message").cloned().filter(|_| !q_message.is_empty()),
                 );
 
-                if let Some(dt) = row.get("datatype").map(|d| strip_angle_brackets(d))
-                    && datatype_is_indistinguishable_in_store(&dt)
-                {
-                    skipped.push(unpreserved_datatype_skip(
-                        &shape_iri,
-                        "sh:qualifiedValueShape",
-                        &q_path,
-                        &dt,
-                    ));
-                    continue;
-                }
                 let clause = if row.get("other").is_some() {
                     None
                 } else if let Some(c) = row.get("class") {
@@ -1507,15 +1450,6 @@ impl ShaclValidator {
                 // sh:datatype
                 if let Some(dt_str) = prop.get("datatype") {
                     let dt = strip_angle_brackets(dt_str);
-                    // DATATYPE() cannot tell these apart from the type they are
-                    // derived from, so the constraint is not decidable here and
-                    // must not be answered. Asking anyway produced a violation
-                    // for every value that satisfied the shape: nine of them in
-                    // jsonld-escaping-conformance, which is how this was found.
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:datatype", &path, &dt));
-                        continue;
-                    }
                     // One evaluator gave two answers to one constraint. SHACL
                     // 4.1.2 makes a literal whose lexical form is outside its
                     // datatype's lexical space a violation, `DATATYPE()` alone
@@ -2841,18 +2775,7 @@ fn compile_node_shape(
                 "EXISTS {{ ?{var} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
                 strip_angle_brackets(obj)
             )),
-            "datatype" => {
-                // Refused for the same reason as on a property inside the
-                // shape, below: DATATYPE() cannot tell the datatype from the
-                // one it derives from. Only the property form was guarded, so
-                // `sh:node` to a shape declaring `sh:datatype xsd:int` itself
-                // reported every value DATATYPE() read as xsd:integer.
-                let dt = strip_angle_brackets(obj);
-                if datatype_is_indistinguishable_in_store(&dt) {
-                    return None;
-                }
-                clauses.push(datatype_conforms(&dt, var))
-            }
+            "datatype" => clauses.push(datatype_conforms(&strip_angle_brackets(obj), var)),
             "nodeKind" => clauses.push(node_kind_test(&strip_angle_brackets(obj), var)?),
             _ => return None,
         }
@@ -2932,11 +2855,6 @@ fn compile_node_shape(
         }
         if let Some(dt) = row.get("datatype") {
             let dt = strip_angle_brackets(dt);
-            // DATATYPE() cannot tell these apart from the type they derive
-            // from, so a nested shape resting on one is not decidable either.
-            if datatype_is_indistinguishable_in_store(&dt) {
-                return None;
-            }
             clauses.push(format!(
                 "NOT EXISTS {{ ?{var} <{path}> ?{inner} . FILTER(!{}) }}",
                 datatype_conforms(&dt, &inner)
@@ -2995,65 +2913,98 @@ fn node_kind_test(node_kind: &str, var: &str) -> Option<String> {
     })
 }
 
-/// Datatype IRIs that `DATATYPE()` cannot report, so no SPARQL test here can
-/// decide them.
+/// The lexical tests `datatype_conforms` adds for the twelve XSD
+/// integer-derived datatypes and `xsd:dateTimeStamp`, as regexes already
+/// escaped for a SPARQL string literal. Empty for any other datatype.
 ///
-/// The twelve XSD integer-derived types and `xsd:dateTimeStamp`. Since #335 the
-/// store keeps them: the pinned oxigraph (oxigraph/oxigraph#2010) gives
-/// `"5"^^xsd:int` back as written, where 0.5.9 encoded it as
-/// `EncodedTerm::IntegerLiteral` and gave back `"5"^^xsd:integer`. The SPARQL
-/// evaluator, `spareval`, is unpatched and still maps each of these IRIs to its
-/// base type's value before any function sees it, so inside a query
-/// `DATATYPE("5"^^xsd:int)` is `xsd:integer` and `DATATYPE` of an
-/// `xsd:dateTimeStamp` is `xsd:dateTime`, whether the literal came from the
-/// store or the query text. Measured on the new pin over every XSD datatype:
-/// exactly these thirteen; `tests/datatype_preservation_test.rs` pins the set
-/// in both directions. `xsd:yearMonthDuration` and `xsd:dayTimeDuration`,
-/// equally derived, have their own encodings and answer correctly.
+/// Until the oxigraph pin carried the STR and DATATYPE ports (#343), these
+/// thirteen were refused outright: the evaluator read `"5"^^xsd:int` as an
+/// `xsd:integer` before `DATATYPE()` saw it, so no SPARQL test could tell a
+/// conforming value from one of the base type. `DATATYPE()` now answers the
+/// datatype as written, and that settles a value of the wrong datatype. It
+/// does not settle an ill-typed one, because the evaluator parses every one
+/// of the twelve as an unbounded `xsd:integer` and `xsd:dateTimeStamp` as an
+/// `xsd:dateTime`: `"300"^^xsd:byte` is a number to it, and nothing checks the
+/// range. W3C `core/property/datatype-ill-formed` is exactly that case. So the
+/// lexical space is tested here, as `lexical_space_regex` tests the primitive
+/// types.
 ///
-/// A `sh:datatype` test naming one of these cannot be decided by `DATATYPE()`:
-/// a conforming value and one of the base type answer alike. Answering anyway
-/// reports a violation for every value that in fact satisfies the shape.
-fn datatype_is_indistinguishable_in_store(datatype: &str) -> bool {
+/// For a bounded type the regex is the range itself, written digit by digit
+/// by [`numerals_up_to`], so `"300"^^xsd:byte` fails it and
+/// `"+0127"^^xsd:byte` passes. A regex has no width limit, so the 64-bit
+/// bounds of `xsd:long` and `xsd:unsignedLong`, which do not fit the
+/// evaluator's integers, are as exact as the 8-bit ones. `"-0"` is a lexical
+/// form of zero and so lies in every non-negative type. An `xsd:dateTimeStamp`
+/// is an `xsd:dateTime` whose timezone is required, so it takes the dateTime
+/// test and one more.
+fn derived_lexical_space_regexes(datatype: &str) -> Vec<String> {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let Some(local) = datatype.strip_prefix(XSD) else {
-        return false;
+        return Vec::new();
     };
-    matches!(
-        local,
-        "byte"
-            | "short"
-            | "int"
-            | "long"
-            | "unsignedByte"
-            | "unsignedShort"
-            | "unsignedInt"
-            | "unsignedLong"
-            | "positiveInteger"
-            | "negativeInteger"
-            | "nonPositiveInteger"
-            | "nonNegativeInteger"
-            | "dateTimeStamp"
-    )
+    // (the largest value, the magnitude of the smallest) of a bounded type.
+    let bounded = |max: &str, min_magnitude: &str| {
+        format!(
+            "^([+]?0*({})|-0*({}))$",
+            numerals_up_to(max),
+            numerals_up_to(min_magnitude)
+        )
+    };
+    let re = match local {
+        "byte" => bounded("127", "128"),
+        "short" => bounded("32767", "32768"),
+        "int" => bounded("2147483647", "2147483648"),
+        "long" => bounded("9223372036854775807", "9223372036854775808"),
+        "unsignedByte" => bounded("255", "0"),
+        "unsignedShort" => bounded("65535", "0"),
+        "unsignedInt" => bounded("4294967295", "0"),
+        "unsignedLong" => bounded("18446744073709551615", "0"),
+        "nonNegativeInteger" => "^([+]?[0-9]+|-0+)$".to_string(),
+        "positiveInteger" => "^[+]?0*[1-9][0-9]*$".to_string(),
+        "nonPositiveInteger" => "^(-[0-9]+|[+]?0+)$".to_string(),
+        "negativeInteger" => "^-0*[1-9][0-9]*$".to_string(),
+        "dateTimeStamp" => {
+            let mut tests: Vec<String> =
+                lexical_space_regex(&format!("{XSD}dateTime")).into_iter().collect();
+            tests.push("(Z|[+-][0-9]{2}:[0-9]{2})$".to_string());
+            return tests;
+        }
+        _ => return Vec::new(),
+    };
+    vec![re]
 }
 
-
-/// The `skipped_constraints` entry for a constraint that names a datatype
-/// [`datatype_is_indistinguishable_in_store`] says cannot be decided. One
-/// record, so the direct `sh:datatype` constraint and the `sh:or`, `sh:not`
-/// and `sh:qualifiedValueShape` members that name such a datatype refuse in
-/// the same words: the member paths used to answer the question the direct
-/// path refuses, and answered it wrongly.
-fn unpreserved_datatype_skip(shape: &str, constraint: &str, path: &str, datatype: &str) -> serde_json::Value {
-    serde_json::json!({
-        "shape": strip_angle_brackets(shape),
-        "constraint": constraint,
-        "path": path,
-        "datatype": datatype,
-        "reason": "the SPARQL evaluator reads this datatype IRI as the type it \
-                   derives from, so DATATYPE() cannot tell a value carrying it \
-                   from one carrying that type; the constraint was not evaluated",
-    })
+/// A regex alternation matching exactly the decimal numerals from 0 to `max`,
+/// with no leading zero except in `0` itself. `max` is a numeral of that form.
+///
+/// A shorter numeral is always smaller, so every length below `max`'s is
+/// matched whole. A numeral of `max`'s length is smaller exactly when, at the
+/// first digit where the two differ, its digit is the smaller one: one
+/// alternative per position, the digits of `max` before it, a smaller digit
+/// at it, and any digits after. `max` itself closes the list.
+fn numerals_up_to(max: &str) -> String {
+    let digits: Vec<u32> = max.chars().filter_map(|c| c.to_digit(10)).collect();
+    let n = digits.len();
+    let mut alternatives = Vec::new();
+    if n > 1 {
+        alternatives.push("[0-9]".to_string());
+    }
+    if n > 2 {
+        alternatives.push(format!("[1-9][0-9]{{1,{}}}", n - 2));
+    }
+    for (i, &d) in digits.iter().enumerate() {
+        let lowest = if i == 0 && n > 1 { 1 } else { 0 };
+        if d > lowest {
+            alternatives.push(format!(
+                "{}[{lowest}-{}][0-9]{{{}}}",
+                &max[..i],
+                d - 1,
+                n - i - 1
+            ));
+        }
+    }
+    alternatives.push(max.to_string());
+    alternatives.join("|")
 }
 
 /// The SPARQL pattern selecting the focus nodes of one target, bound to `var`.
@@ -3351,9 +3302,11 @@ fn constraint_component(constraint: &str) -> String {
 /// direct `sh:datatype` constraints had: W3C `core/property/or-datatypes-001`
 /// reported one of its three violations.
 fn datatype_conforms(datatype: &str, var: &str) -> String {
-    let lexical = lexical_space_regex(datatype)
+    let lexical: String = lexical_space_regex(datatype)
+        .into_iter()
+        .chain(derived_lexical_space_regexes(datatype))
         .map(|re| format!(" && REGEX(STR(?{var}), \"{re}\")"))
-        .unwrap_or_default();
+        .collect();
     format!("(isLiteral(?{var}) && DATATYPE(?{var}) = <{datatype}>{lexical})")
 }
 

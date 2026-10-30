@@ -17,11 +17,13 @@
 //!
 //! Since #335 the store keeps every datatype IRI and lexical form as written:
 //! the pinned oxigraph value-encodes a literal only when decoding gives it back
-//! (oxigraph/oxigraph#2010). The evaluator, `spareval`, is unpatched and still
-//! reads the twelve integer-derived types as `xsd:integer` and
-//! `xsd:dateTimeStamp` as `xsd:dateTime` before `DATATYPE()` sees them. Point 2
-//! above is therefore fixed and point 1 is not: `DATATYPE()` is what the SHACL
-//! engine tests with.
+//! (oxigraph/oxigraph#2010). That fixed point 2. Point 1 stayed open until #343,
+//! because the evaluator, `spareval`, still read the twelve integer-derived
+//! types as `xsd:integer` and `xsd:dateTimeStamp` as `xsd:dateTime` before
+//! `DATATYPE()` saw them, and `DATATYPE()` is what the SHACL engine tests with.
+//! The pin now carries the DATATYPE half of oxigraph/oxigraph#2010 and the STR
+//! fix it builds on (oxigraph 1392252f), so `DATATYPE()` reads the literal as
+//! written and point 1 is fixed too.
 
 use open_ontologies::graph::GraphStore;
 use oxigraph::io::{RdfFormat, RdfParser};
@@ -84,8 +86,11 @@ fn the_parser_preserves_every_declared_datatype() {
     );
 }
 
-fn datatypes_after_insert(store: &Store) -> Vec<String> {
+/// The datatypes `DATATYPE()` reports wrongly over `store`, and how many
+/// literals it was asked about.
+fn datatypes_after_insert(store: &Store) -> (Vec<String>, usize) {
     let mut wrong = Vec::new();
+    let mut checked = 0;
     let results = SparqlEvaluator::new()
         .parse_query("SELECT ?p (DATATYPE(?v) AS ?dt) WHERE { ?s ?p ?v }")
         .unwrap()
@@ -98,6 +103,7 @@ fn datatypes_after_insert(store: &Store) -> Vec<String> {
             let (Some(p), Some(dt)) = (solution.get("p"), solution.get("dt")) else {
                 continue;
             };
+            checked += 1;
             let want = expected_from_predicate(&p.to_string().replace(['<', '>'], ""));
             let got = dt
                 .to_string()
@@ -105,29 +111,37 @@ fn datatypes_after_insert(store: &Store) -> Vec<String> {
                 .trim_start_matches(XSD)
                 .to_string();
             if got != want {
-                wrong.push(format!("{want} stored as {got}"));
+                wrong.push(format!("{want} reported as {got}"));
             }
         }
     }
     wrong.sort();
-    wrong
+    (wrong, checked)
 }
 
-/// The exact set of datatypes `DATATYPE()` misreports over the pinned oxigraph.
-///
-/// This is a characterisation test, not an aspiration: it pins current upstream
-/// behaviour so the guard in `shacl.rs` can be trusted to cover exactly the right
-/// IRIs and no others. It fails in both directions on purpose. If the evaluator
-/// starts reporting these, it fails and the guard should be removed. If it starts
-/// losing something new, it fails and the guard is missing a case. The twelve
-/// collapse to `xsd:integer` and `dateTimeStamp` to `xsd:dateTime`, which are
-/// the thirteen `datatype_is_indistinguishable_in_store` names.
-const COLLAPSES: [&str; 13] = [
+/// The datatypes `DATATYPE()` misreported on the 0.5.9 evaluator: the twelve
+/// collapsed to `xsd:integer` and `dateTimeStamp` to `xsd:dateTime`. The SHACL
+/// engine refused every constraint naming one of them until #343. They are
+/// named here so that the tests below can show each is now reported, and
+/// cannot pass by `DOC` losing one of them.
+const FORMERLY_COLLAPSED: [&str; 13] = [
     "byte", "short", "int", "long",
     "unsignedByte", "unsignedShort", "unsignedInt", "unsignedLong",
     "positiveInteger", "negativeInteger", "nonPositiveInteger", "nonNegativeInteger",
     "dateTimeStamp",
 ];
+
+/// Every literal in `DOC` and every formerly collapsed datatype among them, so
+/// that an empty list of wrong answers is not empty for want of rows.
+fn assert_doc_covers_the_formerly_collapsed_set(rows_checked: usize) {
+    assert_eq!(rows_checked, 18, "DOC has 18 literals and each must be checked");
+    for local in FORMERLY_COLLAPSED {
+        assert!(
+            DOC.contains(&format!("\"^^xsd:{local} ")),
+            "DOC no longer carries xsd:{local}"
+        );
+    }
+}
 
 /// #335: the store gives every literal back with the datatype IRI and the
 /// lexical form it was given. Read as TERMS, through the store API and through
@@ -163,84 +177,87 @@ fn the_store_keeps_every_declared_datatype() {
     assert_eq!(projected, parsed, "a projected variable respelled or retyped a literal");
 }
 
+/// #343: `DATATYPE()` over stored literals reports every declared datatype.
+/// On the 0.5.9 evaluator this listed exactly `FORMERLY_COLLAPSED`.
 #[test]
-fn datatype_over_stored_literals_misreports_exactly_the_known_set() {
+fn datatype_over_stored_literals_reports_every_declared_datatype() {
     let store = Store::new().unwrap();
     let parser = RdfParser::from_format(RdfFormat::Turtle);
     for quad in parser.for_reader(Cursor::new(DOC.as_bytes())) {
         store.insert(quad.unwrap().as_ref()).unwrap();
     }
-    let mut lost: Vec<String> = datatypes_after_insert(&store)
-        .iter()
-        .filter_map(|line| line.split(" stored as ").next().map(str::to_string))
-        .collect();
-    lost.sort();
-    let mut want: Vec<String> = COLLAPSES.iter().map(|s| s.to_string()).collect();
-    want.sort();
-    assert_eq!(
-        lost, want,
-        "the set of datatypes DATATYPE() misreports has changed. If it shrank, remove the \
-         matching arm from datatype_is_indistinguishable_in_store. If it grew, add one."
-    );
+    let (wrong, checked) = datatypes_after_insert(&store);
+    assert_doc_covers_the_formerly_collapsed_set(checked);
+    assert!(wrong.is_empty(), "DATATYPE() misreports {} datatype(s): {wrong:?}", wrong.len());
 }
 
-/// The same set, through the path the tools actually take, so a regression is
+/// The same, through the path the tools actually take, so a regression is
 /// attributed to the right layer rather than to whichever test runs first.
 #[test]
-fn datatype_after_graph_store_load_misreports_exactly_the_same_set() {
+fn datatype_after_graph_store_load_reports_every_declared_datatype() {
     let graph = Arc::new(GraphStore::new());
     graph.load_turtle(DOC, None).unwrap();
     let json = graph
         .sparql_select("SELECT ?p (DATATYPE(?v) AS ?dt) WHERE { ?s ?p ?v }")
         .unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
-    let mut lost = Vec::new();
-    for row in parsed["results"].as_array().cloned().unwrap_or_default() {
+    let rows = parsed["results"].as_array().cloned().unwrap_or_default();
+    let mut wrong = Vec::new();
+    for row in &rows {
         let p = row["p"].as_str().unwrap_or_default().replace(['<', '>'], "");
         let dt = row["dt"].as_str().unwrap_or_default().replace(['<', '>'], "");
         let want = expected_from_predicate(&p);
         if dt.trim_start_matches(XSD) != want {
-            lost.push(want);
+            wrong.push(format!("{want} reported as {dt}"));
         }
     }
-    lost.sort();
-    let mut want: Vec<String> = COLLAPSES.iter().map(|s| s.to_string()).collect();
-    want.sort();
-    assert_eq!(lost, want, "the loss through load_turtle no longer matches the raw store");
+    assert_doc_covers_the_formerly_collapsed_set(rows.len());
+    assert!(wrong.is_empty(), "DATATYPE() through load_turtle misreports: {wrong:?}");
 }
 
-/// The evaluator collapses the same set, independently of storage.
+/// The evaluator keeps the datatype independently of storage.
 ///
 /// A literal typed in the query text is never stored, so this isolates
-/// `spareval` from `oxigraph`'s encoder. It is why the SHACL guard was not
-/// lifted when #335 fixed storage: `DATATYPE()` still answers wrongly.
-///
-/// `xsd:token` is checked alongside as a control. It is a derived type too, and
-/// it survives, so the behaviour is specific to this set rather than a general
-/// canonicalisation policy.
+/// `spareval` from `oxigraph`'s encoder. On the 0.5.9 evaluator `derived` was
+/// `xsd:integer`, and that is why the SHACL guard outlived the #335 storage
+/// fix. `xsd:token` is the control: a derived type the evaluator never
+/// collapsed.
 #[test]
-fn the_evaluator_collapses_the_same_set_without_any_storage() {
+fn the_evaluator_keeps_the_datatype_without_any_storage() {
     let graph = Arc::new(GraphStore::new());
     let json = graph
         .sparql_select(
             r#"SELECT
                  (DATATYPE("0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>) AS ?derived)
+                 (DATATYPE("2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTimeStamp>) AS ?stamp)
                  (DATATYPE("abc"^^<http://www.w3.org/2001/XMLSchema#token>) AS ?control)
                WHERE { }"#,
         )
         .unwrap();
     let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
     let row = &parsed["results"][0];
+    let datatype = |var: &str| row[var].as_str().unwrap_or_default().replace(['<', '>'], "");
+    assert_eq!(datatype("derived"), format!("{XSD}nonNegativeInteger"), "{json}");
+    assert_eq!(datatype("stamp"), format!("{XSD}dateTimeStamp"), "{json}");
+    assert_eq!(datatype("control"), format!("{XSD}token"), "{json}");
+}
+
+/// A COMPUTED argument still takes the value path, by design: `?v + 0` is a
+/// new number, and its datatype is the one arithmetic gives it. This is the
+/// boundary of the fix, pinned so that nobody reads the tests above as "the
+/// evaluator never retypes".
+#[test]
+fn a_computed_argument_is_still_typed_by_its_value() {
+    let graph = Arc::new(GraphStore::new());
+    let json = graph
+        .sparql_select(
+            r#"SELECT (DATATYPE("5"^^<http://www.w3.org/2001/XMLSchema#int> + 0) AS ?sum) WHERE { }"#,
+        )
+        .unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
     assert_eq!(
-        row["derived"].as_str().unwrap_or_default().replace(['<', '>'], ""),
+        parsed["results"][0]["sum"].as_str().unwrap_or_default().replace(['<', '>'], ""),
         format!("{XSD}integer"),
-        "if this now answers nonNegativeInteger the evaluator is fixed; \
-         check the storage layer too before lifting the SHACL guard"
-    );
-    assert_eq!(
-        row["control"].as_str().unwrap_or_default().replace(['<', '>'], ""),
-        format!("{XSD}token"),
-        "the control must keep its datatype; if it does not, the defect is wider \
-         than the recorded set"
+        "{json}"
     );
 }

@@ -3,12 +3,12 @@
   "suite_commit": "94d8bc2bd4fc4fdc6f2964d1ec4a892329e05f06",
   "counts": {
     "total": 120,
-    "pass": 61,
+    "pass": 62,
     "fail": 15,
-    "undetermined": 44,
+    "undetermined": 43,
     "error": 0
   },
-  "partial_compliance": 61,
+  "partial_compliance": 62,
   "outcomes": {
     "core/complex/personexample": "UNDETERMINED",
     "core/complex/shacl-shacl": "UNDETERMINED",
@@ -67,7 +67,7 @@
     "core/property/datatype-001": "PASS",
     "core/property/datatype-002": "PASS",
     "core/property/datatype-003": "PASS",
-    "core/property/datatype-ill-formed": "UNDETERMINED",
+    "core/property/datatype-ill-formed": "PASS",
     "core/property/disjoint-001": "UNDETERMINED",
     "core/property/equals-001": "UNDETERMINED",
     "core/property/hasValue-001": "PASS",
@@ -134,9 +134,9 @@
   "full_tuple": {
     "counts": {
       "total": 120,
-      "pass": 53,
+      "pass": 54,
       "fail": 23,
-      "undetermined": 44,
+      "undetermined": 43,
       "error": 0
     },
     "outcomes": {
@@ -197,7 +197,7 @@
       "core/property/datatype-001": "PASS",
       "core/property/datatype-002": "PASS",
       "core/property/datatype-003": "PASS",
-      "core/property/datatype-ill-formed": "UNDETERMINED",
+      "core/property/datatype-ill-formed": "PASS",
       "core/property/disjoint-001": "UNDETERMINED",
       "core/property/equals-001": "UNDETERMINED",
       "core/property/hasValue-001": "PASS",

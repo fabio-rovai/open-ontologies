@@ -39,8 +39,13 @@ classifiers = [
 # pretending otherwise in the metadata would make `pip install` fail for
 # everyone who only wants the reasoner. The package is fully functional without
 # it and says loudly, in every report, when a certificate went unchecked.
+#
+# The floor is 0.5.12, the first release carrying oxigraph/oxigraph#1974.
+# Before it a SPARQL arithmetic chain associates to the right: measured,
+# pyoxigraph 0.5.0 and 0.5.11 answer `8-3-2` with 7 and `7/20*1000` with
+# 0.00035, where 0.5.12 and 0.5.13 answer 3 and 350 (the Rust engine's #349).
 dependencies = [
-    "pyoxigraph>=0.5,<0.6",
+    "pyoxigraph>=0.5.12,<0.6",
 ]
 
 [project.optional-dependencies]

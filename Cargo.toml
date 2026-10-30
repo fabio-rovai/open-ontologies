@@ -119,10 +119,10 @@ toml = "0.8"
 # not grow by a single crate.
 proptest = "1"
 
-# A patched Oxigraph, pinned by revision. Two changes over 0.5.9, on branch
-# `oo/lexical-forms-0.5.9` of the fork.
+# A patched Oxigraph, pinned by revision: release 0.5.13 plus four changes, on
+# branch `oo/lexical-forms-0.5.13` of the fork.
 #
-# 1. `Store::snapshot`, not in Oxigraph 0.5.9. It is a read view pinned to one
+# 1. `Store::snapshot`, not in Oxigraph 0.5. It is a read view pinned to one
 #    state that takes no lock, and decision 0010 explains at length why neither
 #    thing the unpatched crate offers will do: a transaction pins the state but
 #    stops every writer for the length of a reasoning run on the memory backend,
@@ -130,15 +130,32 @@ proptest = "1"
 #    wrapper over `Storage::snapshot`, which `Store::len` and
 #    `Store::quads_for_pattern` already call internally on every read.
 # 2. A literal is kept as written (oxigraph/oxigraph#2010, fixing #1989; here
-#    #335). 0.5.9 stored every literal of an XSD datatype with a value encoding
-#    by value and gave it back in the canonical form of the primitive type, so
-#    "4.0"^^xsd:decimal came back as "4", "1"^^xsd:boolean as "true",
+#    #335). Oxigraph 0.5 stores every literal of an XSD datatype with a value
+#    encoding by value and gives it back in the canonical form of the primitive
+#    type, so "4.0"^^xsd:decimal came back as "4", "1"^^xsd:boolean as "true",
 #    "5"^^xsd:int as "5"^^xsd:integer, and "4.0" and "4" loaded as one triple.
 #    A literal is now value-encoded only when decoding gives back the same
 #    datatype and lexical form; any other takes the generic typed-literal path.
+# 3. STR() and DATATYPE() read a literal as written (here #343). The 0.5
+#    evaluator reads both from the parsed value, so even with the literal stored
+#    as written STR("4.0"^^xsd:decimal) was "4" and DATATYPE("5"^^xsd:int) was
+#    xsd:integer. STR is upstream 1392252f, which is on main (0.6.0-dev) and
+#    not on the 0.5 branch. DATATYPE is the second commit of
+#    oxigraph/oxigraph#2010, open against main, and builds on it. Both are
+#    ported to 0.5.13 by hand.
+# 4. The fork's W3C testsuite compares result literals by value through
+#    spareval, since with change 2 a round trip through a store no longer
+#    normalises them. Test code only; nothing OO links changes.
+#
+# Release 0.5.13 is the base, rather than 0.5.9, for oxigraph/oxigraph#1974,
+# released in 0.5.12: 0.5.9 parses an arithmetic chain to the right, so
+# `8-3-2` was 7 and `7/20*1000` was 0.00035 (here #349).
 #
 # Pinned by REVISION and not by branch, so that what CI builds is what was
-# reviewed. Upstream at oxigraph/oxigraph; when both land this stanza goes and
-# the version bound below is all that remains.
+# reviewed. The stanza can go when an upstream release carries all three
+# library changes, which means Oxigraph 0.6 with #2010 merged: `Store::snapshot`
+# (oxigraph/oxigraph#1957, there named `Snapshot`) and the STR fix are on main,
+# and #2010 is open. The `oxigraph` bound in `[dependencies]` then moves to
+# that release.
 [patch.crates-io]
-oxigraph = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "6409fa1c8ad5880399d0ca69b38e43cbb2052ad7" }
+oxigraph = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "37db8e1522585ed2f9aa994be6c5c716859af5c8" }
