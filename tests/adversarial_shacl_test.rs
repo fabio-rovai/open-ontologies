@@ -42,11 +42,11 @@
 //! # The control
 //!
 //! An attack surface where every probe succeeds is not a measurement.
-//! `a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass`
-//! is a probe the existing defence stops, and it is kept in this file rather
-//! than in a passing-cases file so that it is read beside the failures. The
-//! defence stops it in one direction only, and the test measures the other
-//! rather than claiming both.
+//! `an_out_of_range_byte_is_a_violation_rather_than_no_verdict` is a probe
+//! the existing defence stops, and it is kept in this file rather than in a
+//! passing-cases file so that it is read beside the failures. Until #343 the
+//! defence stopped it in one direction only, by refusing to answer, and the
+//! test measured the other; it now stops it in both.
 //!
 //! # Where this runs
 //!
@@ -139,11 +139,10 @@ const E1_MISSPELT_DATA: &str = r#"
 "#;
 
 /// The literal has to survive the store before any verdict over it means
-/// anything. Oxigraph normalises some typed literals: `"300"^^xsd:byte` comes
-/// back as `"300"^^xsd:integer`, which is what
-/// `datatype_is_indistinguishable_in_store` exists for and what the control at
-/// the bottom of this file measures. A test that asserted a verdict without
-/// asserting this would be blaming the validator for a store rewrite.
+/// anything. Oxigraph 0.5.9 normalised some typed literals: `"300"^^xsd:byte`
+/// came back as `"300"^^xsd:integer`, which is what the control at the bottom
+/// of this file measured until #335 and #343. A test that asserted a verdict
+/// without asserting this would be blaming the validator for a store rewrite.
 #[test]
 fn the_impossible_date_reaches_the_store_with_its_datatype_intact() {
     let store = loaded(&format!("{PREFIXES}{E1_DATA}"));
@@ -698,18 +697,19 @@ fn owl_same_as_merges_a_cardinality_that_nothing_here_reports() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// `"300"^^xsd:byte` is outside the byte range and is the W3C suite's own
-/// ill-formed case. The store keeps it as written since #335, but the SPARQL
-/// evaluator reads `xsd:byte` as `xsd:integer`, so `DATATYPE()` cannot judge
-/// it, `datatype_is_indistinguishable_in_store` routes the constraint to
-/// `skipped_constraints`, and the verdict is null.
+/// ill-formed case (`core/property/datatype-ill-formed`).
 ///
-/// A probe the existing defence stops, kept here rather than in a
-/// passing-cases file so that this set is a measurement and not a list of
-/// successes. It stops it in ONE direction and the test measures the other,
-/// because the earlier wording of this test asserted that "no consumer can
-/// read it as a pass" and that statement is false about this repository.
+/// Until #343 the SPARQL evaluator read `xsd:byte` as `xsd:integer`, so
+/// `DATATYPE()` could not judge the literal, the constraint was routed to
+/// `skipped_constraints`, and the verdict was null. That stopped a consumer
+/// reading for a PASS and not one reading for a FAILURE, and this test, then
+/// named `a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass`,
+/// measured the second half. Now `DATATYPE()` reads the datatype as written
+/// and `datatype_conforms` tests the byte range as a regex, so the probe is a
+/// violation carrying its value and the verdict is `false`, which every
+/// consumer stops on.
 #[test]
-fn a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass() {
+fn an_out_of_range_byte_is_a_violation_rather_than_no_verdict() {
     let store = loaded(&format!(
         "{PREFIXES} ex:i a ex:Reading ; ex:level \"300\"^^xsd:byte .\n"
     ));
@@ -721,36 +721,25 @@ fn a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass() {
         ),
     );
 
-    assert_eq!(
-        gate["conforms"],
-        serde_json::Value::Null,
-        "an undetermined verdict is the honest answer to a constraint that cannot be decided \
-         over a term the store rewrote: {gate}"
-    );
-    assert_eq!(gate["skipped_constraints"].as_array().unwrap().len(), 1);
-    assert_eq!(gate["violation_count"], serde_json::json!(0));
-    // The report says WHY, so the null is readable rather than merely absent.
+    assert_eq!(gate["conforms"], serde_json::json!(false), "{gate}");
+    assert_eq!(gate["violation_count"], serde_json::json!(1), "{gate}");
     assert!(
-        gate["skipped_constraints"][0]["reason"]
-            .as_str()
-            .unwrap()
-            .contains("DATATYPE() cannot tell"),
-        "{gate}"
+        gate["skipped_constraints"].as_array().is_none_or(|s| s.is_empty()),
+        "nothing is refused any more: {gate}"
+    );
+    assert_eq!(
+        gate["violations"][0]["value"],
+        "\"300\"^^<http://www.w3.org/2001/XMLSchema#byte>",
+        "the report names the literal as written: {gate}"
     );
 
-    // And here is the other half of the bound, which is the half the earlier
-    // wording got wrong. A consumer reading for a PASS is protected, because
-    // the verdict is not `true`. A consumer reading for a FAILURE is not.
-    // `onto_extend` stops its pipeline on `parsed["conforms"] == false`, and
-    // `serde_json::Value::Null` does not equal `Value::Bool(false)`, so this
-    // probe walks through that gate exactly as a clean run would.
-    //
-    // Asserting `!(conforms == false)` here would prove nothing, because the
-    // assertion above already pins the verdict to null and makes that
-    // comparison a tautology. The claim that can actually be wrong is the one
-    // about the SOURCE, so the source is what is read. If the gate is ever
-    // widened to treat an undetermined verdict as a stop, this fails and the
-    // finding in decision 0018 has to be amended rather than quietly outlived.
+    // The consumer claim this test used to carry stays pinned, because it is
+    // still true of every OTHER undetermined verdict. `onto_extend` stops its
+    // pipeline on `parsed["conforms"] == false`, and `serde_json::Value::Null`
+    // does not equal `Value::Bool(false)`, so a null walks through that gate
+    // exactly as a clean run would. If the gate is ever widened to treat an
+    // undetermined verdict as a stop, this fails and the finding in decision
+    // 0018 has to be amended rather than quietly outlived.
     let server = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/server.rs"))
         .expect("src/server.rs is readable from the crate root");
     assert!(

@@ -105,6 +105,39 @@ All notable changes to Open Ontologies are documented here.
   `pyoxigraph>=0.5`, which admits releases with the same defect (0.5.0 and
   0.5.11 measured at 7 and 0.00035), so its floor is now 0.5.12.
 
+- **`STR()` and `DATATYPE()` read a literal as written, and `sh:datatype`
+  decides the twelve integer-derived types and `xsd:dateTimeStamp`** (#343).
+  #335 made the store keep literals as written, but the SPARQL evaluator still
+  read a known-datatype literal by value before either function saw it, so
+  `STR("4.0"^^xsd:decimal)` was `"4"`, `sh:pattern "\.0$"` reported a lone
+  `"4.0"^^xsd:decimal`, and `DATATYPE()` answered `xsd:integer` for the twelve
+  integer-derived types and `xsd:dateTime` for `xsd:dateTimeStamp`. The engine
+  could not tell a conforming value from one of the base type, so
+  `datatype_is_indistinguishable_in_store` refused every constraint naming one
+  of the thirteen and the verdict was null. The fork pin now carries upstream
+  1392252f (STR) and the DATATYPE commit of oxigraph/oxigraph#2010, ported to
+  0.5.13 because neither is on the 0.5 branch, so both functions read the term
+  as written, whether stored or written in the query. The refusal is deleted
+  at all eight sites (`sh:datatype` on property and node shapes, `sh:or` over
+  values and over property-shape members, `sh:not`, `sh:qualifiedValueShape`,
+  and both nested `sh:node` forms). `DATATYPE()` settles the IRI and not the
+  lexical form, and the evaluator parses each of the twelve as an unbounded
+  `xsd:integer`, so `"300"^^xsd:byte` would have passed: `datatype_conforms`
+  now also tests their lexical spaces as regexes, the bounded ones digit by
+  digit up to the 64-bit limits, and `xsd:dateTimeStamp` as an `xsd:dateTime`
+  with a required timezone. W3C SHACL: `core/property/datatype-ill-formed`
+  (`"300"^^xsd:byte`, `"c"^^xsd:byte` and `"55"^^xsd:integer` against
+  `sh:datatype xsd:byte`) moves from UNDETERMINED to PASS in both columns, so
+  the gated column is PASS 62 (was 61) and the full-tuple column PASS 54 (was
+  53), FAIL unchanged at 15 and 23, and nothing else moves. Tests:
+  `tests/shacl_derived_datatype_test.rs` (renamed from
+  `shacl_datatype_indistinguishable_test.rs`, every refusal turned into a
+  decision in both directions, plus every bound of every bounded type),
+  `tests/datatype_preservation_test.rs` (DATATYPE reports all eighteen
+  datatypes of its document, stored and unstored), and
+  `inside_a_query_a_literal_is_read_as_written`, which replaces
+  `inside_a_query_a_known_datatype_literal_is_still_read_by_value`.
+
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code

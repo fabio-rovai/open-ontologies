@@ -81,6 +81,12 @@
 //! `"4.0"`, and the two files agree (measured 2026-10-28: this column
 //! unchanged at 53, the report match up from 49 to 51 of 56).
 //!
+//! With #343 the engine no longer refuses `sh:datatype` naming an
+//! integer-derived type, and `core/property/datatype-ill-formed` moves from
+//! UNDETERMINED to PASS in both columns: the gated one scores PASS 62 and the
+//! full-tuple one PASS 54, with no other test moving (measured 2026-10-30,
+//! same suite commit).
+//!
 //! Severity is in the full-tuple column and NOT in the gated one, by
 //! measurement rather than by principle. The old reason for leaving it out
 //! ("the engine's `severity` field is not yet driven by `sh:severity`") is
