@@ -7,6 +7,17 @@ use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+/// A document's quads and the namespace prefixes it declared, in order.
+pub type ParsedDocument = (Vec<Quad>, Vec<(String, String)>);
+
+/// How a document is serialised: one of the RDF formats Oxigraph parses, or
+/// OWL 2 functional syntax, which is not RDF and is read by [`crate::ofn`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SourceFormat {
+    Rdf(RdfFormat),
+    OwlFunctional,
+}
+
 /// What a parse produced. `statements` counts parser events; `triples` counts
 /// distinct triples, which is the size of the resulting graph. They differ
 /// whenever the source repeats a statement.
@@ -174,6 +185,21 @@ pub struct GraphStore {
     store: Store,
 }
 
+/// Why [`GraphStore::canonicalize_pair`] compared only ground triples.
+///
+/// Diff and drift attach this to their reports. It is returned alongside the
+/// stores rather than logged so that a caller cannot present the cut as an
+/// exact comparison without dropping a value it was handed.
+#[derive(Debug, Clone)]
+pub struct Approximation {
+    /// The RDFC-1.0 budget error from the snapshot that exhausted it.
+    pub reason: String,
+    /// Quads mentioning a blank node that were left out of the old snapshot.
+    pub omitted_old: usize,
+    /// The same count for the new snapshot.
+    pub omitted_new: usize,
+}
+
 impl Default for GraphStore {
     fn default() -> Self {
         Self::new()
@@ -257,64 +283,151 @@ impl GraphStore {
     }
 
     /// Load RDF content with an optional base IRI for resolving relative IRIs.
-    pub fn load_content_with_base(&self, content: &str, format: RdfFormat, base_iri: Option<&str>) -> anyhow::Result<usize> {
-        let store = &self.store;
+    pub fn load_content_with_base(
+        &self,
+        content: &str,
+        format: RdfFormat,
+        base_iri: Option<&str>,
+    ) -> anyhow::Result<usize> {
+        self.load_content_with_base_mode(content, format, base_iri, false)
+    }
+
+    fn load_content_with_base_mode(
+        &self,
+        content: &str,
+        format: RdfFormat,
+        base_iri: Option<&str>,
+        replace: bool,
+    ) -> anyhow::Result<usize> {
         let reader = Cursor::new(content.as_bytes());
         let mut parser = RdfParser::from_format(format);
         if let Some(base) = base_iri {
             parser = parser.with_base_iri(base)?;
         }
         // All or nothing: see load_turtle (issue #93).
-        let quads: Vec<_> = parser
-            .for_reader(reader)
-            .collect::<Result<_, _>>()?;
-        // Report triples actually added, not parse events. The store is a set, so
-        // re-inserting a statement it already holds changes nothing and must not be
-        // counted as a load.
-        let before = store.len().unwrap_or(0);
-        // Atomic for the reason given on the first loader above.
-        let mut txn = store.start_transaction()?;
-        for quad in &quads {
-            txn.insert(quad);
-        }
-        txn.commit()?;
-        Ok(store.len().unwrap_or(before).saturating_sub(before))
+        let quads: Vec<_> = parser.for_reader(reader).collect::<Result<_, _>>()?;
+        self.store_parsed_quads(&quads, replace)
     }
 
     pub fn load_file(&self, path: &str) -> anyhow::Result<usize> {
-        let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format_sniffed(path, &content);
-        let store = &self.store;
-        let reader = Cursor::new(content.as_bytes());
+        self.load_file_mode(path, false)
+    }
 
-        // A document's own location is its default base, per RFC 3986. Without
-        // it, any file using relative IRIs fails to parse at all, which is
-        // most published RDF/XML: LUBM's generated data would not load a
-        // single triple before this.
-        let base = std::fs::canonicalize(path)
-            .ok()
-            .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
+    /// Replace the active dataset only after the entire source parses.
+    pub(crate) fn replace_file(&self, path: &str) -> anyhow::Result<usize> {
+        self.load_file_mode(path, true)
+    }
+
+    /// Replace from a cache or eviction snapshot without partial publication.
+    pub(crate) fn replace_nquads(&self, content: &str) -> anyhow::Result<usize> {
+        self.load_content_with_base_mode(content, RdfFormat::NQuads, None, true)
+    }
+
+    fn load_file_mode(&self, path: &str, replace: bool) -> anyhow::Result<usize> {
+        let content = std::fs::read_to_string(path)?;
         // All or nothing: see load_turtle (issue #93).
-        let mut parser = RdfParser::from_format(format);
-        if let Some(p) = base.as_ref().and_then(|b| parser.clone().with_base_iri(b).ok()) {
-            parser = p;
+        let quads = Self::parse_document(path, &content)?;
+        self.store_parsed_quads(&quads, replace)
+    }
+
+    /// A file's quads, as parsed and never stored, with the namespace
+    /// prefixes it declared, in the order it declared them.
+    ///
+    /// A store holds no prefixes, and it also normalises some literals, so a
+    /// writer that must give back exactly the document's graph, abbreviated
+    /// with the document's own names, reads the document here. The OWL
+    /// functional-syntax writer (issue #322) is that writer.
+    pub fn read_file_with_prefixes(
+        path: &str,
+    ) -> anyhow::Result<ParsedDocument> {
+        let content = std::fs::read_to_string(path)?;
+        Self::parse_document_with_prefixes(path, &content)
+    }
+
+    /// Parse a whole document, whatever it is serialised as, into quads.
+    ///
+    /// Every path that reads a FILE goes through here (`load_file`,
+    /// `replace_file`, `validate_file`, `content_as_turtle`), so a format this
+    /// engine learns to read is learned once and reaches the CLI, `batch`, the
+    /// MCP tools and the compile cache together. Before the OWL functional
+    /// syntax reader existed each of those called the RDF parser directly, and
+    /// adding a format meant finding all of them.
+    fn parse_document(path: &str, content: &str) -> anyhow::Result<Vec<Quad>> {
+        Ok(Self::parse_document_with_prefixes(path, content)?.0)
+    }
+
+    /// [`Self::parse_document`], keeping the prefixes the parser saw.
+    fn parse_document_with_prefixes(
+        path: &str,
+        content: &str,
+    ) -> anyhow::Result<ParsedDocument> {
+        Self::parse_document_with_base_and_prefixes(path, content, Self::file_base_iri(path))
+    }
+
+    /// [`Self::parse_document`] with an explicit base IRI for relative IRIs.
+    fn parse_document_with_base(
+        path: &str,
+        content: &str,
+        base: Option<String>,
+    ) -> anyhow::Result<Vec<Quad>> {
+        Ok(Self::parse_document_with_base_and_prefixes(path, content, base)?.0)
+    }
+
+    fn parse_document_with_base_and_prefixes(
+        path: &str,
+        content: &str,
+        base: Option<String>,
+    ) -> anyhow::Result<ParsedDocument> {
+        match Self::detect_source_format(path, content) {
+            SourceFormat::OwlFunctional => Ok((
+                crate::ofn::parse(content)?
+                    .into_iter()
+                    .map(|t| t.in_graph(GraphName::DefaultGraph))
+                    .collect(),
+                crate::ofn::declared_prefixes(content),
+            )),
+            SourceFormat::Rdf(format) => {
+                // A document's own location is its default base, per RFC 3986.
+                // Without it, any file using relative IRIs fails to parse at
+                // all, which is most published RDF/XML: LUBM's generated data
+                // would not load a single triple before this. OFN needs none:
+                // its grammar admits only absolute IRIs.
+                let mut parser = RdfParser::from_format(format);
+                if let Some(base) = base {
+                    parser = parser.with_base_iri(base)?;
+                }
+                let mut reader = parser.for_reader(Cursor::new(content.as_bytes()));
+                let mut quads = Vec::new();
+                for quad in &mut reader {
+                    quads.push(quad?);
+                }
+                let prefixes = reader
+                    .prefixes()
+                    .map(|(name, iri)| (name.to_string(), iri.to_string()))
+                    .collect();
+                Ok((quads, prefixes))
+            }
         }
-        let quads: Vec<_> = parser
-            .for_reader(reader)
-            .collect::<Result<_, _>>()?;
-        // Report triples actually added, not parse events. The store is a set, so
-        // re-inserting a statement it already holds changes nothing and must not be
-        // counted as a load.
-        let before = store.len().unwrap_or(0);
-        // Atomic for the reason given on the first loader above.
-        let mut txn = store.start_transaction()?;
-        for quad in &quads {
+    }
+
+    fn store_parsed_quads(&self, quads: &[Quad], replace: bool) -> anyhow::Result<usize> {
+        let before = if replace {
+            0
+        } else {
+            self.store.len().unwrap_or(0)
+        };
+        let mut txn = self.store.start_transaction()?;
+        if replace {
+            // Clear and insert share one transaction: failed parsing never clears
+            // the old graph, and readers cannot observe an empty intermediate graph.
+            txn.clear()?;
+        }
+        for quad in quads {
             txn.insert(quad);
         }
         txn.commit()?;
-        Ok(store.len().unwrap_or(before).saturating_sub(before))
+        Ok(self.store.len().unwrap_or(before).saturating_sub(before))
     }
-
     pub fn save_file(&self, path: &str, format: &str) -> anyhow::Result<()> {
         let content = self.serialize(format)?;
         std::fs::write(path, content)?;
@@ -340,25 +453,38 @@ impl GraphStore {
         Self::content_as_turtle(path, content)
     }
 
+    /// As `read_as_turtle`, but relative IRIs resolve against `base_path`
+    /// rather than `path`. A diff reads both sides against the old file, so
+    /// `<#Dog>` names the same IRI in both versions instead of two.
+    pub fn read_as_turtle_against(path: &str, base_path: &str) -> anyhow::Result<String> {
+        let content = std::fs::read_to_string(path)?;
+        Self::convert_to_turtle(path, content, Self::file_base_iri(base_path))
+    }
+
     /// As `read_as_turtle`, for content already in hand (stdin, for instance).
     pub fn content_as_turtle(path_hint: &str, content: String) -> anyhow::Result<String> {
-        let format = Self::detect_format_sniffed(path_hint, &content);
-        if format == RdfFormat::Turtle {
+        Self::convert_to_turtle(path_hint, content, Self::file_base_iri(path_hint))
+    }
+
+    fn convert_to_turtle(
+        path_hint: &str,
+        content: String,
+        base: Option<String>,
+    ) -> anyhow::Result<String> {
+        let format = Self::detect_source_format(path_hint, &content);
+        if format == SourceFormat::Rdf(RdfFormat::Turtle) {
+            if let Some(base) = base {
+                // Keep the default base on the first source line so downstream
+                // parsers report the document's original line numbers. A later
+                // @base still overrides it; only first-line columns gain the prefix.
+                return Ok(format!("@base <{base}> . {content}"));
+            }
             return Ok(content);
         }
         let store = Self::new();
         {
             let inner = &store.store;
-            let base = std::fs::canonicalize(path_hint)
-                .ok()
-                .and_then(|abs| abs.to_str().map(|s| format!("file://{s}")));
-            let mut parser = RdfParser::from_format(format);
-            if let Some(p) = base.as_ref().and_then(|b| parser.clone().with_base_iri(b).ok()) {
-                parser = p;
-            }
-            let quads: Vec<_> = parser
-                .for_reader(Cursor::new(content.as_bytes()))
-                .collect::<Result<_, _>>()?;
+            let quads = Self::parse_document_with_base(path_hint, &content, base)?;
             for quad in &quads {
                 inner.insert(quad)?;
             }
@@ -368,10 +494,43 @@ impl GraphStore {
 
     pub fn validate_file(path: &str) -> anyhow::Result<ValidationCounts> {
         let content = std::fs::read_to_string(path)?;
-        let format = Self::detect_format_sniffed(path, &content);
-        let reader = Cursor::new(content.as_bytes());
-        let parser = RdfParser::from_format(format).for_reader(reader);
-        Self::count_parsed(parser)
+        if let SourceFormat::Rdf(format) = Self::detect_source_format(path, &content) {
+            let reader = Cursor::new(content.as_bytes());
+            let mut parser = RdfParser::from_format(format);
+            if let Some(base) = Self::file_base_iri(path) {
+                parser = parser.with_base_iri(base)?;
+            }
+            return Self::count_parsed(parser.for_reader(reader));
+        }
+        Self::count_ofn(&content)
+    }
+
+    /// Validate text handed over without a file name: the CLI's `validate -`
+    /// and `onto_validate` with `inline: true`. Both used to go straight to
+    /// the Turtle parser, which is right for everything they were written for
+    /// and wrong for an OWL functional-syntax document, which no Turtle parser
+    /// can read. With no extension to go on, the content decides.
+    pub fn validate_text(content: &str) -> anyhow::Result<ValidationCounts> {
+        if crate::ofn::looks_like_ofn(content) {
+            return Self::count_ofn(content);
+        }
+        Self::validate_turtle(content)
+    }
+
+    fn count_ofn(content: &str) -> anyhow::Result<ValidationCounts> {
+        Self::count_parsed(
+            crate::ofn::parse(content)?
+                .into_iter()
+                .map(|t| Ok::<_, oxigraph::io::RdfParseError>(t.in_graph(GraphName::DefaultGraph))),
+        )
+    }
+
+    /// A local document's default base is its encoded file URL. Building this
+    /// by concatenation treats filename characters such as spaces, `#` and `%`
+    /// as URI syntax instead of part of the path.
+    fn file_base_iri(path: &str) -> Option<String> {
+        let absolute = std::fs::canonicalize(path).ok()?;
+        reqwest::Url::from_file_path(absolute).ok().map(Into::into)
     }
 
     /// Count what a parser produced, distinguishing statements from triples.
@@ -569,29 +728,77 @@ impl GraphStore {
     /// label/domain/range/hierarchy/individual signal ensemble, so the
     /// net result is more informative than the previous "filter and forget"
     /// approach (PR #14, @rustforrecess) that dropped bnode content entirely.
+    ///
+    /// The work is bounded by [`crate::canon::DEFAULT_CALL_BUDGET`] and a
+    /// poisoned graph is an `Err`, never a hang. oxrdf's `Dataset::canonicalize`
+    /// sets no such bound, and through it a 7-node blank-node clique took 17 to
+    /// 23 seconds to diff against itself and an 8-node clique did not finish in
+    /// three minutes (issue #293). `crate::canon` is the same Recommendation,
+    /// gated on the W3C suite in `tests/w3c-rdfc10/` label map included, so the
+    /// labels an ordinary graph receives do not change.
     pub fn canonicalize_blank_nodes(&self) -> anyhow::Result<GraphStore> {
-        use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
-        use oxigraph::model::Dataset;
-
-        let store = &self.store;
-        let mut dataset = Dataset::new();
-        for quad in store.iter() {
-            let q = quad?;
-            dataset.insert(&q);
-        }
-
-        dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
-            hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
-        });
-
+        let quads = self.store.iter().collect::<Result<Vec<Quad>, _>>()?;
+        let canonical = crate::canon::canonical_quads(
+            &quads,
+            crate::canon::DEFAULT_CALL_BUDGET,
+            crate::canon::HashAlgorithm::Sha256,
+        )?;
         let new_gs = GraphStore::new();
-        {
-            let new_store = &new_gs.store;
-            for quad in dataset.iter() {
-                new_store.insert(quad)?;
-            }
+        for quad in &canonical {
+            new_gs.store.insert(quad)?;
         }
         Ok(new_gs)
+    }
+
+    /// Canonicalise two snapshots for comparison, or, when either exhausts the
+    /// RDFC-1.0 budget, cut BOTH to the quads that mention no blank node.
+    ///
+    /// This is for commands that compare snapshots (diff, drift) and must
+    /// answer on any input, a poisoned one included. Dropping every quad that
+    /// mentions a blank node is the one cut that is still sound for what
+    /// remains: ground quads need no labels, so a change among them is a real
+    /// change and an absence is a real absence. Both sides are cut, because
+    /// canonical labels on one side against nothing on the other would report
+    /// every blank-node triple of the exact side as a change nobody made. What
+    /// the cut loses is every statement about anonymous structure, and the
+    /// returned [`Approximation`] says so with the reason and the counts.
+    pub fn canonicalize_pair(
+        old: &GraphStore,
+        new: &GraphStore,
+    ) -> anyhow::Result<(GraphStore, GraphStore, Option<Approximation>)> {
+        let budget_error = |e: anyhow::Error| match e.downcast::<crate::canon::CanonError>() {
+            Ok(canon) => Ok(canon.to_string()),
+            Err(other) => Err(other),
+        };
+        let reason = match old.canonicalize_blank_nodes() {
+            Ok(old_canon) => match new.canonicalize_blank_nodes() {
+                Ok(new_canon) => return Ok((old_canon, new_canon, None)),
+                Err(e) => budget_error(e)?,
+            },
+            Err(e) => budget_error(e)?,
+        };
+        let (old_ground, omitted_old) = old.ground_quads()?;
+        let (new_ground, omitted_new) = new.ground_quads()?;
+        Ok((old_ground, new_ground, Some(Approximation { reason, omitted_old, omitted_new })))
+    }
+
+    /// A new store holding only the quads that mention no blank node, and the
+    /// number of quads left out.
+    pub fn ground_quads(&self) -> anyhow::Result<(GraphStore, usize)> {
+        let ground = GraphStore::new();
+        let mut omitted = 0;
+        for quad in self.store.iter() {
+            let quad = quad?;
+            let mentions_blank = quad.subject.is_blank_node()
+                || quad.object.is_blank_node()
+                || quad.graph_name.is_blank_node();
+            if mentions_blank {
+                omitted += 1;
+            } else {
+                ground.store.insert(&quad)?;
+            }
+        }
+        Ok((ground, omitted))
     }
 
     pub fn serialize(&self, format: &str) -> anyhow::Result<String> {
@@ -1185,13 +1392,14 @@ impl GraphStore {
     /// Round-trip triples through a STORE, in order, keeping duplicates.
     ///
     /// Parsing alone is not enough, and this is measured rather than assumed:
-    /// oxigraph's parser preserves a literal's lexical form, and it is the
-    /// STORE that normalises it. `"01"^^xsd:integer` comes back from
-    /// [`parse_triples_ordered`](Self::parse_triples_ordered) exactly as
-    /// written and out of [`all_triples`](Self::all_triples) as
-    /// `"1"^^xsd:integer`. A caller that compares its own spelling of a term
-    /// against what a certificate holds therefore has to push the term through
-    /// a store first, or it matches nothing and the miss looks like data loss.
+    /// A caller that compares its own spelling of a term against what a
+    /// certificate holds pushes the term through a store first, so the two are
+    /// spelled by the same code. Until #335 that was what made them match:
+    /// Oxigraph 0.5.9's parser kept `"01"^^xsd:integer` and its store gave it
+    /// back as `"1"^^xsd:integer`. The pinned store keeps literals as written,
+    /// so the round trip no longer respells a literal, and `"01"` and `"1"`
+    /// are two terms on both sides; it still refuses what no serialiser can
+    /// write, and it keeps the comparison honest if the store changes again.
     ///
     /// Each triple gets its own named graph, because a store is a SET: two
     /// identical inputs would otherwise collapse to one and the caller's
@@ -1239,6 +1447,24 @@ impl GraphStore {
             }
         }
         Ok(out)
+    }
+
+    /// The serialisation of a document, deciding between the RDF formats
+    /// Oxigraph parses and the one this crate parses itself.
+    ///
+    /// OWL functional syntax wins on content before anything else is
+    /// consulted, because the extension it most often travels under is `.owl`,
+    /// and `.owl` means RDF/XML to [`Self::detect_format`]. The ORE 2015
+    /// reasoner-competition corpus is 1,920 such files and every one of them
+    /// reached the RDF/XML parser and died on its first line. `.ofn` is the
+    /// one extension that names the syntax, so it is honoured even when the
+    /// content does not sniff, which sends a malformed `.ofn` file to the
+    /// reader that can say what is wrong with it.
+    fn detect_source_format(path: &str, content: &str) -> SourceFormat {
+        if crate::ofn::looks_like_ofn(content) || path.to_ascii_lowercase().ends_with(".ofn") {
+            return SourceFormat::OwlFunctional;
+        }
+        SourceFormat::Rdf(Self::detect_format_sniffed(path, content))
     }
 
     fn detect_format(path: &str) -> RdfFormat {

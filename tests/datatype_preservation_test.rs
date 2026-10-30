@@ -11,8 +11,17 @@
 //!   2. Anything written back out carries the widened type, so a published file
 //!      no longer says what its author said.
 //!
-//! These tests separate the two places the loss could happen — the parser or the
-//! store — because the fix is in a different codebase depending on the answer.
+//! These tests separate the three places the loss could happen (the parser,
+//! the store, the SPARQL evaluator) because the fix is in a different place
+//! depending on the answer.
+//!
+//! Since #335 the store keeps every datatype IRI and lexical form as written:
+//! the pinned oxigraph value-encodes a literal only when decoding gives it back
+//! (oxigraph/oxigraph#2010). The evaluator, `spareval`, is unpatched and still
+//! reads the twelve integer-derived types as `xsd:integer` and
+//! `xsd:dateTimeStamp` as `xsd:dateTime` before `DATATYPE()` sees them. Point 2
+//! above is therefore fixed and point 1 is not: `DATATYPE()` is what the SHACL
+//! engine tests with.
 
 use open_ontologies::graph::GraphStore;
 use oxigraph::io::{RdfFormat, RdfParser};
@@ -45,7 +54,8 @@ ex:s
   ex:decimal            "5.5"^^xsd:decimal ;
   ex:token              "abc"^^xsd:token ;
   ex:anyURI             "http://x.example/"^^xsd:anyURI ;
-  ex:date               "2026-01-01"^^xsd:date .
+  ex:date               "2026-01-01"^^xsd:date ;
+  ex:dateTimeStamp      "2026-01-01T00:00:00Z"^^xsd:dateTimeStamp .
 "#;
 
 /// The predicate local name is the datatype local name, so a mismatch names itself.
@@ -103,21 +113,58 @@ fn datatypes_after_insert(store: &Store) -> Vec<String> {
     wrong
 }
 
-/// The exact set of datatypes oxigraph 0.5 does not preserve.
+/// The exact set of datatypes `DATATYPE()` misreports over the pinned oxigraph.
 ///
 /// This is a characterisation test, not an aspiration: it pins current upstream
 /// behaviour so the guard in `shacl.rs` can be trusted to cover exactly the right
-/// IRIs and no others. It fails in both directions on purpose. If oxigraph starts
-/// preserving these, it fails and the guard should be removed. If it starts losing
-/// something new, it fails and the guard is missing a case.
-const COLLAPSES_TO_INTEGER: [&str; 12] = [
+/// IRIs and no others. It fails in both directions on purpose. If the evaluator
+/// starts reporting these, it fails and the guard should be removed. If it starts
+/// losing something new, it fails and the guard is missing a case. The twelve
+/// collapse to `xsd:integer` and `dateTimeStamp` to `xsd:dateTime`, which are
+/// the thirteen `datatype_is_indistinguishable_in_store` names.
+const COLLAPSES: [&str; 13] = [
     "byte", "short", "int", "long",
     "unsignedByte", "unsignedShort", "unsignedInt", "unsignedLong",
     "positiveInteger", "negativeInteger", "nonPositiveInteger", "nonNegativeInteger",
+    "dateTimeStamp",
 ];
 
+/// #335: the store gives every literal back with the datatype IRI and the
+/// lexical form it was given. Read as TERMS, through the store API and through
+/// a projected SPARQL variable, neither of which passes the literal through an
+/// expression. Under Oxigraph 0.5.9 the thirteen above came back retyped, and
+/// this test failed on exactly them.
 #[test]
-fn the_store_loses_exactly_the_known_datatypes_and_no_others() {
+fn the_store_keeps_every_declared_datatype() {
+    let store = Store::new().unwrap();
+    let parser = RdfParser::from_format(RdfFormat::Turtle);
+    let mut parsed = Vec::new();
+    for quad in parser.for_reader(Cursor::new(DOC.as_bytes())) {
+        let quad = quad.unwrap();
+        parsed.push(quad.object.to_string());
+        store.insert(quad.as_ref()).unwrap();
+    }
+    let mut back: Vec<String> = store.iter().map(|q| q.unwrap().object.to_string()).collect();
+    parsed.sort();
+    back.sort();
+    assert_eq!(back, parsed, "the store respelled or retyped a literal");
+
+    let graph = Arc::new(GraphStore::new());
+    graph.load_turtle(DOC, None).unwrap();
+    let json = graph.sparql_select("SELECT ?v WHERE { ?s ?p ?v }").unwrap();
+    let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let mut projected: Vec<String> = rows["results"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["v"].as_str().unwrap().to_string())
+        .collect();
+    projected.sort();
+    assert_eq!(projected, parsed, "a projected variable respelled or retyped a literal");
+}
+
+#[test]
+fn datatype_over_stored_literals_misreports_exactly_the_known_set() {
     let store = Store::new().unwrap();
     let parser = RdfParser::from_format(RdfFormat::Turtle);
     for quad in parser.for_reader(Cursor::new(DOC.as_bytes())) {
@@ -128,11 +175,11 @@ fn the_store_loses_exactly_the_known_datatypes_and_no_others() {
         .filter_map(|line| line.split(" stored as ").next().map(str::to_string))
         .collect();
     lost.sort();
-    let mut want: Vec<String> = COLLAPSES_TO_INTEGER.iter().map(|s| s.to_string()).collect();
+    let mut want: Vec<String> = COLLAPSES.iter().map(|s| s.to_string()).collect();
     want.sort();
     assert_eq!(
         lost, want,
-        "the set of datatypes oxigraph drops has changed. If it shrank, remove the \
+        "the set of datatypes DATATYPE() misreports has changed. If it shrank, remove the \
          matching arm from datatype_is_indistinguishable_in_store. If it grew, add one."
     );
 }
@@ -140,7 +187,7 @@ fn the_store_loses_exactly_the_known_datatypes_and_no_others() {
 /// The same set, through the path the tools actually take, so a regression is
 /// attributed to the right layer rather than to whichever test runs first.
 #[test]
-fn graph_store_load_loses_exactly_the_same_set() {
+fn datatype_after_graph_store_load_misreports_exactly_the_same_set() {
     let graph = Arc::new(GraphStore::new());
     graph.load_turtle(DOC, None).unwrap();
     let json = graph
@@ -157,7 +204,7 @@ fn graph_store_load_loses_exactly_the_same_set() {
         }
     }
     lost.sort();
-    let mut want: Vec<String> = COLLAPSES_TO_INTEGER.iter().map(|s| s.to_string()).collect();
+    let mut want: Vec<String> = COLLAPSES.iter().map(|s| s.to_string()).collect();
     want.sort();
     assert_eq!(lost, want, "the loss through load_turtle no longer matches the raw store");
 }
@@ -165,8 +212,8 @@ fn graph_store_load_loses_exactly_the_same_set() {
 /// The evaluator collapses the same set, independently of storage.
 ///
 /// A literal typed in the query text is never stored, so this isolates
-/// `spareval` from `oxigraph`'s encoder. It is why the SHACL guard cannot be
-/// lifted by fixing storage alone: `DATATYPE()` would still answer wrongly.
+/// `spareval` from `oxigraph`'s encoder. It is why the SHACL guard was not
+/// lifted when #335 fixed storage: `DATATYPE()` still answers wrongly.
 ///
 /// `xsd:token` is checked alongside as a control. It is a derived type too, and
 /// it survives, so the behaviour is specific to this set rather than a general

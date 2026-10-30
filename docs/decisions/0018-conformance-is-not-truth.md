@@ -313,10 +313,11 @@ line between the buckets was drawn.
 
 ## The control, and the bound it actually has
 
-`"300"^^xsd:byte` is outside the byte range and is the W3C suite's own ill-formed case. Oxigraph does
-not preserve `xsd:byte`, so the literal arrives as `"300"^^xsd:integer`,
-`datatype_is_indistinguishable_in_store` routes the constraint to `skipped_constraints`, and the
-verdict is `null`. An attack surface where every probe succeeds is not a measurement, so this one is
+`"300"^^xsd:byte` is outside the byte range and is the W3C suite's own ill-formed case. Oxigraph
+0.5.9 did not preserve `xsd:byte`, so the literal arrived as `"300"^^xsd:integer`. Since #335 the
+store keeps it as written, but the SPARQL evaluator still reads `xsd:byte` as `xsd:integer`, so
+`DATATYPE()` cannot judge it, `datatype_is_indistinguishable_in_store` routes the constraint to
+`skipped_constraints`, and the verdict is `null`. An attack surface where every probe succeeds is not a measurement, so this one is
 kept beside the failures rather than in a passing-cases file.
 
 The bound is one-directional and the test now says so. A consumer reading for a PASS is protected,

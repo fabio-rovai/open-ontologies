@@ -84,12 +84,45 @@ def pytest_runtest_makereport(item, call):
     return report
 
 
+_COLLECTION_SKIPS = []
+
+
 def pytest_collectreport(report):
     """A module-level `importorskip` skips at COLLECTION, not at run time.
 
     `pytest_runtest_makereport` never sees those, so three of this suite's files
     — the two pyshacl ones and the hnswlib one — would have stayed exempt from a
     rule written only there.
+
+    This hook can SEE such a skip and cannot FAIL it. Until this was changed it
+    set `report.outcome = "failed"` here, through `_fail`, and that never
+    reached the exit status. MEASURED on pytest 9.0.3 and 9.1.1, with one
+    passing test and one module that skips at collection, under
+    OO_REQUIRE_FIXTURES=1: `1 passed, 1 skipped`, exit 0. Marked `tryfirst`, the
+    summary said `1 error` and the exit was still 0. Run with `-rs` or `-ra`,
+    the terminal reporter crashed on the rewritten report. So the skip is
+    recorded here, and `pytest_sessionfinish` fails the run.
+    `test_conftest_collection_skip.py` holds this.
     """
     if report.skipped:
-        _fail(report, report.nodeid, _reason(report))
+        reason = _reason(report)
+        print(f"{MARKER}: {report.nodeid}: {reason}", flush=True)
+        _COLLECTION_SKIPS.append(f"{report.nodeid}: {reason}")
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session, exitstatus):
+    """Where a skip at collection becomes a failure. See `pytest_collectreport`."""
+    if not (STRICT and _COLLECTION_SKIPS):
+        return
+    print(
+        f"\n{MARKER}: OO_REQUIRE_FIXTURES=1, so this is a failure, not a skip. "
+        f"{len(_COLLECTION_SKIPS)} module(s) skipped at collection and none of "
+        f"their tests ran:",
+        flush=True,
+    )
+    for line in _COLLECTION_SKIPS:
+        print(f"  {line}", flush=True)
+    # A status that already says something went wrong is left as it is.
+    if session.exitstatus == pytest.ExitCode.OK:
+        session.exitstatus = pytest.ExitCode.TESTS_FAILED

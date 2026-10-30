@@ -5,17 +5,29 @@ use serde::Deserialize;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoValidateInput {
-    /// Path to an RDF file OR inline Turtle content
+    /// Path to an ontology file (any format onto_load reads, OWL functional
+    /// syntax included) OR inline Turtle or OWL functional-syntax content
     pub input: String,
     /// If true, treat input as inline content rather than a file path
     pub inline: Option<bool>,
 }
 
+#[derive(Deserialize, JsonSchema, Default)]
+pub struct OntoDefectsInput {
+    /// The most rows of any one kind to list. Default 50. `0` lists every row.
+    /// The full count of a kind cut short is reported under `truncated`
+    /// whatever the limit, so the limit hides the listing and never the scale.
+    #[serde(default)]
+    pub limit: Option<usize>,
+}
+
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoConvertInput {
-    /// Path to source RDF file
+    /// Path to the source file: any format onto_load reads, OWL functional
+    /// syntax included
     pub path: String,
-    /// Target format: turtle, ntriples, rdfxml, nquads, trig
+    /// Target format: turtle, ntriples, rdfxml, nquads, trig, or ofn (OWL 2
+    /// functional syntax, returned as JSON with what it could not export)
     pub to: String,
     /// Optional output file path (if omitted, returns content)
     pub output: Option<String>,
@@ -23,7 +35,8 @@ pub struct OntoConvertInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoLoadInput {
-    /// Path to RDF file, OR inline Turtle/RDF content
+    /// Path to an ontology file: Turtle, N-Triples, RDF/XML, N-Quads, TriG,
+    /// JSON-LD or OWL 2 functional syntax
     pub path: Option<String>,
     /// Inline Turtle content to load (alternative to path)
     pub turtle: Option<String>,
@@ -255,6 +268,17 @@ pub struct OntoShaclInput {
     /// Temporal scoping is not applied on this path and a scope argument
     /// alongside it is refused rather than silently ignored.
     pub verified: Option<bool>,
+    /// `"json"` (the default), `"turtle"` or `"ntriples"`. The RDF forms are a
+    /// W3C `sh:ValidationReport` graph carrying `sh:conforms` and, per result,
+    /// `sh:focusNode`, `sh:resultPath`, `sh:value`, `sh:sourceShape`,
+    /// `sh:sourceConstraintComponent`, `sh:resultSeverity` and
+    /// `sh:resultMessage`, so the report can be loaded into a store or
+    /// compared with pyshacl's or Jena's. An undetermined run (`conforms:
+    /// null`) is written `sh:conforms false` plus
+    /// `<https://open-ontologies.org/shacl#undetermined> true` and its reason,
+    /// never `sh:conforms true`. Refused with `verified: true`, whose report
+    /// is a different structure.
+    pub report_format: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -568,8 +592,8 @@ pub struct OntoPlanInput {
     /// DEFAULT TRUE since #196. Pass `false` to skip it, and the plan then says
     /// it did not look rather than staying silent.
     ///
-    /// This is the only part of a plan that is about MEANING. Everything else
-    /// is shape, and shape cannot see the change that matters most: adding one
+    /// This asks what the change MEANS; `check_logic` asks what it breaks.
+    /// Everything else is shape, and shape cannot see the change that matters most: adding one
     /// `rdfs:domain` triple adds no class, removes nothing, has a blast radius
     /// of zero and scores `low`, while retyping every existing individual of
     /// that property.
@@ -590,6 +614,18 @@ pub struct OntoPlanInput {
     /// reproducible by hand. Defaults to a temporary directory.
     #[serde(default)]
     pub conservativity_out_dir: Option<String>,
+    /// Also ask whether the change BREAKS something (#336): a TBox self-defect
+    /// the store did not have (the eight kinds of `onto_defects`, such as a
+    /// class made disjoint with its own ancestor), or a proposed graph the
+    /// owl-dl tableaux proves inconsistent where the store was not. Either one
+    /// makes `risk_score` `high`.
+    ///
+    /// DEFAULT TRUE. Pass `false` to skip it; the `logic` block then says
+    /// `checked_by: "not_checked"` with every verdict `null`. The consistency
+    /// half runs under the `[reasoner]` budget, and a run that exhausts it
+    /// reports `abox_consistent: null` with the reason, never `true`.
+    #[serde(default)]
+    pub check_logic: Option<bool>,
 }
 
 /// Input for `onto_module_extract` — a locality module, not a slice.
@@ -784,10 +820,12 @@ pub struct OntoAlignInput {
     pub source: String,
     /// Target ontology: inline Turtle content or file path. If omitted, aligns against loaded store
     pub target: Option<String>,
-    /// Minimum confidence threshold for auto-apply (default 0.85). Back-compat alias for
-    /// `high_threshold` — if both are set, `high_threshold` wins.
+    /// Minimum confidence threshold for auto-apply (default 0.95, or 0.85 under
+    /// `scoring: "legacy"`). Back-compat alias for `high_threshold` — if both are
+    /// set, `high_threshold` wins.
     pub min_confidence: Option<f64>,
-    /// Confidence threshold above which a candidate is auto-applied (default 0.85, or
+    /// Confidence threshold above which a candidate is auto-applied (default 0.95, or
+    /// 0.85 under `scoring: "legacy"`, the same strictness on each scale; or
     /// `min_confidence` if provided for back-compat). Candidates above this land in
     /// `auto_applied`.
     pub high_threshold: Option<f64>,
@@ -805,6 +843,18 @@ pub struct OntoAlignInput {
     /// choice; the weighted_sum self-calibrates from `onto_align_feedback` over time.
     #[serde(default)]
     pub fusion: Option<String>,
+    /// How the weighted sum becomes a confidence. "informative" (default): the
+    /// weighted mean over the signals BOTH sides carry data for, each candidate
+    /// naming them in `informative_signals`. "legacy": the fusion the published
+    /// OAEI figures were measured with (label x 0.85 when no structural signal
+    /// fires, otherwise the weighted sum over all signals).
+    #[serde(default)]
+    pub scoring: Option<String>,
+    /// "one-to-one" (default) keeps one row per source and per target.
+    /// "many-to-one" lets several source terms map to the same target, which
+    /// is right when the source is finer than the target.
+    #[serde(default)]
+    pub cardinality: Option<String>,
 }
 
 #[derive(Deserialize, JsonSchema)]

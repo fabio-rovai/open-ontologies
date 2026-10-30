@@ -16,10 +16,7 @@ pub fn render_human_for(command: Option<&str>, value: &Value) -> String {
     }
     match command {
         Some("query") => {
-            let bindings = value
-                .get("results")
-                .and_then(|r| r.get("bindings"))
-                .and_then(|b| b.as_array());
+            let bindings = sparql_rows(value);
             match bindings {
                 Some(b) => {
                     let vars: Vec<&str> = value
@@ -50,11 +47,7 @@ pub fn render_human(value: &Value) -> String {
     }
 
     // SPARQL query results
-    if let Some(bindings) = value
-        .get("results")
-        .and_then(|r| r.get("bindings"))
-        .and_then(|b| b.as_array())
-    {
+    if let Some(bindings) = sparql_rows(value) {
         let vars: Vec<&str> = value
             .get("variables")
             .and_then(|v| v.as_array())
@@ -238,6 +231,18 @@ pub fn render_human(value: &Value) -> String {
     serde_json::to_string_pretty(value).unwrap_or_else(|_| value.to_string())
 }
 
+/// Accept the native store's flat rows as well as SPARQL binding objects.
+/// Native SELECT results always carry variables; an unrelated results array
+/// must still fall back to its existing rendering.
+fn sparql_rows(value: &Value) -> Option<&Vec<Value>> {
+    let results = value.get("results")?;
+    if let Some(bindings) = results.get("bindings").and_then(Value::as_array) {
+        return Some(bindings);
+    }
+    value.get("variables")?.as_array()?;
+    results.as_array()
+}
+
 fn render_stats(value: &Value) -> String {
     let triples = value.get("triples").and_then(|v| v.as_u64()).unwrap_or(0);
     let classes = value.get("classes").and_then(|v| v.as_u64()).unwrap_or(0);
@@ -264,8 +269,8 @@ fn render_sparql_table(vars: &[&str], bindings: &[Value]) -> String {
                     let cell = row
                         .get(var)
                         .and_then(|v| {
-                            v.get("value")
-                                .and_then(|v| v.as_str())
+                            v.as_str()
+                                .or_else(|| v.get("value").and_then(Value::as_str))
                                 .map(|s| s.to_string())
                         })
                         .unwrap_or_default();

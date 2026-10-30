@@ -33,23 +33,54 @@ therefore survive the process that computed them: `plan` and `apply` are
 separate CLI invocations and separate MCP calls, and neither shares memory with
 the other. The 100 most recent plans are retained.
 
-### Conservativity: the one part of a plan that is about meaning
+### Conservativity: what the change means
 
 Everything above is about SHAPE. A change that adds one `rdfs:domain` triple adds
 no class, removes nothing, has a blast radius of zero and scores `low`, while
-retyping every existing individual of that property. Pass
-`check_conservativity: true` and the plan also reports whether the change alters
-any consequence over the names the store already uses, with the rule and the
-premises the base lacked behind every row.
+retyping every existing individual of that property. The `conservativity` block
+reports whether the change alters any consequence over the names the store
+already uses, with the rule and the premises the base lacked behind every row.
 
-It is opt-in because it reasons both graphs to a fixpoint, and when it is off the
-`conservativity` block is still there and reads `ran: false` with the reason: a
-missing block and a clean block look the same to a dashboard. It is never fatal;
-a check that cannot run leaves `conservativity.skipped` set and the plan is still
-returned. The verdict is a WORD rather than a boolean, and it is conservativity
-with respect to a Horn rule table rather than in a description logic, which
+It is on by default since #196 and costs a fixpoint over both graphs; skip it with
+`--no-conservativity` (CLI and `batch`) or `check_conservativity: false`
+(`onto_plan`). When it is off the `conservativity` block is still there and reads
+`ran: false` with the reason: a missing block and a clean block look the same to a
+dashboard. It is never fatal; a check that cannot run leaves
+`conservativity.skipped` set and the plan is still returned. The verdict is a WORD
+rather than a boolean, and it is conservativity with respect to a Horn rule table
+rather than in a description logic, which
 [docs/modules-and-conservativity.md](modules-and-conservativity.md) states in
 full.
+
+### Logic: what the change breaks
+
+Conservativity does not see a change that breaks the ontology. Adding
+`Manager rdfs:subClassOf Person` and `Manager owl:disjointWith Agent`, where
+every `Person` is an `Agent`, leaves `Manager` with no possible instance; adding
+`Machine owl:disjointWith Person` and `alice a Machine`, where `alice` is a
+`Person`, makes the ABox inconsistent. Both remove nothing and both used to score
+`low` (#336). The `logic` block answers this, relative to the store, so a defect
+the store already had is never charged to the change:
+
+| field | meaning |
+|---|---|
+| `new_defects` | findings of the eight `defects` kinds in the proposed graph that the store did not have; `null` if the check could not run |
+| `new_defects_by_severity`, `new_defect_findings` | the same, by severity, and listed (at most 50) |
+| `abox_consistent` | the owl-dl tableaux on the proposed graph: `false` on a clash it found, `true` only when the search finished and the graph uses no construct the tableaux does not model, otherwise `null` |
+| `abox_consistent_before` | the same question of the store, asked only when the proposed graph is inconsistent; `null` otherwise |
+| `checked_by`, `reason` | what ran, and in words why each answer is what it is; `not_checked` when skipped |
+
+A new `error` or `warning` defect, or an inconsistency the store was not proven to
+have, sets `risk_score` to `high`, and `risk_reasons` says which. An `info`
+finding is listed and does not move the score. The consistency half runs under
+the `[reasoner]` budget (`tableaux_test_timeout_ms` per phase, under
+`classify_timeout_ms`), and a run that exhausts it reports `null` with the reason,
+never `true`. Skip the whole block with `--no-logic-check` or
+`check_logic: false`.
+
+The exit code of `plan` does not change with the verdict: it is 1 on an error and
+0 otherwise, as it always was for a `high` score from removals. A pipeline gates
+on `risk_score` or `logic`.
 
 ## Enforce
 
@@ -59,6 +90,12 @@ Design pattern checks. Built-in packs: `generic` (orphan classes, missing labels
 
 Two modes: `safe` (write the delta) or `migrate` (same, plus
 owl:equivalentClass/Property bridges for consumers).
+
+Apply does not re-judge the plan. It applies a plan whatever its `risk_score` or
+`logic` block said, and the only gate is the monitor (`force` skips that too). A
+change that removes terms on purpose has always been applicable at `high`, and an
+apply that began refusing on a field it never read would break the pipelines
+built on it without a word.
 
 Apply writes only the triples that differ, so an unchanged graph costs nothing
 and a one-instance change touches one triple. `strategy` reports `delta`, or

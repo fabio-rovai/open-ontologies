@@ -293,8 +293,11 @@ fn every_gate_fires_on_its_own_broken_input() {
     }
 
     // ── 10 ───────────────────────────────────────────────────────────────
-    banner(10, "the raw literal spelling matches nothing", "the goal `\"01\"^^xsd:integer` asked WITHOUT the store's canonicalisation");
+    banner(10, "one value in two spellings is two terms", "the goal `\"01\"^^xsd:integer` asked of a source that says `\"1\"^^xsd:integer`");
     {
+        // Until #335 the store respelled "01" as "1" on both sides and this
+        // goal came back preserved. The pinned store keeps literals as
+        // written, so the goal is not in the source, and the gate says so.
         let ttl = "@prefix : <http://ex.org/> .\n\
                    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
                    :a :n \"1\"^^xsd:integer .\n";
@@ -316,8 +319,8 @@ fn every_gate_fires_on_its_own_broken_input() {
             "    SAID: as_written={} -> goal={} verdict={:?}",
             r.per_goal[0].as_written, r.per_goal[0].goal, r.per_goal[0].verdict
         );
-        eprintln!("    AND the raw spelling asked directly: {:?}", cert.membership(&raw));
-        assert_eq!(r.per_goal[0].verdict, GoalVerdict::PreservedAsserted);
+        eprintln!("    AND the spelling asked directly: {:?}", cert.membership(&raw));
+        assert_eq!(r.per_goal[0].verdict, GoalVerdict::UngroundedInSource);
         assert_eq!(cert.membership(&raw), pe::Membership::NotDerivable);
     }
 

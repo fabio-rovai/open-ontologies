@@ -696,3 +696,129 @@ fn no_two_labels_sit_on_top_of_each_other() {
         clashes.join("\n")
     );
 }
+
+// ── The hand-drawn animation on the front page ──────────────────────────
+//
+// The README shows `knowledge-graph.webp`, drawn in the paper style by
+// `docs/assets/hand-drawn/hero.js` from `knowledge-graph.scene.json`, and links
+// the SVG for anyone who wants the exact figure. A raster carries no number a
+// test can read, so the chain is checked one link at a time: the first test
+// ties the SVG to a live run, this one ties the scene to the SVG, and the WebP
+// carries the digest of the scene that drew it. Regenerating one without the
+// others fails here.
+
+/// One published variant of the animation: the SVG it was drawn beside, its
+/// scene, its WebP, and the README that shows it.
+struct Variant {
+    svg: &'static str,
+    scene: &'static str,
+    webp: &'static str,
+    readme: &'static str,
+}
+
+const VARIANTS: [Variant; 2] = [
+    Variant {
+        svg: "knowledge-graph.svg",
+        scene: "knowledge-graph.scene.json",
+        webp: "knowledge-graph.webp",
+        readme: "README.md",
+    },
+    Variant {
+        svg: "knowledge-graph.zh-CN.svg",
+        scene: "knowledge-graph.zh-CN.scene.json",
+        webp: "knowledge-graph.zh-CN.webp",
+        readme: "README.zh-CN.md",
+    },
+];
+
+fn asset(name: &str) -> Vec<u8> {
+    std::fs::read(repo().join("docs/assets").join(name))
+        .unwrap_or_else(|_| panic!("docs/assets/{name}"))
+}
+
+/// Every variant is checked the same way. The legend counts are compared with
+/// the ENGLISH SVG's for both languages: the labels are translated, the numbers
+/// are not, and both scenes come from the same run.
+#[test]
+fn the_hand_drawn_animation_is_drawn_from_the_svgs_own_scene() {
+    let (a, c, r) = legend_counts();
+    for v in &VARIANTS {
+        let bytes = asset(v.scene);
+        let scene: serde_json::Value = serde_json::from_slice(&bytes)
+            .unwrap_or_else(|_| panic!("{} is not JSON", v.scene));
+        let text = String::from_utf8(asset(v.svg)).expect("the SVG is UTF-8");
+
+        let rows = scene["legend"]["rows"].as_array().expect("legend rows");
+        for (key, want) in [("asserted", a), ("certified", c), ("rejected", r)] {
+            let row = rows
+                .iter()
+                .find(|x| x["key"] == key)
+                .unwrap_or_else(|| panic!("{} has no {key} row", v.scene));
+            assert_eq!(
+                row["count"].as_u64(),
+                Some(want),
+                "{} says {} for {key} and the SVG legend says {want}. Both come from one \
+                 run of knowledge-graph.py; regenerate them together.",
+                v.scene,
+                row["count"]
+            );
+        }
+
+        // The sub-heading carries the run's totals, and it is the SVG's own sentence.
+        let sub = scene["sub"].as_str().expect("sub-heading");
+        assert!(
+            text.contains(sub),
+            "the sub-heading of {} is not the one in {}. They were drawn from different runs.",
+            v.scene,
+            v.svg
+        );
+        let nodes = scene["nodes"].as_array().expect("nodes").len().to_string();
+        let edges = scene["edges"].as_array().expect("edges");
+        let n_edges = edges.len().to_string();
+        assert!(
+            sub.contains(&nodes) && sub.contains(&n_edges),
+            "{} draws {nodes} nodes and {n_edges} edges and its sub-heading says otherwise",
+            v.scene
+        );
+        let forged = edges.iter().filter(|e| e[2] == "rejected").count() as u64;
+        assert_eq!(forged, r, "{} forges {forged} lines and the legend says {r}", v.scene);
+
+        // The WebP is animated and was drawn from THIS scene.
+        let webp = asset(v.webp);
+        assert!(
+            webp.len() > 12 && &webp[0..4] == b"RIFF" && &webp[8..12] == b"WEBP",
+            "{} is not a WebP file",
+            v.webp
+        );
+        assert!(
+            webp.windows(4).any(|w| w == b"ANIM"),
+            "{} is a still. The front page argues in six steps, in order.",
+            v.webp
+        );
+        use sha2::{Digest, Sha256};
+        let stamp = format!("scene-sha256={:x}", Sha256::digest(&bytes));
+        assert!(
+            webp.windows(stamp.len()).any(|w| w == stamp.as_bytes()),
+            "{} was not drawn from the scene in the repository. Re-render it: node \
+             docs/assets/hand-drawn/render.js {} {}",
+            v.webp,
+            v.scene,
+            v.webp
+        );
+
+        // The front page shows the animation and links the exact figure.
+        let md = std::fs::read_to_string(repo().join(v.readme)).expect("README");
+        assert!(
+            md.contains(&format!("docs/assets/{}", v.webp)),
+            "{} no longer shows {}",
+            v.readme,
+            v.webp
+        );
+        assert!(
+            md.contains(&format!("href=\"docs/assets/{}\"", v.svg)),
+            "{} shows the drawing and no longer links the exact figure {} it was drawn from",
+            v.readme,
+            v.svg
+        );
+    }
+}

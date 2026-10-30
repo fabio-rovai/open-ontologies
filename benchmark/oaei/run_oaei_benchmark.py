@@ -194,6 +194,7 @@ async def run_anatomy_benchmark(session) -> dict:
         "target": human_path,
         "min_confidence": 0.85,
         "dry_run": True,
+        "scoring": "legacy",
     })
     elapsed = time.time() - start
     print(f"  Alignment completed in {elapsed:.1f}s")

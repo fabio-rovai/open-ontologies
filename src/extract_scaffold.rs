@@ -53,7 +53,7 @@ pub fn build_scaffold(graph: &Arc<GraphStore>, class_iri: &str) -> anyhow::Resul
         class_iri
     );
     let mut props: Vec<PropertySpec> = Vec::new();
-    if let Ok(js) = graph.sparql_select(&q)
+    if let Ok(js) = graph.sparql_select_union(&q)
         && let Ok(v) = serde_json::from_str::<serde_json::Value>(&js)
         && let Some(rows) = v["results"].as_array()
     {
@@ -66,7 +66,7 @@ pub fn build_scaffold(graph: &Arc<GraphStore>, class_iri: &str) -> anyhow::Resul
                     .unwrap_or_else(|| "literal".to_string());
                 let lbl = row["lbl"]
                     .as_str()
-                    .map(|s| s.trim_matches('"').to_string());
+                    .map(|s| crate::language::parse_literal(s).text);
                 props.push(PropertySpec {
                     property_iri: p,
                     property_label: lbl,
@@ -376,11 +376,17 @@ fn type_mismatch_kind(kind: RangeKind) -> String {
 
 fn single_str(graph: &Arc<GraphStore>, iri: &str, pred: &str) -> Option<String> {
     let q = format!("SELECT ?v WHERE {{ <{}> <{}> ?v }} LIMIT 1", iri, pred);
-    let js = graph.sparql_select(&q).ok()?;
+    let js = graph.sparql_select_union(&q).ok()?;
     let v: serde_json::Value = serde_json::from_str(&js).ok()?;
     v["results"][0]["v"]
         .as_str()
-        .map(|s| s.trim_matches(|c| c == '"' || c == '<' || c == '>').to_string())
+        .map(|s| {
+            if s.starts_with('"') {
+                crate::language::parse_literal(s).text
+            } else {
+                s.trim_matches(|c| c == '<' || c == '>').to_string()
+            }
+        })
 }
 
 #[cfg(test)]

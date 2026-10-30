@@ -40,6 +40,20 @@ const TARGET: &str = r#"
     tg:Cat    a owl:Class ; rdfs:label "Cat"    ; rdfs:subClassOf tg:Animal .
 "#;
 
+/// The same hierarchy with every name one letter off. An exact name with
+/// nothing else to compare now scores 1.0 (see
+/// `tests/align_informative_scoring_test.rs`), so mid-confidence candidates
+/// need names that are close and not equal.
+const NEAR_TARGET: &str = r#"
+    @prefix owl:  <http://www.w3.org/2002/07/owl#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix tg:   <http://target.org/> .
+
+    tg:Animals a owl:Class ; rdfs:label "Animals" .
+    tg:Dogs    a owl:Class ; rdfs:label "Dogs"    ; rdfs:subClassOf tg:Animals .
+    tg:Cats    a owl:Class ; rdfs:label "Cats"    ; rdfs:subClassOf tg:Animals .
+"#;
+
 #[test]
 fn degenerate_thresholds_preserve_legacy_behaviour() {
     // low == high → no borderline bucket. Output shape matches the old align() semantics.
@@ -72,10 +86,9 @@ fn borderline_bucket_collects_mid_confidence_candidates() {
     let (db, graph) = setup();
     let engine = AlignmentEngine::new(db, graph);
 
-    // high=0.95 is above what label-only matching produces here; low=0.4 catches
-    // the label-similarity-only matches.
+    // high=0.95 is above what near-miss names produce here; low=0.4 catches them.
     let result_str = engine
-        .align_with_thresholds(SOURCE, Some(TARGET), 0.95, 0.4, true)
+        .align_with_thresholds(SOURCE, Some(NEAR_TARGET), 0.95, 0.4, true)
         .expect("align_with_thresholds");
     let result: serde_json::Value = serde_json::from_str(&result_str).expect("json");
 
@@ -135,7 +148,7 @@ fn summary_for_review_present_when_borderline_nonempty() {
     let engine = AlignmentEngine::new(db, graph);
 
     let result_str = engine
-        .align_with_thresholds(SOURCE, Some(TARGET), 0.95, 0.4, true)
+        .align_with_thresholds(SOURCE, Some(NEAR_TARGET), 0.95, 0.4, true)
         .expect("align_with_thresholds");
     let result: serde_json::Value = serde_json::from_str(&result_str).expect("json");
 

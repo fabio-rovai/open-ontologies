@@ -22,13 +22,18 @@ impl DriftDetector {
     /// same protection (identical graphs reparse to identical canonical IDs) while
     /// keeping anonymous restriction classes / quoted axioms visible in the diff
     /// instead of dropping them entirely.
+    ///
+    /// A snapshot that exhausts the RDFC-1.0 budget is not canonicalised; both
+    /// are cut to their ground triples and the report says so with `exact:
+    /// false`, `approximate_reason`, `omitted_v1` and `omitted_v2` (issue #293).
     pub fn detect(&self, v1_turtle: &str, v2_turtle: &str) -> anyhow::Result<String> {
         let raw1 = GraphStore::new();
         let raw2 = GraphStore::new();
         raw1.load_turtle(v1_turtle, None)?;
         raw2.load_turtle(v2_turtle, None)?;
-        let store1 = Arc::new(raw1.canonicalize_blank_nodes()?);
-        let store2 = Arc::new(raw2.canonicalize_blank_nodes()?);
+        let (store1, store2, approximation) = GraphStore::canonicalize_pair(&raw1, &raw2)?;
+        let store1 = Arc::new(store1);
+        let store2 = Arc::new(store2);
 
         let v1_vocab = self.extract_vocabulary(&store1);
         let v2_vocab = self.extract_vocabulary(&store2);
@@ -74,14 +79,24 @@ impl DriftDetector {
             0.0
         };
 
-        let result = serde_json::json!({
+        let mut result = serde_json::json!({
             "added": added,
             "removed": removed,
             "likely_renames": likely_renames,
             "drift_velocity": drift_velocity,
             "v1_count": v1_iris.len(),
             "v2_count": v2_iris.len(),
+            "exact": approximation.is_none(),
         });
+        if let Some(a) = approximation {
+            result["approximate_reason"] = serde_json::json!(format!(
+                "blank-node triples were not compared, so anonymous classes and the \
+                 signals that run through them are missing: {}",
+                a.reason
+            ));
+            result["omitted_v1"] = serde_json::json!(a.omitted_old);
+            result["omitted_v2"] = serde_json::json!(a.omitted_new);
+        }
 
         Ok(result.to_string())
     }

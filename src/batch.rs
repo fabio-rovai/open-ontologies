@@ -126,6 +126,7 @@ impl BatchRunner {
             "query" => self.exec_query(&cmd.args),
             "validate" => self.exec_validate(&cmd.args),
             "lint" => self.exec_lint(&cmd.args),
+            "defects" => self.exec_defects(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "certificate-check" | "certificate_check" => self.exec_certificate_check(&cmd.args),
             "fol" => self.exec_fol(&cmd.args),
@@ -155,6 +156,9 @@ impl BatchRunner {
             "ingest" => self.exec_ingest(&cmd.args),
             "induce" => self.exec_induce(&cmd.args),
             "crosswalk-certify" | "crosswalk_certify" => Self::exec_crosswalk(&cmd.args),
+            "crosswalk-probe" | "crosswalk_probe" | "contradiction-probe" | "contradiction_probe" => {
+                Self::exec_crosswalk_probe(&cmd.args)
+            }
             "modules" | "distributed" => Self::exec_modules(&cmd.args),
             "matcert" => Self::exec_matcert(&cmd.args),
             "drift" => self.exec_drift(&cmd.args),
@@ -274,6 +278,51 @@ impl BatchRunner {
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
+            Err(e) => json!({"error": e.to_string()}),
+        }
+    }
+
+    /// `defects [path] [--limit N]`. With a path, the file is checked alone,
+    /// as the CLI subcommand checks it; without one, the batch's own store is,
+    /// so `load x.ttl` then `defects` checks what was loaded. The CLI proxies
+    /// `defects` here when a daemon is up, and there was no arm, so it answered
+    /// `unknown batch command` and exited 1 (#336).
+    fn exec_defects(&self, args: &[String]) -> Value {
+        use crate::defects::Defects;
+        let limit = match Self::flag_value(args, "--limit") {
+            None => Defects::MAX_PER_KIND,
+            Some(v) => match v.parse::<usize>() {
+                Ok(n) => n,
+                Err(_) => return json!({"error": format!("--limit takes a whole number, got '{v}'")}),
+            },
+        };
+        let mut skip_next = false;
+        let path = args.iter().find(|a| {
+            if std::mem::take(&mut skip_next) {
+                return false;
+            }
+            if a.as_str() == "--limit" {
+                skip_next = true;
+                return false;
+            }
+            !a.starts_with("--")
+        });
+        let graph = match path {
+            None => self.graph.clone(),
+            Some(p) => {
+                let content = match crate::graph::GraphStore::read_as_turtle(p) {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                let g = Arc::new(GraphStore::new());
+                if let Err(e) = g.load_turtle(&content, None) {
+                    return json!({"error": e.to_string()});
+                }
+                g
+            }
+        };
+        match Defects::check_with_limit(&graph, limit) {
+            Ok(result) => serde_json::from_str(&result).unwrap_or(json!({"raw": result})),
             Err(e) => json!({"error": e.to_string()}),
         }
     }
@@ -633,6 +682,17 @@ impl BatchRunner {
             Some(p) => p,
             None => return json!({"error": "shacl requires a shapes file path"}),
         };
+        // A batch result is a JSON value, so an RDF report has nowhere to go.
+        // The CLI keeps such an invocation local for that reason; one written
+        // into a batch file by hand is refused rather than answered in JSON.
+        if let Some(f) = Self::flag_value(args, "--report-format")
+            && f != "json"
+        {
+            return json!({"error": format!(
+                "--report-format {f} is not available in a batch: batch results are JSON. \
+                 Run `shacl --report-format {f}` directly."
+            )});
+        }
         if args.iter().any(|a| a == "--verified") {
             // Refused rather than ignored, the same answer `onto_shacl` gives.
             // The verified evaluator reads one N-Triples dump of the store and
@@ -700,6 +760,22 @@ impl BatchRunner {
             }
             Err(e) => json!({"error": e.to_string()}),
         }
+    }
+
+    /// Carry a crosswalk's claims into the target and look for a clash.
+    ///
+    /// The sharper question beside `crosswalk-certify`: not whether the two
+    /// sides differ in granularity but whether the target's own axioms DENY
+    /// something the mapping carries in. Its own stores, for the same reason
+    /// as `crosswalk-certify`. Reports `exit_code: 1` when the mapping adds a
+    /// clash, so a batch that runs it fails on a contradiction.
+    fn exec_crosswalk_probe(args: &[String]) -> Value {
+        let pos: Vec<&String> = args.iter().filter(|a| !a.starts_with("--")).collect();
+        if pos.len() < 3 {
+            return json!({"error": "crosswalk-probe needs SOURCE TARGET MAPPINGS.tsv"});
+        }
+        crate::crosswalk::probe_files(pos[0], pos[1], pos[2])
+            .unwrap_or_else(|e| json!({"error": e.to_string()}))
     }
 
     /// Reason each module alone, then promote what k of n agree on.
@@ -830,6 +906,24 @@ impl BatchRunner {
             if args.len() > 1 { args[1].clone() } else { "turtle".to_string() }
         });
         let output = Self::flag_value(args, "--output");
+        if crate::ofn_writer::is_ofn_format(&to) {
+            return match crate::ofn_writer::convert_file(path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(out_path) = output {
+                        if let Err(e) = std::fs::write(&out_path, &out.text) {
+                            return json!({"error": e.to_string()});
+                        }
+                        report["path"] = json!(out_path);
+                    } else {
+                        report["content_length"] = json!(out.text.len());
+                    }
+                    report["ok"] = json!(true);
+                    report
+                }
+                Err(e) => json!({"error": e.to_string()}),
+            };
+        }
         let store = GraphStore::new();
         match store.load_file(path) {
             Ok(_) => match store.serialize(&to) {
@@ -912,7 +1006,12 @@ impl BatchRunner {
                         max_rows: 1_000_000,
                     }
                 });
-                let result = planner.plan_checked(&turtle, opts)
+                // The logic check (#336) is on by default for the same reason.
+                let checks = crate::plan::PlanChecks {
+                    conservativity: opts,
+                    logic: !args.iter().any(|a| a == "--no-logic-check"),
+                };
+                let result = planner.plan_with(&turtle, checks)
                     .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
@@ -1046,9 +1145,9 @@ impl BatchRunner {
             None => return json!({"error": "induce requires a data file path"}),
         };
         let base = Self::flag_value(args, "--base-iri").unwrap_or("http://example.org/data/".to_string());
-        let stem = Self::flag_value(args, "--class").unwrap_or_else(|| {
-            std::path::Path::new(&path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
-        });
+        let source_stem = std::path::Path::new(&path).file_stem()
+            .and_then(|s| s.to_str()).unwrap_or("Row").to_string();
+        let stem = Self::flag_value(args, "--class").unwrap_or_else(|| source_stem.clone());
         let rows = match DataIngester::parse_file(&path) {
             Ok(r) => r,
             Err(e) => return json!({"error": e.to_string()}),
@@ -1057,7 +1156,7 @@ impl BatchRunner {
             return json!({"error": "no data rows found; nothing to induce from"});
         }
         let headers = DataIngester::headers_in_order(&path, &rows);
-        let induced = crate::induce::induce(&rows, &headers, &stem, &base);
+        let induced = crate::induce::induce_with_source(&rows, &headers, &stem, &source_stem, &base);
         if let Some(out) = Self::flag_value(args, "--out") {
             let dir = std::path::Path::new(&out);
             if let Err(e) = std::fs::create_dir_all(dir)
@@ -1075,7 +1174,7 @@ impl BatchRunner {
                 .graph
                 .load_turtle(&induced.ontology_ttl, None)
                 .and_then(|a| self.graph.load_turtle(&induced.shapes_ttl, None).map(|b| a + b))
-                .and_then(|ab| self.graph.load_ntriples(&induced.mapping.rows_to_ntriples(&rows)).map(|c| (ab, c)));
+                .and_then(|ab| self.graph.load_ntriples(&induced.instance_ntriples(&rows)).map(|c| (ab, c)));
             match loaded {
                 Ok((schema, data)) => {
                     v["loaded"] = json!({"schema_triples": schema, "instance_triples": data});

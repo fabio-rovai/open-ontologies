@@ -90,6 +90,10 @@ been quoted for a quantity whose third decimal was not a property of the system.
 
 ## Reproducing
 
+The alignment hash below is for the fusion that produced the recorded figure,
+which is no longer the default and is selected with `--scoring legacy`
+([alignment](alignment.md)).
+
 ```bash
 # Tableaux: run the conformance binary repeatedly; all runs must agree.
 for i in $(seq 1 12); do cargo test --test owl2_conformance_test 2>&1 | grep "^test result"; done
@@ -99,7 +103,7 @@ for i in 1 2 3 4 5; do
   ./target/release/open-ontologies align \
     benchmark/oaei/data/anatomy/mouse.owl \
     benchmark/oaei/data/anatomy/human.owl \
-    --min-confidence 0.80 --dry-run \
+    --scoring legacy --min-confidence 0.80 --dry-run \
   | python3 -c "import json,sys,hashlib; c=json.load(sys.stdin)['candidates']; \
 p=[(x['source_iri'],x['target_iri']) for x in c]; \
 print(len(c), hashlib.sha256(repr(sorted(p)).encode()).hexdigest()[:12])"

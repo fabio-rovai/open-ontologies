@@ -8,6 +8,17 @@ send.
 
 ## 1. Twelve XSD integer-derived datatypes, and `xsd:dateTimeStamp`, are not preserved
 
+**Status, 28 Oct 2026.** 1a is fixed in the pinned fork and filed upstream as
+oxigraph/oxigraph#2010 (issue #1989): the store value-encodes a literal only
+when decoding gives it back as written, so these datatypes, and non-canonical
+lexical forms such as `"4.0"^^xsd:decimal`, now survive a load (here #335,
+`tests/datatype_preservation_test.rs::the_store_keeps_every_declared_datatype`).
+1b is NOT fixed: measured on the new pin, `DATATYPE()` still answers
+`xsd:integer` for the twelve and `xsd:dateTime` for `xsd:dateTimeStamp`, and
+`STR()` of a known-datatype literal is still its canonical form, inside any
+query, whether the literal is stored or written in the query text. So the
+workaround below stays.
+
 **Two independent defects, in two crates.** They were first reported here as one,
 blamed on storage. That was wrong, and the correction matters for anyone acting
 on it: fixing the storage encoder alone leaves `DATATYPE()` still returning the
@@ -113,9 +124,11 @@ up here rather than attempted blind.
 ### Our workaround
 
 `datatype_is_indistinguishable_in_store` in `src/shacl.rs` records a
-`sh:datatype` constraint naming one of these as unevaluated rather than answering
-it wrongly. `tests/datatype_preservation_test.rs` pins the exact affected set and
-fails in both directions, so the workaround is removed when this is fixed.
+`sh:datatype` constraint (and, since the #333 follow-ups, an `sh:or`, `sh:not`,
+qualified or `sh:node` member) naming one of these as unevaluated rather than
+answering it wrongly. With 1a fixed it rests on 1b alone.
+`tests/datatype_preservation_test.rs` pins the exact set `DATATYPE()` misreports
+and fails in both directions, so the workaround is removed when 1b is fixed.
 
 ---
 

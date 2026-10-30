@@ -19,10 +19,19 @@
 <p align="center">
   <a href="https://tesseractsemantics.com"><img src="https://img.shields.io/badge/Tesseract%20Semantics-tesseractsemantics.com-111827?style=for-the-badge" alt="Tesseract Semantics"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/stargazers"><img src="https://img.shields.io/github/stars/fabio-rovai/open-ontologies?style=for-the-badge&logo=github&color=0b5fff" alt="Stars"></a>
-  <a href="https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fabio-rovai/open-ontologies/ci.yml?style=for-the-badge&label=CI" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/pkgs/container/open-ontologies"><img src="https://img.shields.io/badge/GHCR-pull%20the%20image-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="GHCR"></a>
   <a href="https://github.com/sponsors/fabio-rovai"><img src="https://img.shields.io/github/sponsors/fabio-rovai?style=for-the-badge&label=Sponsor&logo=GitHub%20Sponsors" alt="Sponsors"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.star-history.com/fabio-rovai/open-ontologies">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+      <img alt="GitHub Trending Repository of the Day" src="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+    </picture>
+  </a>
 </p>
 
 <p align="center">
@@ -46,7 +55,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="The Studio 3D view of ies-core.ttl: classes and subclass edges laid out in three dimensions, with the verification layer drawn as nodes beside them. Grey edges a person asserted, green edges the engine derived and Lean accepted, one red edge forged and refused, and particles travelling along each judged link." width="100%">
+  <a href="docs/assets/knowledge-graph.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.webp" alt="A hand-drawn animation of ies-core.ttl. A person asserts the grey edges. The engine derives the green edges, and Lean 4 checks the one certificate that holds them. Four provers read the clauses and give opinions. A forged red line is refused, and a question the file cannot be asked comes back unasked." width="100%"></a>
 </p>
 
 <p align="center">
@@ -57,7 +66,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM as two shipped files side by side. Left, the RDFS rendering: 23 terms used as a class but never declared drawn as hollow red rings and 12 rdfs:range declarations naming a relation drawn as red edges. Right, the OWL rendering: 195 named classes this engine found satisfiable, 39 it could not decide drawn amber, and a red ring on the 39 of those that HermiT calls unsatisfiable." width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.svg" alt="HQDM as two shipped files side by side. Left, the RDFS rendering: 23 terms used as a class but never declared drawn as hollow red rings and 12 rdfs:range declarations naming a relation drawn as red edges. Right, the OWL rendering: 190 named classes this engine found satisfiable and 39 it found unsatisfiable drawn red, with a red ring on the 39 that HermiT calls unsatisfiable, the same 39." width="100%">
 </p>
 
 <p align="center">
@@ -69,8 +78,8 @@
   <b>12</b> <code>rdfs:range</code> declarations that name a relation and not a class. It also has <b>13</b>
   pairs of names that differ by one final underscore. Three of those pairs have the same domain and the
   same range. The OWL file passes all three checks, and the OWL file is not coherent. The tableaux of
-  this engine finds <b>195</b> of its named classes satisfiable. The tableaux cannot decide <b>39</b>.
-  HermiT calls exactly those <b>39</b> unsatisfiable, and HermiT is an opinion in the vocabulary of this
+  this engine finds <b>190</b> of its named classes satisfiable. The tableaux finds <b>39</b> unsatisfiable.
+  HermiT calls the same <b>39</b> unsatisfiable, and HermiT is an opinion in the vocabulary of this
   repository. This figure proves nothing, and the figure does not claim a proof. A test computes each
   count again, and the test also computes that intersection. For the source and the method, read
   <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>.</sub>
@@ -109,8 +118,9 @@ the part that survives examination.
 > **This is not an ontology editor.** Use Protégé to draw class hierarchies. You
 > run Open Ontologies on the change, before the change goes to production.
 >
-> **The tool is like Terraform, and this is on purpose. But the plan is semantic,
-> not syntactic.** A text diff is `git diff`, and you have `git diff` already.
+> **The tool is like Terraform, and this is on purpose. But the plan checks what a
+> change means and what it breaks, not only its text.** A text diff is `git diff`,
+> and you have `git diff` already.
 
 You do not need a JVM. You do not need Protégé. The engine speaks MCP to Claude,
 to Cursor, and to other clients of that protocol.
@@ -328,14 +338,17 @@ A crosswalk states a match type. Nothing checked that statement. The engine now 
 
 An `exactMatch` that the entailments do not support comes back downgraded. The report gives the reason. It also names every term the crosswalk does not carry. That second list is the one that disappears from most crosswalk files. The output is valid SSSOM, so your tools read it today.
 
-A second question is sharper than a downgrade. The engine carries the translated claims into the target and reasons again. A clash means the target denies what the mapping carried in. That is a disagreement, and a person must settle it.
+The check compares where two terms sit in their hierarchies. It does not compare what the terms mean. Two sibling terms under one mapped parent look the same to it. So it can refute a match type, and it never makes a claim stronger. A parent that the mapping does not carry is a gap, and the report names it. A row with nothing to compare says so and is not certified.
+
+A second question is sharper than a downgrade. The engine carries the translated claims into the target and reasons again. A clash means the target denies what the mapping carried in. That is a disagreement, and a person must settle it. Run it with `crosswalk-probe`.
 
 Contexts can disagree. Birds fly. Penguins are birds, and penguins do not fly. One graph that holds both is inconsistent, and this engine finds the clash. Each module reasons alone instead. A fact earns "true everywhere" when k modules of n entail it.
 
 A number can now carry a certificate. `oo-matcert` recomputes a matrix product from the definition. It prints `MatCert.mul_of_check` when it accepts. Integers only, and that is the condition for the sentence to hold. Freivalds costs less and gives a probability, so it stays an opinion with its bound printed. Floating point reports a tolerance, because a proof over the real numbers says nothing about IEEE-754.
 
 ```bash
-open-ontologies batch plan.json   # crosswalk-certify, modules --threshold k, matcert
+open-ontologies batch plan.json   # crosswalk-certify, crosswalk-probe, modules --threshold k, matcert
+open-ontologies crosswalk-probe source.ttl target.ttl mapping.tsv   # exits 1 on a clash
 ```
 
 ## What the tool proves

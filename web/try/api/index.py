@@ -21,6 +21,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import threading
 import time
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
@@ -32,20 +33,98 @@ MAX_BYTES = 1_000_000
 TIMEOUT_S = 40
 
 
+# Held while this process has a file open for WRITING in the engine directory,
+# and across every fork-and-exec of a binary from it. Linux refuses to exec a
+# file any process holds open for writing (ETXTBSY, `[Errno 26] Text file
+# busy`), and a child forked by one thread inherits the write descriptor
+# another thread is holding until the child itself execs. Writes are rare (one
+# per cold start) and a spawn holds the lock only until exec, not while the
+# engine runs, so nothing waits behind a 40-second request.
+_FORK_LOCK = threading.Lock()
+
+
+def _engine_dir() -> Path:
+    return Path(tempfile.gettempdir()) / "oo-engine"
+
+
+def _installed(dst: Path, size: int) -> bool:
+    try:
+        st = dst.stat()
+    except FileNotFoundError:
+        return False
+    return st.st_size == size and bool(st.st_mode & stat.S_IXUSR)
+
+
+def _install(src: Path, name: str) -> Path:
+    """Put an executable copy of `src` at a fixed path in the scratch directory.
+
+    The deployment bundle is read-only and may not keep the mode bit, so the
+    binary is copied once per warm instance. The copy used to be written in
+    place: `copyfile` straight onto the final path, then `chmod`. Concurrent
+    cold-start invocations raced on that path. One could find the file present
+    and the right size but not yet executable, another could truncate and
+    rewrite it while a third was executing it, and on Linux the write itself
+    failed with `[Errno 26] Text file busy` because the binary was running.
+
+    Now the copy is written under a unique name in the same directory, made
+    executable, and moved over the final path with `os.replace`, which is
+    atomic within one filesystem. The final path therefore only ever names a
+    complete executable file, it is never opened for writing, and a binary
+    already running keeps its own inode when a newer copy replaces it. A call
+    that finds a complete executable copy already there returns at once.
+    """
+    dst = _engine_dir() / name
+    size = src.stat().st_size
+    if _installed(dst, size):
+        return dst
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with _FORK_LOCK:
+        if _installed(dst, size):
+            return dst
+        fd, tmp = tempfile.mkstemp(prefix=f".{name}.", dir=str(dst.parent))
+        try:
+            with os.fdopen(fd, "wb") as out, open(src, "rb") as inp:
+                shutil.copyfileobj(inp, out)
+                out.flush()
+                os.fsync(out.fileno())
+            os.chmod(tmp, 0o755)
+            os.replace(tmp, dst)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except FileNotFoundError:
+                pass
+            raise
+    return dst
+
+
+def _run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
+    """`subprocess.run`, with the fork-to-exec window inside `_FORK_LOCK`.
+
+    `Popen` returns only once the child has exec'd (it waits on CPython's
+    error pipe), so holding the lock around it and not around the wait keeps
+    an install from overlapping any child's fork without serialising the runs.
+    """
+    timeout = kwargs.pop("timeout", None)
+    with _FORK_LOCK:
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **kwargs
+        )
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        raise
+    return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+
+
 def engine() -> Path:
-    """The binary, executable, in a writable place. The deployment bundle is
-    read-only and may not keep the mode bit, so it is copied once per warm
-    instance into the scratch directory."""
+    """The binary, executable, in a writable place. See `_install`."""
     override = os.environ.get("OO_BIN")
     if override:
         return Path(override)
-    src = HERE / "_bin" / "open-ontologies"
-    dst = Path(tempfile.gettempdir()) / "oo-engine" / "open-ontologies"
-    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src, dst)
-        dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    return dst
+    return _install(HERE / "_bin" / "open-ontologies", "open-ontologies")
 
 
 def checker() -> Path | None:
@@ -56,12 +135,7 @@ def checker() -> Path | None:
     src = Path(override) if override else (HERE / "_bin" / "oo-cert")
     if not src.exists():
         return None
-    dst = Path(tempfile.gettempdir()) / "oo-engine" / "oo-cert"
-    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src, dst)
-        dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    return dst
+    return _install(src, "oo-cert")
 
 
 def run_checker(cert_dir: Path) -> dict:
@@ -73,9 +147,9 @@ def run_checker(cert_dir: Path) -> dict:
     c = checker()
     if c is None:
         return {"absent": True, "means": "this release carries no oo-cert, so nothing was checked here"}
-    proc = subprocess.run(
+    proc = _run(
         [str(c), str(cert_dir / "asserted.tsv"), str(cert_dir / "derivations.tsv")],
-        capture_output=True, text=True, timeout=TIMEOUT_S,
+        timeout=TIMEOUT_S,
     )
     line = next((l for l in proc.stdout.splitlines() if l.startswith("{")), "")
     try:
@@ -117,9 +191,9 @@ def run_batch(workdir: Path, script: str) -> list[dict]:
     data_dir = workdir / "data"
     data_dir.mkdir(exist_ok=True)
     t0 = time.time()
-    proc = subprocess.run(
+    proc = _run(
         [str(engine()), "--data-dir", str(data_dir), "batch", str(workdir / "script.txt")],
-        capture_output=True, text=True, timeout=TIMEOUT_S, cwd=str(workdir),
+        timeout=TIMEOUT_S, cwd=str(workdir),
     )
     out = []
     for line in proc.stdout.splitlines():

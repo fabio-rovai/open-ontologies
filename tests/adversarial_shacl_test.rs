@@ -755,9 +755,10 @@ fn owl_same_as_merges_a_cardinality_that_nothing_here_reports() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// `"300"^^xsd:byte` is outside the byte range and is the W3C suite's own
-/// ill-formed case. Oxigraph does not preserve `xsd:byte`, so the literal
-/// arrives as `"300"^^xsd:integer`, `datatype_is_indistinguishable_in_store`
-/// routes the constraint to `skipped_constraints`, and the verdict is null.
+/// ill-formed case. The store keeps it as written since #335, but the SPARQL
+/// evaluator reads `xsd:byte` as `xsd:integer`, so `DATATYPE()` cannot judge
+/// it, `datatype_is_indistinguishable_in_store` routes the constraint to
+/// `skipped_constraints`, and the verdict is null.
 ///
 /// A probe the existing defence stops, kept here rather than in a
 /// passing-cases file so that this set is a measurement and not a list of
@@ -790,7 +791,7 @@ fn a_datatype_the_store_cannot_preserve_yields_no_verdict_rather_than_a_pass() {
         gate["skipped_constraints"][0]["reason"]
             .as_str()
             .unwrap()
-            .contains("does not preserve"),
+            .contains("DATATYPE() cannot tell"),
         "{gate}"
     );
 

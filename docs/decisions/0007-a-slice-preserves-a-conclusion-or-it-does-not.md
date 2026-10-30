@@ -215,6 +215,10 @@ test fails if the gate is disarmed on more than half the corpus.
    certificate and is reported LOST, which is a false loss with a green-looking pipeline round it. Goals are
    now round-tripped through a real `GraphStore`, one triple per named graph so a set cannot collapse
    duplicates or shift the caller's pairing, and both `as_written` and `goal` are printed.
+   *Superseded in part by #335 (28 Oct 2026):* the pinned store no longer canonicalises, so the
+   round trip leaves `"01"` as `"01"`, and a goal `"01"` asked of a source holding `"1"` is
+   ungrounded rather than preserved. The round trip stays so that goal and store are spelled by the
+   same code.
 
 4. **`GraphStore::canonicalize_blank_nodes` is the wrong tool and is now pinned as such.** RDFC-1.0
    labels are a function of the WHOLE graph. Measured on `pizza-reference.owl`, taking a genuine

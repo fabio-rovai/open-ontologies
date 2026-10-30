@@ -52,6 +52,53 @@ struct PlanState {
     removed_properties: Vec<String>,
 }
 
+/// Which of a plan's semantic checks run.
+///
+/// Both are on at every entry point by default (the `plan` subcommand,
+/// `batch`'s `plan`, `onto_plan`), and each has its own opt-out: conservativity
+/// with `--no-conservativity` / `check_conservativity=false`, the logic check
+/// with `--no-logic-check` / `check_logic=false`.
+pub struct PlanChecks {
+    /// Run the conservativity check with these options, or not at all.
+    pub conservativity: Option<crate::conservativity::ConservativityOptions>,
+    /// Run the logic check (#336): new TBox self-defects and the consistency
+    /// of the proposed graph.
+    pub logic: bool,
+}
+
+/// The `logic` block of a plan, and the reasons it gives for raising
+/// `risk_score` to `high`, if any.
+struct LogicVerdict {
+    json: serde_json::Value,
+    raises_risk: Vec<String>,
+}
+
+impl LogicVerdict {
+    /// A block that says it did not look, with every verdict field `null`.
+    fn not_checked(reason: String) -> Self {
+        Self {
+            json: serde_json::json!({
+                "checked_by": "not_checked",
+                "new_defects": null,
+                "new_defects_by_severity": null,
+                "new_defect_findings": null,
+                "abox_consistent": null,
+                "abox_consistent_before": null,
+                "individuals_checked": null,
+                "reason": reason,
+            }),
+            raises_risk: Vec::new(),
+        }
+    }
+}
+
+/// A three-valued consistency answer and the sentence that explains it.
+struct Consistency {
+    consistent: Option<bool>,
+    individuals_checked: Option<usize>,
+    note: String,
+}
+
 type Triple = (String, String, String);
 
 /// The triple-level difference between the store and a proposed graph.
@@ -101,31 +148,45 @@ impl Planner {
     }
 
     /// Compute a diff plan between current store and proposed new Turtle.
+    ///
+    /// The logic check runs; conservativity does not. See [`Planner::plan_with`].
     pub fn plan(&self, new_turtle: &str) -> anyhow::Result<String> {
         self.plan_checked(new_turtle, None)
     }
 
-    /// [`Planner::plan`], optionally answering the semantic question as well as
-    /// the syntactic one.
-    ///
-    /// Everything else a plan reports is about SHAPE: which classes appear,
-    /// which disappear, how many triples move. None of it can tell you that
-    /// adding one `rdfs:domain` silently reclassified nine hundred existing
-    /// individuals, because that change adds no class and removes nothing. The
-    /// conservativity block is the only part of a plan that is about MEANING,
-    /// and it is opt-in because it reasons both graphs to a fixpoint, which is
-    /// seconds rather than milliseconds on a real store.
-    ///
-    /// It is never fatal. A plan whose conservativity check could not run says
-    /// so in `conservativity.skipped` and still returns the plan, because a
-    /// diagnostic that can block a plan is a diagnostic people turn off.
+    /// [`Planner::plan`], optionally answering the conservativity question as
+    /// well. The logic check runs; [`Planner::plan_with`] can switch it off.
     pub fn plan_checked(
         &self,
         new_turtle: &str,
         conservativity: Option<crate::conservativity::ConservativityOptions>,
     ) -> anyhow::Result<String> {
+        self.plan_with(new_turtle, PlanChecks { conservativity, logic: true })
+    }
+
+    /// The plan, with the semantic checks `checks` asks for.
+    ///
+    /// Everything a plan reports from the diff alone is about SHAPE: which
+    /// classes appear, which disappear, how many triples move. None of it can
+    /// tell you that adding one `rdfs:domain` silently reclassified nine
+    /// hundred existing individuals, because that change adds no class and
+    /// removes nothing. Two blocks are about MEANING, and they answer different
+    /// questions:
+    ///
+    /// * `conservativity`: does the change alter any consequence over the
+    ///   names the store already uses, under a Horn rule table? It reasons
+    ///   both graphs to a fixpoint, which is seconds rather than milliseconds
+    ///   on a real store.
+    /// * `logic` (#336): does the change BREAK something? A named class left
+    ///   with no possible instance, or an ABox that is now inconsistent. Before
+    ///   it existed both scored `low`, because neither removes anything.
+    ///
+    /// Neither is fatal. A check that could not run says so in its block and
+    /// the plan is still returned, because a diagnostic that can block a plan
+    /// is a diagnostic people turn off.
+    pub fn plan_with(&self, new_turtle: &str, checks: PlanChecks) -> anyhow::Result<String> {
         let mut result: serde_json::Value = serde_json::from_str(&self.plan_inner(new_turtle)?)?;
-        result["conservativity"] = match conservativity {
+        result["conservativity"] = match checks.conservativity {
             None => serde_json::json!({
                 "ran": false,
                 "skipped": "not requested. Pass check_conservativity=true to ask whether this \
@@ -150,7 +211,220 @@ impl Planner {
                 }
             }
         };
+
+        let logic = if checks.logic {
+            self.logic_verdict(new_turtle)
+        } else {
+            LogicVerdict::not_checked(
+                "skipped on request (--no-logic-check, or check_logic=false). This plan does not \
+                 say whether the change makes a class unsatisfiable or the ABox inconsistent, and \
+                 risk_score is computed from the shape of the change alone."
+                    .to_string(),
+            )
+        };
+        if !logic.raises_risk.is_empty() {
+            result["risk_score"] = serde_json::json!("high");
+            if let Some(reasons) = result["risk_reasons"].as_array_mut() {
+                reasons.extend(logic.raises_risk.iter().map(|r| serde_json::json!(r)));
+            }
+        }
+        result["logic"] = logic.json;
         Ok(result.to_string())
+    }
+
+    /// The `logic` block of a plan: what the change breaks, judged against
+    /// what the store already had.
+    ///
+    /// Two checks, both relative to the store, because a plan is about the
+    /// change and not about the ontology: a store that already had a cycle
+    /// must not make every later plan look as though it caused one.
+    ///
+    /// 1. The eight TBox self-defect kinds of `defects`, on the proposed graph
+    ///    and on the store; only findings the store did not have are counted.
+    ///    These are SPARQL queries over the declarations and need no budget.
+    /// 2. Consistency of the proposed graph by the owl-dl tableaux (TBox and
+    ///    ABox), under the same `[reasoner]` budget every owl-dl run uses. The
+    ///    store is checked only when the proposed graph is proven
+    ///    inconsistent, since that is the only case where its answer changes
+    ///    the verdict, and it is the expensive half.
+    ///
+    /// Three values, never two. `abox_consistent` is `false` only on a clash
+    /// the tableaux found, and `true` only when the search finished AND the
+    /// graph uses no construct the tableaux does not model. Anything else is
+    /// `null` with the reason, because `true` would say "we looked and found
+    /// nothing" about a search that stopped, or about a weaker axiom set than
+    /// the one stated.
+    fn logic_verdict(&self, new_turtle: &str) -> LogicVerdict {
+        use crate::defects::{Defects, Finding};
+
+        let checked_by = "defects: the eight TBox self-defect kinds, proposed graph against the \
+                          store; owl-dl tableaux (SHIQ): consistency of the proposed graph, and of \
+                          the store when the proposed graph is inconsistent, under the [reasoner] \
+                          budget";
+        let proposed = Arc::new(GraphStore::new());
+        if let Err(e) = proposed.load_turtle(new_turtle, None) {
+            return LogicVerdict::not_checked(format!("the proposed graph could not be read: {e}"));
+        }
+
+        let mut notes: Vec<String> = Vec::new();
+        let mut raises_risk: Vec<String> = Vec::new();
+
+        // ── 1. New TBox self-defects ──────────────────────────────────────
+        let new_findings: Option<Vec<Finding>> = match Defects::findings(&proposed) {
+            Err(e) => {
+                notes.push(format!("the defects check could not run on the proposed graph: {e}"));
+                None
+            }
+            Ok(after) if after.is_empty() => Some(Vec::new()),
+            Ok(after) => match Defects::findings(&self.graph) {
+                Err(e) => {
+                    notes.push(format!(
+                        "the proposed graph has {} defect finding(s), and the store could not be \
+                         checked to tell which are new: {e}",
+                        after.len()
+                    ));
+                    None
+                }
+                Ok(before) => {
+                    let before: HashSet<Finding> = before.into_iter().collect();
+                    Some(after.into_iter().filter(|f| !before.contains(f)).collect())
+                }
+            },
+        };
+        let mut by_severity = serde_json::json!({"error": 0, "warning": 0, "info": 0});
+        if let Some(found) = &new_findings {
+            notes.push(format!(
+                "defects: {} finding(s) in the proposed graph that the store did not have.",
+                found.len()
+            ));
+            for f in found {
+                if let Some(n) = by_severity[f.severity].as_u64() {
+                    by_severity[f.severity] = serde_json::json!(n + 1);
+                }
+            }
+            // An `info` finding leaves every entailment intact and only a
+            // reader uninformed, so it is listed and does not move the score.
+            let serious: Vec<&Finding> =
+                found.iter().filter(|f| f.severity != "info").collect();
+            if !serious.is_empty() {
+                let first = serious[0];
+                raises_risk.push(format!(
+                    "the change introduces {} error- or warning-severity defect(s) the store did \
+                     not have, the first {} on {}",
+                    serious.len(),
+                    first.kind,
+                    first.subject
+                ));
+            }
+        }
+
+        // ── 2. Consistency ───────────────────────────────────────────────
+        let after = Self::decide_consistency(&proposed);
+        notes.push(format!("proposed graph: {}", after.note));
+        let before = if after.consistent == Some(false) {
+            let b = Self::decide_consistency(&self.graph);
+            notes.push(format!("store: {}", b.note));
+            if b.consistent != Some(false) {
+                raises_risk.push(
+                    "the proposed graph is inconsistent and the store was not proven inconsistent"
+                        .to_string(),
+                );
+            }
+            b.consistent
+        } else {
+            None
+        };
+
+        let json = serde_json::json!({
+            "checked_by": checked_by,
+            "new_defects": new_findings.as_ref().map(Vec::len),
+            "new_defects_by_severity": new_findings.as_ref().map(|_| by_severity),
+            "new_defect_findings": new_findings.as_ref().map(|found| {
+                found
+                    .iter()
+                    .take(crate::defects::Defects::MAX_PER_KIND)
+                    .map(Finding::to_json)
+                    .collect::<Vec<_>>()
+            }),
+            "abox_consistent": after.consistent,
+            "abox_consistent_before": before,
+            "individuals_checked": after.individuals_checked,
+            "reason": notes.join(" "),
+        });
+        LogicVerdict { json, raises_risk }
+    }
+
+    /// Whether `graph` is consistent, three-valued, with the reason in words.
+    fn decide_consistency(graph: &Arc<GraphStore>) -> Consistency {
+        use crate::tableaux::{Concept, DlReasoner};
+        let reasoner = match DlReasoner::from_graph(graph) {
+            Ok(r) => r,
+            Err(e) => {
+                return Consistency {
+                    consistent: None,
+                    individuals_checked: None,
+                    note: format!("not checked: the tableaux could not read the graph: {e}"),
+                };
+            }
+        };
+        let tbox = reasoner.decide_satisfiable(&Concept::Top);
+        if tbox.is_unsat() {
+            return Consistency {
+                consistent: Some(false),
+                individuals_checked: None,
+                note: "inconsistent: the TBox admits no model (owl:Thing is unsatisfiable)."
+                    .to_string(),
+            };
+        }
+        let abox = reasoner.check_abox();
+        if !abox.consistent {
+            return Consistency {
+                consistent: Some(false),
+                individuals_checked: Some(abox.individuals_checked),
+                note: format!(
+                    "inconsistent: the tableaux found a clash in the ABox over {} individual(s).",
+                    abox.individuals_checked
+                ),
+            };
+        }
+        if tbox.is_unknown() || abox.undecided {
+            let phase = if tbox.is_unknown() { "TBox consistency" } else { "ABox" };
+            let by = abox.stopped_by.unwrap_or("time or steps");
+            return Consistency {
+                consistent: None,
+                individuals_checked: Some(abox.individuals_checked),
+                note: format!(
+                    "not decided: the {phase} check ran out of its reasoner budget (stopped by \
+                     {by}) before it finished, so no clash was found and none was ruled out. \
+                     Raise [reasoner] tableaux_test_timeout_ms or classify_timeout_ms, or pass \
+                     --no-logic-check to skip the check."
+                ),
+            };
+        }
+        let unmodelled = DlReasoner::unmodelled_constructs(graph);
+        if !unmodelled.is_empty() {
+            let names: Vec<String> =
+                unmodelled.iter().map(|(k, n)| format!("{k} ({n})")).collect();
+            return Consistency {
+                consistent: None,
+                individuals_checked: Some(abox.individuals_checked),
+                note: format!(
+                    "not decided: the graph uses {} which the tableaux does not model, so finding \
+                     no clash over the remaining axioms is not a proof that the whole graph is \
+                     consistent.",
+                    names.join(", ")
+                ),
+            };
+        }
+        Consistency {
+            consistent: Some(true),
+            individuals_checked: Some(abox.individuals_checked),
+            note: format!(
+                "consistent: the search finished with no clash over {} individual(s), and the \
+                 graph uses no construct the tableaux does not model.",
+                abox.individuals_checked
+            ),
+        }
     }
 
     fn plan_inner(&self, new_turtle: &str) -> anyhow::Result<String> {
@@ -212,13 +486,30 @@ impl Planner {
         let removes_anything = !removed_classes.is_empty()
             || !removed_properties.is_empty()
             || !removed_individuals.is_empty();
-        let risk_score = if removes_anything && triples_affected > 0 {
-            "high"
+        let removed_terms =
+            removed_classes.len() + removed_properties.len() + removed_individuals.len();
+        let (risk_score, mut risk_reasons) = if removes_anything && triples_affected > 0 {
+            (
+                "high",
+                vec![format!(
+                    "the change removes {removed_terms} term(s) that {triples_affected} triple(s) \
+                     in the store refer to"
+                )],
+            )
         } else if removes_anything {
-            "medium"
+            (
+                "medium",
+                vec![format!("the change removes {removed_terms} term(s)")],
+            )
         } else {
-            "low"
+            ("low", Vec::new())
         };
+        if !locked_violations.is_empty() {
+            risk_reasons.push(format!(
+                "the change removes {} locked IRI(s)",
+                locked_violations.len()
+            ));
+        }
 
         // Persist the plan. It has to outlive this `Planner` — see `store_plan`.
         let plan_id = self.store_plan(
@@ -247,6 +538,9 @@ impl Planner {
             },
             "locked_violations": locked_violations,
             "risk_score": risk_score,
+            // Why the score is what it is, one sentence per cause. Empty when
+            // it is `low`. The logic check appends its own causes.
+            "risk_reasons": risk_reasons,
         });
 
         Ok(result.to_string())
@@ -254,6 +548,16 @@ impl Planner {
 
     /// Apply the most recent plan.
     /// Modes: "safe" (clear + reload), "force" (same but ignores monitor), "migrate" (adds bridges)
+    ///
+    /// Apply does not re-judge the plan. It applies what was planned whatever
+    /// the plan's `risk_score` or `logic` block said, exactly as it always has
+    /// for a `high` score from removals; the only gate here is the monitor. A
+    /// change that removes terms on purpose, or that is meant to land while a
+    /// known inconsistency is fixed in the next change, has to stay applicable,
+    /// and an apply that started refusing on a field it never used to read
+    /// would break every pipeline built on it without a word. The verdict is in
+    /// the plan's output for the pipeline to gate on: `risk_score`,
+    /// `risk_reasons`, and `logic`.
     pub fn apply(&self, mode: &str) -> anyhow::Result<String> {
         self.apply_plan(None, mode)
     }

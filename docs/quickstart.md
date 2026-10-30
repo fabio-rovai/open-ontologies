@@ -54,6 +54,8 @@ open-ontologies query "SELECT ?class WHERE { ?class a owl:Class }" --pretty
 
 # Run SHIQ tableaux reasoning
 open-ontologies reason --profile owl-dl
+# ...with a 30 s budget per phase for this run (overrides [reasoner] in config.toml)
+open-ontologies reason --profile owl-dl --phase-timeout-ms 30000
 
 # Semantic search (requires a build with --features embeddings)
 open-ontologies init  # on an embeddings build, downloads a 448 MB ONNX model and a 16 MB tokenizer

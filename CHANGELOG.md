@@ -6,6 +6,460 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **A plan says whether the change breaks the ontology, and scores it `high`
+  when it does** (#336, reported by @jpsanchezcalypso). `risk_score` came from
+  removal counts alone, so a change that made a named class unsatisfiable (R1:
+  `Manager ⊑ Person ⊑ Agent`, `Manager ⊥ Agent`) or the ABox inconsistent (R2:
+  `Machine ⊥ Person`, `alice a Machine` where `alice a Person`) removed nothing
+  and scored `low`. `plan`, `batch` `plan` and `onto_plan` now carry a `logic`
+  block through one function (`Planner::plan_with`): `new_defects`, the
+  `defects` findings the store did not have, and `abox_consistent`, the owl-dl
+  tableaux on the proposed graph under the `[reasoner]` budget, with
+  `abox_consistent_before` for the store when the proposed graph is
+  inconsistent. A new error- or warning-severity defect, or an inconsistency
+  the store was not proven to have, sets `risk_score` to `high`, and the new
+  `risk_reasons` says why. A check that ran out of budget, or a graph using a
+  construct the tableaux does not model, reports `abox_consistent: null` with
+  the reason, never `true`. On by default; `--no-logic-check` (CLI, `batch`) or
+  `check_logic: false` (`onto_plan`) skips it and the block says
+  `not_checked`. `apply` is unchanged and does not gate on the verdict, and the
+  exit code of `plan` is unchanged (1 on an error only), as it already was for
+  a `high` score from removals; `docs/lifecycle.md` says so. R1 and R2 now plan
+  `high` on all four entry points; the benign control stays `low`.
+- **`defects` says how many classes are affected, and its 50-a-kind listing
+  can be lifted** (#341). `defect_count` counts findings, one per query row,
+  and for `inherited_disjoint` a row is a (class, disjoint pair), so a class
+  under two disjoint pairs counted twice and the headline ran higher than the
+  reasoner's list of unsatisfiable classes with nothing saying why. The report
+  now carries `affected_classes` and `affected_properties` (distinct subjects)
+  beside it, and `kind_counts` gives `findings` and the affected count for each
+  of the eight kinds. `defects --limit N` on the CLI and `limit` on
+  `onto_defects` set the per-kind listing bound (default 50, `0` lists every
+  row), and `truncated` names a kind only when the bound in force cut it. On
+  the issue's reproduction: `defect_count` 2, `affected_classes` 1; with 80
+  classes under one disjoint pair, `--limit 0` lists all 80.
+- **`onto_convert`, the CLI `convert` and `batch` `convert` write OWL 2
+  functional syntax (`--to ofn`)** (requested by @noahgift in #322). #311 gave
+  the engine an OFN reader and no writer, so handing an ontology to the OWL
+  API, ELK, HermiT, Protégé or ROBOT meant converting through another tool, and
+  the reader had no round-trip test. `src/ofn_writer.rs` recognises exactly the
+  image of the reader's W3C mapping (Table 1, Table 2, Section 2.3) and writes
+  one axiom per line, declarations first, each group in byte order, with the
+  document's own prefixes. Anonymous expressions are written inline; the only
+  printed blank-node labels are anonymous individuals, labelled by RDFC-1.0
+  over their blank-node components, so two runs are byte-identical. Every
+  triple that maps back to no axiom (an unrecognised blank-node structure, a
+  malformed `rdf:List`, `rdf:type rdf:Property`, an OWL 1 `owl:distinctMembers`,
+  an `xsd:integer` cardinality the reader would retype) is named and counted in
+  `constructs_not_exported` with the reason, never dropped, and a shared
+  anonymous expression, which OFN can only write twice, is listed under
+  `constructs_not_round_trippable`. MEASURED: `ofn::parse(write_ofn(G))` is
+  RDFC-isomorphic to `G`, two parses write identical bytes, and writing the
+  re-read graph gives the same bytes again, on `tests/fixtures/ofn/all_constructs.ofn`,
+  17 targeted documents, and 1,550 of 1,550 ORE 2015 pool files of up to 10 MB
+  that the reader accepts (5 of the 1,555 are refused by the reader; the 363
+  larger files were not run). Conversion reads the document without a store,
+  because the store retypes `xsd:nonNegativeInteger` as `xsd:integer`.
+- **`onto_shacl` and `shacl` write a W3C `sh:ValidationReport` graph**
+  (#318, reported by @noahgift). `report_format: "turtle" | "ntriples"`
+  (`--report-format` on the CLI) returns the report as RDF, carrying
+  `sh:conforms` and, per result, `sh:focusNode`, `sh:resultPath`, `sh:value`,
+  `sh:sourceShape`, `sh:sourceConstraintComponent`, `sh:resultSeverity` and
+  `sh:resultMessage`; a custom severity IRI and a language-tagged `sh:message`
+  are written as declared. An undetermined run (`conforms: null`) is written
+  `sh:conforms false` plus `oo:undetermined true` and its reason, never
+  `sh:conforms true`, and keeps the results it found. The CLI exit code is
+  still taken from the verdict (0, 1, 2) in every format. JSON stays the
+  default and is unchanged apart from `value`. Measured against the W3C suite:
+  48 of the 56 `core/` cases that pass today produce a report matching the
+  expected one after RDFC-1.0 canonicalisation; the 8 that differ are named in
+  `tests/shacl_validation_report_w3c_test.rs` with their causes, which include
+  an `sh:or` false negative on IRI and ill-typed values.
+
+- **`reason --phase-timeout-ms` and `--classify-timeout-ms`** (#339). They set
+  the two `owl-dl` wall clocks for one run, in milliseconds, with `0` meaning
+  no limit, as in `config.toml`. The precedence is the flag, then `[reasoner]`
+  in `<data-dir>/config.toml`, then the default (10 000 and 180 000). No
+  environment variable sets either clock. The `budget` block reports the
+  values in force. A daemon fixes its clocks when it starts, and it serves
+  every client from one process. For that reason a `reason` that carries
+  either flag is never proxied. While a daemon is up, the command exits 1 and
+  names `--no-connect`, because a local run would read a different store from
+  the graph the daemon holds. In memory mode, that local store is empty.
+
+### Fixed
+
+- **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
+  relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
+  the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code
+  point" and `<#Dog> a owl:Class .` failed with "No scheme found in an
+  absolute IRI", while CLI `lint`, `onto_load` and `onto_validate` accepted
+  the same files. They now read through `GraphStore::read_as_turtle`, as CLI
+  `lint` does. A diff resolves both files against the old file's location, so
+  `<#Dog>` is one IRI in both versions and adding a class reports `added: 1,
+  removed: 0`, not every triple. A file CLI `diff` cannot read is reported as
+  JSON naming it (`Cannot read <path>: …`), as `onto_diff` does.
+
+- **One-shot CLI commands honour `[reasoner]` and the rest of
+  `<data-dir>/config.toml`** (#339). `setup()` loaded the file and kept only
+  `[storage]`. `runtime::init_from_config` ran only in `serve`, `serve-http`
+  and `serve-unix`. So `reason --profile owl-dl` always ran with a 10 000 ms
+  phase budget and a 180 000 ms ceiling, whatever the file said. Its `budget`
+  block then reported those defaults as the configuration. `setup()` now calls
+  `init_from_config` with the config it already loads. That function only
+  stores atomics, and it overwrites them, so it loads no model and can safely
+  run again. The same change applies `[cache]`, `[feedback]`, `[repo]`,
+  `[imports]`, `[webhook]` and `[language]` to one-shot commands and `batch`.
+  The servers already applied them. MEASURED with
+  `tests/cli_reasoner_config_test.rs`: on main 9e73d951, a config of
+  `tableaux_test_timeout_ms = 200` reported `phase_timeout_ms: 10000`. It now
+  reports 200. A proxied run is unchanged, because `daemon start` passes
+  `<data-dir>/config.toml` to `serve-http`. Measured on this branch, a
+  proxied run reported 200 and 60 000 from the file. One committed artifact
+  showed the bug: `docs/assets/hqdm/owl-dl.json` named
+  `tableaux_test_timeout_ms = 120000` in its `source` while its `budget` block
+  reported 10000 and 180000. Rerun with the fix, the same command reports
+  120000 and 900000 and every verdict field is unchanged (39 unsatisfiable,
+  none undetermined), so only the `budget` block was replaced.
+
+- **The subsumption sweep stops at its phase budget, and `binding_bound`
+  reports the clock that actually stopped the run** (#340). The sweep checked
+  only the run's `classify_timeout_ms` ceiling before building each pair's
+  tableau, so once its own phase deadline had passed every remaining pair
+  still built a tableau that returned `Unknown` from its first step. A class
+  whose satisfiability test ran out has no model to read and stood for a pair
+  against every satisfiable class, and all `k x n` of those pairs were
+  materialised. On the issue's 6,000-class ontology with a 200 ms phase
+  budget (release build), the subsumption phase took 5,042 ms over 27.45M
+  pairs. The sweep and the satisfiability phase now check the deadline they
+  hand their tableaux (the phase budget folded under the ceiling). After it
+  passes they build no further tableau, and those tableaux could only have
+  returned `Unknown`, so no verdict changes. A class with no model is
+  now a row with a count, not a list of pairs: its pairs are generated while
+  the budget lasts, and whatever is not reached is counted as undetermined in
+  bulk. Same ontology, same budget, three runs: 203 to 213 ms, 806 to 1,038
+  tableaux built, and 29.2M to 30.8M pairs reported in the new
+  `subsumption_agent.pairs_not_reached` and in `undetermined`, with no
+  subsumption reported and `complete: false`. At a 10,000 ms budget the number
+  of pairs decided is unchanged within run-to-run spread. `pairs_tested` now
+  counts tableaux actually built, and the new `pairs_scheduled` is tested
+  plus not reached. `budget.binding_bound` used to repeat what the settings
+  predicted. It now names the clock that stopped a cut-short phase
+  (`"global"`, `"phase"`, or `"none"`), and the prediction moves to the new
+  `budget.configured_bound`. The note says which phases each clock stopped,
+  and it no longer claims that the ceiling "cannot" fire, since that was
+  arithmetic about the tableaux and not about the run.
+
+- **The store gives a literal back as it was written** (#335; the store fix
+  is oxigraph/oxigraph#2010 by Fabio Rovai, backported onto the pinned fork
+  as rev 6409fa1c). Oxigraph 0.5.9 stored every literal of an XSD datatype it
+  could value-encode by value and gave it back in canonical form:
+  `"4.0"^^xsd:decimal` came back as `"4"`, `"1"^^xsd:boolean` as `"true"`,
+  `"5"^^xsd:int` as `"5"^^xsd:integer`, and `"4.0"` and `"4"` loaded as one
+  triple. The pinned store value-encodes a literal only when decoding gives it
+  back as written. So `sh:value` and a literal focus node now carry the term as
+  written (W3C `core/node/maxExclusive-001` and `minExclusive-001` match their
+  expected reports: report match 49 to 51 of 56; gated column 61 and full-tuple
+  column 53 unchanged, baseline byte-identical), a load-then-serialise round
+  trip no longer rewrites literals, and `asserted.tsv` carries literals as
+  written. NOT fixed, because the SPARQL evaluator (`spareval`) is unpatched:
+  inside a query `STR("4.0"^^xsd:decimal)` is still `"4"` and
+  `DATATYPE("5"^^xsd:int)` still `xsd:integer`, so `sh:pattern "\.0$"` still
+  reports `"4.0"^^xsd:decimal`, and `sh:datatype` naming one of the twelve
+  integer-derived types or `xsd:dateTimeStamp` is still recorded as not
+  evaluated (measured over every XSD datatype; pinned in
+  `tests/datatype_preservation_test.rs` and
+  `inside_a_query_a_known_datatype_literal_is_still_read_by_value`).
+
+- **A projection-entailment goal written with a literal is asked as written**
+  (consequence of #335). Goals are still round-tripped through a store, but the
+  store no longer respells `"01"^^xsd:integer` as `"1"`, so a goal `"01"` asked
+  of a source that says `"1"` is `ungrounded_in_source`, where it used to come
+  back `preserved_asserted`. One value, two terms, which is what the checker
+  has always done.
+
+- **A `sh:datatype` skipped for an integer-derived type or `xsd:dateTimeStamp`
+  names the real cause.** The skip reason said the store does not preserve the
+  datatype; since #335 it does, and what cannot report it is `DATATYPE()` in the
+  SPARQL evaluator. The reason now says so (`... so DATATYPE() cannot tell a
+  value carrying it from one carrying that type ...`). The set of datatypes and
+  every verdict are unchanged, by measurement on the new pin.
+- **A datatype the store cannot tell apart is refused inside `sh:or`,
+  `sh:not` and `sh:qualifiedValueShape`, as it already was on its own.** The
+  store widens xsd:int, xsd:nonNegativeInteger and the other integer-derived
+  types (and xsd:dateTimeStamp) to the type they derive from, and the direct
+  `sh:datatype` constraint refuses to decide them. A member naming one did
+  not: `sh:or` and a qualified minimum reported every conforming value, and
+  `sh:not [ sh:datatype xsd:nonNegativeInteger ]` returned `conforms: true`
+  over values of exactly that type. Each now records the constraint in
+  `skipped_constraints` with the direct path's reason and suppresses the
+  verdict. W3C columns unchanged (61, 53).
+- **`sh:node` to a shape whose own `sh:datatype` the store cannot tell apart
+  is refused rather than answered.** The shape compiler refused such a
+  datatype on a property inside the referenced shape and not on the shape
+  itself, so every value the store had widened was reported. The `sh:node` is
+  now recorded as not evaluated. W3C columns unchanged.
+- **A node-level `sh:or` result carries the node shape's `sh:severity`.** It
+  was written `"Violation"` whatever the shape declared, and the RDF report
+  followed it with `sh:resultSeverity sh:Violation`; it now uses the declared
+  term, through the same `severity_name` as every other path (#334). W3C
+  columns unchanged.
+- **A custom `sh:severity` keeps its namespace in the JSON report** (#334).
+  Every path set `severity` to the text after the last `#` of the declared
+  IRI, and every reader takes a bare name as `sh:`, so W3C
+  `core/misc/severity-002`'s `ex:MySeverity` read back as `sh:MySeverity`
+  (one in a slash namespace survived whole only because it has no `#`).
+  `sh:Violation`, `sh:Warning` and `sh:Info` are still `"Violation"`,
+  `"Warning"` and `"Info"`; any IRI outside the SHACL namespace is now written
+  whole, on node-shape, property-shape, qualified and `sh:sparql` results. The
+  RDF report already wrote the declared term. W3C full-tuple column 52 to 53
+  PASS; gated column unchanged at 61.
+- **A value that is not a well-typed literal of D no longer satisfies a
+  `sh:datatype D` test anywhere in the SHACL engine** (#333). The test was
+  spliced as `DATATYPE(?v) = <D>`, a SPARQL type error for an IRI or blank
+  node, and FILTER drops a row whose test errors: an IRI value under `sh:or`
+  over datatypes matched no alternative and was never reported, and an IRI
+  passed a property shape's `sh:datatype` and a datatype nested under
+  `sh:node` or a node-level `sh:or`. Separately, the `sh:or`, `sh:not`,
+  `sh:qualifiedValueShape` and `sh:node` member tests lacked the lexical check
+  the direct constraints had, so `"none"^^xsd:boolean` counted as an
+  xsd:boolean. One helper, `datatype_conforms`, is now spliced at all eight
+  sites and cannot error. W3C `core/property/or-datatypes-001` reports 3 of 3
+  violations where it reported 1: full-tuple column 51 to 52 PASS, report
+  match 48 to 49 of 56, gated column unchanged at 61.
+
+- **`batch` runs `defects`** (#336). It had no arm, so `batch` answered
+  `{"error":"unknown batch command: 'defects'"}`, and so did the CLI `defects`
+  whenever a daemon was up, since the CLI proxies it there. `defects [path]
+  [--limit N]` checks the file alone, or the batch's own store when no path is
+  given. The proxy coverage test now lists `defects`. The local CLI `defects`
+  checked its file inside the main store, so under persistent storage it
+  judged the file together with whatever the store held and left the file's
+  triples behind in it; it now uses a store of its own, as the proxied form
+  does. No other MCP-only check (`onto_dlp_boundary`, `onto_dl_check`) is a CLI
+  command, so none is proxied and none was given a batch arm.
+- **`diff` and `drift` no longer hang on a symmetric blank-node graph** (#293).
+  Both canonicalised blank nodes through oxrdf's RDFC-1.0, which sets no limit
+  on `hash_n_degree_quads` calls, so the cost was factorial: a 7-node
+  blank-node clique took 17 to 23 seconds to diff against itself and an 8-node
+  clique was still running when killed at 120 seconds. They now use the
+  repository's own `canon` module, the same Recommendation gated on the W3C
+  suite and bounded by its 4000-call budget; Pizza gets the same canonical
+  labels as before. When either snapshot exhausts the budget, both are cut to
+  the triples that mention no blank node and the report says so: `exact:
+  false`, `approximate_reason`, and the omitted counts (`omitted_old`/
+  `omitted_new` for diff, `omitted_v1`/`omitted_v2` for drift). `kgcl_json`
+  carries the flag; the `kgcl` CNL format cannot, so it refuses an
+  approximate drift and names the formats that can. Every report now carries
+  `exact`, true on ordinary input. `canon` itself built all k! neighbour
+  permutations before its first budget check, so two identical 11-leaf
+  blank-node stars cost 10 s and 1.78 GB to refuse; permutations are now
+  generated lazily in the same order, and the same input takes 0.04 s and
+  17 MB.
+- **Lint and enforce feedback can no longer waive an error, and never drop an
+  issue without a record** (#325, reported by @noahgift). After
+  `suppress_threshold` dismissals (default 3) an issue was removed whatever its
+  severity, leaving only `suppressed_count`, so the orchestrator that loops
+  until enforce is clean could dismiss an error three times and read
+  "0 violations, 1 suppressed" with no rule, entity or severity anywhere. An
+  `error` is now never suppressed or downgraded (a dismissed one stays in
+  `issues`/`violations` at `error` and carries `dismissals`); a warning or info
+  that reaches the threshold moves to a new `suppressed[]` list with `rule`,
+  `entity`, `original_severity`, `dismissals` and `message`. `issue_count`,
+  `compliance` and `suppressed_count` are computed as before.
+  `tests/feedback_suppression_test.rs` holds it for both tools.
+- **A malformed SHACL count bound no longer turns a shape into a no-op** (#321,
+  reported by @noahgift). `sh:minCount` fell back to 0 and `sh:maxCount` to
+  `u64::MAX` when the bound did not parse, and a bad `sh:qualifiedMinCount` /
+  `sh:qualifiedMaxCount` skipped the row in silence, so `sh:minCount "one"` or
+  `sh:maxCount -1` over a node with no value returned `conforms: true`. All
+  four now go to `skipped_constraints` with the reason, which makes the verdict
+  `conforms: null`, as `sh:minLength` already did. The bound must be a
+  non-negative `xsd:integer` literal: the datatype is checked because the
+  store renders Turtle `1.0` as `"1"^^xsd:decimal`. The verified path
+  (`verified: true`) refuses the same bounds before running `oo-shacl`, whose
+  `readNat` declined "one" and -1 but evaluated `1.0` as 1. `onto_shacl_check`
+  reports every ill-formed count or length literal as `ill_formed_literal`
+  with its reason. `tests/shacl_count_bound_test.rs` holds it.
+- **`onto_classify_el` is an EL classifier now, and says when its table is not
+  complete** (reported by @noahgift in #324). It ran the OWL-RL-ext rules
+  under a header saying they were "sufficient for the EL fragment" and returned
+  "the full classification table". RL derives through a left-hand conjunction
+  or existential only for an individual, so `A ⊑ B, A ⊑ C, B ⊓ C ⊑ D` came back
+  without `A ⊑ D`, as did an existential reached through a conjunctive filler,
+  a domain, a range or a transitive role (MEASURED: all five missing before,
+  all five returned after). The issue's second example,
+  `A ⊑ ∃r.B, B ⊑ C, ∃r.C ⊑ D`, was already returned, through `scm-svf1`. The
+  read-back also stopped at 100,000 rows with no field to say so: a 460-class
+  chain (105,570 pairs) came back as 100,000 after about 420 s; it now
+  returns all 105,570 in 5.6 s (both debug builds). The tool now normalises the axioms the tableau's
+  parser reads and saturates them with the EL completion rules (CR1-CR4,
+  ⊥-propagation, role hierarchy, transitive roles, ranges compiled into
+  fillers). The report gains `complete` (true only inside EL with nothing set
+  aside), `incompleteness`, `consistent`, `truncated` (no cap remains, always
+  false) and `unsatisfiable`; outside EL the RL rules are still unioned in.
+  `tests/classify_el_differential_test.rs` checks it against the `owl-dl`
+  tableau on 120 generated EL TBoxes (no disagreement; dropping the range
+  rule makes it report 6) and against HermiT's
+  Pizza classification (every reported pair entailed).
+- **The W3C SHACL conformance harness can say no, field by field, and
+  ratchets a second, full-tuple column** (reported by @noahgift in #319). It
+  compared `sh:conforms` and the set of (focus, source shape, component) and
+  collapsed every blank-node source shape to `_:`, so two different property
+  shapes compared equal, and nothing showed the comparison could reject
+  anything. Blank property shapes are now keyed by parent node shape plus
+  `sh:path` (the gated column stays at 61 of 120 PASS). A second column,
+  ratcheted on its own in `tests/w3c_shacl_baseline.json`, compares the
+  multiset of (focus, path, value, source shape, component, severity) with
+  paths compared structurally: 12 of 120 PASS, 48 of the gap being `sh:value`,
+  which the engine does not emit (#318). Severity went into the new column and
+  not the gated one because it drops the gated column from 61 to 60: the
+  engine keeps only the local name of a custom `sh:severity`
+  (`core/misc/severity-002`). The header's reason for ignoring severity, that
+  the engine did not read `sh:severity`, had been false since #206 and is gone.
+  A planted control mutates one PASS case's expected report in each of the six
+  fields and requires each copy to be rejected by name.
+- **`tools/shacl_differential.py` can no longer go green on nothing**
+  (reported by @noahgift in #320). It exited 0 on everything but a FALSE_CLEAN,
+  including no cases, no pyshacl and no comparisons, and the CI job's
+  case-studies corpus yields 4 pairs that all come back UNDETERMINED. It now
+  exits 2 (NOT MEASURED) for a missing or unpinned oracle, a missing engine,
+  empty discovery, fewer pairs run than discovered, or no pair compared; plants
+  a must-agree control and four mutated copies of pyshacl's report on every run
+  and exits 1 if any is misclassified; keys results on (focus, path, severity,
+  source shape, component) instead of (focus, path); records pyshacl, rdflib,
+  the engine binary's sha256 and every input's sha256; and with `--w3c`
+  arbitrates each disagreement against the W3C expected report. CI pins
+  pyshacl 0.40.1 and rdflib 7.6.0 and runs the corpus and the W3C suite
+  together: 117 pairs, 73 compared, 0 blocking, with 12 W3C-confirmed
+  FALSE_CLEANs reported as KNOWN because the conformance ratchet already
+  holds each as FAIL. `tools/fol_differential.py`
+  (every goal undetermined) and `tools/horn_differential.py` (every case not
+  run) had the same exit-0-on-nothing and now exit 2.
+
+- **Default-path SHACL results now carry the value node** (#318, reported by
+  @noahgift). The `sh:class`, `sh:datatype`, `sh:nodeKind`, `sh:pattern`,
+  `sh:in`, `sh:or`, `sh:not`, length and range queries selected the offending
+  value and dropped it, so `value` appeared only on `sh:sparql` results. It is
+  now on every result whose query binds it, and on node-shape results as the
+  focus node.
+
+## [2.1.0] - 2026-10-23
+
+### Fixed
+
+- **`shacl`, `enforce`, `unpack` and `monitor` exit non-zero on a failing
+  verdict** (#323, reported by @noahgift). They printed `conforms: false`, an
+  error-severity violation, `certificate_refused` or a blocking watcher and
+  exited 0, so `open-ontologies shacl shapes.ttl || exit 1` passed on the data
+  it exists to catch. Codes are 0 pass, 1 fail, 2 not determined (`conforms:
+  null`, or no checker re-ran the certificate), and each command's `--help`
+  lists them. `plan` and `drift` now exit 1 on an error, as `lint` does.
+- Preserve carriage returns and CRLF text when importing dataframe rows into the Python engine.
+- Report non-object JSON from a configured Python certificate checker as unchecked instead of raising an attribute error.
+- Preserve RDF literal datatypes when comparing Python KGCL graph changes, while retaining lexical label and annotation values.
+- Python: keep anonymous blank-node identities stable when diffing identical RDF text in `OntologyEngine.diff` and `kgcl_diff`; identical inputs remain parsed and validated.
+- Python: serialize RDF triple-term values in SELECT, CONSTRUCT and DESCRIBE query results instead of raising `AttributeError`; ordinary scalar values remain unchanged.
+- Python: accept reported blank-node graph names when selecting asserted graphs for Horn reasoning; preserve ordinary graph-name forms and inferred-graph refusal.
+- **A module that skipped at collection did not fail the strict Python leg.**
+  The entry that added `python/tests/conftest.py` says collection-time skips
+  "are caught too, through `pytest_collectreport`". They were seen and not
+  failed: the hook rewrote `report.outcome`, and that never reached the exit
+  status. MEASURED on pytest 9.0.3 and 9.1.1, under `OO_REQUIRE_FIXTURES=1`,
+  with one passing test and one module that skips at collection:
+  `1 passed, 1 skipped`, exit 0. Four files in the strict leg skip that way —
+  `test_shacl.py`, `test_shacl_vacuous.py`, `test_align.py` and
+  `test_vocab_check.py` — so the leg stayed green if their extras went missing.
+  The hook now records the skip, and `pytest_sessionfinish` fails the run.
+  `python/tests/test_conftest_collection_skip.py` holds it, with a control run
+  without the variable.
+
+- **`owl-dl` classifies Pizza exactly as HermiT does, and says when it is not
+  complete.** On the canonical `pizza.owl` it returned no subsumptions and 143
+  undetermined classes; it now returns HermiT 1.4.3's 500 subsumptions and its
+  two unsatisfiable classes, none wrong. The changes, each measured against
+  HermiT: absorption of non-atomic left-hand sides (domains, `∀r⁻` rules,
+  binary rules), dependency-directed backjumping, subsumers read off each
+  class's satisfiability model instead of one tableau per pair of classes,
+  `owl:disjointWith` absorbed as `A ⊓ B ⊑ ⊥` (disjointness with `owl:Thing`
+  never fired before), anywhere blocking, and parsing of `owl:AllDisjointClasses`,
+  `owl:disjointUnionOf` and `owl:equivalentProperty`, which were skipped in
+  silence. Over 120 ORE 2015 files across the `el`, `dl` and `pure_dl` tracks
+  there is no wrong subsumption and no wrong unsatisfiability claim.
+- An unrecognised restriction such as `owl:hasSelf` was read as `⊤`, so
+  `Narcissist ≡ ∃loves.Self` made every class a subclass of `Narcissist`. It
+  is now an opaque name, which is sound in both positions.
+- A subsumption test that ran out of budget was dropped as if refuted, and the
+  run still reported `complete: true`; it is now counted in
+  `subsumption_agent.undetermined` and named in `budget_exhausted_in`.
+- `complete` now requires that every axiom was modelled. Each `owl-dl` run
+  reports `search_finished` and `constructs_not_modelled`, which now include
+  `owl:hasSelf`, property disjointness, `owl:AllDifferent` and restrictions on
+  datatype properties.
+- **`align` reads SKOS.** It read `owl:Class` only, so a pure SKOS taxonomy
+  produced zero candidates and said nothing about why. A `skos:Concept` is now
+  aligned with its preferred, alternative and hidden labels, its
+  `skos:broader`/`skos:broaderTransitive` parents, and its `skos:definition`
+  shown to the reviewer. An entity that is also an `owl:Class` is read as
+  before.
+- **A perfect name no longer caps at 0.85, and agreement no longer costs
+  confidence.** The weighted sum now averages over the signals that carry
+  evidence for the pair (`informative_signals`, `evidence_coverage`), and a
+  structural signal counts as support when the two sides share a feature the
+  other can name. The old fusion is `--scoring legacy` and reproduces the
+  published OAEI Anatomy figure byte for byte; the new default scores F1 0.833
+  there at the equivalent threshold. The default auto-apply threshold is 0.95
+  under the new scoring (0.85 under legacy), the same strictness on each scale.
+- **Ties are reported, never dropped.** A row stable matching kept over an
+  equally scored one names the loser under `tied_with`, is marked `ambiguous`,
+  and goes to review instead of into the graph. `--cardinality many-to-one`
+  keeps several source terms on one coarser target.
+- **`crosswalk-certify` compares only what can be compared.** An ancestor with
+  no counterpart through the mapping, on either side, is a coverage gap named
+  on the row and no longer downgrades it; a SKOS scheme's hierarchy is its
+  `skos:broader` closure, so the check can now fail on SKOS input; a row with
+  nothing to compare is `not_refuted_nothing_compared` rather than upheld; and
+  the SSSOM predicate column never strengthens a claim.
+- Encode literal percent characters in mapped IRI components while preserving valid percent escapes.
+- Render native SELECT rows as tables with `--human`, including empty results, while preserving JSON output and standard SPARQL binding rendering.
+- Reject truncated XML data documents instead of reporting an incomplete prefix as a successful ingestion.
+- Recognize explicitly declared OWL properties in Python statistics and structural lint, without counting property declarations as individuals.
+- Launch explicitly selected and environment-configured certificate checkers by their verified location, including paths relative to the current directory.
+- Preserve zero and false RDF literal values and focus nodes in Python SHACL violation reports instead of rendering them as missing fields.
+- Report Python SHACL coverage for property and untyped targeted shapes, using the same inferred graph as validation so actual violations are not replaced by an unmatched-target verdict.
+- Keep Python alignment labels and query counts consistent when HNSW insertion rejects a full index or an invalid numeric vector.
+- Keep the last active ontology intact when parsing a replacement source, cache, or refresh fails; publish successful replacements in one graph transaction.
+- Bound wildcard repository filtering to pattern/filename pairs so repeated stars cannot stall `onto_repo_list`.
+- Sanitize quotes and ASCII control bytes in mapped IRI components so valid structured data does not fail RDF ingestion.
+- Scope deterministic synthetic row identifiers to the original source stem,
+  preserving distinct subjects across sheets and class overrides. Encode source
+  names losslessly; identical stems require distinct base IRIs.
+- Keep original Turtle error line numbers when applying a local document base.
+- Load crosswalk Parquet string columns with either Utf8 or LargeUtf8 offsets, including mixed schemas, so valid rows are not silently discarded.
+
+### Added
+
+- **`crosswalk-probe`** (CLI subcommand and batch verb): carry a crosswalk's
+  subsumptions into the target and report the clashes they add. Witness
+  individuals make a TBox-only taxonomy able to clash; clashes the target has
+  on its own are reported apart. Exits 1 on a contradiction.
+
+### Added
+
+- **OWL 2 functional syntax loads, whatever the file is called.** `src/ofn.rs`
+  reads OFN into exactly the triples the W3C "OWL 2 Mapping to RDF Graphs"
+  assigns it, and every path that reads a file reaches it: `load`, `validate`,
+  `convert`, `lint`, `batch`, `onto_load` with its compile cache,
+  `onto_validate` and `onto_convert`. A document is OFN when its first token is
+  `Prefix(` or `Ontology(`, so the ORE 2015 reasoner-competition corpus, 1,920
+  OFN files published as `.owl` that all died in the RDF/XML parser, now loads,
+  and `.ofn` is accepted by name. A construct the reader does not translate
+  fails the whole document by name, count and first line, never a silent drop.
+  SWRL `DLSafeRule`s become the `swrl:` vocabulary `onto_rules_import` already
+  reads. Checked against OWL API 4.5.29 on 93 ORE files across the `dl`, `el`
+  and `pure_dl` tracks: all 93 agree once seven documented OWL API habits are
+  undone, and none of the seven is a defect in either reader.
+
 - **A named profile hands a client one job's worth of the tool surface** (#263).
   A client aligning two vocabularies has no use for most of what this server
   registers, and every tool it has no use for is one more chance to call the
@@ -45,6 +499,57 @@ All notable changes to Open Ontologies are documented here.
   report says so, so it never means false.
 
 ### Fixed
+
+- XML ingest preserves CDATA and text split by comments or CDATA boundaries,
+  and rejects undecodable entities rather than loading a silently empty value.
+  Whitespace normalization applies once to the completed field.
+- Explicit ingest formats are honored by the local CLI and the MCP ingest/map
+  tools rather than silently falling back to filename detection. Omitted formats
+  retain extension detection, and unsupported explicit formats return an error.
+- Read extraction-scaffold metadata and mapping-generator declarations from
+  every loaded graph, so TriG and N-Quads retain the same discovered classes,
+  properties, typed extraction checks, and prompt fields as Turtle schemas.
+- Materialize documented row-number identifiers in batch and MCP induction
+  when no input column identifies the rows. Choose an unused internal field so
+  existing `__row` data remains a property instead of merging different rows.
+
+- Render XLSX numeric calendar cells as ISO dateTime values instead of Excel
+  serial numbers, respecting the workbook's 1900 or 1904 calendar. Duration
+  cells retain their existing representation; calendar cells do not distinguish
+  date-only values from midnight dateTimes.
+- Parquet ingest formats each non-primitive cell with Arrow's value formatter,
+  preserving date and decimal lexical values instead of embedding a debug dump
+  of the complete column in every row. Formatting errors fail the import.
+- Preserve XLSX header and Parquet schema order during induction so the first
+  filled, unique column remains the identifier candidate, as it is for CSV.
+- Compare canonical blank node identities in ontology diffs, so unchanged
+  anonymous restrictions do not appear as added and removed triples. Anonymous
+  structure remains visible when it changes; canonical IDs can shift under edits.
+
+- Validate relative RDF references against the local document base, matching
+  loading, conversion, and linting. Encode local file URLs so RDF files under paths with
+  spaces, percent signs, or fragment characters resolve relative references
+  correctly; explicit Turtle and XML bases retain priority.
+- Keep competency-question result excerpts within the existing 800-byte budget
+  at a UTF-8 character boundary, so long multilingual descriptions return the
+  normal report instead of failing during formatting.
+- Treat Unicode strings as strings during the dateTime probe, including mixed
+  product names such as `Tシャツ半袖綿素材`, so one-sheet induction can complete
+  without slicing through a character. Existing ASCII dateTime checks are retained.
+- Emit lowercase RDF lexical values for already-admitted Boolean words in
+  declared boolean mappings, including spreadsheet-style case and surrounding
+  whitespace, so loaded values compare as booleans. String content and datatype
+  inference retain their existing behavior.
+- Decode extraction-scaffold annotation literals to their lexical text, so
+  language-tagged and escaped class labels, comments, and property labels retain
+  their intended prompt fields and label-keyed type checks.
+- Save ontology versions as N-Quads and restore their stored format, preserving
+  named graphs and repeated facts in separate contexts. Legacy N-Triples
+  snapshots remain readable.
+- Calculate alignment evaluation metrics and reported sizes from the same
+  deduplicated alignment sets as TP/FP/FN, so repeated entries do not lower the
+  score of an otherwise identical alignment.
+
 
 - **The embedding model is loaded once per process rather than once per HTTP
   session** (#262). The HTTP arm hands the same server constructor to

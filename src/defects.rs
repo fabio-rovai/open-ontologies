@@ -22,6 +22,13 @@ const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 /// sentence that says why the reader should care.
 struct Check {
     kind: &'static str,
+    /// The query variable naming the thing the finding is ABOUT, and whether
+    /// that thing is a class or a property. One subject can appear in several
+    /// rows: `inherited_disjoint` returns one row per (class, disjoint pair),
+    /// so a class under two disjoint pairs is two findings and one affected
+    /// class (#341).
+    subject: &'static str,
+    subject_is: SubjectIs,
     /// How much the finding should weigh on the reader.
     ///
     /// `error` means something can have no instances at all. `warning` means
@@ -35,64 +42,136 @@ struct Check {
     explanation: &'static str,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SubjectIs {
+    Class,
+    Property,
+}
+
+/// One row of one check, kept whole so two graphs' findings can be compared.
+///
+/// `plan` uses this to report only the defects a change INTRODUCES (#336): a
+/// store that already had a cycle should not make every later plan look as
+/// though it caused one.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct Finding {
+    pub kind: &'static str,
+    pub severity: &'static str,
+    /// The class or property the finding is about.
+    pub subject: String,
+    /// Every binding of the row, sorted by variable name, subject included.
+    pub bindings: Vec<(String, String)>,
+}
+
+impl Finding {
+    /// The finding as it is listed in a report: kind, severity, the reason to
+    /// care, and the row's bindings.
+    pub fn to_json(&self) -> serde_json::Value {
+        let mut entry = serde_json::Map::new();
+        entry.insert("kind".into(), serde_json::json!(self.kind));
+        entry.insert("severity".into(), serde_json::json!(self.severity));
+        let explanation = Defects::checks()
+            .into_iter()
+            .find(|c| c.kind == self.kind)
+            .map(|c| c.explanation)
+            .unwrap_or_default();
+        entry.insert("explanation".into(), serde_json::json!(explanation));
+        for (var, value) in &self.bindings {
+            entry.insert(var.clone(), serde_json::json!(value));
+        }
+        serde_json::Value::Object(entry)
+    }
+}
+
 pub struct Defects;
 
 impl Defects {
-    /// The most rows of any one kind that are listed individually.
+    /// The most rows of any one kind that are listed individually, unless the
+    /// caller asks for another bound.
     ///
     /// Anything reported item by item needs an upper bound. One bad
     /// declaration in a shared vocabulary produces thousands of identical
     /// rows, and a reader facing a thousand identical rows decides nothing
     /// from them. The total is still reported under `truncated`, so the cap
-    /// hides the listing and never the scale.
+    /// hides the listing and never the scale. It is a DEFAULT and not a wall:
+    /// `--limit N` on the CLI and `limit` on `onto_defects` move it, and `0`
+    /// lists every row, because a total the reader can see and cannot reach is
+    /// a report that stops one step short (#341).
     pub const MAX_PER_KIND: usize = 50;
 
+    /// The report, listing at most [`Defects::MAX_PER_KIND`] rows of each kind.
     pub fn check(graph: &Arc<GraphStore>) -> anyhow::Result<String> {
+        Self::check_with_limit(graph, Self::MAX_PER_KIND)
+    }
+
+    /// The report, listing at most `limit` rows of each kind. `0` lists all.
+    ///
+    /// Two counts, because they answer two questions. `defect_count` counts
+    /// FINDINGS, one per query row: for `inherited_disjoint` a row is a
+    /// (class, disjoint pair), so a class under two disjoint pairs is two
+    /// findings. `affected_classes` and `affected_properties` count the
+    /// DISTINCT subjects those findings are about, which is the number to
+    /// hold against a reasoner's list of unsatisfiable classes. `kind_counts`
+    /// gives both per kind. Before #341 only the first existed, and on a large
+    /// ontology it read as a count of broken classes that was larger than the
+    /// reasoner's, with nothing in the output to say why.
+    pub fn check_with_limit(graph: &Arc<GraphStore>, limit: usize) -> anyhow::Result<String> {
         let checks = Self::checks();
         let kinds_checked: Vec<&str> = checks.iter().map(|c| c.kind).collect();
+        let findings = Self::findings(graph)?;
+        let cap = if limit == 0 { usize::MAX } else { limit };
 
         let mut defects: Vec<serde_json::Value> = Vec::new();
         let mut truncated = serde_json::Map::new();
-        let mut total = 0usize;
+        let mut kind_counts = serde_json::Map::new();
         let (mut errors, mut warnings, mut infos) = (0usize, 0usize, 0usize);
+        let mut classes: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+        let mut properties: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
 
         for check in &checks {
-            // The union dataset, so the answer does not depend on whether the
-            // ontology arrived as Turtle or inside a named graph.
-            let raw = graph.sparql_select_union(&check.query)?;
-            let parsed: serde_json::Value = serde_json::from_str(&raw)?;
-            let rows = parsed["results"].as_array().cloned().unwrap_or_default();
-
-            total += rows.len();
+            let rows: Vec<&Finding> = findings.iter().filter(|f| f.kind == check.kind).collect();
             match check.severity {
                 "error" => errors += rows.len(),
                 "warning" => warnings += rows.len(),
                 _ => infos += rows.len(),
             }
-            if rows.len() > Self::MAX_PER_KIND {
+            let subjects: std::collections::BTreeSet<&str> =
+                rows.iter().map(|f| f.subject.as_str()).collect();
+            let affected_key = match check.subject_is {
+                SubjectIs::Class => {
+                    classes.extend(subjects.iter().copied());
+                    "affected_classes"
+                }
+                SubjectIs::Property => {
+                    properties.extend(subjects.iter().copied());
+                    "affected_properties"
+                }
+            };
+            kind_counts.insert(
+                check.kind.to_string(),
+                serde_json::json!({"findings": rows.len(), affected_key: subjects.len()}),
+            );
+            // `truncated` names a kind exactly when some of its rows are not
+            // listed, so it is keyed on the bound in force rather than on the
+            // default one.
+            if rows.len() > cap {
                 truncated.insert(check.kind.to_string(), serde_json::json!(rows.len()));
             }
-
-            for row in rows.iter().take(Self::MAX_PER_KIND) {
-                let mut entry = serde_json::Map::new();
-                entry.insert("kind".into(), serde_json::json!(check.kind));
-                entry.insert("severity".into(), serde_json::json!(check.severity));
-                entry.insert("explanation".into(), serde_json::json!(check.explanation));
-                if let Some(bindings) = row.as_object() {
-                    for (var, value) in bindings {
-                        entry.insert(var.clone(), value.clone());
-                    }
-                }
-                defects.push(serde_json::Value::Object(entry));
-            }
+            defects.extend(rows.iter().take(cap).map(|f| f.to_json()));
         }
 
         Ok(serde_json::json!({
-            "defect_count": total,
+            // FINDINGS, one per query row. See `affected_classes` for the
+            // number of distinct classes they are about.
+            "defect_count": findings.len(),
+            "affected_classes": classes.len(),
+            "affected_properties": properties.len(),
+            "kind_counts": kind_counts,
             // Always all three keys, so a reader never has to tell "none of
             // this kind" from "this key was not written".
             "severity_counts": {"error": errors, "warning": warnings, "info": infos},
             "reported_count": defects.len(),
+            "limit_per_kind": limit,
             "defects": defects,
             "kinds_checked": kinds_checked,
             "truncated": truncated,
@@ -100,10 +179,53 @@ impl Defects {
         .to_string())
     }
 
+    /// Every finding of every kind, uncapped, in check order and then in the
+    /// order of the subject and bindings.
+    pub fn findings(graph: &Arc<GraphStore>) -> anyhow::Result<Vec<Finding>> {
+        let mut out = Vec::new();
+        for check in Self::checks() {
+            // The union dataset, so the answer does not depend on whether the
+            // ontology arrived as Turtle or inside a named graph.
+            let raw = graph.sparql_select_union(&check.query)?;
+            let parsed: serde_json::Value = serde_json::from_str(&raw)?;
+            let rows = parsed["results"].as_array().cloned().unwrap_or_default();
+            let mut these: Vec<Finding> = rows
+                .iter()
+                .filter_map(|row| row.as_object())
+                .map(|bindings| {
+                    let mut b: Vec<(String, String)> = bindings
+                        .iter()
+                        .map(|(k, v)| {
+                            let v = v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string());
+                            (k.clone(), v)
+                        })
+                        .collect();
+                    b.sort();
+                    let subject = b
+                        .iter()
+                        .find(|(k, _)| k == check.subject)
+                        .map(|(_, v)| v.clone())
+                        .unwrap_or_default();
+                    Finding {
+                        kind: check.kind,
+                        severity: check.severity,
+                        subject,
+                        bindings: b,
+                    }
+                })
+                .collect();
+            these.sort();
+            out.extend(these);
+        }
+        Ok(out)
+    }
+
     fn checks() -> Vec<Check> {
         vec![
             Check {
                 kind: "transitive_and_functional",
+                subject: "property",
+                subject_is: SubjectIs::Property,
                 severity: "warning",
                 query: format!(
                     "SELECT DISTINCT ?property WHERE {{
@@ -118,6 +240,8 @@ impl Defects {
             },
             Check {
                 kind: "symmetric_and_asymmetric",
+                subject: "property",
+                subject_is: SubjectIs::Property,
                 severity: "error",
                 query: format!(
                     "SELECT DISTINCT ?property WHERE {{
@@ -130,6 +254,8 @@ impl Defects {
             },
             Check {
                 kind: "subclass_cycle",
+                subject: "class",
+                subject_is: SubjectIs::Class,
                 severity: "warning",
                 query: format!(
                     "SELECT DISTINCT ?class WHERE {{
@@ -143,6 +269,8 @@ impl Defects {
             },
             Check {
                 kind: "sub_property_cycle",
+                subject: "property",
+                subject_is: SubjectIs::Property,
                 severity: "warning",
                 query: format!(
                     "SELECT DISTINCT ?property WHERE {{
@@ -156,6 +284,8 @@ impl Defects {
             },
             Check {
                 kind: "disjoint_with_ancestor",
+                subject: "class",
+                subject_is: SubjectIs::Class,
                 severity: "error",
                 query: format!(
                     "SELECT DISTINCT ?class ?ancestor WHERE {{
@@ -170,6 +300,8 @@ impl Defects {
             },
             Check {
                 kind: "inherited_disjoint",
+                subject: "class",
+                subject_is: SubjectIs::Class,
                 severity: "error",
                 query: format!(
                     "SELECT DISTINCT ?class ?first ?second WHERE {{
@@ -186,6 +318,8 @@ impl Defects {
             },
             Check {
                 kind: "self_inverse",
+                subject: "property",
+                subject_is: SubjectIs::Property,
                 severity: "info",
                 query: format!(
                     "SELECT DISTINCT ?property WHERE {{
@@ -198,6 +332,8 @@ impl Defects {
             },
             Check {
                 kind: "inverse_not_mutual",
+                subject: "property",
+                subject_is: SubjectIs::Property,
                 severity: "info",
                 query: format!(
                     "SELECT DISTINCT ?property ?inverse WHERE {{

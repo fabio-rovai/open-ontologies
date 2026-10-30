@@ -564,6 +564,11 @@ fn read_entry(store: &Store, manifest: &Path, entry: &str) -> anyhow::Result<Tes
 /// that round-trips a graph through the store and then compares terms, SHACL
 /// validation included, inherits that.
 ///
+/// Since #335 the pinned store keeps literals as written (oxigraph/oxigraph#2010),
+/// so that round trip is now term-preserving for literals; measured in
+/// `tests/shacl_validation_report_test.rs`. This harness keeps the direct path
+/// because it needs no store and dedupes and sorts explicitly.
+///
 /// Parsing is still Oxigraph's, so base and prefix resolution are unchanged.
 /// Triples are deduplicated and sorted here because the store used to do both, and
 /// the compiler in `lean/Shacl/Compile.lean` reads `sh:path` as "exactly one

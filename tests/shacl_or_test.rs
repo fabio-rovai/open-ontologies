@@ -202,3 +202,218 @@ fn unrecognised_node_kind_is_skipped_not_passed() {
     );
     assert!(r["conforms"].is_null(), "verdict must be suppressed: {r}");
 }
+
+// ── #333: a datatype test that cannot be a type error ───────────────────────
+//
+// W3C `core/property/or-datatypes-001` expects three `sh:or` violations on one
+// focus node and the engine reported one. Two causes, both in how "value V
+// has datatype D" was spliced into SPARQL as `DATATYPE(?v) = <D>`:
+//
+//   * `DATATYPE()` of an IRI or blank node is a type error. Inside
+//     `FILTER(!(a || b))` the error propagates and the FILTER drops the row,
+//     so an IRI value was never counted as matching no alternative.
+//   * `"none"^^xsd:boolean` answers `DATATYPE() = xsd:boolean` though its
+//     lexical form is outside xsd:boolean's lexical space. SHACL 4.1.2 makes
+//     an ill-typed literal a non-match of `sh:datatype`.
+
+const OR_DATATYPES_SHAPE: &str = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :comment ;
+    sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:HTML ]
+            [ sh:datatype rdf:langString ] [ sh:datatype xsd:boolean ] ) ] .
+"#;
+
+fn values_of(r: &serde_json::Value) -> Vec<String> {
+    let mut v: Vec<String> = r["violations"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default()
+        .iter()
+        .map(|x| x["value"].as_str().unwrap_or("(none)").to_string())
+        .collect();
+    v.sort();
+    v
+}
+
+/// The W3C case in miniature: an IRI, an integer and an ill-typed boolean
+/// each match no alternative, and each is its own violation.
+#[test]
+fn or_over_datatypes_reports_an_iri_and_an_ill_typed_literal() {
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:bad a :T ; :comment :SomeIri , 42 , "A string" , "none"^^xsd:boolean , "true"^^xsd:boolean .
+"#;
+    let r = validate(data, OR_DATATYPES_SHAPE);
+    assert_eq!(r["conforms"], false, "{r}");
+    assert_eq!(
+        values_of(&r),
+        vec![
+            "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>".to_string(),
+            "\"none\"^^<http://www.w3.org/2001/XMLSchema#boolean>".to_string(),
+            "http://ex.org/SomeIri".to_string(),
+        ],
+        "{r}"
+    );
+}
+
+/// The other direction: every alternative's well-typed values still conform.
+#[test]
+fn or_over_datatypes_still_admits_every_alternative() {
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:good a :T ; :comment "<div>HTML</div>"^^rdf:HTML , "a language string"@en , "A string" ,
+  "false"^^xsd:boolean , "1"^^xsd:boolean .
+"#;
+    let r = validate(data, OR_DATATYPES_SHAPE);
+    assert_eq!(r["violation_count"], 0, "{r}");
+    assert_eq!(r["conforms"], true, "{r}");
+}
+
+/// Same cause on a plain `sh:datatype` property constraint: the violation
+/// filter was `DATATYPE(?val) != <D>`, which is a type error for an IRI, so an
+/// IRI value passed `sh:datatype xsd:string`.
+#[test]
+fn an_iri_value_violates_sh_datatype() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :label ; sh:datatype xsd:string ] .
+"#;
+    let data = r#"
+@prefix : <http://ex.org/> .
+:a a :T ; :label :NotALiteral , "fine" .
+"#;
+    let r = validate(data, shapes);
+    assert_eq!(values_of(&r), vec!["http://ex.org/NotALiteral".to_string()], "{r}");
+}
+
+/// Node-level `sh:or` over member shapes: a member whose property carries
+/// `sh:datatype` must not be satisfied by an IRI or an ill-typed value.
+#[test]
+fn node_level_or_member_datatype_is_not_satisfied_by_an_iri_or_ill_typed_value() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:or ( [ sh:property [ sh:path :flag ; sh:datatype xsd:boolean ] ]
+          [ sh:property [ sh:path :flag ; sh:datatype xsd:integer ] ] ) .
+"#;
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:iri a :T ; :flag :NotALiteral .
+:ill a :T ; :flag "none"^^xsd:boolean .
+:ok  a :T ; :flag true .
+"#;
+    let r = validate(data, shapes);
+    let mut foci: Vec<String> = r["violations"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default()
+        .iter()
+        .map(|x| x["focus_node"].as_str().unwrap_or_default().to_string())
+        .collect();
+    foci.sort();
+    assert_eq!(foci, vec!["http://ex.org/ill".to_string(), "http://ex.org/iri".to_string()], "{r}");
+}
+
+/// `sh:not [ sh:datatype xsd:boolean ]`: an ill-typed boolean does not
+/// conform to the inner shape, so the negation is satisfied.
+#[test]
+fn an_ill_typed_literal_satisfies_sh_not_datatype() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :flag ; sh:not [ sh:datatype xsd:boolean ] ] .
+"#;
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:a a :T ; :flag "none"^^xsd:boolean , true .
+"#;
+    let r = validate(data, shapes);
+    assert_eq!(
+        values_of(&r),
+        vec!["\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>".to_string()],
+        "{r}"
+    );
+}
+
+/// `sh:qualifiedValueShape [ sh:datatype xsd:boolean ]`: an ill-typed boolean
+/// is not a value that conforms, so it does not count towards the minimum.
+#[test]
+fn an_ill_typed_literal_does_not_count_towards_a_qualified_datatype_shape() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :flag ;
+    sh:qualifiedValueShape [ sh:datatype xsd:boolean ] ; sh:qualifiedMinCount 1 ] .
+"#;
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:a a :T ; :flag "none"^^xsd:boolean .
+"#;
+    let r = validate(data, shapes);
+    assert_eq!(r["violation_count"], 1, "{r}");
+    assert_eq!(r["violations"][0]["constraint"], "qualifiedMinCount", "{r}");
+}
+
+/// `sh:node` compiles the referenced shape into one boolean expression and
+/// reports `FILTER(!(expr))`. A datatype test in that expression erroring on
+/// an IRI dropped the row, so an IRI passed a nested `sh:datatype`, both on
+/// the referenced shape itself and on a property shape inside it; an
+/// ill-typed literal passed both too.
+#[test]
+fn sh_node_datatype_rejects_an_iri_and_an_ill_typed_value() {
+    let shapes = r#"
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://ex.org/> .
+:S a sh:NodeShape ; sh:targetClass :T ;
+  sh:property [ sh:path :flag ; sh:node :Boolean ] ;
+  sh:property [ sh:path :child ; sh:node :HasBooleanFlag ] .
+:Boolean a sh:NodeShape ; sh:datatype xsd:boolean .
+:HasBooleanFlag a sh:NodeShape ; sh:property [ sh:path :flag ; sh:datatype xsd:boolean ] .
+"#;
+    let data = r#"
+@prefix : <http://ex.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+:iri a :T ; :flag :NotALiteral .
+:ill a :T ; :flag "none"^^xsd:boolean .
+:ok  a :T ; :flag true ; :child :c1 .
+:c1 :flag true .
+:childIri a :T ; :child :c2 .
+:c2 :flag :NotALiteral .
+:childIll a :T ; :child :c3 .
+:c3 :flag "none"^^xsd:boolean .
+"#;
+    let r = validate(data, shapes);
+    let mut foci: Vec<String> = r["violations"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default()
+        .iter()
+        .map(|x| x["focus_node"].as_str().unwrap_or_default().to_string())
+        .collect();
+    foci.sort();
+    assert_eq!(
+        foci,
+        ["childIll", "childIri", "ill", "iri"].map(|f| format!("http://ex.org/{f}")).to_vec(),
+        "{r}"
+    );
+}

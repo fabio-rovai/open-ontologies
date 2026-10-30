@@ -1,9 +1,12 @@
-# The other side. It has Person and Organisation, but it does NOT put them
-# under a common responsible-actor class: both hang straight off the top.
+# The other side. It HAS a responsible-actor class, but it does NOT put Person
+# or Organisation under it: both hang straight off the top. The mapping below
+# carries ResponsibleActor across, so the two hierarchies can be compared there
+# and they disagree.
 @prefix hqdm: <http://hqdm.example/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
-hqdm:Person       a owl:Class ; rdfs:subClassOf hqdm:Thing .
-hqdm:Organisation a owl:Class ; rdfs:subClassOf hqdm:Thing .
-hqdm:Thing        a owl:Class .
-hqdm:Activity     a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:Person           a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:Organisation     a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:ResponsibleActor a owl:Class ; rdfs:subClassOf hqdm:Thing .
+hqdm:Thing            a owl:Class .
+hqdm:Activity         a owl:Class ; rdfs:subClassOf hqdm:Thing .

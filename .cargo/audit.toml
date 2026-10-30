@@ -25,18 +25,20 @@ ignore = [
     # on quick-xml 0.41 or later.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
-    # rkyv 0.7.46 out-of-bounds reads on archives containing Rc/Arc.
-    # Not compiled by this project in any configuration. rkyv is an OPTIONAL
-    # dependency of rust_decimal (rust_decimal-1.42.1/Cargo.toml: `rkyv =
-    # ["dep:rkyv"]`), reaching us only via duckdb -> rust_decimal, and duckdb
-    # does not enable that feature. Verified: `cargo tree --all-features
-    # --target all -i rkyv` returns no results, while `-i rust_decimal` shows
-    # rust_decimal -> duckdb -> open-ontologies. cargo audit reads Cargo.lock,
-    # which records optional dependencies the compiler never sees.
-    # Unfixable by version bump: the advisory requires >= 0.8.17, but
-    # rust_decimal requires rkyv "0.7.46", which Cargo reads as at least 0.7.46
-    # and below 0.8.0, and it has not migrated to the 0.8
-    # line (it carries a separate rkyv-0_8 dev-dependency). Remove this entry
-    # once rust_decimal ships a release depending on rkyv 0.8.
-    "RUSTSEC-2026-0235",
+    # zip archive-extraction advisories (symlink escape, SUID/SGID bits kept,
+    # permissions applied through symlinks), all patched only in zip 9.0.0.
+    # Every one of them is in ZipArchive::extract / ZipStreamReader::extract,
+    # which write an archive out to disk. The one remaining path to an affected
+    # zip is calamine 0.30.1 -> zip 4.6.1 (`cargo tree --all-features -i zip`),
+    # and calamine never extracts: it opens the workbook with ZipArchive::new
+    # and reads entries into memory with by_name and by_index, and its source
+    # contains no call to extract or ZipStreamReader. Moving calamine does not
+    # help yet, because the latest release, 0.36.1, still requires zip "^8.6".
+    # The other path, duckdb's build-dependency libduckdb-sys, was cleared by
+    # updating duckdb to 1.10506.1, which requires zip "^9". That same update
+    # dropped rust_decimal and with it rkyv, so the RUSTSEC-2026-0235 entry
+    # that stood here is gone. Remove these once calamine depends on zip 9.
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
 ]

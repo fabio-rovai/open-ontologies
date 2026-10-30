@@ -825,28 +825,26 @@ fn the_differential_can_fire() {
 // 5. Goals: what is asked, and what is refused
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The store rewrites `"01"^^xsd:integer` to `"1"^^xsd:integer` on the way in.
-/// A goal typed in the original spelling and NOT routed through the same parser
-/// matches nothing and is reported lost, which is a false loss with a
-/// green-looking pipeline around it.
+/// A literal is asked in the spelling it was written in, and two spellings of
+/// one value are two terms.
 ///
-/// Measured here rather than taken from the docs: the assertion on the
-/// canonicaliser is inline, so if oxigraph ever stops canonicalising, this
-/// fails loudly instead of quietly protecting nothing.
+/// Until #335 the store rewrote `"01"^^xsd:integer` to `"1"^^xsd:integer` on
+/// the way in, and goals were round-tripped through a store so that a goal
+/// written `"01"` matched data written `"1"`. The pinned store keeps literals
+/// as written, so that equivalence is gone from both sides: the goal stays
+/// `"01"`, it is preserved where the source says `"01"`, and where the source
+/// says `"1"` it is not in the source at all. That is RDF term identity, and it
+/// is what the checker does (docs/lean-certificates.md: no rule compares
+/// literals by value). This test was the pin of the old rewrite and failed,
+/// by design, when the store stopped making it.
 #[test]
-fn a_literal_spelling_is_canonicalised_before_asking() {
+fn a_literal_goal_is_asked_as_written_and_one_value_is_two_terms() {
     let _serial = serial();
     if skip() {
         return;
     }
     checker();
-    let ttl = "@prefix : <http://ex.org/> .\n\
-               @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
-               :a :n \"1\"^^xsd:integer .\n";
-    let g = loaded(ttl);
-
-    // The canonicaliser, asserted inline.
-    let raw = (
+    let written = (
         "<http://ex.org/a>".to_string(),
         "<http://ex.org/n>".to_string(),
         "\"01\"^^<http://www.w3.org/2001/XMLSchema#integer>".to_string(),
@@ -857,34 +855,32 @@ fn a_literal_spelling_is_canonicalised_before_asking() {
          :a :n \"01\"^^xsd:integer .\n",
     )
     .unwrap();
-    assert_ne!(
-        goals[0].triple, raw,
-        "the parser must canonicalise the literal; if it does not, this whole guard is dead"
-    );
-    assert_eq!(goals[0].triple.2, "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>");
+    assert_eq!(goals[0].triple, written, "the store round trip must not respell the literal");
 
-    // Routed through the parser: preserved.
-    let o = opts("literal", &[]);
-    let r = pe::check_entailment_preservation(
-        &g,
-        Projection::Turtle(ttl),
-        &goals,
-        &[],
-        &o,
-    )
-    .unwrap();
+    // The source spells it the same way: preserved, and asserted.
+    let same = "@prefix : <http://ex.org/> .\n\
+                @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+                :a :n \"01\"^^xsd:integer .\n";
+    let o = opts("literal-same", &[]);
+    let r = pe::check_entailment_preservation(&loaded(same), Projection::Turtle(same), &goals, &[], &o)
+        .unwrap();
     assert_eq!(r.per_goal[0].verdict, GoalVerdict::PreservedAsserted, "{}", r.headline);
-
-    // The broken variant: the caller's raw spelling asked directly of the
-    // certificate is NOT derivable, which is what a tool that skipped the
-    // parser would have reported as a loss.
     let cert = pe::CertificateIndex::read(&o.work_dir.join("projection")).unwrap();
-    assert_eq!(
-        cert.membership(&raw),
-        Membership::NotDerivable,
-        "the raw spelling matches nothing, which is exactly the false loss"
-    );
-    assert_eq!(cert.membership(&goals[0].triple), Membership::Asserted);
+    assert_eq!(cert.membership(&written), Membership::Asserted);
+
+    // The source spells the same value "1": a different term, so the goal is
+    // not grounded in it, and the certificate holds "1" and not "01".
+    let other = "@prefix : <http://ex.org/> .\n\
+                 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+                 :a :n \"1\"^^xsd:integer .\n";
+    let o = opts("literal-other", &[]);
+    let r = pe::check_entailment_preservation(&loaded(other), Projection::Turtle(other), &goals, &[], &o)
+        .unwrap();
+    assert_eq!(r.per_goal[0].verdict, GoalVerdict::UngroundedInSource, "{}", r.headline);
+    let cert = pe::CertificateIndex::read(&o.work_dir.join("projection")).unwrap();
+    assert_eq!(cert.membership(&written), Membership::NotDerivable);
+    let canonical = (written.0.clone(), written.1.clone(), "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>".to_string());
+    assert_eq!(cert.membership(&canonical), Membership::Asserted);
 }
 
 #[test]

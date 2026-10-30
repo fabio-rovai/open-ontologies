@@ -151,6 +151,15 @@ pub fn tableaux_max_steps() -> Option<u64> {
     }
 }
 
+/// Override the step ceiling, for tests. `0` removes the bound.
+///
+/// The step budget is the one bound that stops a run at the same place on
+/// every machine, so it is the one a test can use to cut a sweep short on
+/// purpose and then ask whether the output admits it.
+pub fn set_tableaux_max_steps(n: usize) {
+    TABLEAUX_MAX_STEPS.store(n, Ordering::Relaxed);
+}
+
 /// Wall-clock cut-off for a single tableau satisfiability test, in
 /// milliseconds. `None` (value 0) means no time limit.
 ///
@@ -190,8 +199,8 @@ pub fn set_tableaux_test_timeout_ms(ms: usize) {
 /// a run — consistency, satisfiability, subsumption, ABox, explanation — and it
 /// is enforced: `DlReasoner::phase_deadline_within` intersects it with each
 /// phase's own deadline, so no phase can outlive it. At the SHIPPED DEFAULTS it
-/// nonetheless cannot be the bound that fires, because those five phases each
-/// open a `tableaux_test_timeout_ms` budget of 10 000 ms and five times ten is
+/// is nonetheless not expected to be the bound that fires, because those five
+/// phases each open a `tableaux_test_timeout_ms` budget of 10 000 ms and five times ten is
 /// fifty, which is less than a hundred and eighty. Making it the binding bound
 /// means minting a deadline per tableau rather than per phase, which was
 /// measured: a 20-ontology corpus went from 67s to over 600s with no verdict
@@ -199,10 +208,11 @@ pub fn set_tableaux_test_timeout_ms(ms: usize) {
 /// and matches neither corpus in `tests/reasoner_budget_corpus_bench.rs`; see
 /// `DlReasoner::phase_deadline`, which is the one place that says so, and the
 /// bench, which is the one place that measures. The engine therefore reports, in
-/// `budget.binding_bound` and
-/// `budget.note` on every `owl-dl` run, which of the two bounds actually stops
-/// the run — including "neither" — rather than leaving a reader to do this
-/// arithmetic from two settings and a phase count.
+/// `budget.binding_bound` and `budget.note` on every `owl-dl` run, which of the
+/// two bounds actually stopped the run — including "neither" — and, in
+/// `budget.configured_bound`, which one the settings predict, rather than
+/// leaving a reader to do this arithmetic from two settings and a phase count.
+/// The two used to be one field holding the prediction (#340).
 ///
 /// Default matches the ORE competition convention of 180s.
 pub fn classify_timeout_ms() -> Option<u64> {

@@ -48,9 +48,11 @@ EOF
 ```
 
 `--goals` is a Turtle document in which every triple is a claim. It is parsed by the SAME parser the
-store uses and round-tripped through a store, which is the only thing that makes a caller's spelling
-of a term comparable with the interner's: `"01"^^xsd:integer` is stored as `"1"^^xsd:integer`, and a
-goal that skipped the store would match nothing and be reported lost. A TSV works too, with
+store uses and round-tripped through a store, so a caller's spelling of a term is the interner's. A
+literal is asked as written: since #335 the store keeps `"01"^^xsd:integer` as `"01"`, so the goal
+matches a source that says `"01"` and not one that says `"1"`. One value, two terms; nothing here
+compares literals by value. (Under Oxigraph 0.5.9 the store respelled both as `"1"`, and the two
+matched.) A TSV works too, with
 `--goals-skip-columns 1` so `derivations.tsv` from `reason --certificate` pipes straight in.
 
 Over MCP, `graph_projection_entailment_check` takes `goals_ttl` and either `projected_ttl` or

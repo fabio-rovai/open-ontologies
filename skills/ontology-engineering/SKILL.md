@@ -102,7 +102,7 @@ When embeddings exist, `onto_align` automatically uses them as a 7th alignment s
 | `onto_query` | Verify structure, answer competency questions |
 | `onto_diff` | Compare against a reference or previous version |
 | `onto_save` | Persist the active ontology to a file |
-| `onto_convert` | Convert between Turtle, N-Triples, RDF/XML, N-Quads, TriG |
+| `onto_convert` | Convert between formats (reads Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD and OWL 2 functional syntax; writes the first five) |
 | `onto_clear` | Reset the in-memory store |
 | `onto_pull` | Fetch ontology from a remote URL or SPARQL endpoint |
 | `onto_push` | Push triples to a SPARQL endpoint |

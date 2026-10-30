@@ -33,10 +33,38 @@ This is why the LUBM benchmark never completes at any size: `generate_lubm.py`
 emits one `owl:equivalentClass [ owl:hasValue ... ]` per department, so even the
 1,000-axiom file carries dozens of nominals.
 
-The Pizza ontology contains no `owl:hasValue` and classifies in ~0.04s, so the
-defect is specific to nominals, not to scale.
+An earlier version of this file said the Pizza ontology contains no
+`owl:hasValue` and classifies in about 0.04s, and concluded that the defect is
+specific to nominals rather than to scale. That figure came from a stripped
+566-triple Pizza fixture, not from the reference file. The reference
+`benchmark/reference/pizza-reference.owl` carries six `owl:hasValue`
+restrictions and one `owl:oneOf` enumeration of five individuals (`Country`),
+counted as XML elements rather than lines, since `grep -c oneOf` also counts the
+closing tag and reports two. It is itself a nominal-bearing ontology and cannot
+separate nominals from scale.
 
-**Status: contained, not fixed.**
+Measured on 2026-10-13 with a development build, `reason --profile owl-dl`
+over its 2,332 loaded triples did not complete: `complete: false`,
+`budget_exhausted_in: ["satisfiability", "abox"]`, 143 of 144 named classes
+undetermined, zero inferred subsumptions. Its run time is set by the phase
+budgets, not by classification finishing, so it is not quoted here. The
+conclusion that the blowup is specific to nominals rests on the table above
+alone, not on Pizza.
+
+**Status: fixed on 2026-10-13.** The file classifies in milliseconds with
+HermiT's eight subsumptions and nothing else; `tests/tableaux_absorption_test.rs`
+pins that. The cause was not nominals as such: each `C ≡ ∃worksFor.{d}` put the
+disjunction `∀worksFor.¬{d} ⊔ C` on every node of every tableau, and four of
+them multiplied. Absorbing `∃r.F ⊑ C` as `F ⊑ ∀r⁻.C` removes the disjunction.
+Nominals are still approximated (`{d}` is read as an atom standing for it), so
+the run reports `complete: false` with `owl:hasValue` under
+`constructs_not_modelled`; the answer is exact here, and the flag says the
+engine cannot promise that in general.
+
+What follows is the history, kept because it explains the three-valued
+verdicts every run still relies on.
+
+**Status on 2026-07-27: contained, not fixed.**
 
 The underlying blowup is still there. What changed on 2026-07-27 is that it can
 no longer hang the process or corrupt the answer:
@@ -73,9 +101,10 @@ answer to give when you cannot decide.
 ontologies. The fix is the NI-rule of Motik, Shearer and Horrocks, *Optimizing
 the Nominal Introduction Rule in (Hyper)Tableau Calculi*, which bounds root
 individual creation at `n` per `≤n R⁻.A` restriction instead of generating them
-freely. Separately, `update_blocking` implements ancestor **subset** blocking,
-Pairwise blocking, the second prerequisite noted here, has since been
-implemented: see `is_pairwise_blocked` in `src/tableaux.rs`. The NI-rule is
-still outstanding.
-restrictions are present (Horrocks and Sattler). Both are prerequisites for any
-published performance claim on a real corpus.
+freely. The second prerequisite was blocking: `update_blocking` implemented
+ancestor **subset** blocking, while SHIQ and SHOIQ require **pairwise**
+blocking once inverse roles and number restrictions are present (Horrocks and
+Sattler). Pairwise blocking has since been implemented, see
+`is_pairwise_blocked` in `src/tableaux.rs`. The NI-rule is still outstanding,
+and it remains a prerequisite for any published performance claim on a real
+corpus.

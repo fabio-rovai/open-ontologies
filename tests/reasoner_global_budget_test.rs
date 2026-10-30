@@ -26,10 +26,10 @@
 //!
 //! What a knob that reads as a safety limit may not do is enforce nothing. It
 //! now enforces a ceiling over every phase, at no cost, because a phase deadline
-//! is intersected with the global one rather than minted beside it — and where
-//! the arithmetic means the ceiling cannot be what stops the run, the output
-//! SAYS which bound is in force instead of leaving a reader to infer it from two
-//! settings and a phase count.
+//! is intersected with the global one rather than minted beside it — and the
+//! output SAYS which bound the settings make binding (`configured_bound`) and
+//! which bound actually stopped the run (`binding_bound`, #340), instead of
+//! leaving a reader to infer either from two settings and a phase count.
 //!
 //! This file lives on its own and holds ONE test, for the reason
 //! `reasoner_phase_budget_test.rs` gives: it moves process-wide budget settings,
@@ -113,15 +113,20 @@ fn the_classification_budget_bounds_the_run_or_the_run_says_it_does_not() {
     );
     assert_eq!(b["phase_worst_case_ms"], 50_000, "{b}");
     assert_eq!(
-        b["binding_bound"], "phase",
-        "50 000 ms of phase budget under a 180 000 ms ceiling means the ceiling \
-         is not what stops the run: {b}"
+        b["configured_bound"], "phase",
+        "50 000 ms of phase budget under a 180 000 ms ceiling means the settings \
+         do not expect the ceiling to stop the run: {b}"
     );
+    // What the settings predict is not what happened. Nothing stopped this run,
+    // and `binding_bound` reports the bound that actually stopped it (#340): it
+    // used to repeat the prediction, and said "phase" over a run the ceiling
+    // had stopped.
+    assert_eq!(b["binding_bound"], "none", "nothing stopped a trivial run: {b}");
     let note = b["note"].as_str().unwrap_or_default().to_string();
     assert!(
-        note.contains("cannot"),
-        "the note has to state plainly that the global bound cannot be the one \
-         that fires, got {note:?}"
+        note.contains("No bound stopped this run") && note.contains("not expected to be the bound"),
+        "the note has to say what stopped the run, and state plainly that at these \
+         settings the global bound is not the one expected to fire, got {note:?}"
     );
 
     // ── 2. A global budget smaller than a phase budget is the bound, and it
@@ -131,7 +136,8 @@ fn the_classification_budget_bounds_the_run_or_the_run_says_it_does_not() {
     runtime::set_classify_timeout_ms(1);
     runtime::set_tableaux_test_timeout_ms(10_000);
     let v = run(&wide());
-    assert_eq!(v["budget"]["binding_bound"], "global", "{v}");
+    assert_eq!(v["budget"]["configured_bound"], "global", "{v}");
+    assert_eq!(v["budget"]["binding_bound"], "global", "the ceiling stopped this run: {v}");
     let ms = v["agents"]["total_time_ms"].as_u64().unwrap_or(0);
     assert!(
         ms >= 1,
@@ -149,10 +155,11 @@ fn the_classification_budget_bounds_the_run_or_the_run_says_it_does_not() {
     runtime::set_tableaux_test_timeout_ms(10_000);
     let v = run(TRIVIAL);
     assert_eq!(v["budget"]["classify_timeout_ms"], serde_json::Value::Null, "{v}");
-    assert_eq!(v["budget"]["binding_bound"], "phase", "{v}");
+    assert_eq!(v["budget"]["configured_bound"], "phase", "{v}");
+    assert_eq!(v["budget"]["binding_bound"], "none", "{v}");
     let note = v["budget"]["note"].as_str().unwrap_or_default().to_string();
     assert!(
-        note.contains("no global bound"),
+        note.contains("No global bound"),
         "with classify_timeout_ms off, the output must state in words that no \
          global bound is in force, got {note:?}"
     );
@@ -162,6 +169,7 @@ fn the_classification_budget_bounds_the_run_or_the_run_says_it_does_not() {
     runtime::set_classify_timeout_ms(0);
     runtime::set_tableaux_test_timeout_ms(0);
     let v = run(TRIVIAL);
+    assert_eq!(v["budget"]["configured_bound"], "none", "{v}");
     assert_eq!(v["budget"]["binding_bound"], "none", "{v}");
     let note = v["budget"]["note"].as_str().unwrap_or_default().to_string();
     assert!(

@@ -258,3 +258,147 @@ fn the_report_totals_each_severity_so_the_serious_ones_are_not_buried() {
     assert_eq!(report["severity_counts"]["error"].as_u64(), Some(1), "{report:#}");
     assert_eq!(report["severity_counts"]["info"].as_u64(), Some(2), "{report:#}");
 }
+
+// #341. `defect_count` counts query rows, and for `inherited_disjoint` a row is
+// one (class, disjoint pair). A class under two disjoint pairs was two defects,
+// so the headline count on a large ontology ran higher than the reasoner's list
+// of unsatisfiable classes and nothing in the output said why. The listing was
+// also capped at 50 a kind with no way to reach row 51.
+
+/// The reproduction from the issue: one class, two disjoint pairs above it.
+const DOUBLE: &str = r#"
+    @prefix ex:   <https://example.org/x/> .
+    @prefix owl:  <http://www.w3.org/2002/07/owl#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    ex:A1 a owl:Class . ex:B1 a owl:Class . ex:A2 a owl:Class . ex:B2 a owl:Class .
+    ex:A1 owl:disjointWith ex:B1 .
+    ex:A2 owl:disjointWith ex:B2 .
+    ex:X a owl:Class ; rdfs:subClassOf ex:A1, ex:B1, ex:A2, ex:B2 .
+"#;
+
+/// `n` classes, each under `A` and `B`, which are disjoint.
+fn many_under_a_disjoint_pair(n: usize) -> String {
+    let mut ttl = format!("{PREFIXES} ex:A owl:disjointWith ex:B .\n");
+    for i in 0..n {
+        ttl.push_str(&format!("ex:C{i} rdfs:subClassOf ex:A, ex:B .\n"));
+    }
+    ttl
+}
+
+#[test]
+fn a_class_under_two_disjoint_pairs_is_two_findings_and_one_affected_class() {
+    let report = check(DOUBLE);
+    assert_eq!(
+        report["defect_count"].as_u64(),
+        Some(2),
+        "defect_count counts findings, one per row: {report:#}"
+    );
+    assert_eq!(
+        report["affected_classes"].as_u64(),
+        Some(1),
+        "both findings are about ex:X, and the reasoner reports ONE unsatisfiable class: \
+         {report:#}"
+    );
+    assert_eq!(
+        report["kind_counts"]["inherited_disjoint"],
+        serde_json::json!({"findings": 2, "affected_classes": 1}),
+        "{report:#}"
+    );
+}
+
+#[test]
+fn affected_properties_are_counted_apart_from_affected_classes() {
+    let report = check(&format!(
+        "{PREFIXES}
+         ex:partOf a owl:TransitiveProperty, owl:FunctionalProperty .
+         ex:Plant owl:disjointWith ex:Animal .
+         ex:Coral rdfs:subClassOf ex:Plant, ex:Animal ."
+    ));
+    assert_eq!(report["affected_classes"].as_u64(), Some(1), "{report:#}");
+    assert_eq!(report["affected_properties"].as_u64(), Some(1), "{report:#}");
+    assert_eq!(
+        report["kind_counts"]["transitive_and_functional"],
+        serde_json::json!({"findings": 1, "affected_properties": 1}),
+        "{report:#}"
+    );
+}
+
+#[test]
+fn every_kind_has_a_count_even_when_it_found_nothing() {
+    let report = check(&format!("{PREFIXES} ex:Dog rdfs:subClassOf ex:Animal ."));
+    let counts = report["kind_counts"].as_object().expect("kind_counts");
+    assert_eq!(counts.len(), 8, "{report:#}");
+    assert_eq!(report["affected_classes"].as_u64(), Some(0), "{report:#}");
+}
+
+fn check_limited(ttl: &str, limit: usize) -> serde_json::Value {
+    let store = Arc::new(GraphStore::new());
+    store.load_turtle(ttl, None).unwrap();
+    serde_json::from_str(&Defects::check_with_limit(&store, limit).unwrap()).unwrap()
+}
+
+#[test]
+fn a_limit_of_zero_lists_every_row_and_truncates_nothing() {
+    let report = check_limited(&many_under_a_disjoint_pair(80), 0);
+    assert_eq!(report["defect_count"].as_u64(), Some(80), "{report:#}");
+    assert_eq!(
+        report["reported_count"].as_u64(),
+        Some(80),
+        "rows 51 to 80 must be reachable: {report:#}"
+    );
+    assert_eq!(report["truncated"], serde_json::json!({}), "{report:#}");
+    assert_eq!(report["affected_classes"].as_u64(), Some(80), "{report:#}");
+}
+
+#[test]
+fn a_limit_below_the_default_truncates_at_the_limit_and_says_so() {
+    let report = check_limited(&many_under_a_disjoint_pair(80), 10);
+    assert_eq!(report["reported_count"].as_u64(), Some(10), "{report:#}");
+    assert_eq!(
+        report["truncated"]["inherited_disjoint"].as_u64(),
+        Some(80),
+        "the full total is still reported: {report:#}"
+    );
+}
+
+#[test]
+fn a_limit_that_covers_every_row_truncates_nothing() {
+    // `truncated` names a kind when some of its rows are NOT listed. Keyed on
+    // the default instead of the limit in force, this would claim a cut that
+    // did not happen.
+    let report = check_limited(&many_under_a_disjoint_pair(60), 60);
+    assert_eq!(report["reported_count"].as_u64(), Some(60), "{report:#}");
+    assert_eq!(report["truncated"], serde_json::json!({}), "{report:#}");
+}
+
+#[test]
+fn the_default_is_still_fifty_a_kind() {
+    let report = check(&many_under_a_disjoint_pair(80));
+    assert_eq!(report["reported_count"].as_u64(), Some(50), "{report:#}");
+    assert_eq!(report["truncated"]["inherited_disjoint"].as_u64(), Some(80));
+}
+
+#[tokio::test]
+async fn onto_defects_takes_the_same_limit() {
+    use open_ontologies::inputs::OntoDefectsInput;
+    use open_ontologies::server::OpenOntologiesServer;
+    use open_ontologies::state::StateDb;
+    use rmcp::handler::server::wrapper::Parameters;
+
+    let tmp = tempfile::tempdir().unwrap();
+    let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
+    let graph = Arc::new(GraphStore::new());
+    graph.load_turtle(&many_under_a_disjoint_pair(80), None).unwrap();
+    let server = OpenOntologiesServer::new_with_graph(db, graph);
+
+    let all: serde_json::Value =
+        serde_json::from_str(&server.onto_defects(Parameters(OntoDefectsInput { limit: Some(0) })))
+            .unwrap();
+    assert_eq!(all["reported_count"].as_u64(), Some(80), "{all:#}");
+
+    let default: serde_json::Value =
+        serde_json::from_str(&server.onto_defects(Parameters(OntoDefectsInput { limit: None })))
+            .unwrap();
+    assert_eq!(default["reported_count"].as_u64(), Some(50), "{default:#}");
+    assert_eq!(default["affected_classes"].as_u64(), Some(80), "{default:#}");
+}

@@ -4,6 +4,188 @@ use crate::drift::jaro_winkler;
 use crate::graph::GraphStore;
 use crate::state::StateDb;
 
+const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
+
+/// How the weighted-sum fusion turns per-signal scores into one confidence.
+///
+/// `Informative` is the default. A signal enters the weighted mean only when
+/// BOTH sides of the pair carry data for it, and the mean is taken over the
+/// weights of those signals alone, so a signal nobody could measure neither
+/// helps nor hurts. One side having data and the other none is ignorance and
+/// not disagreement: a SKOS concept has no `rdfs:domain` properties because
+/// SKOS does not model them, not because it differs from an OWL class that
+/// has some. Structural features are compared by IRI local name OR by a
+/// shared normalised label, because two independently built vocabularies
+/// almost never share local names (`MA_0000003` against `NCI_C12345`) and a
+/// comparison by name alone would report disagreement where there is only a
+/// different spelling of the identifier.
+///
+/// `Legacy` is the fusion every published alignment figure in this repository
+/// was measured with, kept so those figures stay reproducible: when every
+/// structural signal is zero, `label_similarity * 0.85`; otherwise the plain
+/// weighted sum over all signals, in which a signal with no data on either
+/// side still carries its weight times zero. Two consequences are why it is
+/// no longer the default: a perfect name match can never score above 0.85,
+/// and agreement COSTS confidence (same name and same parent scored 0.40,
+/// less than half the same pair with the parent deleted).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum Scoring {
+    #[default]
+    Informative,
+    Legacy,
+}
+
+impl Scoring {
+    pub fn parse(s: &str) -> anyhow::Result<Self> {
+        match s.trim().to_ascii_lowercase().replace('-', "_").as_str() {
+            "informative" | "informative_renormalised" | "renormalised" | "default" => {
+                Ok(Self::Informative)
+            }
+            "legacy" => Ok(Self::Legacy),
+            other => anyhow::bail!(
+                "unknown scoring {other:?}: expected \"informative\" (default) or \"legacy\""
+            ),
+        }
+    }
+
+    /// The auto-apply threshold that keeps auto-apply as strict as it was.
+    ///
+    /// Under the legacy fusion a pair with no structural evidence scored
+    /// `0.85 x name similarity`, so the 0.85 default auto-applied only exact
+    /// names. The informative fusion no longer compresses the scale, so the
+    /// same strictness needs a higher number: 0.95 admits names that differ
+    /// only in a character or two. Measured on OAEI Anatomy, 0.95 under this
+    /// fusion gives precision 0.957 against 0.960 for legacy at 0.80.
+    pub fn default_high_threshold(self) -> f64 {
+        match self {
+            Self::Informative => 0.95,
+            Self::Legacy => 0.85,
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Informative => "informative_renormalised",
+            Self::Legacy => "legacy",
+        }
+    }
+
+    fn means(self) -> &'static str {
+        match self {
+            Self::Informative => {
+                "confidence is the weighted mean of the signals listed in each candidate's \
+                 informative_signals, which are the signals BOTH sides carry data for; a \
+                 signal measurable on one side only is left out rather than counted as zero. \
+                 evidence_coverage is the share of the total weight those signals hold, so a \
+                 high confidence resting on a name alone reads as exactly that."
+            }
+            Self::Legacy => {
+                "legacy fusion, kept to reproduce published figures: label_similarity x 0.85 \
+                 when every structural signal is zero, otherwise the weighted sum over ALL \
+                 signals, including those with no data on either side."
+            }
+        }
+    }
+}
+
+/// Whether a target may be claimed by more than one source.
+///
+/// `OneToOne` is the default and is what the published Anatomy figure was
+/// measured with: a greedy stable matching keeps the best target for each
+/// source and the best source for each target, which removes most false
+/// positives on a track whose reference alignment is itself 1:1. It is wrong
+/// whenever the source is FINER than the target: several source codes that
+/// each correctly map to one coarser target code would lose all but one row.
+/// `ManyToOne` keeps the best target for every source and lets targets repeat,
+/// which is the right constraint for mapping a detailed source list onto a
+/// coarser taxonomy.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum Cardinality {
+    #[default]
+    OneToOne,
+    ManyToOne,
+}
+
+impl Cardinality {
+    pub fn parse(s: &str) -> anyhow::Result<Self> {
+        match s.trim().to_ascii_lowercase().replace(['-', ':'], "_").as_str() {
+            "one_to_one" | "1_1" | "1to1" => Ok(Self::OneToOne),
+            "many_to_one" | "n_1" | "nto1" => Ok(Self::ManyToOne),
+            other => anyhow::bail!(
+                "unknown cardinality {other:?}: expected \"one-to-one\" (default) or \"many-to-one\""
+            ),
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::OneToOne => "one_to_one",
+            Self::ManyToOne => "many_to_one",
+        }
+    }
+}
+
+/// Everything `align` takes besides the two vocabularies.
+#[derive(Clone, Debug)]
+pub struct AlignOptions {
+    pub high_threshold: f64,
+    pub low_threshold: f64,
+    pub dry_run: bool,
+    /// `"weighted_sum"` or `"rrf"`.
+    pub fusion: String,
+    pub scoring: Scoring,
+    pub cardinality: Cardinality,
+}
+
+impl Default for AlignOptions {
+    fn default() -> Self {
+        Self {
+            high_threshold: Scoring::default().default_high_threshold(),
+            low_threshold: 0.4,
+            dry_run: false,
+            fusion: "weighted_sum".to_string(),
+            scoring: Scoring::default(),
+            cardinality: Cardinality::default(),
+        }
+    }
+}
+
+/// Two confidences closer than this are a tie. One unit of the printed
+/// precision: a reader cannot tell them apart, so the engine must not pretend
+/// to have chosen between them.
+const TIE_EPSILON: f64 = 0.001 + 1e-9;
+
+/// What an entity is, which decides where its parents are read from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntityKind {
+    /// Typed `owl:Class`. Read exactly as before SKOS support existed.
+    OwlClass,
+    /// Typed `skos:Concept` and not `owl:Class`.
+    SkosConcept,
+}
+
+/// The names one side of an alignment has.
+#[derive(Debug, Default)]
+struct Vocabulary {
+    /// Normalised labels per class or concept IRI.
+    labels: std::collections::HashMap<String, Vec<String>>,
+    /// `id:<local name>` for every IRI in the store and `label:<label>` for
+    /// every class label.
+    universe: std::collections::HashSet<String>,
+}
+
+/// The structural features of one entity, read once and reused for every
+/// pair it takes part in.
+#[derive(Debug, Clone, Default)]
+struct Features {
+    properties: Vec<String>,
+    ranges: Vec<String>,
+    parents: Vec<String>,
+    instances: Vec<String>,
+    restrictions: Vec<(String, String)>,
+    neighborhood: Vec<String>,
+}
+
 /// Schema alignment engine — detects equivalentClass/exactMatch/subClassOf
 /// candidates between two ontologies using weighted signals.
 pub struct AlignmentEngine {
@@ -87,6 +269,8 @@ impl AlignmentEngine {
                 let entry = class_map.entry(iri.clone()).or_insert_with(|| ClassInfo {
                     iri: iri.clone(),
                     labels: Vec::new(),
+                    kind: EntityKind::OwlClass,
+                    definitions: Vec::new(),
                 });
 
                 for key in ["label", "altLabel"] {
@@ -100,6 +284,74 @@ impl AlignmentEngine {
                         }
                     }
                 }
+            }
+        }
+
+        // SKOS concepts that are not also OWL classes. A punned entity typed
+        // both stays on the OWL path above, so nothing an OWL ontology already
+        // produced can change. A concept's names are its preferred,
+        // alternative and hidden labels; `skos:hiddenLabel` exists precisely
+        // to carry the misspellings and abbreviations a matcher should find.
+        let skos_query = format!(
+            r#"SELECT ?class ?label WHERE {{
+                ?class a <{SKOS_NS}Concept> .
+                FILTER NOT EXISTS {{ ?class a <http://www.w3.org/2002/07/owl#Class> }}
+                FILTER(isIRI(?class))
+                OPTIONAL {{
+                    ?class <http://www.w3.org/2000/01/rdf-schema#label>|<{SKOS_NS}prefLabel>|<{SKOS_NS}altLabel>|<{SKOS_NS}hiddenLabel> ?label
+                }}
+            }}"#
+        );
+        if let Ok(result) = store.sparql_select_union(&skos_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result)
+            && let Some(rows) = parsed["results"].as_array()
+        {
+            for row in rows {
+                let Some(raw_iri) = row["class"].as_str() else { continue };
+                let iri = raw_iri.trim_matches(|c| c == '<' || c == '>').to_string();
+                let entry = class_map.entry(iri.clone()).or_insert_with(|| ClassInfo {
+                    iri: iri.clone(),
+                    labels: Vec::new(),
+                    kind: EntityKind::SkosConcept,
+                    definitions: Vec::new(),
+                });
+                if let Some(raw) = row["label"].as_str() {
+                    let label = crate::language::parse_literal(raw);
+                    if !label.text.is_empty()
+                        && crate::language::label_matches_policy(&label, preferred)
+                        && !entry.labels.contains(&label)
+                    {
+                        entry.labels.push(label);
+                    }
+                }
+            }
+        }
+
+        // Definitions, for the reviewer. They never enter a score: a
+        // definition is prose, and string similarity over prose measures
+        // phrasing rather than meaning.
+        let def_query = format!(
+            "SELECT ?class ?def WHERE {{ ?class <{SKOS_NS}definition> ?def . FILTER(isIRI(?class)) }}"
+        );
+        if let Ok(result) = store.sparql_select_union(&def_query)
+            && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result)
+            && let Some(rows) = parsed["results"].as_array()
+        {
+            for row in rows {
+                let (Some(c), Some(d)) = (row["class"].as_str(), row["def"].as_str()) else { continue };
+                let iri = c.trim_matches(|c| c == '<' || c == '>');
+                if let Some(entry) = class_map.get_mut(iri) {
+                    let def = crate::language::parse_literal(d);
+                    if !def.text.is_empty()
+                        && crate::language::label_matches_policy(&def, preferred)
+                        && !entry.definitions.contains(&def.text)
+                    {
+                        entry.definitions.push(def.text);
+                    }
+                }
+            }
+            for info in class_map.values_mut() {
+                info.definitions.sort();
             }
         }
 
@@ -134,14 +386,28 @@ impl AlignmentEngine {
         Self::extract_iris(store, &query, "prop")
     }
 
-    /// Extract rdfs:subClassOf parents for a class.
-    fn extract_parents(store: &GraphStore, class_iri: &str) -> Vec<String> {
-        let query = format!(
-            r#"SELECT DISTINCT ?parent WHERE {{
-                <{class_iri}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
-                FILTER(isIRI(?parent))
-            }}"#
-        );
+    /// The parents of an entity.
+    ///
+    /// An OWL class keeps the query it always had, `rdfs:subClassOf` to a named
+    /// class, so nothing an OWL ontology produced before can move. A SKOS
+    /// concept's parents are what SKOS calls them: `skos:broader` and
+    /// `skos:broaderTransitive`, plus any `rdfs:subClassOf` a hybrid vocabulary
+    /// also states.
+    fn extract_parents(store: &GraphStore, class_iri: &str, kind: EntityKind) -> Vec<String> {
+        let query = match kind {
+            EntityKind::OwlClass => format!(
+                r#"SELECT DISTINCT ?parent WHERE {{
+                    <{class_iri}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
+                    FILTER(isIRI(?parent))
+                }}"#
+            ),
+            EntityKind::SkosConcept => format!(
+                r#"SELECT DISTINCT ?parent WHERE {{
+                    <{class_iri}> <{SKOS_NS}broader>|<{SKOS_NS}broaderTransitive>|<http://www.w3.org/2000/01/rdf-schema#subClassOf> ?parent .
+                    FILTER(isIRI(?parent))
+                }}"#
+            ),
+        };
         Self::extract_iris(store, &query, "parent")
     }
 
@@ -178,47 +444,16 @@ impl AlignmentEngine {
             .collect()
     }
 
-    /// Compute property signature overlap (Jaccard on domain properties + ranges).
-    fn property_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
-        let props_a = Self::extract_properties(store_a, class_a);
-        let props_b = Self::extract_properties(store_b, class_b);
-        let ranges_a = Self::extract_ranges(store_a, class_a);
-        let ranges_b = Self::extract_ranges(store_b, class_b);
-
-        // Combine property local names + range local names for comparison
-        let sig_a: Vec<String> = props_a.iter().chain(ranges_a.iter()).map(|s| local_name(s)).collect();
-        let sig_b: Vec<String> = props_b.iter().chain(ranges_b.iter()).map(|s| local_name(s)).collect();
-
-        jaccard_similarity(&sig_a, &sig_b)
-    }
-
-    /// Compute parent overlap (Jaccard on rdfs:subClassOf parents by local name).
-    fn parent_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
-        let parents_a: Vec<String> = Self::extract_parents(store_a, class_a)
-            .iter().map(|s| local_name(s)).collect();
-        let parents_b: Vec<String> = Self::extract_parents(store_b, class_b)
-            .iter().map(|s| local_name(s)).collect();
-        jaccard_similarity(&parents_a, &parents_b)
-    }
-
-    /// Compute instance overlap — shared individuals typed under both classes (by local name).
-    fn instance_overlap(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
-        let query_a = format!(
-            r#"SELECT DISTINCT ?ind WHERE {{ ?ind a <{class_a}> . FILTER(isIRI(?ind)) }}"#
+    /// Read every structural feature of one entity. Called once per entity
+    /// that survives the label pre-filter, not once per pair.
+    fn features(store: &GraphStore, info: &ClassInfo) -> Features {
+        let class = info.iri.as_str();
+        let instances = Self::extract_iris(
+            store,
+            &format!(r#"SELECT DISTINCT ?ind WHERE {{ ?ind a <{class}> . FILTER(isIRI(?ind)) }}"#),
+            "ind",
         );
-        let query_b = format!(
-            r#"SELECT DISTINCT ?ind WHERE {{ ?ind a <{class_b}> . FILTER(isIRI(?ind)) }}"#
-        );
-        let inds_a: Vec<String> = Self::extract_iris(store_a, &query_a, "ind")
-            .iter().map(|s| local_name(s)).collect();
-        let inds_b: Vec<String> = Self::extract_iris(store_b, &query_b, "ind")
-            .iter().map(|s| local_name(s)).collect();
-        jaccard_similarity(&inds_a, &inds_b)
-    }
-
-    /// Compute restriction similarity — compare owl:someValuesFrom / owl:allValuesFrom restrictions.
-    fn restriction_similarity(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
-        let restriction_query = |class: &str| format!(
+        let restriction_query = format!(
             r#"SELECT DISTINCT ?prop ?filler WHERE {{
                 <{class}> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?r .
                 ?r a <http://www.w3.org/2002/07/owl#Restriction> .
@@ -230,37 +465,18 @@ impl AlignmentEngine {
                 }}
             }}"#
         );
-
-        let extract_restriction_sigs = |store: &GraphStore, class: &str| -> Vec<String> {
-            let query = restriction_query(class);
-            let result = match store.sparql_select_union(&query) {
-                Ok(r) => r,
-                Err(_) => return Vec::new(),
-            };
-            let parsed: serde_json::Value = match serde_json::from_str(&result) {
-                Ok(v) => v,
-                Err(_) => return Vec::new(),
-            };
-            parsed["results"]
-                .as_array()
-                .unwrap_or(&Vec::new())
-                .iter()
-                .filter_map(|row| {
-                    let prop = row["prop"].as_str()?;
-                    let filler = row["filler"].as_str()?;
-                    Some(format!("{}→{}", local_name(prop), local_name(filler)))
-                })
-                .collect()
-        };
-
-        let sigs_a = extract_restriction_sigs(store_a, class_a);
-        let sigs_b = extract_restriction_sigs(store_b, class_b);
-        jaccard_similarity(&sigs_a, &sigs_b)
-    }
-
-    /// Compute graph neighborhood similarity — 2-hop property comparison.
-    fn neighborhood_similarity(store_a: &GraphStore, class_a: &str, store_b: &GraphStore, class_b: &str) -> f64 {
-        let neighborhood_query = |class: &str| format!(
+        // The raw terms are kept, angle brackets and all, because the legacy
+        // signature was built from them and must stay byte-identical.
+        let restrictions = store
+            .sparql_select_union(&restriction_query)
+            .ok()
+            .and_then(|r| serde_json::from_str::<serde_json::Value>(&r).ok())
+            .and_then(|v| v["results"].as_array().cloned())
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|row| Some((row["prop"].as_str()?.to_string(), row["filler"].as_str()?.to_string())))
+            .collect();
+        let neighborhood_query = format!(
             r#"SELECT DISTINCT ?prop WHERE {{
                 {{
                     ?prop <http://www.w3.org/2000/01/rdf-schema#domain> <{class}> .
@@ -272,12 +488,119 @@ impl AlignmentEngine {
                 }}
             }}"#
         );
+        Features {
+            properties: Self::extract_properties(store, class),
+            ranges: Self::extract_ranges(store, class),
+            parents: Self::extract_parents(store, class, info.kind),
+            instances,
+            restrictions,
+            neighborhood: Self::extract_iris(store, &neighborhood_query, "prop"),
+        }
+    }
 
-        let neigh_a: Vec<String> = Self::extract_iris(store_a, &neighborhood_query(class_a), "prop")
-            .iter().map(|s| local_name(s)).collect();
-        let neigh_b: Vec<String> = Self::extract_iris(store_b, &neighborhood_query(class_b), "prop")
-            .iter().map(|s| local_name(s)).collect();
-        jaccard_similarity(&neigh_a, &neigh_b)
+    /// The five structural signals as the legacy fusion computed them: Jaccard
+    /// over IRI local names. Byte-identical to the per-pair functions this
+    /// replaced, which the Anatomy hash in `docs/determinism.md` checks.
+    fn legacy_structural(a: &Features, b: &Features) -> [f64; 5] {
+        let locals = |v: &[String]| v.iter().map(|s| local_name(s)).collect::<Vec<_>>();
+        let sig = |f: &Features| {
+            f.properties.iter().chain(f.ranges.iter()).map(|s| local_name(s)).collect::<Vec<_>>()
+        };
+        let restr = |f: &Features| {
+            f.restrictions
+                .iter()
+                .map(|(p, x)| format!("{}→{}", local_name(p), local_name(x)))
+                .collect::<Vec<_>>()
+        };
+        [
+            jaccard_similarity(&sig(a), &sig(b)),
+            jaccard_similarity(&locals(&a.parents), &locals(&b.parents)),
+            jaccard_similarity(&locals(&a.instances), &locals(&b.instances)),
+            jaccard_similarity(&restr(a), &restr(b)),
+            jaccard_similarity(&locals(&a.neighborhood), &locals(&b.neighborhood)),
+        ]
+    }
+
+    /// The five structural signals with the informativeness of each.
+    ///
+    /// Two rules, and they are the same rule twice. A feature counts only when
+    /// the OTHER vocabulary has a name for it at all: a parent the other side
+    /// has no term for cannot be compared, and its absence over there is a
+    /// coverage gap rather than a disagreement (the same reasoning
+    /// `crosswalk::certify` applies to an ancestor with no image). And a
+    /// signal is informative only when both sides keep at least one
+    /// comparable feature. Classes (parents, ranges, restriction fillers) are
+    /// recognised by local name OR by a shared normalised label; properties
+    /// and individuals by local name, as before.
+    fn informative_structural(a: &Features, va: &Vocabulary, b: &Features, vb: &Vocabulary) -> [(f64, bool); 5] {
+        type Keys = std::collections::BTreeSet<String>;
+        let id = |iri: &str| -> Keys { std::iter::once(format!("id:{}", local_name(iri))).collect() };
+        let class_keys = |iri: &str, v: &Vocabulary| -> Keys {
+            let mut k = id(iri);
+            for l in v.labels.get(iri).into_iter().flatten() {
+                k.insert(format!("label:{l}"));
+            }
+            k
+        };
+        // Keep the items the other vocabulary can name.
+        let named_in = |items: Vec<Keys>, other: &Vocabulary| -> Vec<Keys> {
+            items.into_iter().filter(|k| k.iter().any(|x| other.universe.contains(x))).collect()
+        };
+        let props = |f: &Features, v: &Vocabulary, other: &Vocabulary| {
+            let mut items: Vec<Keys> = dedup(&f.properties).iter().map(|p| id(p)).collect();
+            items.extend(dedup(&f.ranges).iter().map(|r| class_keys(r, v)));
+            named_in(items, other)
+        };
+        let classes = |list: &[String], v: &Vocabulary, other: &Vocabulary| {
+            named_in(dedup(list).iter().map(|c| class_keys(c, v)).collect(), other)
+        };
+        let ids = |list: &[String], other: &Vocabulary| named_in(dedup(list).iter().map(|c| id(c)).collect(), other);
+        let restr = |f: &Features, v: &Vocabulary, other: &Vocabulary| {
+            let mut seen = std::collections::BTreeSet::new();
+            f.restrictions
+                .iter()
+                .filter(|r| seen.insert((*r).clone()))
+                .filter_map(|(p, x)| {
+                    let p = local_name(p.trim_matches(|c| c == '<' || c == '>'));
+                    let filler: Vec<String> = class_keys(x.trim_matches(|c| c == '<' || c == '>'), v)
+                        .into_iter()
+                        .filter(|k| other.universe.contains(k))
+                        .collect();
+                    // Comparable only when the other side names both the
+                    // property and the filler.
+                    if !other.universe.contains(&format!("id:{p}")) || filler.is_empty() {
+                        return None;
+                    }
+                    Some(filler.into_iter().map(|k| format!("{p}→{k}")).collect::<Keys>())
+                })
+                .collect::<Vec<_>>()
+        };
+        [
+            soft_jaccard(&props(a, va, vb), &props(b, vb, va)),
+            soft_jaccard(&classes(&a.parents, va, vb), &classes(&b.parents, vb, va)),
+            soft_jaccard(&ids(&a.instances, vb), &ids(&b.instances, va)),
+            soft_jaccard(&restr(a, va, vb), &restr(b, vb, va)),
+            soft_jaccard(&ids(&a.neighborhood, vb), &ids(&b.neighborhood, va)),
+        ]
+    }
+
+    /// The names one vocabulary has: every IRI's local name, and every
+    /// normalised label of every class or concept.
+    fn vocabulary(store: &GraphStore, classes: &[ClassInfo]) -> Vocabulary {
+        let labels: std::collections::HashMap<String, Vec<String>> = classes
+            .iter()
+            .map(|c| (c.iri.clone(), c.labels.iter().map(|l| normalize_label(&l.text)).collect()))
+            .collect();
+        let mut universe: std::collections::HashSet<String> = labels
+            .values()
+            .flatten()
+            .map(|l| format!("label:{l}"))
+            .collect();
+        let q = "SELECT DISTINCT ?x WHERE { { ?x ?p ?o } UNION { ?s ?x ?o } UNION { ?s ?p ?x } FILTER(isIRI(?x)) }";
+        for iri in Self::extract_iris(store, q, "x") {
+            universe.insert(format!("id:{}", local_name(&iri)));
+        }
+        Vocabulary { labels, universe }
     }
 
     /// Compute label similarity between two classes (best match across all label variants).
@@ -379,8 +702,31 @@ impl AlignmentEngine {
         dry_run: bool,
         fusion: &str,
     ) -> anyhow::Result<String> {
+        self.align_with_options(
+            source,
+            target,
+            &AlignOptions {
+                high_threshold,
+                low_threshold,
+                dry_run,
+                fusion: fusion.to_string(),
+                ..AlignOptions::default()
+            },
+        )
+    }
+
+    /// The full form: thresholds, fusion, the scoring of the weighted sum
+    /// (`Scoring`) and whether targets may repeat (`Cardinality`).
+    pub fn align_with_options(
+        &self,
+        source: &str,
+        target: Option<&str>,
+        opts: &AlignOptions,
+    ) -> anyhow::Result<String> {
+        let (high_threshold, dry_run, fusion) = (opts.high_threshold, opts.dry_run, opts.fusion.as_str());
+        let scoring = opts.scoring;
         // Clamp: degenerate range means "everything above high_threshold; nothing borderline".
-        let low_threshold = low_threshold.min(high_threshold);
+        let low_threshold = opts.low_threshold.min(high_threshold);
         // Active language policy (empty = keep all languages / multilingual).
         let preferred = crate::runtime::preferred_languages();
         // For RRF the inline weighted-sum confidence is throwaway (recomputed after
@@ -416,6 +762,21 @@ impl AlignmentEngine {
 
         // Get learned weights (or defaults)
         let weights = self.get_learned_weights();
+        let total_weight: f64 = weights.iter().sum();
+
+        // What each side can name, so a parent or a restriction filler can be
+        // recognised across two vocabularies that spell it differently, and so
+        // a feature the other side has no name for is left out rather than
+        // scored as a disagreement. Not needed by the legacy fusion.
+        let (source_vocab, target_vocab) = match scoring {
+            Scoring::Informative => (
+                Self::vocabulary(&source_store, &source_classes),
+                Self::vocabulary(target_ref, &target_classes),
+            ),
+            Scoring::Legacy => (Vocabulary::default(), Vocabulary::default()),
+        };
+        let mut target_features: std::collections::HashMap<String, Features> =
+            std::collections::HashMap::new();
 
         // HNSW prefilter (optional, transparent): when both source and target class
         // IRIs have embeddings in the vecstore, use HNSW to compute a per-source
@@ -463,6 +824,7 @@ impl AlignmentEngine {
         let mut candidates: Vec<serde_json::Value> = Vec::new();
 
         for sc in &source_classes {
+            let mut source_features: Option<Features> = None;
             // HNSW prefilter: if we computed a shortlist for this source, skip
             // targets outside the shortlist. If the prefilter map exists but has
             // no entry for THIS source (e.g. source had no embedding), fall back
@@ -495,13 +857,16 @@ impl AlignmentEngine {
                         // only answer for a resident store, and would silently
                         // score every pair at 0.0 under text-vector eviction.
                         match (vs.load_text_vec(&sc.iri), vs.load_text_vec(&tc.iri)) {
-                            (Some(a), Some(b)) => Self::embedding_similarity_score(&a, &b),
-                            _ => 0.0,
+                            (Some(a), Some(b)) => Some(Self::embedding_similarity_score(&a, &b)),
+                            _ => None,
                         }
                     } else {
-                        0.0
+                        None
                     }
                 };
+                #[cfg(feature = "embeddings")]
+                let (embedding_sim, embedding_present) =
+                    (embedding_sim.unwrap_or(0.0), embedding_sim.is_some());
 
                 // Pre-filter: skip pairs where label similarity is too low.
                 // Raised from 0.7 to 0.75 to reduce false positives on anatomy-style
@@ -517,36 +882,86 @@ impl AlignmentEngine {
                     continue;
                 }
 
-                let prop_overlap = Self::property_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
-                let parent_ovlp = Self::parent_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
-                let inst_overlap = Self::instance_overlap(&source_store, &sc.iri, target_ref, &tc.iri);
-                let restr_sim = Self::restriction_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
-                let neigh_sim = Self::neighborhood_similarity(&source_store, &sc.iri, target_ref, &tc.iri);
+                let sf = source_features.get_or_insert_with(|| Self::features(&source_store, sc));
+                let tf = target_features
+                    .entry(tc.iri.clone())
+                    .or_insert_with(|| Self::features(target_ref, tc));
+                let structural: [(f64, bool); 5] = match scoring {
+                    Scoring::Legacy => Self::legacy_structural(sf, tf).map(|v| (v, true)),
+                    Scoring::Informative => {
+                        Self::informative_structural(sf, &source_vocab, tf, &target_vocab)
+                    }
+                };
+                let [prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim] = structural.map(|(v, _)| v);
 
                 #[cfg(feature = "embeddings")]
                 let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim, embedding_sim];
-
                 #[cfg(not(feature = "embeddings"))]
                 let signals = [label_sim, prop_overlap, parent_ovlp, inst_overlap, restr_sim, neigh_sim];
 
-                // Compute confidence. When structural signals are all zero
-                // (common in lightweight OWL files), fall back to the strongest
-                // lexical/semantic signal with a penalty rather than the weighted
-                // sum (which would be ~0.25 * label_sim and too low to pass any
-                // threshold).
-                let structural_sum: f64 = signals[1..6].iter().sum();
-                let confidence: f64 = if structural_sum == 0.0 {
-                    // No structural evidence: apply a 15% penalty to the best
-                    // available signal. With embeddings this lets a strong
-                    // cross-lingual embedding match still surface (typically as a
-                    // borderline candidate for review).
-                    #[cfg(feature = "embeddings")]
-                    let best_signal = label_sim.max(embedding_sim);
-                    #[cfg(not(feature = "embeddings"))]
-                    let best_signal = label_sim;
-                    best_signal * 0.85
-                } else {
-                    signals.iter().zip(weights.iter()).map(|(s, w)| s * w).sum()
+                // Which signals count for THIS pair, and the value each brings.
+                //
+                // The name always counts: every entity has one, if only its
+                // IRI's local name. So does an embedding similarity when both
+                // sides have a vector, because a cosine is a measured distance
+                // and a low one is real evidence against.
+                //
+                // A structural signal counts only as SUPPORT: when the two
+                // sides share at least one feature the other side can name,
+                // and then as 1.0. A shared parent, property, range,
+                // restriction or individual is evidence the two terms sit in
+                // the same place. The absence of a shared one is not evidence
+                // they do not: under the open-world reading the other side
+                // simply did not say it, ontologies differ in granularity and
+                // use multiple inheritance, and a term with a different direct
+                // parent can be the same term. Counting a zero as disagreement
+                // cost 0.07 F1 on OAEI Anatomy; counting a partial overlap at
+                // its Jaccard value would make one shared parent out of three
+                // score WORSE than none, which no reading of the evidence
+                // supports. Binary support is monotone: adding agreement can
+                // only raise the confidence.
+                #[allow(unused_mut)]
+                let mut counted: Vec<(bool, f64)> = std::iter::once((true, label_sim))
+                    .chain(structural.iter().map(|(v, comparable)| {
+                        if *comparable && *v > 0.0 { (true, 1.0) } else { (false, 0.0) }
+                    }))
+                    .collect();
+                #[cfg(feature = "embeddings")]
+                counted.push((embedding_present, embedding_sim));
+                let informative: Vec<bool> = counted.iter().map(|(c, _)| *c).collect();
+
+                let (confidence, coverage): (f64, f64) = match scoring {
+                    Scoring::Legacy => {
+                        // When structural signals are all zero, fall back to the
+                        // strongest lexical/semantic signal with a 15% penalty;
+                        // otherwise the weighted sum over every signal.
+                        let structural_sum: f64 = signals[1..6].iter().sum();
+                        let c = if structural_sum == 0.0 {
+                            #[cfg(feature = "embeddings")]
+                            let best_signal = label_sim.max(embedding_sim);
+                            #[cfg(not(feature = "embeddings"))]
+                            let best_signal = label_sim;
+                            best_signal * 0.85
+                        } else {
+                            signals.iter().zip(weights.iter()).map(|(s, w)| s * w).sum()
+                        };
+                        (c, 1.0)
+                    }
+                    Scoring::Informative => {
+                        // The weighted mean over the signals that count. A
+                        // signal that carries no evidence for this pair is left
+                        // out of both the numerator and the denominator, so it
+                        // neither helps nor hurts.
+                        let (mut num, mut den) = (0.0_f64, 0.0_f64);
+                        for ((counts, value), w) in counted.iter().zip(weights.iter()) {
+                            if *counts {
+                                num += value * w;
+                                den += w;
+                            }
+                        }
+                        let c = if den > 0.0 { num / den } else { 0.0 };
+                        (c, if total_weight > 0.0 { den / total_weight } else { 0.0 })
+                    }
                 };
 
                 // Drop pairs below the low threshold entirely (for RRF, this is
@@ -573,7 +988,7 @@ impl AlignmentEngine {
                     signals_json["embedding_similarity"] = serde_json::json!((embedding_sim * 1000.0).round() / 1000.0);
                 }
 
-                candidates.push(serde_json::json!({
+                let mut candidate = serde_json::json!({
                     "source_iri": sc.iri,
                     "target_iri": tc.iri,
                     "relation": relation,
@@ -581,7 +996,17 @@ impl AlignmentEngine {
                     "signals": signals_json,
                     "applied": false,
                     "requires_review": requires_review,
-                }));
+                });
+                if scoring == Scoring::Informative {
+                    candidate["informative_signals"] = serde_json::json!(Self::SIGNAL_NAMES
+                        .iter()
+                        .zip(informative.iter())
+                        .filter(|(_, i)| **i)
+                        .map(|(n, _)| *n)
+                        .collect::<Vec<_>>());
+                    candidate["evidence_coverage"] = serde_json::json!((coverage * 1000.0).round() / 1000.0);
+                }
+                candidates.push(candidate);
             }
         }
 
@@ -613,32 +1038,75 @@ impl AlignmentEngine {
                 .then_with(|| a["target_iri"].as_str().unwrap_or("").cmp(b["target_iri"].as_str().unwrap_or("")))
         });
 
-        // Stable matching: for each source class, keep only the top-scoring target.
-        // For each target class, keep only the top-scoring source.
-        // This enforces a 1-to-1 matching constraint that dramatically reduces
-        // false positives on benchmarks like OAEI Anatomy.
+        // Stable matching. One-to-one keeps the top-scoring target for each
+        // source and the top-scoring source for each target, which is what cut
+        // false positives on OAEI Anatomy. Many-to-one keeps the top target for
+        // each source and lets targets repeat, for a source finer than its
+        // target.
+        //
+        // A row dropped because a kept row scored the same (within
+        // TIE_EPSILON) lost to IRI spelling, not to evidence. It is named on
+        // the kept row under `tied_with`, the kept row is marked `ambiguous`,
+        // and an ambiguous row goes to review: the engine did not choose it,
+        // so it must not write it.
         {
-            let mut used_sources: std::collections::HashSet<String> = std::collections::HashSet::new();
-            let mut used_targets: std::collections::HashSet<String> = std::collections::HashSet::new();
-            candidates.retain(|c| {
+            let one_to_one = opts.cardinality == Cardinality::OneToOne;
+            let mut kept: Vec<serde_json::Value> = Vec::with_capacity(candidates.len());
+            let mut by_source: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+            let mut by_target: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+            for c in candidates.drain(..) {
                 let src = c["source_iri"].as_str().unwrap_or("").to_string();
                 let tgt = c["target_iri"].as_str().unwrap_or("").to_string();
-                if used_sources.contains(&src) || used_targets.contains(&tgt) {
-                    false
-                } else {
-                    used_sources.insert(src);
-                    used_targets.insert(tgt);
-                    true
+                let blocked_by_source = by_source.get(&src).copied();
+                let blocked_by_target = if one_to_one { by_target.get(&tgt).copied() } else { None };
+                if blocked_by_source.is_none() && blocked_by_target.is_none() {
+                    by_source.insert(src, kept.len());
+                    if one_to_one {
+                        by_target.insert(tgt, kept.len());
+                    }
+                    kept.push(c);
+                    continue;
                 }
-            });
+                let conf = c["confidence"].as_f64().unwrap_or(0.0);
+                let mut blockers = vec![blocked_by_source, blocked_by_target];
+                blockers.dedup();
+                for k in blockers.into_iter().flatten() {
+                    let kept_conf = kept[k]["confidence"].as_f64().unwrap_or(0.0);
+                    if (kept_conf - conf).abs() <= TIE_EPSILON {
+                        let entry = serde_json::json!({
+                            "source_iri": src,
+                            "target_iri": tgt,
+                            "confidence": conf,
+                        });
+                        match kept[k]["tied_with"].as_array_mut() {
+                            Some(list) => list.push(entry),
+                            None => kept[k]["tied_with"] = serde_json::json!([entry]),
+                        }
+                    }
+                }
+            }
+            for c in &mut kept {
+                let ambiguous = c["tied_with"].as_array().is_some_and(|l| !l.is_empty());
+                if !ambiguous {
+                    c["tied_with"] = serde_json::json!([]);
+                }
+                c["ambiguous"] = serde_json::json!(ambiguous);
+                if ambiguous {
+                    c["requires_review"] = serde_json::json!(true);
+                }
+            }
+            candidates = kept;
         }
+        let ambiguous_count = candidates.iter().filter(|c| c["ambiguous"] == true).count();
 
         // Auto-apply above high_threshold.
         let mut applied_count = 0;
         if !dry_run {
             for candidate in &mut candidates {
-                let conf = candidate["confidence"].as_f64().unwrap_or(0.0);
-                if conf >= high_threshold {
+                // `requires_review` rather than the bare threshold: an
+                // ambiguous row clears the threshold and is still not the
+                // engine's choice to write.
+                if !candidate["requires_review"].as_bool().unwrap_or(true) {
                     let source_iri = candidate["source_iri"].as_str().unwrap();
                     let target_iri = candidate["target_iri"].as_str().unwrap();
                     let relation = candidate["relation"].as_str().unwrap();
@@ -672,14 +1140,32 @@ impl AlignmentEngine {
                 .get(t_iri.as_str())
                 .map(|c| c.labels.iter().map(|l| l.tagged()).collect())
                 .unwrap_or_default();
-            let s_parents = Self::extract_parents(&source_store, &s_iri);
-            let t_parents = Self::extract_parents(target_ref, &t_iri);
+            let s_info = source_class_map.get(s_iri.as_str());
+            let t_info = target_class_map.get(t_iri.as_str());
+            let s_parents = Self::extract_parents(
+                &source_store,
+                &s_iri,
+                s_info.map(|c| c.kind).unwrap_or(EntityKind::OwlClass),
+            );
+            let t_parents = Self::extract_parents(
+                target_ref,
+                &t_iri,
+                t_info.map(|c| c.kind).unwrap_or(EntityKind::OwlClass),
+            );
             candidate["context"] = serde_json::json!({
                 "source_labels":  s_labels,
                 "target_labels":  t_labels,
                 "source_parents": s_parents,
                 "target_parents": t_parents,
             });
+            // Definitions only when there are some, so the context of a
+            // vocabulary that carries none is unchanged.
+            let s_defs = s_info.map(|c| c.definitions.clone()).unwrap_or_default();
+            let t_defs = t_info.map(|c| c.definitions.clone()).unwrap_or_default();
+            if !s_defs.is_empty() || !t_defs.is_empty() {
+                candidate["context"]["source_definitions"] = serde_json::json!(s_defs);
+                candidate["context"]["target_definitions"] = serde_json::json!(t_defs);
+            }
         }
 
         // Partition into auto-applied vs borderline buckets (back-compat: `candidates`
@@ -723,6 +1209,11 @@ impl AlignmentEngine {
             // Back-compat alias — older callers read "threshold".
             "threshold": high_threshold,
             "summary_for_review": summary_for_review,
+            "scoring": scoring.as_str(),
+            "scoring_means": scoring.means(),
+            "cardinality": opts.cardinality.as_str(),
+            "ambiguous_count": ambiguous_count,
+            "tie_epsilon": 0.001,
         }).to_string())
     }
 
@@ -983,10 +1474,48 @@ fn jaccard_similarity(a: &[String], b: &[String]) -> f64 {
 pub struct ClassInfo {
     pub iri: String,
     /// Labels with their parsed language tags. Populated from rdfs:label /
-    /// skos:prefLabel / skos:altLabel (and OBO synonyms), filtered by the
-    /// active language policy. Falls back to a single language-neutral label
-    /// derived from the IRI local name when no policy-matching label exists.
+    /// skos:prefLabel / skos:altLabel (and OBO synonyms; for a SKOS concept
+    /// also skos:hiddenLabel), filtered by the active language policy. Falls
+    /// back to a single language-neutral label derived from the IRI local name
+    /// when no policy-matching label exists.
     pub labels: Vec<crate::language::Label>,
+    /// Whether this is an OWL class or a SKOS concept, which decides where
+    /// its parents are read from.
+    pub kind: EntityKind,
+    /// `skos:definition` values, shown to the reviewer and never scored.
+    pub definitions: Vec<String>,
+}
+
+/// Each element of `v` once, in first-seen order.
+fn dedup(v: &[String]) -> Vec<&String> {
+    let mut seen = std::collections::HashSet::new();
+    v.iter().filter(|x| seen.insert(x.as_str())).collect()
+}
+
+/// Jaccard over items that each carry a SET of keys, two items matching when
+/// their key sets meet. Returns the similarity and whether it is informative,
+/// which needs at least one item on each side.
+///
+/// When every item carries exactly one key this is ordinary set Jaccard. The
+/// matching is greedy in input order, which is deterministic and at most one
+/// item short of a maximum matching per conflict; nothing here needs more.
+fn soft_jaccard(
+    a: &[std::collections::BTreeSet<String>],
+    b: &[std::collections::BTreeSet<String>],
+) -> (f64, bool) {
+    if a.is_empty() || b.is_empty() {
+        return (0.0, false);
+    }
+    let mut used = vec![false; b.len()];
+    let mut matched = 0usize;
+    for ka in a {
+        if let Some(j) = (0..b.len()).find(|&j| !used[j] && !ka.is_disjoint(&b[j])) {
+            used[j] = true;
+            matched += 1;
+        }
+    }
+    let union = a.len() + b.len() - matched;
+    (matched as f64 / union as f64, true)
 }
 
 /// Extract local name from an IRI (after last # or /).
@@ -1037,6 +1566,8 @@ mod tests {
         let a = ClassInfo {
             iri: "http://ex.org/Dog".into(),
             labels: vec![crate::language::Label::new("Dog", None)],
+            kind: EntityKind::OwlClass,
+            definitions: vec![],
         };
         let b = ClassInfo {
             iri: "http://other.org/Canine".into(),
@@ -1044,6 +1575,8 @@ mod tests {
                 crate::language::Label::new("Dog", None),
                 crate::language::Label::new("Canine", None),
             ],
+            kind: EntityKind::OwlClass,
+            definitions: vec![],
         };
         // Exact label match should give 1.0
         let sim = AlignmentEngine::label_similarity(&a, &b);
@@ -1182,10 +1715,14 @@ mod tests {
         let a = ClassInfo {
             iri: "http://ex.org/DomesticCat".into(),
             labels: vec![crate::language::Label::new("DomesticCat", None)],
+            kind: EntityKind::OwlClass,
+            definitions: vec![],
         };
         let b = ClassInfo {
             iri: "http://other.org/HouseCat".into(),
             labels: vec![crate::language::Label::new("Domestic Cat", None)],
+            kind: EntityKind::OwlClass,
+            definitions: vec![],
         };
         let sim = AlignmentEngine::label_similarity(&a, &b);
         assert!(sim > 0.95, "CamelCase split should match: {}", sim);

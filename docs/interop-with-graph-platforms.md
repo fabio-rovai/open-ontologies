@@ -53,7 +53,7 @@ standards, so the handoff is a file or a SPARQL endpoint:
 
 | Concern | Shared ground |
 |---|---|
-| Serialisation | Turtle, N-Triples, RDF/XML, JSON-LD, TriG |
+| Serialisation | Turtle, N-Triples, RDF/XML, JSON-LD, TriG; OWL 2 functional syntax read |
 | Schema | OWL, RDFS, SKOS |
 | Constraints | SHACL |
 | Provenance | PROV-O (`prov:wasDerivedFrom`) |

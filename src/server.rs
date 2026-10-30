@@ -322,7 +322,7 @@ impl OpenOntologiesServer {
 
     // ── Ontology ────────────────────────────────────────────────────────────
 
-    #[tool(name = "onto_validate", description = "Validate RDF/OWL syntax. Accepts a file path or inline Turtle content.")]
+    #[tool(name = "onto_validate", description = "Validate RDF/OWL syntax. Accepts a file path or inline content. A file may be Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD or OWL 2 functional syntax (OFN), and the content is sniffed before the extension is trusted, so an OFN document published as `.owl` is read as OFN. Inline content is Turtle unless it opens with `Prefix(` or `Ontology(`, in which case it is OFN. An OFN construct the reader does not translate is an error naming the construct, its count and its first line, never a silent drop.")]
     async fn onto_validate(&self, Parameters(input): Parameters<OntoValidateInput>) -> String {
         use crate::ontology::OntologyService;
         if input.inline.unwrap_or(false) {
@@ -332,8 +332,26 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_convert", description = "Convert an RDF file between formats: turtle, ntriples, rdfxml, nquads, trig")]
+    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads, trig or ofn (OWL 2 functional syntax). Reads every format onto_load reads, OFN included, so this also turns an OFN document into RDF and back. `to: \"ofn\"` writes the inverse of the reader's W3C mapping, one axiom per line, in a byte-identical order on every run, and returns JSON: `content` (or `path` when `output` is given) plus `constructs_not_exported`, which names and counts every triple that maps back to no OWL 2 axiom (an unrecognised blank-node structure, a malformed rdf:List, a reserved-vocabulary triple outside any axiom) instead of dropping it, and `constructs_not_round_trippable` for what was written but will not read back as the same graph.")]
     async fn onto_convert(&self, Parameters(input): Parameters<OntoConvertInput>) -> String {
+        if crate::ofn_writer::is_ofn_format(&input.to) {
+            return match crate::ofn_writer::convert_file(&input.path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(output) = input.output {
+                        if let Err(e) = std::fs::write(&output, &out.text) {
+                            return Self::err_json(e);
+                        }
+                        report["ok"] = serde_json::json!(true);
+                        report["path"] = serde_json::json!(output);
+                    } else {
+                        report["content"] = serde_json::json!(out.text);
+                    }
+                    report.to_string()
+                }
+                Err(e) => Self::err_json(e),
+            };
+        }
         let store = GraphStore::new();
         match store.load_file(&input.path) {
             Ok(_) => {
@@ -355,7 +373,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_load", description = "Load an RDF file or inline Turtle content into the in-memory ontology store. When given a file path, the parsed graph is also written to a fast N-Triples compile cache (in `[cache] dir`) so subsequent loads from the same source skip parsing. Optional `name`, `auto_refresh`, and `force_recompile` flags control caching/refresh behavior.")]
+    #[tool(name = "onto_load", description = "Load an ontology file or inline Turtle content into the in-memory ontology store. A file may be Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD or OWL 2 functional syntax (OFN, `.ofn`, or any extension whose content opens with `Prefix(` or `Ontology(`, which covers OFN published as `.owl`); OFN is translated to the RDF graph the W3C OWL 2 mapping assigns it, and a construct the reader does not translate fails the load by name rather than being dropped. When given a file path, the parsed graph is also written to a fast N-Triples compile cache (in `[cache] dir`) so subsequent loads from the same source skip parsing. Optional `name`, `auto_refresh`, and `force_recompile` flags control caching/refresh behavior.")]
     async fn onto_load(&self, Parameters(input): Parameters<OntoLoadInput>) -> String {
         if let Some(turtle) = input.turtle {
             // Inline turtle bypasses the registry/cache (no source file).
@@ -525,12 +543,13 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_defects", description = "Check the ONTOLOGY itself, before any data is judged against it. Reports eight kinds of self-contradicting or self-defeating declaration: transitive_and_functional, symmetric_and_asymmetric, subclass_cycle, sub_property_cycle, disjoint_with_ancestor, inherited_disjoint, self_inverse, inverse_not_mutual. This is a different question from onto_dl_check: a transitive functional property is satisfiable and is still a trap, because the pair manufactures contradictions as soon as instances arrive. Run it after onto_load and before trusting any fact-level result, and on every marketplace pack before adopting it. Each kind is listed at most 50 times; the full total is reported under `truncated`.")]
-    fn onto_defects(&self) -> String {
+    #[tool(name = "onto_defects", description = "Check the ONTOLOGY itself, before any data is judged against it. Reports eight kinds of self-contradicting or self-defeating declaration: transitive_and_functional, symmetric_and_asymmetric, subclass_cycle, sub_property_cycle, disjoint_with_ancestor, inherited_disjoint, self_inverse, inverse_not_mutual. This is a different question from onto_dl_check: a transitive functional property is satisfiable and is still a trap, because the pair manufactures contradictions as soon as instances arrive. Run it after onto_load and before trusting any fact-level result, and on every marketplace pack before adopting it. `defect_count` counts FINDINGS, one per row, and a class under two disjoint pairs is two findings; `affected_classes` and `affected_properties` count the distinct subjects, which is the number to compare with a reasoner's unsatisfiable classes, and `kind_counts` gives both per kind. Each kind is listed at most `limit` times (default 50, 0 lists all); the full total of a kind cut short is reported under `truncated`.")]
+    pub fn onto_defects(&self, Parameters(input): Parameters<OntoDefectsInput>) -> String {
         if let Err(e) = self.registry.ensure_loaded() {
             return Self::err_json(format!("ensure_loaded: {e}"));
         }
-        crate::defects::Defects::check(&self.graph).unwrap_or_else(Self::err_json)
+        let limit = input.limit.unwrap_or(crate::defects::Defects::MAX_PER_KIND);
+        crate::defects::Defects::check_with_limit(&self.graph, limit).unwrap_or_else(Self::err_json)
     }
 
     #[tool(name = "onto_dlp_boundary", description = "Ask which of YOUR axioms the rule engine can actually SEE, before trusting a reasoning result. A certificate from onto_reason is a sound proof about the axioms the rules read, and it says nothing at all about the ones no rule fires on. A user can reason, get a green machine-checked certificate, and never learn that a third of the TBox was invisible to the rule table. This is that second question, and it is in the same register as onto_defects: run it after onto_load and BEFORE trusting any onto_reason result. TWO DIMENSIONS THAT ARE NEVER MERGED, because one is a rewrite of your ontology and the other is a patch to this engine. (1) THE FRAGMENT: is the axiom expressible as Horn rules over triple patterns at all? The line drawn is OWL 2 RL's class grammar (OWL 2 Profiles section 4.3), and `outside` there is a fact about the LANGUAGE that would hold of a perfect OWL 2 RL engine: a disjunction in the consequent, an existential in the head, a cardinality restriction, a negation in the antecedent. Each such axiom is listed individually with the reason. (2) THIS ENGINE: is there a rule in the table that fires on it? owl:hasKey and owl:propertyChainAxiom are perfectly Horn, OWL 2 RL has prp-key and prp-spo2 for them, and this engine implements neither, so those axioms are INSIDE the fragment and still invisible. They are reported in `inside_the_fragment_but_a_rule_is_not_implemented` and never in `outside_the_fragment`. An axiom that splits soundly gets a third bucket of its own, `partially_inside_the_fragment`, because a bucket called `outside` holding an axiom the rules half evaluate would be false in its own name: `A subClassOf (B and Out)` keeps its `A subClassOf B` half, and an owl:equivalentClass with an existential on one side keeps the direction cls-svf1 evaluates. `not_fully_seen_by_the_rule_table` is the headline and carries the three causes separately, because they are fixed in three different places. A conjunction in the ANTECEDENT does not split, because dropping a conjunct from a rule body makes it fire more often. The rule-table figures (78 OWL 2 RL rules, 29 evaluated in the fixpoint, 10 more detected only as a clash, 7 that conclude false and are not looked for, and the names of the rest) are DERIVED from reason::RULES_EVALUATED and reason::CLASH_RULES_NOT_DETECTED rather than typed. Every triple in the store lands in an axiom bucket or in a counted `not_classified` bucket, so nothing is passed over in silence. This is NOT a consistency check and states no verdict about satisfiability.")]
@@ -550,13 +569,17 @@ impl OpenOntologiesServer {
     }
 
     #[tool(name = "onto_diff", description = "Compare two ontology files and show added/removed triples")]
-    async fn onto_diff(&self, Parameters(input): Parameters<OntoDiffInput>) -> String {
+    pub async fn onto_diff(&self, Parameters(input): Parameters<OntoDiffInput>) -> String {
         use crate::ontology::OntologyService;
-        let old = match std::fs::read_to_string(&input.old_path) {
+        // Same reading as `onto_load` and CLI `lint`: sniff the format, convert
+        // RDF/XML and friends, and give Turtle the file's base IRI.
+        let old = match GraphStore::read_as_turtle(&input.old_path) {
             Ok(c) => c,
             Err(e) => return Self::err_json(format!("Cannot read {}: {}", input.old_path, e)),
         };
-        let new = match std::fs::read_to_string(&input.new_path) {
+        // Against the old file's base, so a relative `<#Dog>` is one IRI on
+        // both sides and only real changes show up.
+        let new = match GraphStore::read_as_turtle_against(&input.new_path, &input.old_path) {
             Ok(c) => c,
             Err(e) => return Self::err_json(format!("Cannot read {}: {}", input.new_path, e)),
         };
@@ -564,12 +587,14 @@ impl OpenOntologiesServer {
     }
 
     #[tool(name = "onto_lint", description = "Check an ontology for quality issues: missing labels, comments, domains, ranges")]
-    async fn onto_lint(&self, Parameters(input): Parameters<OntoLintInput>) -> String {
+    pub async fn onto_lint(&self, Parameters(input): Parameters<OntoLintInput>) -> String {
         use crate::ontology::OntologyService;
         let content = if input.inline.unwrap_or(false) {
             input.input.clone()
         } else {
-            match std::fs::read_to_string(&input.input) {
+            // As CLI `lint` does: an RDF/XML file is converted, not handed to
+            // the Turtle parser, and relative IRIs resolve against the file.
+            match GraphStore::read_as_turtle(&input.input) {
                 Ok(c) => c,
                 Err(e) => return Self::err_json(e),
             }
@@ -1029,7 +1054,7 @@ impl OpenOntologiesServer {
         let base_iri = input.base_iri.as_deref().unwrap_or("http://example.org/data/");
 
         // Parse data file
-        let rows = match DataIngester::parse_file(&input.path) {
+        let rows = match DataIngester::parse_file_with_format(&input.path, input.format.as_deref()) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.path, e)),
         };
@@ -1116,9 +1141,9 @@ impl OpenOntologiesServer {
     async fn onto_induce(&self, Parameters(input): Parameters<OntoInduceInput>) -> String {
         use crate::ingest::DataIngester;
         let base_iri = input.base_iri.clone().unwrap_or_else(|| "http://example.org/data/".to_string());
-        let stem = input.class_name.clone().unwrap_or_else(|| {
-            std::path::Path::new(&input.path).file_stem().and_then(|s| s.to_str()).unwrap_or("Row").to_string()
-        });
+        let source_stem = std::path::Path::new(&input.path).file_stem()
+            .and_then(|s| s.to_str()).unwrap_or("Row").to_string();
+        let stem = input.class_name.clone().unwrap_or_else(|| source_stem.clone());
         let rows = match DataIngester::parse_file(&input.path) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.path, e)),
@@ -1127,7 +1152,7 @@ impl OpenOntologiesServer {
             return Self::err_json("no data rows found; nothing to induce from");
         }
         let headers = DataIngester::headers_in_order(&input.path, &rows);
-        let induced = crate::induce::induce(&rows, &headers, &stem, &base_iri);
+        let induced = crate::induce::induce_with_source(&rows, &headers, &stem, &source_stem, &base_iri);
         let mut v = match serde_json::to_value(&induced) {
             Ok(v) => v,
             Err(e) => return Self::err_json(e),
@@ -1137,7 +1162,7 @@ impl OpenOntologiesServer {
                 .graph
                 .load_turtle(&induced.ontology_ttl, None)
                 .and_then(|a| self.graph.load_turtle(&induced.shapes_ttl, None).map(|b| a + b))
-                .and_then(|ab| self.graph.load_ntriples(&induced.mapping.rows_to_ntriples(&rows)).map(|c| (ab, c)));
+                .and_then(|ab| self.graph.load_ntriples(&induced.instance_ntriples(&rows)).map(|c| (ab, c)));
             match loaded {
                 Ok((schema, data)) => {
                     v["loaded"] = serde_json::json!({"schema_triples": schema, "instance_triples": data});
@@ -1310,7 +1335,7 @@ impl OpenOntologiesServer {
         use crate::ingest::DataIngester;
         use crate::mapping::MappingConfig;
 
-        let rows = match DataIngester::parse_file(&input.data_path) {
+        let rows = match DataIngester::parse_file_with_format(&input.data_path, input.format.as_deref()) {
             Ok(r) => r,
             Err(e) => return Self::err_json(format!("Failed to parse {}: {}", input.data_path, e)),
         };
@@ -1330,8 +1355,8 @@ impl OpenOntologiesServer {
             { ?p a <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> }
         }"#;
 
-        let classes = self.graph.sparql_select(classes_query).unwrap_or_default();
-        let props = self.graph.sparql_select(props_query).unwrap_or_default();
+        let classes = self.graph.sparql_select_union(classes_query).unwrap_or_default();
+        let props = self.graph.sparql_select_union(props_query).unwrap_or_default();
 
         let extract_iris = |json: &str, var: &str| -> Vec<String> {
             serde_json::from_str::<serde_json::Value>(json)
@@ -1368,7 +1393,7 @@ impl OpenOntologiesServer {
         result.to_string()
     }
 
-    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true. An entry there is one CONSTRAINT-EVALUATION SITE and not one shape: a single `sh:property` block carrying both `sh:minCount` and `sh:node` can produce a violation from the first and a skip entry from the second, so the SAME shape can appear in `violations` and in `skipped_constraints` at once and that is not a contradiction. Every entry names the `shape` it was written on and the `constraint` predicate that was not evaluated, which is what separates a constraint that did not run from one that ran and selected nothing. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`, plus `scope`, which names the graphs the run READ. By default every graph in the store is read. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) that union is a state that held at no instant, so a run with no instant named is REFUSED rather than answered: pass `valid_at` (what was TRUE then), `as_of` (what was KNOWN then) or `all_versions: true` to say the union is what you meant. A scoped run evaluates every data-side query, `sh:sparql` included, against the in-scope named graphs plus the default graph and nothing else. A snapshot that selects no graph returns `conforms: null` with its own reason rather than conforming vacuously. Class and property DECLARATION lookups are never scoped: a declaration is context-free and has the same answer at every instant.")]
+    #[tool(name = "onto_shacl", description = "Validate the loaded ontology data against SHACL shapes. Checks the core constraint components written under `sh:property`, including `sh:minCount`, `sh:maxCount`, `sh:datatype`, `sh:class`, `sh:nodeKind`, `sh:pattern`, `sh:in`, `sh:hasValue`, `sh:or` and `sh:not`, plus `sh:sparql`. A constraint it cannot execute is listed in `skipped_constraints` and the verdict is null rather than true; that includes a count or length bound that is not a non-negative integer (`sh:minCount \"one\"`, `sh:maxCount -1`), which is never read as 0 or as unbounded. An entry there is one CONSTRAINT-EVALUATION SITE and not one shape: a single `sh:property` block carrying both `sh:minCount` and `sh:node` can produce a violation from the first and a skip entry from the second, so the SAME shape can appear in `violations` and in `skipped_constraints` at once and that is not a contradiction. Every entry names the `shape` it was written on and the `constraint` predicate that was not evaluated, which is what separates a constraint that did not run from one that ran and selected nothing. Returns a conformance report with violations, `focus_nodes` and `unmatched_shapes`, plus `scope`, which names the graphs the run READ. By default every graph in the store is read. Over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) that union is a state that held at no instant, so a run with no instant named is REFUSED rather than answered: pass `valid_at` (what was TRUE then), `as_of` (what was KNOWN then) or `all_versions: true` to say the union is what you meant. A scoped run evaluates every data-side query, `sh:sparql` included, against the in-scope named graphs plus the default graph and nothing else. A snapshot that selects no graph returns `conforms: null` with its own reason rather than conforming vacuously. Class and property DECLARATION lookups are never scoped: a declaration is context-free and has the same answer at every instant. `report_format: \"turtle\"` or `\"ntriples\"` returns a W3C sh:ValidationReport graph instead of JSON; an undetermined run is written sh:conforms false plus oo:undetermined true, never sh:conforms true.")]
     async fn onto_shacl(&self, Parameters(input): Parameters<OntoShaclInput>) -> String {
         use crate::shacl::ShaclValidator;
         let shapes = if input.inline.unwrap_or(false) {
@@ -1379,7 +1404,20 @@ impl OpenOntologiesServer {
                 Err(e) => return Self::err_json(format!("Cannot read shapes file: {}", e)),
             }
         };
+        let format = match crate::shacl_report::ReportFormat::parse(input.report_format.as_deref()) {
+            Ok(f) => f,
+            Err(e) => return Self::err_json(e),
+        };
         if input.verified.unwrap_or(false) {
+            if format != crate::shacl_report::ReportFormat::Json {
+                return Self::err_json(
+                    "verified: true cannot be combined with a report_format other than json. \
+                     The verified evaluator returns its own report structure, which the \
+                     sh:ValidationReport writer does not read, so the format would be silently \
+                     dropped."
+                        .to_string(),
+                );
+            }
             // Refused rather than ignored. The verified evaluator reads one
             // N-Triples dump of the store and has no notion of a temporal
             // scope, so honouring the argument is impossible and dropping it
@@ -1406,7 +1444,8 @@ impl OpenOntologiesServer {
             Ok(r) => r,
             Err(e) => return Self::err_json(e),
         };
-        ShaclValidator::validate_scoped(&self.graph, &shapes, &request)
+        ShaclValidator::report_scoped(&self.graph, &shapes, &request)
+            .and_then(|report| report.render(format))
             .unwrap_or_else(Self::err_json)
     }
 
@@ -1464,7 +1503,7 @@ impl OpenOntologiesServer {
         report.to_string()
     }
 
-    #[tool(name = "onto_shacl_check", description = "Dry-run structural check on proposed SHACL shapes against the loaded ontology. Verifies that shapes parse as Turtle and that every IRI they reference (sh:targetClass, sh:path, sh:class) exists in the ontology, plus a lightweight XSD-prefix check on sh:datatype. Does NOT validate data — use onto_shacl for that. Use this to iterate on LLM-generated SHACL before applying.")]
+    #[tool(name = "onto_shacl_check", description = "Dry-run structural check on proposed SHACL shapes against the loaded ontology. Verifies that shapes parse as Turtle and that every IRI they reference (sh:targetClass, sh:path, sh:class) exists in the ontology, plus a lightweight XSD-prefix check on sh:datatype, and that every sh:minCount, sh:maxCount, sh:qualifiedMinCount, sh:qualifiedMaxCount, sh:minLength and sh:maxLength value is a non-negative xsd:integer literal (reported as kind ill_formed_literal with the reason). Does NOT validate data — use onto_shacl for that. Use this to iterate on LLM-generated SHACL before applying.")]
     async fn onto_shacl_check(&self, Parameters(input): Parameters<OntoShaclCheckInput>) -> String {
         use crate::shacl::ShaclValidator;
         let shapes = if input.inline.unwrap_or(false) {
@@ -1577,7 +1616,7 @@ impl OpenOntologiesServer {
             .unwrap_or_else(|e| Self::err_json(format!("serialization: {}", e)))
     }
 
-    #[tool(name = "onto_classify_el", description = "Classify the loaded ontology in the OWL-EL fragment (#30). Materialises OWL-RL-ext entailments in a sandbox copy of the graph and emits every distinct subsumption `?sub rdfs:subClassOf ?super` (transitive closure, deduplicated, owl:Thing-trivial pairs removed). For deep SHIQ subsumption, use `onto_dl_check` / `onto_dl_explain`.")]
+    #[tool(name = "onto_classify_el", description = "Classify the loaded ontology by OWL 2 EL completion (#30, #324): conjunction and existentials on both sides, domains, ranges, disjointness, role hierarchy, transitive roles. Returns every derived subsumption between named classes (`owl:Thing` and `X ⊑ X` left out, unsatisfiable classes listed separately), no row cap. `complete: true` only when the input is inside EL and nothing was set aside; otherwise `complete: false`, `incompleteness` names each cause, and the OWL-RL-ext rules are unioned in (sound, not complete). For a complete classification outside EL, use `onto_reason` with `owl-dl`.")]
     async fn onto_classify_el(&self) -> String {
         match crate::classify_el::classify(&self.graph) {
             Ok(r) => serde_json::to_string(&r)
@@ -2400,7 +2439,7 @@ impl OpenOntologiesServer {
         .unwrap_or_else(Self::err_json)
     }
 
-    #[tool(name = "onto_fol_model", description = "Find a finite model of the loaded ontology and CHECK IT, so the answer names what it rests on. This is the SAT/SMT family, and it is deliberately not symmetric. A REFUTATION cannot be replayed in core Lean, so a solver saying `unsat` is an ORACLE OPINION for ever (decision 0005). A MODEL is a finite object, checking a formula against it is decidable, and `lean/Fol/` holds a checker whose soundness is machine-checked: `Fol.satisfiable_of_check` turns an accepted structure into satisfiability of exactly the formulas it was checked against, and `Fol.not_entails_of_check` turns a checked model of the NEGATED goal into a machine-checked NON-ENTAILMENT, which is the one sentence no theorem prover can produce. The pipeline exports SMT-LIB 2 (for Z3) or LADR (for Mace4) and `problem.tsv` from ONE representation, climbs a cardinality ladder, reads the structure back, and runs `oo-folmodel`. FIVE FIELDS THAT ARE NEVER COLLAPSED: `solver_verdict` (sat/unsat/unknown, what the oracle said), `encoding` (unbounded or finite(k), what it was asked), `checker_exit` (null means the checker never ran), `verdict`, and `owl_reading`. The verdict is one of FIVE WORDS: `model_checked` is the ONLY certified one and requires checker_exit 0; `satisfiable_oracle` is sat with nothing checked; `no_model_up_to_size_k` is an exhausted BOUNDED search and IS NOT UNSATISFIABILITY (a theory with no model of size k can have one of size k+1, and SHIQ has no finite model property at all, so a satisfiable ontology can have only infinite models and will never receive a certificate here); `unsatisfiable_oracle` may be produced ONLY by a run with no cardinality constraint of any kind and can never be more than an opinion; `unknown_oracle` is a timeout or a give-up. A solver answering sat whose model the checker REJECTS is a STOP-THE-LINE disagreement reported in its own block with severity STOP_THE_LINE, never `rejected` as though the ontology were at fault and never `model_checked`. The OWL-level reading carries its own word, `not_entailed_under_unproved_translation`, because it rides on OwlLean.adequacy in a sibling project AND on the Rust-to-Lean correspondence that is PINNED BY TESTS AND NOT PROVED. Needs z3 or mace4 on PATH and `oo-folmodel` built (cd lean && lake build); the absence of either is reported loudly in `skipped` and never worked around. See docs/decisions/0006.")]
+    #[tool(name = "onto_fol_model", description = "Find a finite model of the loaded ontology and CHECK IT, so the answer names what it rests on. This is the SAT/SMT family, and it is deliberately not symmetric. A REFUTATION cannot be replayed in core Lean, so a solver saying `unsat` is an ORACLE OPINION for ever (decision 0005). A MODEL is a finite object, checking a formula against it is decidable, and `lean/Fol/` holds a checker whose soundness is machine-checked: `Fol.satisfiable_of_check` turns an accepted structure into satisfiability of exactly the formulas it was checked against, and `Fol.not_entails_of_check` turns a checked model of the NEGATED goal into a machine-checked NON-ENTAILMENT, which is the one sentence no theorem prover can produce. The pipeline exports SMT-LIB 2 (for Z3) or LADR (for Mace4) and `problem.tsv` from ONE representation, climbs a cardinality ladder, reads the structure back, and runs `oo-folmodel`. FIVE FIELDS THAT ARE NEVER COLLAPSED: `solver_verdict` (sat/unsat/unknown, what the oracle said), `encoding` (unbounded or finite(k), what it was asked), `checker_exit` (null means the checker never ran), `verdict`, and `owl_reading`. The verdict is one of FIVE WORDS: `model_checked` is the ONLY certified one and requires checker_exit 0; `satisfiable_oracle` is sat with nothing checked; `no_model_up_to_size_k` is an exhausted BOUNDED search and IS NOT UNSATISFIABILITY (a theory with no model of size k can have one of size k+1, and SHIQ has no finite model property at all, so a satisfiable ontology can have only infinite models and will never receive a certificate here); `unsatisfiable_oracle` may be produced ONLY by a run with no cardinality constraint of any kind and can never be more than an opinion; `unknown_oracle` is a timeout or a give-up. A solver answering sat whose model the checker REJECTS is a STOP-THE-LINE disagreement reported in its own block with severity STOP_THE_LINE, never `rejected` as though the ontology were at fault and never `model_checked`. The OWL-level reading carries its own word, `not_entailed_under_unproved_translation`, because it rides on OwlLean.adequacy in a sibling project AND on the Rust-to-Lean correspondence that is PINNED BY TESTS AND NOT PROVED. Needs z3 or mace4 on PATH and `oo-folmodel` built (cd lean && lake build); the absence of either is reported loudly in `skipped` and never worked around. A construct the reader cannot translate makes the export WEAKER than the ontology, and a model of a weaker theory is not a model of the ontology: `exports_a_weaker_axiom_set` and `constructs_not_exported` name every dropped construct, `owl_reading` is withheld, and `transfers_to_the_ontology` is false for `model_checked` and `satisfiable_oracle` (the unsatisfiable-direction verdicts still carry over). See docs/decisions/0006.")]
     async fn onto_fol_model(&self, Parameters(input): Parameters<OntoFolModelInput>) -> String {
         use crate::fol_solve::{SolveOptions, Solver, solve_export};
         let solver = match Solver::parse(input.solver.as_deref().unwrap_or("z3")) {
@@ -2469,7 +2508,7 @@ impl OpenOntologiesServer {
 
     // ── v2: Lifecycle tools ─────────────────────────────────────────────────
 
-    #[tool(name = "onto_plan", description = "Terraform-style plan: diff current store against proposed Turtle. Shows added/removed classes/properties, blast radius, risk score, and locked IRI violations. All of that is about SHAPE. Pass check_conservativity=true for the one part that is about MEANING: whether the change alters any consequence over the names the store already uses, under the rule table in conservativity_profile. That is the check a shape diff cannot do — adding one rdfs:domain reclassifies every existing individual of that property while adding no class and removing nothing, so every other number in the plan stays green. It reasons both graphs to a fixpoint, so it is opt-in; when it is off the plan says so under `conservativity` rather than staying silent. Read the honesty note in onto_conservative_check before acting on the verdict: it is conservativity under a Horn rule table, not in a description logic.")]
+    #[tool(name = "onto_plan", description = "Terraform-style plan: diff current store against proposed Turtle. Shows added/removed classes/properties, blast radius, risk score, and locked IRI violations. All of that is about SHAPE. Conservativity (on by default, check_conservativity=false skips it) asks what the change MEANS: whether the change alters any consequence over the names the store already uses, under the rule table in conservativity_profile. That is the check a shape diff cannot do — adding one rdfs:domain reclassifies every existing individual of that property while adding no class and removing nothing, so every other number in the plan stays green. It reasons both graphs to a fixpoint, which is why it can be switched off; when it is off the plan says so under `conservativity` rather than staying silent. Read the honesty note in onto_conservative_check before acting on the verdict: it is conservativity under a Horn rule table, not in a description logic. The `logic` block (on by default, check_logic=false skips it) asks whether the change BREAKS something: TBox self-defects the store did not have (the onto_defects kinds) and whether the owl-dl tableaux proves the proposed graph inconsistent where the store was not; either makes risk_score `high`, and `risk_reasons` says why. `abox_consistent` is null, never true, when the reasoner budget ran out or the graph uses a construct the tableaux does not model. onto_apply does not gate on any of this; the caller does.")]
     pub async fn onto_plan(&self, Parameters(input): Parameters<OntoPlanInput>) -> String {
         let planner = crate::plan::Planner::with_owner(
             self.db.clone(),
@@ -2488,7 +2527,7 @@ impl OpenOntologiesServer {
         // microseconds an individual.
         //
         // A plan is a deliberate pre-production act, not an interactive query,
-        // and that cost buys the only part of a plan that is about MEANING. In
+        // and that cost buys the part of a plan that asks what a change MEANS. In
         // the run above every shape number stayed at zero — no class added,
         // none removed, blast radius zero, risk low — while 901 consequences
         // appeared that were not there before. A safety check that is off by
@@ -2518,7 +2557,13 @@ impl OpenOntologiesServer {
                 ..Default::default()
             }
         });
-        match planner.plan_checked(&input.new_turtle, conservativity) {
+        // The logic check (#336) is on by default, like conservativity, and
+        // through the same function as the CLI and batch.
+        let checks = crate::plan::PlanChecks {
+            conservativity,
+            logic: input.check_logic.unwrap_or(true),
+        };
+        match planner.plan_with(&input.new_turtle, checks) {
             Ok(result) => {
                 self.lineage().record(&self.session_id, "P", "plan", "computed");
                 result
@@ -2571,6 +2616,11 @@ impl OpenOntologiesServer {
         let threshold = input.rename_threshold.unwrap_or(0.7);
         match format {
             "kgcl" => match detector.detect_kgcl(&input.version_a, &input.version_b, threshold) {
+                Ok(report) if report.approximate_reason.is_some() => Self::err_json(anyhow::anyhow!(
+                    "the drift is approximate and KGCL CNL cannot say so; use format 'json' or \
+                     'kgcl_json', which carry `exact: false` and the reason: {}",
+                    report.approximate_reason.unwrap_or_default()
+                )),
                 Ok(report) => {
                     self.lineage()
                         .record(&self.session_id, "D", "drift", "detected:kgcl");
@@ -2969,7 +3019,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_align", description = "Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. Auto-applies high-confidence matches above threshold.")]
+    #[tool(name = "onto_align", description = "Detect alignment candidates (owl:equivalentClass, skos:exactMatch, rdfs:subClassOf) between two ontologies or SKOS vocabularies (owl:Class and skos:Concept) using label similarity, property overlap, parent overlap, instance overlap, restriction patterns, and graph neighborhood. Confidence is the weighted mean over the signals that carry evidence for the pair (`scoring`: informative, or legacy for the published OAEI figures). `cardinality`: one-to-one or many-to-one. Ties are reported under `tied_with` and never auto-applied. Auto-applies high-confidence matches above threshold.")]
     async fn onto_align(&self, Parameters(input): Parameters<OntoAlignInput>) -> String {
         let engine = crate::align::AlignmentEngine::new(self.db.clone(), self.graph.clone());
 
@@ -2998,20 +3048,46 @@ impl OpenOntologiesServer {
             None => None,
         };
 
-        let high = input.high_threshold.or(input.min_confidence).unwrap_or(0.85);
+        let dry_run = input.dry_run.unwrap_or(false);
+        let fusion = input.fusion.as_deref().unwrap_or("weighted_sum");
+        let scoring = match crate::align::Scoring::parse(input.scoring.as_deref().unwrap_or("informative")) {
+            Ok(s) => s,
+            Err(e) => return Self::err_json(e),
+        };
+        let high = input
+            .high_threshold
+            .or(input.min_confidence)
+            .unwrap_or_else(|| scoring.default_high_threshold());
         // Default low_threshold = 0.4 surfaces a borderline bucket for LLM-orchestrated review.
         // Callers wanting the old strict behaviour pass low_threshold == high_threshold.
         let low = input.low_threshold.unwrap_or(0.4).min(high);
-        let dry_run = input.dry_run.unwrap_or(false);
-        let fusion = input.fusion.as_deref().unwrap_or("weighted_sum");
+        let cardinality = match crate::align::Cardinality::parse(input.cardinality.as_deref().unwrap_or("one-to-one")) {
+            Ok(c) => c,
+            Err(e) => return Self::err_json(e),
+        };
+        let opts = crate::align::AlignOptions {
+            high_threshold: high,
+            low_threshold: low,
+            dry_run,
+            fusion: fusion.to_string(),
+            scoring,
+            cardinality,
+        };
 
-        match engine.align_with_fusion(&source, target.as_deref(), high, low, dry_run, fusion) {
+        match engine.align_with_options(&source, target.as_deref(), &opts) {
             Ok(result) => {
                 self.lineage().record(
                     &self.session_id,
                     "AL",
                     "align",
-                    &format!("high={},low={},fusion={}", high, low, fusion),
+                    &format!(
+                        "high={},low={},fusion={},scoring={},cardinality={}",
+                        high,
+                        low,
+                        fusion,
+                        scoring.as_str(),
+                        cardinality.as_str()
+                    ),
                 );
                 result
             }
@@ -3031,7 +3107,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_lint_feedback", description = "Accept or dismiss a lint issue to improve future lint runs. Dismissed issues are suppressed after 3 dismissals. Stores feedback for self-calibrating severity.")]
+    #[tool(name = "onto_lint_feedback", description = "Accept or dismiss a lint issue to improve future lint runs. A warning or info is downgraded after 2 dismissals and suppressed after 3 (configurable in [feedback]); a suppressed issue moves to the suppressed[] list of the lint output with its rule, entity, original severity and dismissal count. Error-severity issues are never downgraded or suppressed. Stores feedback for self-calibrating severity.")]
     async fn onto_lint_feedback(&self, Parameters(input): Parameters<OntoLintFeedbackInput>) -> String {
         match crate::feedback::record_tool_feedback(&self.db, "lint", &input.rule_id, &input.entity, input.accepted) {
             Ok(result) => {
@@ -3042,7 +3118,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_enforce_feedback", description = "Accept or dismiss an enforce violation to improve future enforce runs. Dismissed violations are suppressed after 3 dismissals. Stores feedback for self-calibrating compliance.")]
+    #[tool(name = "onto_enforce_feedback", description = "Accept or dismiss an enforce violation to improve future enforce runs. A warning or info is downgraded after 2 dismissals and suppressed after 3 (configurable in [feedback]); a suppressed violation moves to the suppressed[] list of the enforce output with its rule, entity, original severity and dismissal count. Error-severity violations are never downgraded or suppressed. Stores feedback for self-calibrating compliance.")]
     async fn onto_enforce_feedback(&self, Parameters(input): Parameters<OntoEnforceFeedbackInput>) -> String {
         match crate::feedback::record_tool_feedback(&self.db, "enforce", &input.rule_id, &input.entity, input.accepted) {
             Ok(result) => {

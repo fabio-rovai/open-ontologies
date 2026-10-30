@@ -56,7 +56,7 @@ rayon = "1.10"
 csv = "1"
 quick-xml = { version = "0.37", features = ["serialize"] }
 serde_yaml = "0.9"
-calamine = "0.30"
+calamine = { version = "0.30", features = ["dates"] }
 arrow = { version = "54", default-features = false, features = ["csv", "json"] }
 parquet = { version = "54", default-features = false, features = ["arrow"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres"], optional = true }
@@ -119,18 +119,26 @@ toml = "0.8"
 # not grow by a single crate.
 proptest = "1"
 
-# A patched Oxigraph, pinned by revision.
+# A patched Oxigraph, pinned by revision. Two changes over 0.5.9, on branch
+# `oo/lexical-forms-0.5.9` of the fork.
 #
-# `Store::snapshot` is not in Oxigraph 0.5.9. It is a read view pinned to one
-# state that takes no lock, and decision 0010 explains at length why neither
-# thing the unpatched crate offers will do: a transaction pins the state but
-# stops every writer for the length of a reasoning run on the memory backend,
-# and copying the graph costs about 221 bytes a triple. The patch is a public
-# wrapper over `Storage::snapshot`, which `Store::len` and
-# `Store::quads_for_pattern` already call internally on every read.
+# 1. `Store::snapshot`, not in Oxigraph 0.5.9. It is a read view pinned to one
+#    state that takes no lock, and decision 0010 explains at length why neither
+#    thing the unpatched crate offers will do: a transaction pins the state but
+#    stops every writer for the length of a reasoning run on the memory backend,
+#    and copying the graph costs about 221 bytes a triple. The patch is a public
+#    wrapper over `Storage::snapshot`, which `Store::len` and
+#    `Store::quads_for_pattern` already call internally on every read.
+# 2. A literal is kept as written (oxigraph/oxigraph#2010, fixing #1989; here
+#    #335). 0.5.9 stored every literal of an XSD datatype with a value encoding
+#    by value and gave it back in the canonical form of the primitive type, so
+#    "4.0"^^xsd:decimal came back as "4", "1"^^xsd:boolean as "true",
+#    "5"^^xsd:int as "5"^^xsd:integer, and "4.0" and "4" loaded as one triple.
+#    A literal is now value-encoded only when decoding gives back the same
+#    datatype and lexical form; any other takes the generic typed-literal path.
 #
 # Pinned by REVISION and not by branch, so that what CI builds is what was
-# reviewed. Upstream at oxigraph/oxigraph; when it lands this stanza goes and
+# reviewed. Upstream at oxigraph/oxigraph; when both land this stanza goes and
 # the version bound below is all that remains.
 [patch.crates-io]
-oxigraph = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "abf36ef22b61f9c4d810b94b647d500c05ee791c" }
+oxigraph = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "6409fa1c8ad5880399d0ca69b38e43cbb2052ad7" }

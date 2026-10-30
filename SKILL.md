@@ -152,7 +152,7 @@ For aligning two ontologies:
 | `onto_query` | Verify structure, answer competency questions |
 | `onto_diff` | Compare against a reference or previous version |
 | `onto_save` | Persist ontology to a file |
-| `onto_convert` | Convert between formats (Turtle, N-Triples, RDF/XML, N-Quads, TriG) |
+| `onto_convert` | Convert between formats (reads Turtle, N-Triples, RDF/XML, N-Quads, TriG, JSON-LD and OWL 2 functional syntax; writes the first five) |
 | `onto_clear` | Reset the store before loading a different ontology |
 | `onto_pull` | Fetch ontology from a remote URL or SPARQL endpoint |
 | `onto_push` | Push ontology to a SPARQL endpoint |

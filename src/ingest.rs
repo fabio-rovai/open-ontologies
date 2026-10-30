@@ -152,11 +152,16 @@ impl DataIngester {
         use quick_xml::reader::Reader;
 
         let mut reader = Reader::from_str(content);
-        reader.config_mut().trim_text(true);
+        // Trimming every event destroys spaces when a field is split by a
+        // comment or CDATA boundary. Normalize only the completed field.
+        reader.config_mut().trim_text(false);
 
         let mut rows: Vec<HashMap<String, String>> = Vec::new();
         let mut current_row: Option<HashMap<String, String>> = None;
         let mut current_field: Option<String> = None;
+        // Keep raw text until the field closes: XML whitespace is trimmed
+        // before entity decoding, while CDATA is literal and never unescaped.
+        let mut field_parts: Vec<(String, bool)> = Vec::new();
         let mut depth: u32 = 0;
 
         loop {
@@ -174,19 +179,24 @@ impl DataIngester {
                         3 => {
                             // Field element start
                             let name = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                            field_parts.clear();
                             current_field = Some(name);
                         }
                         _ => {}
                     }
                 }
                 Ok(Event::Text(e)) => {
-                    if depth == 3
-                        && let (Some(row), Some(field)) =
-                            (&mut current_row, &current_field)
-                        {
-                            let text = e.unescape().unwrap_or_default().to_string();
-                            row.insert(field.clone(), text);
-                        }
+                    if depth == 3 && current_row.is_some() && current_field.is_some() {
+                        let text = std::str::from_utf8(e.as_ref())
+                            .context("Failed to decode XML field text")?;
+                        field_parts.push((text.to_string(), true));
+                    }
+                }
+                Ok(Event::CData(e)) => {
+                    if depth == 3 && current_row.is_some() && current_field.is_some() {
+                        let text = e.decode().context("Failed to decode XML field CDATA")?;
+                        field_parts.push((text.into_owned(), false));
+                    }
                 }
                 Ok(Event::End(_)) => {
                     match depth {
@@ -197,20 +207,60 @@ impl DataIngester {
                             }
                         }
                         3 => {
+                            // Keep quick-xml's existing XML-whitespace policy,
+                            // including significant entity-encoded spaces.
+                            for (raw, _) in &mut field_parts {
+                                *raw = raw.trim_start_matches([' ', '\t', '\r', '\n']).to_string();
+                                if !raw.is_empty() {
+                                    break;
+                                }
+                            }
+                            for (raw, _) in field_parts.iter_mut().rev() {
+                                *raw = raw.trim_end_matches([' ', '\t', '\r', '\n']).to_string();
+                                if !raw.is_empty() {
+                                    break;
+                                }
+                            }
+                            let mut value = String::new();
+                            for (raw, escaped) in &field_parts {
+                                if *escaped {
+                                    value.push_str(
+                                        &quick_xml::escape::unescape(raw)
+                                            .context("Failed to decode XML field text")?,
+                                    );
+                                } else {
+                                    value.push_str(raw);
+                                }
+                            }
+                            // An empty field did not create or overwrite a key.
+                            if !value.is_empty()
+                                && let (Some(row), Some(field)) = (&mut current_row, &current_field)
+                            {
+                                row.insert(field.clone(), value);
+                            }
+                            field_parts.clear();
                             current_field = None;
                         }
                         _ => {}
                     }
                     depth -= 1;
                 }
-                Ok(Event::Eof) => break,
+                Ok(Event::Eof) => {
+                    // quick-xml accepts EOF with unclosed elements. Do not
+                    // report a completed prefix as a successful ingestion.
+                    if depth != 0 {
+                        anyhow::bail!(
+                            "XML parse error: unexpected EOF with {depth} unclosed elements"
+                        );
+                    }
+                    break;
+                }
                 Err(e) => return Err(anyhow::anyhow!("XML parse error: {e}")),
                 _ => {}
             }
         }
         Ok(rows)
     }
-
     /// Parse an Excel (.xlsx) file. First row is treated as headers.
     pub fn parse_xlsx_file(path: &str) -> Result<Vec<HashMap<String, String>>> {
         use calamine::{open_workbook, Reader, Xlsx};
@@ -256,6 +306,10 @@ impl DataIngester {
             calamine::Data::Float(f) => f.to_string(),
             calamine::Data::String(s) => s.clone(),
             calamine::Data::Bool(b) => b.to_string(),
+            calamine::Data::DateTime(dt) if dt.is_datetime() => dt
+                .as_datetime()
+                .map(|value| value.format("%Y-%m-%dT%H:%M:%S%.f").to_string())
+                .unwrap_or_else(|| dt.to_string()),
             calamine::Data::DateTime(dt) => dt.to_string(),
             calamine::Data::DateTimeIso(s) => s.clone(),
             calamine::Data::DurationIso(s) => s.clone(),
@@ -292,6 +346,12 @@ impl DataIngester {
                         String::new()
                     } else {
                         Self::arrow_array_value_to_string(col.as_ref(), row_idx, field.data_type())
+                            .with_context(|| {
+                                format!(
+                                    "Failed to format Parquet column {} row {row_idx}",
+                                    field.name()
+                                )
+                            })?
                     };
                     row.insert(field.name().clone(), value);
                 }
@@ -306,11 +366,11 @@ impl DataIngester {
         array: &dyn arrow::array::Array,
         idx: usize,
         data_type: &arrow::datatypes::DataType,
-    ) -> String {
+    ) -> Result<String> {
         use arrow::array::*;
         use arrow::datatypes::DataType as ArrowType;
 
-        match data_type {
+        Ok(match data_type {
             ArrowType::Boolean => {
                 let a = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                 a.value(idx).to_string()
@@ -363,10 +423,12 @@ impl DataIngester {
                 let a = array.as_any().downcast_ref::<LargeStringArray>().unwrap();
                 a.value(idx).to_string()
             }
-            _ => format!("{array:?}[{idx}]"),
-        }
+            // Format this cell, never the whole column's Debug view. Dates,
+            // timestamps and scaled decimals otherwise include every other
+            // row's value in the string assigned to this one.
+            _ => arrow::util::display::array_value_to_string(array, idx)?,
+        })
     }
-
     /// Read a whole text file into memory, refusing anything over the ingest cap.
     /// Ingest reads the entire file at once, so an unbounded read is an
     /// out-of-memory lever for any caller that can point the tool at a large file.
@@ -386,7 +448,15 @@ impl DataIngester {
     /// Dispatch to the correct parser based on detected format.
     /// For text formats, reads the file content first.
     pub fn parse_file(path: &str) -> Result<Vec<HashMap<String, String>>> {
-        let format = Self::detect_format(path);
+        Self::parse_file_with_format(path, None)
+    }
+
+    /// Parse the explicitly requested format, or infer it from the extension.
+    pub fn parse_file_with_format(
+        path: &str,
+        format: Option<&str>,
+    ) -> Result<Vec<HashMap<String, String>>> {
+        let format = format.unwrap_or_else(|| Self::detect_format(path));
         match format {
             "csv" => {
                 let content = Self::read_to_string_capped(path)?;
@@ -410,16 +480,13 @@ impl DataIngester {
             }
             "xlsx" => Self::parse_xlsx_file(path),
             "parquet" => Self::parse_parquet_file(path),
-            _ => {
-                let content = Self::read_to_string_capped(path)?;
-                Self::parse_csv(&content)
-            }
+            _ => anyhow::bail!("Unsupported data format: {format}"),
         }
     }
 
     /// Collect unique keys from all rows, sorted alphabetically.
     /// Column names in the order the FILE gives them, when the format has an
-    /// order (CSV: the header row), else sorted. `extract_headers` sorts,
+    /// order (CSV and XLSX: the header row; Parquet: the schema), else sorted. `extract_headers` sorts,
     /// which loses which column came first, and the first column is the
     /// identifier candidate for induction.
     pub fn headers_in_order(path: &str, rows: &[HashMap<String, String>]) -> Vec<String> {
@@ -428,6 +495,31 @@ impl DataIngester {
                 let mut r = csv::ReaderBuilder::new().has_headers(true).from_reader(c.as_bytes());
                 r.headers().ok().map(|h| h.iter().map(|x| x.to_string()).collect())
             }),
+            "xlsx" => (|| -> Result<Vec<String>> {
+                use calamine::{open_workbook, Reader, Xlsx};
+                let mut workbook: Xlsx<_> = open_workbook(path)?;
+                let first_sheet = workbook
+                    .sheet_names()
+                    .first()
+                    .context("XLSX workbook has no sheets")?
+                    .clone();
+                let range = workbook.worksheet_range(&first_sheet)?;
+                let header = range.rows().next().context("XLSX file has no rows")?;
+                Ok(header.iter().map(Self::calamine_cell_to_string).collect())
+            })()
+            .ok(),
+            "parquet" => (|| -> Result<Vec<String>> {
+                use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+                let builder =
+                    ParquetRecordBatchReaderBuilder::try_new(std::fs::File::open(path)?)?;
+                Ok(builder
+                    .schema()
+                    .fields()
+                    .iter()
+                    .map(|f| f.name().clone())
+                    .collect())
+            })()
+            .ok(),
             _ => None,
         };
         match ordered {

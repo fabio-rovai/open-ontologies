@@ -49,9 +49,21 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use open_ontologies::fol_solve::{
-    Outcome, SolveOptions, Solver, find_checker, solve, verdict_means,
+    Outcome, SolveOptions, Solver, find_checker, solve as solve_ungated, verdict_means,
 };
 use open_ontologies::tptp::{FolProblem, Form, P1, P2, Term};
+
+/// `solve`, behind `common::exec_gate`.
+///
+/// `solve` forks the solver and the checker, and three tests here write stub
+/// checkers while their siblings solve. A fork in the middle of one of those
+/// writes hands the child the write descriptor, and Linux then refuses to exec
+/// the stub with `ETXTBSY`. Shadowing the name means no call in this file can
+/// forget the gate.
+fn solve(problem: &FolProblem, opts: &SolveOptions, dir: &Path) -> anyhow::Result<Outcome> {
+    let _gate = common::exec_gate();
+    solve_ungated(problem, opts, dir)
+}
 
 // ── Problems, built small so the carrier they need is known ─────────────────
 
@@ -162,6 +174,7 @@ fn opts(max_domain: u32) -> SolveOptions {
 /// `oo-folmodel` on the branches a correct checker never reaches.
 fn stub(dir: &Path, name: &str, body: &str) -> PathBuf {
     let p = dir.join(name);
+    let _gate = common::exec_gate();
     std::fs::write(&p, body).expect("write stub");
     #[cfg(unix)]
     {
@@ -513,6 +526,7 @@ fn a_missing_solver_is_loud() {
         return;
     }
     let d = scratch("nopath");
+    let gate = common::exec_gate();
     let out = Command::new(&bin)
         .arg("--no-connect")
         .arg("--data-dir")
@@ -538,6 +552,7 @@ fn a_missing_solver_is_loud() {
             c.wait_with_output()
         })
         .expect("run the CLI");
+    drop(gate);
     let err = String::from_utf8_lossy(&out.stderr);
     let so = String::from_utf8_lossy(&out.stdout);
     assert!(
@@ -604,6 +619,7 @@ fn a_lying_solver_stops_the_line_and_fails_the_command() {
             .display(),
         d.join("solve").display()
     );
+    let gate = common::exec_gate();
     let out = Command::new(&bin)
         .arg("--no-connect")
         .arg("--data-dir")
@@ -622,6 +638,7 @@ fn a_lying_solver_stops_the_line_and_fails_the_command() {
             c.wait_with_output()
         })
         .expect("run the CLI");
+    drop(gate);
     let so = String::from_utf8_lossy(&out.stdout);
     let line = so
         .lines()

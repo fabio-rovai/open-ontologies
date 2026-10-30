@@ -37,6 +37,7 @@ fn plan_defaults() -> OntoPlanInput {
         check_conservativity: None,
         conservativity_profile: None,
         conservativity_out_dir: None,
+        check_logic: None,
     }
 }
 

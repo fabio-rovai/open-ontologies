@@ -14,7 +14,7 @@ pub struct OntologyService;
 impl OntologyService {
     /// Validate RDF syntax. Returns a JSON report (never errors on bad input).
     pub fn validate_string(content: &str) -> anyhow::Result<String> {
-        match GraphStore::validate_turtle(content) {
+        match GraphStore::validate_text(content) {
             Ok(counts) => Ok(serde_json::json!({
                 "valid": true,
                 "triple_count": counts.triples,
@@ -60,42 +60,50 @@ impl OntologyService {
     }
 
     /// Diff two ontologies. Returns added/removed triples.
+    ///
+    /// `exact` is false when either snapshot exhausted the RDFC-1.0 budget
+    /// (issue #293). The diff then covers only the triples that mention no
+    /// blank node, `approximate_reason` says why, and `omitted_old` /
+    /// `omitted_new` count the blank-node triples that were not compared, so an
+    /// empty diff over a poisoned input is never mistaken for "no changes".
     pub fn diff(old_content: &str, new_content: &str) -> anyhow::Result<String> {
-        let old_store = Store::new()?;
-        let new_store = Store::new()?;
+        let old_raw = GraphStore::new();
+        let new_raw = GraphStore::new();
+        old_raw.load_turtle(old_content, None)?;
+        new_raw.load_turtle(new_content, None)?;
 
-        let old_reader = Cursor::new(old_content.as_bytes());
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(old_reader) {
-            old_store.insert(&quad?)?;
-        }
-
-        let new_reader = Cursor::new(new_content.as_bytes());
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(new_reader) {
-            new_store.insert(&quad?)?;
-        }
-
+        // Parse-local blank node IDs are not identity across snapshots.
+        // Preserve anonymous structure using the same RDFC 1.0 helper as drift.
+        // Canonical IDs can shift under edits; this is not a minimal edit script.
+        let (old_store, new_store, approximation) = GraphStore::canonicalize_pair(&old_raw, &new_raw)?;
         let old_triples: HashSet<String> = old_store
-            .iter()
-            .filter_map(|q| q.ok())
-            .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+            .all_triples()?
+            .into_iter()
+            .map(|(s, p, o)| format!("{s} {p} {o}"))
             .collect();
-
         let new_triples: HashSet<String> = new_store
-            .iter()
-            .filter_map(|q| q.ok())
-            .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+            .all_triples()?
+            .into_iter()
+            .map(|(s, p, o)| format!("{s} {p} {o}"))
             .collect();
 
         let added: Vec<&String> = new_triples.difference(&old_triples).collect();
         let removed: Vec<&String> = old_triples.difference(&new_triples).collect();
 
-        Ok(serde_json::json!({
+        let mut report = serde_json::json!({
             "added": added.len(),
             "removed": removed.len(),
             "added_triples": added,
             "removed_triples": removed,
-        })
-        .to_string())
+            "exact": approximation.is_none(),
+        });
+        if let Some(a) = approximation {
+            report["approximate_reason"] =
+                serde_json::json!(format!("blank-node triples were not compared: {}", a.reason));
+            report["omitted_old"] = serde_json::json!(a.omitted_old);
+            report["omitted_new"] = serde_json::json!(a.omitted_new);
+        }
+        Ok(report.to_string())
     }
 
     /// Collect raw lint issues from a Store.
@@ -186,7 +194,8 @@ impl OntologyService {
         Ok(issues)
     }
 
-    /// Lint an ontology with feedback-based suppression.
+    /// Lint an ontology with feedback-based suppression (see
+    /// `crate::feedback::apply_feedback` for what suppression may touch).
     pub fn lint_with_feedback(content: &str, db: Option<&crate::state::StateDb>) -> anyhow::Result<String> {
         let store = Store::new()?;
         let reader = Cursor::new(content.as_bytes());
@@ -195,40 +204,15 @@ impl OntologyService {
         }
 
         let raw_issues = Self::collect_lint_issues(&store)?;
-        let mut issues: Vec<serde_json::Value> = Vec::new();
-        let mut suppressed_count: u64 = 0;
+        let (issues, suppressed) = crate::feedback::apply_feedback(db, "lint", "type", raw_issues);
 
-        for issue in raw_issues {
-            if let Some(db) = db {
-                let rule_id = issue["type"].as_str().unwrap_or("");
-                let entity = issue["entity"].as_str().unwrap_or("");
-                match crate::feedback::get_feedback_adjustment(db, "lint", rule_id, entity) {
-                    crate::feedback::FeedbackAction::Suppress => {
-                        suppressed_count += 1;
-                        continue;
-                    }
-                    crate::feedback::FeedbackAction::Downgrade => {
-                        let original = issue["severity"].as_str().unwrap_or("info");
-                        let downgraded = crate::feedback::downgrade_severity(original);
-                        let mut adjusted = issue.clone();
-                        adjusted["original_severity"] = serde_json::json!(original);
-                        adjusted["adjusted_severity"] = serde_json::json!(downgraded);
-                        adjusted["severity"] = serde_json::json!(downgraded);
-                        issues.push(adjusted);
-                    }
-                    crate::feedback::FeedbackAction::Keep => {
-                        issues.push(issue);
-                    }
-                }
-            } else {
-                issues.push(issue);
-            }
-        }
-
+        // `issue_count` stays over `issues` only; `suppressed` lists what
+        // feedback waived so "clean" and "clean after waivers" read apart.
         Ok(serde_json::json!({
             "issues": issues,
             "issue_count": issues.len(),
-            "suppressed_count": suppressed_count,
+            "suppressed_count": suppressed.len(),
+            "suppressed": suppressed,
         })
         .to_string())
     }
@@ -240,12 +224,12 @@ impl OntologyService {
 
     /// Save a named version (snapshot) of the current graph store.
     pub fn save_version(db: &StateDb, store: &Arc<GraphStore>, label: &str) -> anyhow::Result<String> {
-        let content = store.snapshot("ntriples")?;
+        let content = store.snapshot("nquads")?;
         let count = store.triple_count();
         let conn = db.conn();
         conn.execute(
             "INSERT INTO ontology_versions (label, triple_count, content, format) VALUES (?1, ?2, ?3, ?4)",
-            rusqlite::params![label, count as i64, content, "ntriples"],
+            rusqlite::params![label, count as i64, content, "nquads"],
         )?;
         Ok(serde_json::json!({
             "ok": true,
@@ -275,13 +259,18 @@ impl OntologyService {
     /// Rollback the graph store to a previously saved version.
     pub fn rollback_version(db: &StateDb, store: &Arc<GraphStore>, label: &str) -> anyhow::Result<String> {
         let conn = db.conn();
-        let content: String = conn.query_row(
-            "SELECT content FROM ontology_versions WHERE label = ?1 ORDER BY id DESC LIMIT 1",
+        let (content, format): (String, String) = conn.query_row(
+            "SELECT content, format FROM ontology_versions WHERE label = ?1 ORDER BY id DESC LIMIT 1",
             rusqlite::params![label],
-            |row| row.get(0),
+            |row| Ok((row.get(0)?, row.get(1)?)),
         )?;
+        let rdf_format = match format.as_str() {
+            "nquads" => RdfFormat::NQuads,
+            "ntriples" => RdfFormat::NTriples,
+            _ => anyhow::bail!("unsupported saved version format: {format}"),
+        };
         store.clear()?;
-        let count = store.load_ntriples(&content)?;
+        let count = store.load_content(&content, rdf_format)?;
         Ok(serde_json::json!({
             "ok": true,
             "label": label,

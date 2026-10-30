@@ -922,8 +922,9 @@ Stated rather than discovered later.
   exactly their own rule once. No rule in the table is unreachable, so the seven were a gap in the
   corpus and not a defect in the engine.
 - **`asserted.tsv` is the store, not your file.** Quads are flattened, so a triple present in two
-  named graphs appears on two lines. Literals are in the store's post-parse canonical spelling, so
-  `"01"^^xsd:integer` is written `"1"^^xsd:integer`. The guarantee is relative to that file.
+  named graphs appears on two lines. Literals are as the store gives them back, which since #335
+  is as they were written: `"01"^^xsd:integer` stays `"01"` (under Oxigraph 0.5.9 it was written
+  `"1"^^xsd:integer`). The guarantee is relative to that file.
 - **`asserted.tsv` is the store the run SELECTED, and the checker cannot see the selection.** By
   default that is every graph. Over a store that keeps several versions of an entity in several
   named graphs, the union of every version is a state that held at no instant, and a certificate

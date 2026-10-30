@@ -275,11 +275,12 @@ fn accept(idx: usize, as_written: String, t: Spelled) -> Goal {
 
 /// Parse a Turtle document in which every triple is a goal.
 ///
-/// Prefix resolution and literal canonicalisation come from the same parser the
-/// store uses, which is the ONLY way a goal's spelling can match the
-/// interner's. A hand-typed goal that skipped the parser matches nothing and is
-/// reported lost, which is a false loss with a green-looking pipeline around
-/// it.
+/// Prefix resolution comes from the same parser the store uses, and each goal
+/// is spelled by a store round trip, so a goal's spelling is the interner's.
+/// A literal is asked as written: since #335 the store keeps
+/// `"01"^^xsd:integer` as `"01"`, so it matches a certificate holding `"01"`
+/// and not one holding `"1"`. Those are one value and two terms, and no rule
+/// or checker here compares literals by value.
 pub fn parse_goals_turtle(goals_ttl: &str) -> anyhow::Result<(Vec<Goal>, Vec<RefusedGoal>)> {
     let parsed = match GraphStore::parse_triples_ordered(goals_ttl, "turtle") {
         Ok(v) => v,
@@ -301,8 +302,9 @@ pub fn parse_goals_turtle(goals_ttl: &str) -> anyhow::Result<(Vec<Goal>, Vec<Ref
         }
     };
     // The parser's rendering is `as_written`; the STORE's is what is asked.
-    // They differ: oxigraph's parser keeps a literal's lexical form and the
-    // store normalises it, so a goal that skipped the store matches nothing.
+    // Until #335 they differed (the store normalised a literal's lexical
+    // form); the pinned store keeps it, and the round trip stays so that the
+    // two are spelled by the same code whatever the store does.
     let raw: Vec<(String, Spelled)> = parsed
         .into_iter()
         .map(|t| (format!("{} {} {}", t.0, t.1, t.2), t))
@@ -366,11 +368,12 @@ pub fn goals_from_bindings(
 /// Round-trip every candidate through a STORE in ONE pass, in document order,
 /// keeping the pairing between what was written and what came back.
 ///
-/// The store, not just the parser: `"01"^^xsd:integer` survives
-/// `RdfParser` unchanged and comes out of a store as `"1"^^xsd:integer`, so a
-/// goal canonicalised only by the parser matches nothing in a certificate and
-/// is reported LOST. That is a false loss with a green-looking pipeline round
-/// it, and it is the reason `as_written` and `goal` are both printed.
+/// The store, not just the parser, because a certificate holds what the store
+/// gave back. Under Oxigraph 0.5.9 `"01"^^xsd:integer` survived `RdfParser`
+/// and came out of a store as `"1"^^xsd:integer`, so a goal spelled only by
+/// the parser matched nothing and was reported LOST. The pinned store keeps
+/// the spelling (#335), so the two now agree; `as_written` and `goal` are
+/// both still printed.
 fn canonicalise_batch(
     raw: Vec<(String, Spelled)>,
     mut refused: Vec<RefusedGoal>,

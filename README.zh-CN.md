@@ -17,10 +17,19 @@
 <p align="center">
   <a href="https://tesseractsemantics.com"><img src="https://img.shields.io/badge/Tesseract%20Semantics-tesseractsemantics.com-111827?style=for-the-badge" alt="Tesseract Semantics"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/stargazers"><img src="https://img.shields.io/github/stars/fabio-rovai/open-ontologies?style=for-the-badge&logo=github&color=0b5fff" alt="Stars"></a>
-  <a href="https://github.com/fabio-rovai/open-ontologies/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fabio-rovai/open-ontologies/ci.yml?style=for-the-badge&label=CI" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT"></a>
   <a href="https://github.com/fabio-rovai/open-ontologies/pkgs/container/open-ontologies"><img src="https://img.shields.io/badge/GHCR-pull%20the%20image-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="GHCR"></a>
   <a href="https://github.com/sponsors/fabio-rovai"><img src="https://img.shields.io/github/sponsors/fabio-rovai?style=for-the-badge&label=Sponsor&logo=GitHub%20Sponsors" alt="Sponsors"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.star-history.com/fabio-rovai/open-ontologies">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+      <img alt="GitHub Trending 当日仓库" src="https://api.star-history.com/badge?repo=fabio-rovai/open-ontologies&type=trending">
+    </picture>
+  </a>
 </p>
 
 <p align="center">
@@ -44,7 +53,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.svg" alt="ies-core.ttl 的 Studio 三维视图：类与子类边在三维空间中布局，验证层作为节点绘制在旁边。灰色边由人作出断言，绿色边由引擎推导并经 Lean 接受，一条红色边是伪造并被拒绝的，粒子沿每条被裁定的连接移动。" width="100%">
+  <a href="docs/assets/knowledge-graph.zh-CN.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.webp" alt="ies-core.ttl 的手绘动画。有人断言灰色边。引擎推导出绿色边，Lean 4 检查涵盖它们的那一份证书。四个证明器读取子句，只给出意见。一条伪造的红线被拒绝，一个该文件无法回答的问题被原样退回。" width="100%"></a>
 </p>
 
 <p align="center">
@@ -55,7 +64,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.zh-CN.svg" alt="HQDM 的两个发布文件并排绘制。左侧为 RDFS 版本：23 个被当作类使用却从未声明的术语画作空心红环，12 条以关系而非类作为 rdfs:range 的声明画作红边。右侧为 OWL 版本：本引擎判定可满足的 195 个具名类，无法判定的 39 个画作琥珀色，其中被 HermiT 判为不可满足的 39 个套上红环。" width="100%">
+  <img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/hqdm-audit.zh-CN.svg" alt="HQDM 的两个发布文件并排绘制。左侧为 RDFS 版本：23 个被当作类使用却从未声明的术语画作空心红环，12 条以关系而非类作为 rdfs:range 的声明画作红边。右侧为 OWL 版本：本引擎判定可满足的 190 个具名类，判定不可满足的 39 个画作红色，HermiT 判为不可满足的 39 个套上红环，二者正是同样的 39 个。" width="100%">
 </p>
 
 <p align="center">
@@ -66,7 +75,7 @@
   但是该文件有 <b>23</b> 个被它当作类使用、却从未声明的术语。它有 <b>12</b> 条把关系而不是类
   写成 <code>rdfs:range</code> 的声明。它还有 <b>13</b> 对仅相差一个尾部下划线的名称。其中 3
   对具有相同的定义域和相同的值域。OWL 文件通过了全部三项检查，而 OWL 文件并不融贯。本引擎的
-  tableaux 判定其 <b>195</b> 个具名类可满足。该 tableaux 无法判定 <b>39</b> 个。HermiT 恰好把这
+  tableaux 判定其 <b>190</b> 个具名类可满足。该 tableaux 判定 <b>39</b> 个不可满足。HermiT 也把同样的
   <b>39</b> 个判为不可满足，而在本仓库的词汇中，HermiT 只是一种意见。这张图没有证明任何东西，
   图中也没有宣称有证明。一个测试重新计算每个数字，该测试也重新计算这一交集。关于来源与方法，请阅读
   <a href="docs/assets/hqdm/PROVENANCE.md"><code>docs/assets/hqdm/PROVENANCE.md</code></a>。</sub>
@@ -101,7 +110,7 @@ new consequences      901          rule table owl-rl, in 0.04s
 > **这不是一个本体编辑器。**要绘制类层次结构，请使用 Protégé。你在变更进入生产环境之前，
 > 对这次变更运行 Open Ontologies。
 >
-> **本工具在风格上类似 Terraform，这是刻意为之。但是这里的计划是语义层面的，不是语法层面的。**
+> **本工具在风格上类似 Terraform，这是刻意为之。但是这里的计划检查变更的含义以及它会破坏什么，而不只是检查文本。**
 > 文本差异就是 `git diff`，而你已经有 `git diff` 了。
 
 你不需要 JVM。你不需要 Protégé。引擎通过 MCP 与 Claude、Cursor 以及该协议的其他客户端通信。
@@ -298,14 +307,17 @@ rdfs9    <ex:myCup> <rdf:type> <ex:Drink>               <ex:myCup> <rdf:type> <e
 
 蕴涵不支持的 `exactMatch` 会被降级返回。报告给出理由。它还列出对照表没有收录的每一个词。后面这份清单，正是大多数对照表文件里会消失的那一份。输出是合法的 SSSOM，你现有的工具今天就能读。
 
-还有一个比降级更尖锐的问题。引擎把翻译后的声明带进目标方，再推理一次。出现冲突，说明目标方否定了对照表带进去的东西。那是分歧，需要人来裁决。
+这项检查比较的是两个词在各自层级中的位置，而不是它们的含义。在同一个已映射父项之下的两个兄弟词，在它看来是一样的。所以它可以否定一个匹配类型，但从不把一个声明变得更强。对照表没有带过去的父项是覆盖缺口，报告会点名。没有任何东西可比较的行会如实说明，并且不被认证。
+
+还有一个比降级更尖锐的问题。引擎把翻译后的声明带进目标方，再推理一次。出现冲突，说明目标方否定了对照表带进去的东西。那是分歧，需要人来裁决。用 `crosswalk-probe` 运行它。
 
 语境之间可以互相矛盾。鸟会飞。企鹅是鸟，而企鹅不会飞。一张图同时装下两者就不一致，本引擎会找出这个冲突。改成每个模块单独推理。一条事实要在 n 个模块中有 k 个蕴涵它，才算"处处为真"。
 
 数字现在也能带证书。`oo-matcert` 按定义重算矩阵乘积。接受时它打印 `MatCert.mul_of_check`。只接受整数，这正是那句话成立的条件。Freivalds 代价更低但给的是概率，所以它只是意见，并附上自己的界。浮点只报告容差，因为在实数上的证明对 IEEE-754 什么也没说。
 
 ```bash
-open-ontologies batch plan.json   # crosswalk-certify, modules --threshold k, matcert
+open-ontologies batch plan.json   # crosswalk-certify, crosswalk-probe, modules --threshold k, matcert
+open-ontologies crosswalk-probe source.ttl target.ttl mapping.tsv   # exits 1 on a clash
 ```
 
 ## 本工具证明了什么
@@ -484,7 +496,8 @@ Tauri 2、React 19 和 Tailwind 4 用于 Studio。完整表格见
 同样的章节，同样的图，同样的数字。
 
 两张图各有一个中文版本，由同一个生成器产生：`knowledge-graph.zh-CN.svg` 和
-`hqdm-audit.zh-CN.svg`。图中的数字不来自翻译。它们由运行结果计算得出，然后填入翻译好的句子，
+`hqdm-audit.zh-CN.svg`。首页的手绘动画 `knowledge-graph.zh-CN.webp` 由同一次运行写出的
+`knowledge-graph.zh-CN.scene.json` 绘制。图中的数字不来自翻译。它们由运行结果计算得出，然后填入翻译好的句子，
 因此中文版本不可能说出数据不支持的数字。`tests/readme_simplified_english_test.rs` 要求本页面
 与英文页面在结构上一致。
 

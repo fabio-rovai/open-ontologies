@@ -64,7 +64,7 @@ RESULTS = {'with_stable': [], 'without_stable': []}
 print('\n=== WITH stable matching (varying threshold) ===')
 for threshold in ['0.70', '0.75', '0.80', '0.85']:
     result = subprocess.run(
-        [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', threshold, '--dry-run'],
+        [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', threshold, '--dry-run', '--scoring', 'legacy'],
         capture_output=True, text=True, timeout=600
     )
     if result.returncode != 0: continue
@@ -117,7 +117,7 @@ if stable_block_start in original_src:
 
         for threshold in ['0.80', '0.85']:
             result = subprocess.run(
-                [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', threshold, '--dry-run'],
+                [BINARY, 'align', MOUSE, HUMAN, '--min-confidence', threshold, '--dry-run', '--scoring', 'legacy'],
                 capture_output=True, text=True, timeout=600
             )
             if result.returncode != 0: continue

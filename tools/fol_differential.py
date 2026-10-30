@@ -642,7 +642,17 @@ def main():
                        "counts": counts, "proof_counts": proof_counts}, fh, indent=1)
 
     # A conclusion the engine claims and the ATP refutes is the one result that
-    # must fail a pipeline. An undetermined run is not a pass and not a failure.
+    # must fail a pipeline. An undetermined row is not a pass and not a failure,
+    # but a run in which EVERY goal is undetermined, or no goal was asked, put
+    # nothing to the prover that came back with an answer, and used to exit 0
+    # exactly like a run that agreed on everything (#320). It exits 2, as a
+    # missing prover does under FOL_DIFF_REQUIRE_ATP=1.
+    if all(r["verdict"] == "UNDETERMINED" for r in rows):
+        print(
+            f"\nNOT MEASURED: {len(rows)} goal(s) asked and none answered. This is not "
+            "agreement; it exits 2."
+        )
+        return 2
     rejected = sum(n for k, n in proof_counts.items() if k.startswith("PROOF_REJECTED"))
     if rejected:
         print(

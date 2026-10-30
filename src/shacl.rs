@@ -47,6 +47,46 @@ use std::sync::Arc;
 /// form selected the shape, and suppress the verdict.
 pub struct ShaclValidator;
 
+/// One run's report, before it is written out in any format.
+///
+/// The verdict is read from here and not from the text: the CLI's exit code is
+/// a function of `conforms`, and a Turtle report has no `conforms` key to read
+/// (`gate_exit_code` in `src/main.rs`, #329).
+pub struct ShaclReport {
+    /// The JSON report, with each violation's [`RdfTerms`] still attached.
+    report: serde_json::Value,
+}
+
+impl ShaclReport {
+    /// The three-valued verdict: `Some(true)` conforms, `Some(false)` does
+    /// not, `None` undetermined.
+    pub fn conforms(&self) -> Option<bool> {
+        self.report["conforms"].as_bool()
+    }
+
+    /// The JSON report exactly as `onto_shacl` has always returned it.
+    pub fn to_json_string(&self) -> String {
+        let mut report = self.report.clone();
+        if let Some(vs) = report["violations"].as_array_mut() {
+            for v in vs {
+                if let Some(obj) = v.as_object_mut() {
+                    obj.remove(crate::shacl_report::RDF_TERMS_KEY);
+                }
+            }
+        }
+        report.to_string()
+    }
+
+    /// The report in `format`. JSON is [`to_json_string`](Self::to_json_string);
+    /// Turtle and N-Triples are a W3C `sh:ValidationReport` graph.
+    pub fn render(&self, format: crate::shacl_report::ReportFormat) -> anyhow::Result<String> {
+        match format {
+            crate::shacl_report::ReportFormat::Json => Ok(self.to_json_string()),
+            rdf => crate::shacl_report::to_rdf(&self.report, rdf),
+        }
+    }
+}
+
 impl ShaclValidator {
     /// Validate the data in `graph` against SHACL shapes (inline Turtle).
     /// Returns a JSON report: `{conforms, violation_count, violations[]}`.
@@ -57,6 +97,16 @@ impl ShaclValidator {
     /// can be read back as the findings table it is (#131). The keys that
     /// predate those (`constraint`, `focus_node`, `message`, `severity`,
     /// `path`) are unchanged.
+    ///
+    /// `value` is the offending value node (`sh:value`) wherever the query
+    /// that found the violation binds it (#318). The value queries selected it
+    /// all along and the report dropped it, so whoever repaired the data had to
+    /// query the store again for what the validator already knew. It is absent
+    /// where SHACL gives a result no value (`sh:minCount`, `sh:maxCount`,
+    /// `sh:hasValue`, the qualified counts) and for `sh:lessThan`,
+    /// `sh:lessThanOrEquals` and `sh:node`, whose queries select
+    /// `DISTINCT ?focus`: projecting the value there would change how many
+    /// results they emit, which is a different change from this one.
     ///
     /// Reads the whole store. Over a store that uses the temporal vocabulary
     /// that is now REFUSED rather than done silently — see
@@ -91,6 +141,17 @@ impl ShaclValidator {
         shapes_ttl: &str,
         request: &ScopeRequest,
     ) -> anyhow::Result<String> {
+        Ok(Self::report_scoped(graph, shapes_ttl, request)?.to_json_string())
+    }
+
+    /// [`validate_scoped`](Self::validate_scoped), returned as a
+    /// [`ShaclReport`] so the caller can choose the serialisation (#318) and
+    /// read the verdict without parsing whichever one it chose.
+    pub fn report_scoped(
+        graph: &Arc<GraphStore>,
+        shapes_ttl: &str,
+        request: &ScopeRequest,
+    ) -> anyhow::Result<ShaclReport> {
         let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         Self::validate_in_scope(graph, shapes_ttl, &scope, &manifest)
     }
@@ -100,7 +161,7 @@ impl ShaclValidator {
         shapes_ttl: &str,
         scope: &ReadScope,
         manifest: &ScopeManifest,
-    ) -> anyhow::Result<String> {
+    ) -> anyhow::Result<ShaclReport> {
         // 1. Parse shapes Turtle into a temporary store
         let shapes_store = Store::new()?;
         let reader = Cursor::new(shapes_ttl.as_bytes());
@@ -468,12 +529,13 @@ impl ShaclValidator {
                 let pick = |k: &str| own.iter().find(|(p, _)| p == k).map(|(_, v)| v.clone());
                 let own_message = pick("message").map(|m| strip_quotes(&m)).unwrap_or_default();
                 let own_severity = pick("severity")
-                    .map(|s| {
-                        let s = strip_angle_brackets(&s);
-                        s.rsplit('#').next().unwrap_or("Violation").to_string()
-                    })
+                    .map(|s| severity_name(&s))
                     .unwrap_or_else(|| "Violation".to_string());
                 let own_flags = pick("flags").map(|f| strip_quotes(&f));
+                let own_rdf = RdfTerms::new(
+                    pick("severity"),
+                    pick("message").filter(|_| !own_message.is_empty()),
+                );
 
                 // (constraint, SPARQL test that is TRUE for a violating focus node, default message)
                 let mut checks: Vec<(String, String, String)> = Vec::new();
@@ -500,7 +562,7 @@ impl ShaclValidator {
                                     "shape": strip_angle_brackets(&shape_iri),
                                     "constraint": "sh:datatype",
                                     "reason": format!(
-                                        "the store does not preserve <{dt}>; a conforming value and a widened one are the same term, so this cannot be decided"
+                                        "the SPARQL evaluator reads <{dt}> as the type it derives from, so DATATYPE() cannot tell a conforming value from one of that type; this cannot be decided"
                                     ),
                                 }));
                                 continue;
@@ -509,13 +571,11 @@ impl ShaclValidator {
                             // datatype's lexical space is ill-typed and violates
                             // sh:datatype (SHACL 4.1.2), and DATATYPE() alone
                             // cannot see that: "aldi"^^xsd:integer answers
-                            // xsd:integer. The lexical test below catches it for
-                            // the datatypes whose lexical space is written down.
-                            let ill = ill_typed_test(&dt, "focus")
-                                .map(|t| format!(" || {t}"))
-                                .unwrap_or_default();
-                            let test =
-                                format!("(!isLiteral(?focus) || DATATYPE(?focus) != <{dt}>{ill})");
+                            // xsd:integer. `datatype_conforms` tests both. For
+                            // `xsd:date` and `xsd:dateTime` its regex is still a
+                            // PRE-FILTER, so a row it returns is judged again in
+                            // Rust below before it becomes a violation.
+                            let test = format!("!{}", datatype_conforms(&dt, "focus"));
                             if let Some(with_time) = calendar_datatype(&dt) {
                                 calendar_by_test
                                     .insert(test.clone(), (dt.clone(), with_time));
@@ -623,12 +683,21 @@ impl ShaclValidator {
                                 continue;
                             }
                             let msg = if own_message.is_empty() { default_msg.clone() } else { own_message.clone() };
-                            violations.push(attribute(&shape_iri, &shape_iri, serde_json::json!({
+                            let mut v = serde_json::json!({
                                 "severity": own_severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "constraint": constraint,
                                 "message": msg,
-                            })));
+                            });
+                            // The value node of a node shape is the focus node
+                            // (SHACL 2.1.2), so every result here names it as
+                            // `value`, except `sh:hasValue`: SHACL 4.8.2 reports the
+                            // ABSENCE of a term and gives the result no value,
+                            // and W3C core/node/hasValue-001 expects none.
+                            if constraint != "hasValue" {
+                                v["value"] = serde_json::json!(strip_angle_brackets(focus));
+                            }
+                            violations.push(attribute(&shape_iri, &shape_iri, &own_rdf, v));
                         }
                     }
                 }
@@ -750,6 +819,10 @@ impl ShaclValidator {
             // and the run came back CLEAN. Same defect in sh:in and sh:not.
             let mut or_alternatives: HashMap<String, Vec<String>> = HashMap::new();
             let mut or_unsupported: HashSet<String> = HashSet::new();
+            // Property shape -> a member datatype DATATYPE() cannot report.
+            // The direct sh:datatype path refuses that question; a member
+            // answering it reported every widened value as matching nothing.
+            let mut or_unpreserved: HashMap<String, String> = HashMap::new();
             let or_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -789,7 +862,12 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    format!("DATATYPE(?val) = <{}>", strip_angle_brackets(dt))
+                    let dt = strip_angle_brackets(dt);
+                    if datatype_is_indistinguishable_in_store(&dt) {
+                        or_unpreserved.insert(p, dt);
+                        continue;
+                    }
+                    datatype_conforms(&dt, "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -802,6 +880,13 @@ impl ShaclValidator {
                     continue;
                 };
                 or_alternatives.entry(p).or_default().push(clause);
+            }
+            for (p, dt) in &or_unpreserved {
+                or_alternatives.remove(p);
+                if !or_unsupported.contains(p) {
+                    let path = or_paths.get(p).cloned().unwrap_or_default();
+                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:or", &path, dt));
+                }
             }
             for p in &or_unsupported {
                 or_alternatives.remove(p);
@@ -830,6 +915,10 @@ impl ShaclValidator {
             // and 198 real violations were reported as a clean run.
             let mut not_clauses: HashMap<String, Vec<String>> = HashMap::new();
             let mut not_unsupported: HashSet<String> = HashSet::new();
+            // As `or_unpreserved`. Here answering anyway was a false clean: a
+            // value of the forbidden datatype read as xsd:integer, did not
+            // match, and satisfied the negation.
+            let mut not_unpreserved: HashMap<String, String> = HashMap::new();
             let not_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -872,7 +961,12 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    format!("DATATYPE(?val) = <{}>", strip_angle_brackets(dt))
+                    let dt = strip_angle_brackets(dt);
+                    if datatype_is_indistinguishable_in_store(&dt) {
+                        not_unpreserved.insert(p, dt);
+                        continue;
+                    }
+                    datatype_conforms(&dt, "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -892,6 +986,13 @@ impl ShaclValidator {
                     continue;
                 };
                 not_clauses.entry(p).or_default().push(clause);
+            }
+            for (p, dt) in &not_unpreserved {
+                not_clauses.remove(p);
+                if !not_unsupported.contains(p) {
+                    let path = not_paths.get(p).cloned().unwrap_or_default();
+                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:not", &path, dt));
+                }
             }
             for p in &not_unsupported {
                 not_clauses.remove(p);
@@ -1006,7 +1107,8 @@ impl ShaclValidator {
                             break;
                         }
                         clauses.push(format!(
-                            "NOT EXISTS {{ ?focus <{path}> ?{v} . FILTER(DATATYPE(?{v}) != <{dt}>) }}"
+                            "NOT EXISTS {{ ?focus <{path}> ?{v} . FILTER(!{}) }}",
+                            datatype_conforms(&dt, &v)
                         ));
                     }
                     if let Some(nk) = row.get("nodeKind") {
@@ -1040,17 +1142,32 @@ impl ShaclValidator {
                         .collect();
                     members.sort();
                     let disjunction = members.join(" || ");
-                    let node_message = query_solutions(
+                    let node_terms = query_solutions(
                         &shapes_store,
                         &format!(
                             r#"PREFIX sh: <http://www.w3.org/ns/shacl#>
-                               SELECT ?m WHERE {{ {} sh:message ?m }}"#,
-                            shape_term
+                               SELECT ?m ?sev WHERE {{
+                                   OPTIONAL {{ {shape_term} sh:message ?m }}
+                                   OPTIONAL {{ {shape_term} sh:severity ?sev }}
+                               }}"#
                         ),
-                    )?
-                    .first()
-                    .and_then(|r| r.get("m").map(|m| strip_quotes(m)))
-                    .unwrap_or_default();
+                    )?;
+                    let node_term = |k: &str| node_terms.first().and_then(|r| r.get(k).cloned());
+                    let node_message_term = node_term("m");
+                    let node_message =
+                        node_message_term.as_deref().map(strip_quotes).unwrap_or_default();
+                    // The node shape's sh:severity, as on every other path.
+                    // This one wrote "Violation" whatever was declared, and
+                    // the RDF report followed it with sh:Violation.
+                    let node_severity_term = node_term("sev");
+                    let node_severity = node_severity_term
+                        .as_deref()
+                        .map(severity_name)
+                        .unwrap_or_else(|| "Violation".to_string());
+                    let node_or_rdf = RdfTerms::new(
+                        node_severity_term,
+                        node_message_term.filter(|_| !node_message.is_empty()),
+                    );
                     let query = format!(
                         r#"SELECT DISTINCT ?focus WHERE {{
                             {focus_pattern}
@@ -1064,9 +1181,10 @@ impl ShaclValidator {
                             } else {
                                 node_message.clone()
                             };
-                            violations.push(attribute(&shape_iri, &shape_iri, serde_json::json!({
-                                "severity": "Violation",
+                            violations.push(attribute(&shape_iri, &shape_iri, &node_or_rdf, serde_json::json!({
+                                "severity": node_severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": strip_angle_brackets(focus),
                                 "constraint": "or",
                                 "message": msg,
                             })));
@@ -1124,15 +1242,24 @@ impl ShaclValidator {
                 let q_message = row.get("message").map(|m| strip_quotes(m)).unwrap_or_default();
                 let q_severity = row
                     .get("severity")
-                    .map(|s| {
-                        strip_angle_brackets(s)
-                            .rsplit('#')
-                            .next()
-                            .unwrap_or("Violation")
-                            .to_string()
-                    })
+                    .map(|s| severity_name(s))
                     .unwrap_or_else(|| "Violation".to_string());
+                let q_rdf = RdfTerms::new(
+                    row.get("severity").cloned(),
+                    row.get("message").cloned().filter(|_| !q_message.is_empty()),
+                );
 
+                if let Some(dt) = row.get("datatype").map(|d| strip_angle_brackets(d))
+                    && datatype_is_indistinguishable_in_store(&dt)
+                {
+                    skipped.push(unpreserved_datatype_skip(
+                        &shape_iri,
+                        "sh:qualifiedValueShape",
+                        &q_path,
+                        &dt,
+                    ));
+                    continue;
+                }
                 let clause = if row.get("other").is_some() {
                     None
                 } else if let Some(c) = row.get("class") {
@@ -1141,7 +1268,7 @@ impl ShaclValidator {
                         strip_angle_brackets(c)
                     ))
                 } else if let Some(dt) = row.get("datatype") {
-                    Some(format!("DATATYPE(?val) = <{}>", strip_angle_brackets(dt)))
+                    Some(datatype_conforms(&strip_angle_brackets(dt), "val"))
                 } else {
                     row.get("hasValue").map(|hv| format!("?val = {}", hv.trim()))
                 };
@@ -1155,8 +1282,17 @@ impl ShaclValidator {
                     }));
                     continue;
                 };
-                let q_min = row.get("qmin").and_then(|v| strip_quotes(v).parse::<i64>().ok());
-                let q_max = row.get("qmax").and_then(|v| strip_quotes(v).parse::<i64>().ok());
+                // A malformed qualified bound used to `continue` past the whole
+                // row with no record, so the qualified constraint vanished and
+                // the verdict could still be true (#321). It is now skipped by
+                // name, which nulls the verdict; a well-formed sibling bound on
+                // the same row is still evaluated.
+                let q_min = row
+                    .get("qmin")
+                    .and_then(|v| count_bound(v, "qualifiedMinCount", &shape_iri, Some(&q_path), &mut skipped));
+                let q_max = row
+                    .get("qmax")
+                    .and_then(|v| count_bound(v, "qualifiedMaxCount", &shape_iri, Some(&q_path), &mut skipped));
                 if q_min.is_none() && q_max.is_none() {
                     continue;
                 }
@@ -1173,7 +1309,7 @@ impl ShaclValidator {
                     let (Some(focus), Some(n_raw)) = (result.get("focus"), result.get("n")) else {
                         continue;
                     };
-                    let Ok(n) = strip_quotes(n_raw).parse::<i64>() else {
+                    let Ok(n) = strip_quotes(n_raw).parse::<u64>() else {
                         continue;
                     };
                     for (bound, breached, constraint, wording) in [
@@ -1191,7 +1327,7 @@ impl ShaclValidator {
                         } else {
                             q_message.clone()
                         };
-                        violations.push(attribute(&q_shape, &shape_iri, serde_json::json!({
+                        violations.push(attribute(&q_shape, &shape_iri, &q_rdf, serde_json::json!({
                             "severity": q_severity,
                             "focus_node": strip_angle_brackets(focus),
                             "path": q_path,
@@ -1276,52 +1412,57 @@ impl ShaclValidator {
                 // sh:severity, defaulting to sh:Violation per the SHACL spec.
                 let severity = prop
                     .get("severity")
-                    .map(|s| {
-                        let s = strip_angle_brackets(s);
-                        s.rsplit('#').next().unwrap_or("Violation").to_string()
-                    })
+                    .map(|s| severity_name(s))
                     .unwrap_or_else(|| "Violation".to_string());
+                let rdf = RdfTerms::new(
+                    prop.get("severity").cloned(),
+                    prop.get("message").cloned().filter(|_| !message.is_empty()),
+                );
 
-                // sh:minCount
-                if let Some(min_count_str) = prop.get("minCount") {
-                    let min_count = strip_quotes(min_count_str)
-                        .parse::<u64>()
-                        .unwrap_or(0);
-                    if min_count > 0 {
-                        let query = format!(
-                            r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
-                                {focus_pattern}
-                                OPTIONAL {{ ?focus {path_expr} ?val }}
-                            }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) < {min_count})"#
-                        );
-                        let results = graph_sparql_select(graph, scope, &query)?;
-                        for row in &results {
-                            if let Some(focus) = row.get("focus") {
-                                let msg = if message.is_empty() {
-                                    format!(
-                                        "Property <{}> has fewer than {} values",
-                                        path, min_count
-                                    )
-                                } else {
-                                    message.clone()
-                                };
-                                violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
-                                    "severity": severity,
-                                    "focus_node": strip_angle_brackets(focus),
-                                    "path": path,
-                                    "constraint": "minCount",
-                                    "message": msg,
-                                })));
-                            }
+                // sh:minCount. A bound that is not a non-negative integer is
+                // recorded as skipped, as sh:minLength is. It used to read as 0
+                // through `unwrap_or(0)`, so `sh:minCount "one"` ran no check and
+                // a node with no value came back `conforms: true` (#321).
+                // A bound of 0 holds of every focus node, so no query is run.
+                if let Some(min_count) = prop
+                    .get("minCount")
+                    .and_then(|raw| count_bound(raw, "minCount", &shape_iri, Some(&path), &mut skipped))
+                    .filter(|&n| n > 0)
+                {
+                    let query = format!(
+                        r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
+                            {focus_pattern}
+                            OPTIONAL {{ ?focus {path_expr} ?val }}
+                        }} GROUP BY ?focus HAVING (COUNT(DISTINCT ?val) < {min_count})"#
+                    );
+                    let results = graph_sparql_select(graph, scope, &query)?;
+                    for row in &results {
+                        if let Some(focus) = row.get("focus") {
+                            let msg = if message.is_empty() {
+                                format!(
+                                    "Property <{}> has fewer than {} values",
+                                    path, min_count
+                                )
+                            } else {
+                                message.clone()
+                            };
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
+                                "severity": severity,
+                                "focus_node": strip_angle_brackets(focus),
+                                "path": path,
+                                "constraint": "minCount",
+                                "message": msg,
+                            })));
                         }
                     }
                 }
 
-                // sh:maxCount
-                if let Some(max_count_str) = prop.get("maxCount") {
-                    let max_count = strip_quotes(max_count_str)
-                        .parse::<u64>()
-                        .unwrap_or(u64::MAX);
+                // sh:maxCount. The old fallback was `u64::MAX`, a bound no count
+                // reaches, so `sh:maxCount -1` never fired (#321).
+                if let Some(max_count) = prop
+                    .get("maxCount")
+                    .and_then(|raw| count_bound(raw, "maxCount", &shape_iri, Some(&path), &mut skipped))
+                {
                     let query = format!(
                         r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?cnt) WHERE {{
                             {focus_pattern}
@@ -1339,7 +1480,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1374,9 +1515,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "class",
                                 "message": msg,
@@ -1388,27 +1530,19 @@ impl ShaclValidator {
                 // sh:datatype
                 if let Some(dt_str) = prop.get("datatype") {
                     let dt = strip_angle_brackets(dt_str);
-                    // The store cannot tell these apart from the type they are
+                    // DATATYPE() cannot tell these apart from the type they are
                     // derived from, so the constraint is not decidable here and
                     // must not be answered. Asking anyway produced a violation
                     // for every value that satisfied the shape: nine of them in
                     // jsonld-escaping-conformance, which is how this was found.
                     if datatype_is_indistinguishable_in_store(&dt) {
-                        skipped.push(serde_json::json!({
-                            "shape": strip_angle_brackets(&shape_iri),
-                            "constraint": "sh:datatype",
-                            "path": path,
-                            "datatype": dt,
-                            "reason": "the store does not preserve this datatype IRI, so a value \
-                                       carrying it is indistinguishable from one carrying the type \
-                                       it derives from; the constraint was not evaluated",
-                        }));
+                        skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:datatype", &path, &dt));
                         continue;
                     }
                     // One evaluator gave two answers to one constraint. SHACL
                     // 4.1.2 makes a literal whose lexical form is outside its
                     // datatype's lexical space a violation, `DATATYPE()` alone
-                    // cannot see that, and `ill_typed_test` is the helper that
+                    // cannot see that, and `datatype_conforms` is the helper that
                     // can. The node-shape path above has spliced it in since it
                     // was written; this path never did. Measured over one
                     // store: `"aldi"^^xsd:integer` and `"31/02/2026"^^xsd:date`
@@ -1421,21 +1555,23 @@ impl ShaclValidator {
                     // wider gap: the test was a regex, and the date regex was
                     // syntactic, so `"2026-02-31"^^xsd:date` matched it and a
                     // day that does not exist conformed on both paths. That is
-                    // engine defect E1 and it is closed now. For the two
-                    // calendar datatypes the regex is a PRE-FILTER, and
-                    // `calendar_violation` below judges the form the way
-                    // `parseDateBody` in `lean/Shacl/Term.lean` does. Both
-                    // paths run it, because E2 exists precisely because the two
-                    // diverged once. See decision 0018.
-                    let ill = ill_typed_test(&dt, "val")
-                        .map(|t| format!(" || {t}"))
-                        .unwrap_or_default();
+                    // engine defect E1. For the two calendar datatypes the
+                    // regex is a PRE-FILTER, and `calendar_violation` below
+                    // judges the form the way `parseDateBody` in
+                    // `lean/Shacl/Term.lean` does. See decision 0018.
+                    //
+                    // The filter is the negation of `datatype_conforms`, which
+                    // cannot be a type error. `DATATYPE(?val) != <dt>` was one
+                    // for an IRI or blank-node value, and FILTER drops a row
+                    // whose test errors, so a value that is not a literal at
+                    // all passed `sh:datatype` here (#333).
+                    let conforms = datatype_conforms(&dt, "val");
                     let calendar = calendar_datatype(&dt).map(|with_time| (dt.clone(), with_time));
                     let query = format!(
                         r#"SELECT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
-                            FILTER(DATATYPE(?val) != <{dt}>{ill})
+                            FILTER(!{conforms})
                         }}"#
                     );
                     let results = graph_sparql_select(graph, scope, &query)?;
@@ -1461,9 +1597,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "datatype",
                                 "message": msg,
@@ -1493,9 +1630,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "pattern",
                                 "message": msg,
@@ -1535,9 +1673,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "or",
                                 "message": msg,
@@ -1581,9 +1720,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": constraint,
                                 "message": msg,
@@ -1624,7 +1764,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1660,7 +1800,7 @@ impl ShaclValidator {
                                     } else {
                                         message.clone()
                                     };
-                                    violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                    violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
                                         "path": path,
@@ -1702,9 +1842,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "not",
                                 "message": msg,
@@ -1733,9 +1874,10 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": "in",
                                 "message": msg,
@@ -1778,9 +1920,10 @@ impl ShaclValidator {
                                     } else {
                                         message.clone()
                                     };
-                                    violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                    violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
+                                        "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                         "path": path,
                                         "constraint": "nodeKind",
                                         "message": msg,
@@ -1817,7 +1960,7 @@ impl ShaclValidator {
                             } else {
                                 message.clone()
                             };
-                            violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                            violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
                                 "path": path,
@@ -1861,9 +2004,10 @@ impl ShaclValidator {
                                 } else {
                                     message.clone()
                                 };
-                                violations.push(attribute(&constraint_shape, &shape_iri, serde_json::json!({
+                                violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                     "severity": severity,
                                     "focus_node": strip_angle_brackets(focus),
+                                    "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                     "path": path,
                                     "constraint": key,
                                     "message": msg,
@@ -2016,13 +2160,7 @@ impl ShaclValidator {
                     .unwrap_or_default();
                 let severity = constraint
                     .get("severity")
-                    .map(|s| {
-                        strip_angle_brackets(s)
-                            .rsplit('#')
-                            .next()
-                            .unwrap_or("Violation")
-                            .to_string()
-                    })
+                    .map(|s| severity_name(s))
                     .unwrap_or_else(|| "Violation".to_string());
 
                 // SHACL-SPARQL 5.3.2: `$this` is pre-bound to the focus node,
@@ -2066,17 +2204,22 @@ impl ShaclValidator {
                                 // 5.3.2 again: a bound ?message overrides
                                 // sh:message, ?path is sh:resultPath and
                                 // ?value is sh:value.
-                                let msg = row
+                                let bound_message = row
                                     .get("message")
-                                    .map(|m| strip_quotes(m))
-                                    .filter(|m| !m.is_empty())
-                                    .unwrap_or_else(|| {
-                                        if message.is_empty() {
-                                            "SPARQL constraint violated".to_string()
-                                        } else {
-                                            message.clone()
-                                        }
-                                    });
+                                    .filter(|m| !strip_quotes(m).is_empty());
+                                let msg = bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
+                                    if message.is_empty() {
+                                        "SPARQL constraint violated".to_string()
+                                    } else {
+                                        message.clone()
+                                    }
+                                });
+                                let rdf = RdfTerms::new(
+                                    constraint.get("severity").cloned(),
+                                    bound_message.cloned().or_else(|| {
+                                        constraint.get("message").cloned().filter(|_| !message.is_empty())
+                                    }),
+                                );
                                 let mut v = serde_json::json!({
                                     "severity": severity,
                                     "focus_node": strip_angle_brackets(&focus_str),
@@ -2089,7 +2232,7 @@ impl ShaclValidator {
                                 if let Some(val) = row.get("value") {
                                     v["value"] = serde_json::json!(strip_angle_brackets(val));
                                 }
-                                violations.push(attribute(&shape_iri, &shape_iri, v));
+                                violations.push(attribute(&shape_iri, &shape_iri, &rdf, v));
                             }
                         }
                     }
@@ -2199,7 +2342,7 @@ impl ShaclValidator {
             if !skipped.is_empty() {
                 report["skipped_constraints"] = serde_json::Value::Array(skipped);
             }
-            return Ok(report.to_string());
+            return Ok(ShaclReport { report });
         }
         if nothing_matched && skipped.is_empty() {
             // Every shape targeted a class with no instances in the data, so
@@ -2232,14 +2375,17 @@ impl ShaclValidator {
             });
         }
 
-        Ok(report.to_string())
+        Ok(ShaclReport { report })
     }
 
     /// Structural dry-run check on proposed SHACL shapes.
     ///
     /// Verifies that the shapes parse as Turtle and that every IRI they reference
     /// (`sh:targetClass`, `sh:path`, `sh:class`) actually exists in the loaded
-    /// ontology, plus a lightweight XSD-prefix check on `sh:datatype`. Does NOT
+    /// ontology, plus a lightweight XSD-prefix check on `sh:datatype`, and that
+    /// every count and length bound (`sh:minCount`, `sh:maxCount`, the qualified
+    /// pair, `sh:minLength`, `sh:maxLength`) is a non-negative `xsd:integer`
+    /// literal (`kind: "ill_formed_literal"`, with the reason). Does NOT
     /// validate data against the shapes — that's `validate`. This is the primitive
     /// the orchestrating LLM needs to iterate on proposed SHACL before applying.
     ///
@@ -2399,6 +2545,13 @@ impl ShaclValidator {
             }));
         }
 
+        // 3. Count and length literals, over every subject in the shapes graph
+        //    rather than only the shapes walked above, because a malformed
+        //    bound on a shape with no sh:targetClass is just as silent. The
+        //    validator skips such a bound and nulls its verdict (#321); this is
+        //    where the author learns which literal and why before running it.
+        issues.extend(ill_formed_bounds(&shapes_store)?);
+
         let ok = issues.is_empty();
         Ok(serde_json::json!({
             "ok": ok,
@@ -2410,6 +2563,40 @@ impl ShaclValidator {
         })
         .to_string())
     }
+}
+
+/// Every count or length bound in a shapes graph that `count_literal`
+/// rejects, as `check_shapes` issues. Also the verified path's pre-check: see
+/// `shacl_verified::validate_verified`.
+pub(crate) fn ill_formed_bounds(shapes_store: &Store) -> anyhow::Result<Vec<serde_json::Value>> {
+    let rows = query_solutions(
+        shapes_store,
+        r#"
+        PREFIX sh: <http://www.w3.org/ns/shacl#>
+        SELECT ?s ?p ?o WHERE {
+            ?s ?p ?o .
+            FILTER(?p IN (sh:minCount, sh:maxCount, sh:qualifiedMinCount,
+                          sh:qualifiedMaxCount, sh:minLength, sh:maxLength))
+        }
+        "#,
+    )?;
+    let mut issues = Vec::new();
+    for row in &rows {
+        let (Some(subject), Some(pred), Some(obj)) = (row.get("s"), row.get("p"), row.get("o")) else {
+            continue;
+        };
+        if let Err(reason) = count_literal(obj) {
+            let constraint = format!("sh:{}", short_sh(pred));
+            issues.push(serde_json::json!({
+                "shape": strip_angle_brackets(subject),
+                "kind": "ill_formed_literal",
+                "constraint": constraint,
+                "value": obj.trim(),
+                "message": format!("{constraint} {}: {reason}", obj.trim()),
+            }));
+        }
+    }
+    Ok(issues)
 }
 
 /// Run a SPARQL SELECT against a temporary shapes `Store` and return results
@@ -2691,10 +2878,18 @@ fn compile_node_shape(
                 "EXISTS {{ ?{var} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
                 strip_angle_brackets(obj)
             )),
-            "datatype" => clauses.push(format!(
-                "DATATYPE(?{var}) = <{}>",
-                strip_angle_brackets(obj)
-            )),
+            "datatype" => {
+                // Refused for the same reason as on a property inside the
+                // shape, below: DATATYPE() cannot tell the datatype from the
+                // one it derives from. Only the property form was guarded, so
+                // `sh:node` to a shape declaring `sh:datatype xsd:int` itself
+                // reported every value DATATYPE() read as xsd:integer.
+                let dt = strip_angle_brackets(obj);
+                if datatype_is_indistinguishable_in_store(&dt) {
+                    return None;
+                }
+                clauses.push(datatype_conforms(&dt, var))
+            }
             "nodeKind" => clauses.push(node_kind_test(&strip_angle_brackets(obj), var)?),
             _ => return None,
         }
@@ -2774,13 +2969,14 @@ fn compile_node_shape(
         }
         if let Some(dt) = row.get("datatype") {
             let dt = strip_angle_brackets(dt);
-            // The store cannot tell these apart from the type they derive from,
-            // so a nested shape resting on one is not decidable either.
+            // DATATYPE() cannot tell these apart from the type they derive
+            // from, so a nested shape resting on one is not decidable either.
             if datatype_is_indistinguishable_in_store(&dt) {
                 return None;
             }
             clauses.push(format!(
-                "NOT EXISTS {{ ?{var} <{path}> ?{inner} . FILTER(DATATYPE(?{inner}) != <{dt}>) }}"
+                "NOT EXISTS {{ ?{var} <{path}> ?{inner} . FILTER(!{}) }}",
+                datatype_conforms(&dt, &inner)
             ));
         }
         if let Some(nk) = row.get("nodeKind") {
@@ -2836,21 +3032,25 @@ fn node_kind_test(node_kind: &str, var: &str) -> Option<String> {
     })
 }
 
-/// Datatype IRIs the storage layer does not preserve.
+/// Datatype IRIs that `DATATYPE()` cannot report, so no SPARQL test here can
+/// decide them.
 ///
-/// oxigraph 0.5 encodes a literal by value, and in `numeric_encoder.rs` twelve
-/// XSD integer-derived datatype IRIs all route to `parse_integer_str`, which
-/// yields `EncodedTerm::IntegerLiteral` — one variant, carrying no datatype IRI.
-/// Reading back can only reconstruct `xsd:integer`. `xsd:dateTimeStamp` collapses
-/// into `xsd:dateTime` the same way. The Turtle parser is correct; the loss is at
-/// storage. That it is a defect rather than a deliberate simplification is settled
-/// by `xsd:yearMonthDuration` and `xsd:dayTimeDuration`, equally derived, which
-/// have their own encodings and survive intact.
+/// The twelve XSD integer-derived types and `xsd:dateTimeStamp`. Since #335 the
+/// store keeps them: the pinned oxigraph (oxigraph/oxigraph#2010) gives
+/// `"5"^^xsd:int` back as written, where 0.5.9 encoded it as
+/// `EncodedTerm::IntegerLiteral` and gave back `"5"^^xsd:integer`. The SPARQL
+/// evaluator, `spareval`, is unpatched and still maps each of these IRIs to its
+/// base type's value before any function sees it, so inside a query
+/// `DATATYPE("5"^^xsd:int)` is `xsd:integer` and `DATATYPE` of an
+/// `xsd:dateTimeStamp` is `xsd:dateTime`, whether the literal came from the
+/// store or the query text. Measured on the new pin over every XSD datatype:
+/// exactly these thirteen; `tests/datatype_preservation_test.rs` pins the set
+/// in both directions. `xsd:yearMonthDuration` and `xsd:dayTimeDuration`,
+/// equally derived, have their own encodings and answer correctly.
 ///
-/// A `sh:datatype` constraint naming one of these cannot be decided against the
-/// store: a conforming value and a widened one are the same term by the time the
-/// query runs. Answering anyway reports a violation for every value that in fact
-/// satisfies the shape.
+/// A `sh:datatype` test naming one of these cannot be decided by `DATATYPE()`:
+/// a conforming value and one of the base type answer alike. Answering anyway
+/// reports a violation for every value that in fact satisfies the shape.
 fn datatype_is_indistinguishable_in_store(datatype: &str) -> bool {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let Some(local) = datatype.strip_prefix(XSD) else {
@@ -2874,6 +3074,24 @@ fn datatype_is_indistinguishable_in_store(datatype: &str) -> bool {
     )
 }
 
+
+/// The `skipped_constraints` entry for a constraint that names a datatype
+/// [`datatype_is_indistinguishable_in_store`] says cannot be decided. One
+/// record, so the direct `sh:datatype` constraint and the `sh:or`, `sh:not`
+/// and `sh:qualifiedValueShape` members that name such a datatype refuse in
+/// the same words: the member paths used to answer the question the direct
+/// path refuses, and answered it wrongly.
+fn unpreserved_datatype_skip(shape: &str, constraint: &str, path: &str, datatype: &str) -> serde_json::Value {
+    serde_json::json!({
+        "shape": strip_angle_brackets(shape),
+        "constraint": constraint,
+        "path": path,
+        "datatype": datatype,
+        "reason": "the SPARQL evaluator reads this datatype IRI as the type it \
+                   derives from, so DATATYPE() cannot tell a value carrying it \
+                   from one carrying that type; the constraint was not evaluated",
+    })
+}
 
 /// The SPARQL pattern selecting the focus nodes of one target, bound to `var`.
 ///
@@ -3083,7 +3301,16 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 /// here, and this now agrees with it. The enclosing node shape is still
 /// reported, under `node_shape`, because it is what selected the focus node
 /// and a consumer that wants to group by rule set needs it.
-fn attribute(source_shape: &str, node_shape: &str, mut v: serde_json::Value) -> serde_json::Value {
+fn attribute(
+    source_shape: &str,
+    node_shape: &str,
+    rdf: &RdfTerms,
+    mut v: serde_json::Value,
+) -> serde_json::Value {
+    v[crate::shacl_report::RDF_TERMS_KEY] = serde_json::json!({
+        "severity": rdf.severity,
+        "message": rdf.message,
+    });
     v["source_shape"] = serde_json::Value::String(strip_angle_brackets(source_shape));
     v["node_shape"] = serde_json::Value::String(strip_angle_brackets(node_shape));
     let constraint = v["constraint"].as_str().unwrap_or("").to_string();
@@ -3095,6 +3322,33 @@ fn attribute(source_shape: &str, node_shape: &str, mut v: serde_json::Value) -> 
         v["result_path"] = path;
     }
     v
+}
+
+/// The shapes-graph terms a result was built from, in the N-Triples form the
+/// store printed them, for the RDF report and for nothing else.
+///
+/// The JSON report keeps a reduced form of both and cannot be changed without
+/// breaking its readers: `severity` is [`severity_name`], the local name for
+/// SHACL's own severities and the full IRI for any other, and `message` is
+/// the literal's lexical value. The message reduction is not reversible:
+/// `core/misc/message-001` declares `"Test message"@en`, and the language tag
+/// is gone. SHACL 3.6.2 makes `sh:resultSeverity` the shape's
+/// `sh:severity` and `sh:resultMessage` a copy of its `sh:message`, so the
+/// writer needs the terms as written. They travel inside each violation under
+/// [`crate::shacl_report::RDF_TERMS_KEY`] and the JSON renderer removes them.
+///
+/// `message` is `None` whenever the result carries this engine's default text,
+/// which is then written as a plain string. `severity` is `None` where SHACL's
+/// default `sh:Violation` applies.
+struct RdfTerms {
+    severity: Option<String>,
+    message: Option<String>,
+}
+
+impl RdfTerms {
+    fn new(severity: Option<String>, message: Option<String>) -> Self {
+        Self { severity, message }
+    }
 }
 
 /// The `sh:*ConstraintComponent` IRI for the short constraint name a violation
@@ -3114,25 +3368,46 @@ fn constraint_component(constraint: &str) -> String {
     format!("http://www.w3.org/ns/shacl#{name}ConstraintComponent")
 }
 
-/// `Some(test)` that is TRUE when `?var` is a literal of `datatype` whose
-/// lexical form MIGHT be outside that datatype's lexical space, for the
-/// datatypes whose lexical space is written down here. `None` for any other
-/// datatype, where an ill-typed literal cannot be told from a well-typed one.
+/// The SPARQL test that is TRUE exactly when `?var` conforms to
+/// `sh:datatype <datatype>` (SHACL 4.1.2): it is a literal, its datatype is
+/// `datatype`, and, for the datatypes whose lexical space is written down
+/// below, its lexical form is inside that space. Every place the engine asks
+/// "does this value have datatype D" splices this one expression, positively
+/// for `sh:or`, `sh:qualifiedValueShape` and `sh:not` members and a nested
+/// `sh:node`, negated for the constraint itself.
 ///
-/// MIGHT, and not IS, for `xsd:date` and `xsd:dateTime`. For every other
-/// datatype here the regex IS the lexical space and a match is the verdict. For
-/// the two calendar datatypes the regex is an UNDER-approximation of the
-/// lexical space, deliberately: every form it matches is certainly well formed,
-/// and everything else is handed to `xsd_temporal_lex` to be judged properly.
-/// `calendar_datatype` says which datatypes work that way, and every call site
-/// that splices one of these tests in has to run that second judgement or it
-/// will report violations on valid dates. See `xsd_temporal_lex` for why the
-/// decision cannot live in the regex.
+/// It is never a SPARQL type error, and that is the point (#333). The bare
+/// `DATATYPE(?v) = <D>` it replaces is an error for an IRI or blank node, an
+/// error inside `!(a || b)` stays an error, and FILTER drops a row whose test
+/// errors. So an IRI value of a property under `sh:or` over datatypes matched
+/// no alternative and was never reported; the same drop let an IRI pass a
+/// property shape's `sh:datatype` and a nested `sh:node` datatype. Here
+/// `isLiteral` comes first and `false && error` is `false`. And `DATATYPE()`
+/// alone answers `xsd:boolean` for the ill-typed `"none"^^xsd:boolean`, which
+/// is why every member test now carries the lexical check that only the
+/// direct `sh:datatype` constraints had: W3C `core/property/or-datatypes-001`
+/// reported one of its three violations.
+fn datatype_conforms(datatype: &str, var: &str) -> String {
+    let lexical = lexical_space_regex(datatype)
+        .map(|re| format!(" && REGEX(STR(?{var}), \"{re}\")"))
+        .unwrap_or_default();
+    format!("(isLiteral(?{var}) && DATATYPE(?{var}) = <{datatype}>{lexical})")
+}
+
+/// The XSD lexical space of `datatype` as a regex already escaped for a
+/// SPARQL string literal, for the datatypes whose lexical space is written
+/// down here. `None` for any other datatype, where an ill-typed literal cannot
+/// be told from a well-typed one.
+///
+/// For `xsd:date` and `xsd:dateTime` the pattern is an UNDER-approximation and
+/// a PRE-FILTER: every form it matches is well formed, and the two direct
+/// `sh:datatype` paths judge the rest with `calendar_violation`. The positive
+/// sites that splice `datatype_conforms` run no such second judgement.
 ///
 /// The patterns are the XSD lexical spaces, not the value spaces: `01` is a
 /// valid integer lexical form and `1.` a valid decimal one. Backslashes are
 /// doubled once for the SPARQL string literal they are spliced into.
-fn ill_typed_test(datatype: &str, var: &str) -> Option<String> {
+fn lexical_space_regex(datatype: &str) -> Option<String> {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let local = datatype.strip_prefix(XSD)?;
     let re = match local {
@@ -3158,8 +3433,27 @@ fn ill_typed_test(datatype: &str, var: &str) -> Option<String> {
     // | '"' | '\'' | '\\']` and the validator returned Err, so a shapes graph
     // that named a decimal, double, float or dateTime could not be evaluated
     // at all.
-    let escaped = re.replace('\\', "\\\\");
-    Some(format!("(DATATYPE(?{var}) = <{datatype}> && !REGEX(STR(?{var}), \"{escaped}\"))"))
+    Some(re.replace('\\', "\\\\"))
+}
+
+/// The JSON `severity` of a declared `sh:severity` term: the local name for
+/// an IRI in the SHACL namespace (`"Violation"`, `"Warning"`, `"Info"`, which
+/// existing readers match on), and the full IRI for any other.
+///
+/// Every path used to take the text after the last `#` (#334). That is
+/// reversible only if the reader knows the namespace, and the readers,
+/// `tests/w3c_shacl_conformance_test.rs` and `tools/shacl_differential.py`,
+/// read a bare name as `sh:`. So W3C `core/misc/severity-002`'s
+/// `ex:MySeverity`, in a hash namespace, came back as `sh:MySeverity`, a
+/// different severity, while one in a slash namespace survived whole by
+/// accident of where the cut fell. Both readers already take a name
+/// containing `:` as a full IRI, so they now read every severity exactly.
+fn severity_name(raw: &str) -> String {
+    let iri = strip_angle_brackets(raw);
+    match iri.strip_prefix("http://www.w3.org/ns/shacl#") {
+        Some(local) => local.to_string(),
+        None => iri,
+    }
 }
 
 /// A `yyyy-mm-dd` whose day is certainly IN the calendar, whatever the year.
@@ -3448,6 +3742,71 @@ fn strip_quotes(s: &str) -> String {
         // return the input untouched, because a caller that parsed a number
         // out of it still needs the quotes gone.
         Err(_) => unescape_literal(s.trim_matches('"')),
+    }
+}
+
+/// Read a cardinality bound (`sh:minCount`, `sh:maxCount` and the qualified
+/// pair), or record it in `skipped` and return None.
+///
+/// "one", `1.0` and `-1` used to parse to a fallback (0, `u64::MAX`) or be
+/// dropped without a trace, and each fallback is a bound no data can breach, so
+/// the constraint disappeared and the shape passed vacuously (#321). The skip
+/// entry uses the `sh:minLength` wording so a reader sees one rule, plus the
+/// specific reason from `count_literal`.
+fn count_bound(
+    raw: &str,
+    constraint: &str,
+    shape_iri: &str,
+    path: Option<&str>,
+    skipped: &mut Vec<serde_json::Value>,
+) -> Option<u64> {
+    let detail = match count_literal(raw) {
+        Ok(n) => return Some(n),
+        Err(detail) => detail,
+    };
+    let mut entry = serde_json::json!({
+        "shape": strip_angle_brackets(shape_iri),
+        "constraint": format!("sh:{constraint}"),
+        "value": raw.trim(),
+        "reason": format!("bound is not a non-negative integer ({detail}); it was not evaluated"),
+    });
+    if let Some(path) = path {
+        entry["path"] = serde_json::json!(path);
+    }
+    skipped.push(entry);
+    None
+}
+
+/// The value of a count or length literal, or why it is ill-formed.
+///
+/// SHACL 4.2.1, 4.2.2, 4.4.1, 4.4.2 and 4.7.3 require these values to be
+/// literals of datatype `xsd:integer`. The datatype is checked, not only the
+/// lexical form, because a lexical parse alone reads `"1"^^xsd:decimal` as 1.
+/// Until #335 the store made that common: Turtle `1.0` came back as
+/// `"1"^^xsd:decimal`. The pinned store now keeps `"1.0"`, which no longer
+/// parses, but the spelling `"1"^^xsd:decimal` is still a decimal and still
+/// refused here (the verified evaluator's `readNat` in
+/// `lean/Shacl/Compile.lean` reads only the lexical form and does evaluate it).
+/// A negative value is refused rather than read by the letter of the spec, where
+/// `sh:minCount -1` holds of everything and `sh:maxCount -1` of nothing: no
+/// author means either, and `readNat` refuses it too. Shared by the validator
+/// (`count_bound`) and `check_shapes`, so the dry run reports exactly what the
+/// run would skip.
+fn count_literal(raw: &str) -> Result<u64, String> {
+    const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+    let Ok(Term::Literal(lit)) = raw.trim().parse::<Term>() else {
+        return Err("value is not a literal".to_string());
+    };
+    if lit.datatype().as_str() != XSD_INTEGER {
+        return Err(format!(
+            "value has datatype <{}>; SHACL requires xsd:integer",
+            lit.datatype().as_str()
+        ));
+    }
+    match lit.value().parse::<i128>() {
+        Ok(n) if n < 0 => Err("value is negative; a count or length cannot be".to_string()),
+        Ok(n) => u64::try_from(n).map_err(|_| "value is too large to evaluate".to_string()),
+        Err(_) => Err("value is not a valid xsd:integer".to_string()),
     }
 }
 

@@ -56,7 +56,7 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Instant;
 
 use rayon::prelude::*;
@@ -86,6 +86,10 @@ const OWL_INTERSECTION: &str = "<http://www.w3.org/2002/07/owl#intersectionOf>";
 const OWL_UNION: &str = "<http://www.w3.org/2002/07/owl#unionOf>";
 const OWL_EQUIV_CLASS: &str = "<http://www.w3.org/2002/07/owl#equivalentClass>";
 const OWL_DISJOINT_WITH: &str = "<http://www.w3.org/2002/07/owl#disjointWith>";
+const OWL_ALL_DISJOINT_CLASSES: &str = "<http://www.w3.org/2002/07/owl#AllDisjointClasses>";
+const OWL_MEMBERS: &str = "<http://www.w3.org/2002/07/owl#members>";
+const OWL_DISJOINT_UNION_OF: &str = "<http://www.w3.org/2002/07/owl#disjointUnionOf>";
+const OWL_EQUIV_PROPERTY: &str = "<http://www.w3.org/2002/07/owl#equivalentProperty>";
 const OWL_TRANSITIVE: &str = "<http://www.w3.org/2002/07/owl#TransitiveProperty>";
 const OWL_SYMMETRIC: &str = "<http://www.w3.org/2002/07/owl#SymmetricProperty>";
 const OWL_INVERSE_OF: &str = "<http://www.w3.org/2002/07/owl#inverseOf>";
@@ -246,7 +250,13 @@ impl Interner {
 /// is. A second traversal of `rdf:first`/`rdf:rest` would be a second thing to
 /// keep right; there is one, and `walk_list_checked` is it.
 pub(crate) struct TripleIndex {
-    by_subject: HashMap<String, Vec<(String, String)>>,
+    /// Ordered, not hashed. Every pass of the parser walks this map, and the
+    /// order it walks in is the order IRIs are interned, which fixes the
+    /// numeric ids concepts are sorted by, which fixes the order the tableau
+    /// tries disjuncts in. With a `HashMap` that order changed from run to run
+    /// of one input, and once backjumping and early disjointness made the
+    /// search order matter, so did the number of steps a run took (#161).
+    by_subject: std::collections::BTreeMap<String, Vec<(String, String)>>,
 }
 
 /// Why a traversal of an `rdf:List` did not reach `rdf:nil`.
@@ -291,12 +301,17 @@ pub(crate) const MAX_LIST_CELLS: usize = 1000;
 
 impl TripleIndex {
     pub(crate) fn new(triples: &[(String, String, String)]) -> Self {
-        let mut by_subject: HashMap<String, Vec<(String, String)>> = HashMap::new();
+        let mut by_subject: std::collections::BTreeMap<String, Vec<(String, String)>> =
+            std::collections::BTreeMap::new();
         for (s, p, o) in triples {
             by_subject
                 .entry(s.clone())
                 .or_default()
                 .push((p.clone(), o.clone()));
+        }
+        // The store's own iteration order is not part of the ontology either.
+        for pairs in by_subject.values_mut() {
+            pairs.sort_unstable();
         }
         Self { by_subject }
     }
@@ -362,6 +377,17 @@ impl TripleIndex {
 struct OwlParser {
     index: TripleIndex,
     interner: Interner,
+    /// Every role's inverse, both directions, from `owl:inverseOf` between two
+    /// IRIs and from the anonymous inverse expressions `role_of` reads.
+    inverse: HashMap<u32, u32>,
+}
+
+/// The name minted for the inverse of a role that has no named inverse.
+///
+/// An IRI under a scheme no ontology uses, so it can never collide with a
+/// declared property, and readable in an output that names it.
+fn minted_inverse_name(role: &str) -> String {
+    format!("<urn:x-oo:inverse-of:{}>", role.trim_start_matches('<').trim_end_matches('>'))
 }
 
 impl OwlParser {
@@ -369,7 +395,40 @@ impl OwlParser {
         Self {
             index: TripleIndex::new(&triples),
             interner: Interner::new(),
+            inverse: HashMap::new(),
         }
+    }
+
+    /// The role a property node denotes, reading `[ owl:inverseOf p ]` as the
+    /// inverse of `p`.
+    ///
+    /// The inverse of a role is ONE role however many blank nodes write it.
+    /// Interning each blank node as a role of its own, and relying on the
+    /// generic `owl:inverseOf` collector to link it back, linked only one of
+    /// them: that collector keeps a single inverse per role, so with two
+    /// `[ owl:inverseOf hasChild ]` nodes `hasChild`'s inverse was whichever came
+    /// last, and a `∀` through the other never reached a parent.
+    fn role_of(&mut self, node: &str) -> u32 {
+        if node.starts_with("_:")
+            && let Some(of) = self.index.object(node, OWL_INVERSE_OF)
+            && of != node
+        {
+            let r = self.role_of(&of);
+            return self.inverse_of(r);
+        }
+        self.interner.intern(node)
+    }
+
+    /// `r`'s inverse, minting a name for it when the ontology names none.
+    fn inverse_of(&mut self, r: u32) -> u32 {
+        if let Some(&inv) = self.inverse.get(&r) {
+            return inv;
+        }
+        let name = minted_inverse_name(self.interner.resolve(r));
+        let inv = self.interner.intern(&name);
+        self.inverse.insert(r, inv);
+        self.inverse.insert(inv, r);
+        inv
     }
 
     fn parse(mut self) -> ParseResult {
@@ -390,7 +449,9 @@ impl OwlParser {
         let mut role_ranges: Vec<(u32, Concept)> = Vec::new();
 
         // Collect all subjects with their types for classification
-        let mut subject_types: HashMap<String, Vec<String>> = HashMap::new();
+        // Ordered for the same reason as `TripleIndex::by_subject`.
+        let mut subject_types: std::collections::BTreeMap<String, Vec<String>> =
+            std::collections::BTreeMap::new();
         for (s, pairs) in &self.index.by_subject {
             for (p, o) in pairs {
                 if p == RDF_TYPE {
@@ -400,9 +461,14 @@ impl OwlParser {
         }
 
         // Collect class declarations
+        // IRIs only, as in every other discovery pass below. An anonymous class
+        // expression written as `<owl:Class><owl:oneOf …>` also carries
+        // `rdf:type owl:Class`, and taking its blank node for a named class put
+        // it in the satisfiability sweep and in the output: Pizza reported
+        // `Country ⊑ _:…`, its own `owl:oneOf` enumeration.
         let class_subjects: Vec<String> = subject_types
             .iter()
-            .filter(|(_, types)| types.iter().any(|t| t == OWL_CLASS))
+            .filter(|(s, types)| s.starts_with('<') && types.iter().any(|t| t == OWL_CLASS))
             .map(|(s, _)| s.clone())
             .collect();
         for s in &class_subjects {
@@ -474,10 +540,19 @@ impl OwlParser {
             })
             .collect();
         for (a_str, b_str) in inverse_pairs_raw {
+            // A blank-node subject is an inverse-property EXPRESSION, read by
+            // `role_of` where it is used, not a property of its own.
+            if a_str.starts_with("_:") {
+                continue;
+            }
             let a = self.interner.intern(&a_str);
-            let b = self.interner.intern(&b_str);
+            let b = self.role_of(&b_str);
             inverse_roles.insert(a, b);
             inverse_roles.insert(b, a);
+        }
+        // `role_of` consults `self.inverse`, so the declared pairs go in first.
+        for (&a, &b) in &inverse_roles {
+            self.inverse.insert(a, b);
         }
 
         // owl:{Transitive,Symmetric,Functional,InverseFunctional}Property and any
@@ -510,10 +585,33 @@ impl OwlParser {
             })
             .collect();
         for (sub, sup) in subprop_pairs {
-            let sub_id = self.interner.intern(&sub);
-            let sup_id = self.interner.intern(&sup);
+            let sub_id = self.role_of(&sub);
+            let sup_id = self.role_of(&sup);
             sub_to_super.entry(sub_id).or_default().insert(sup_id);
         }
+        // `owl:equivalentProperty` is `rdfs:subPropertyOf` both ways. It was not
+        // read at all, so a role named only through its equivalent carried none
+        // of the other's edges, domains or ranges.
+        let equiv_props: Vec<(String, String)> = self
+            .index
+            .by_subject
+            .iter()
+            .flat_map(|(s, pairs)| {
+                pairs
+                    .iter()
+                    .filter(|(p, _)| p == OWL_EQUIV_PROPERTY)
+                    .map(move |(_, o)| (s.clone(), o.clone()))
+            })
+            .collect();
+        for (a, b) in equiv_props {
+            let a_id = self.role_of(&a);
+            let b_id = self.role_of(&b);
+            if a_id != b_id {
+                sub_to_super.entry(a_id).or_default().insert(b_id);
+                sub_to_super.entry(b_id).or_default().insert(a_id);
+            }
+        }
+        inverse_roles.extend(self.inverse.iter().map(|(&a, &b)| (a, b)));
 
         // Close the role hierarchy under inverses: `r ⊑ s` entails `r⁻ ⊑ s⁻`.
         //
@@ -723,6 +821,87 @@ impl OwlParser {
             disjoint_pairs.push((a, b));
         }
 
+        // `owl:AllDisjointClasses` with an `owl:members` list, which is how the
+        // OWL 2 mapping writes `DisjointClasses` of three or more classes, and
+        // `owl:disjointUnionOf`, which is `C ≡ C₁ ⊔ … ⊔ Cₙ` with the `Cᵢ`
+        // pairwise disjoint. Neither was read. Only the binary `owl:disjointWith`
+        // was, so an n-ary disjointness, the usual way an ontology says its
+        // siblings do not overlap, was silently absent. Measured on ORE 2015
+        // `ore_ont_16461`: the five affected joints of `Patient1` are in one
+        // 40-member `DisjointClasses`, so they could be merged, `≥4
+        // hasAffectedJoint.Joint` could not be proved, and `Patient1 ⊑
+        // Systemic_JIA_Patient` (which HermiT finds) was missing from a run that
+        // reported itself complete.
+        let mut all_disjoint: Vec<String> = subject_types
+            .iter()
+            .filter(|(_, types)| types.iter().any(|t| t == OWL_ALL_DISJOINT_CLASSES))
+            .map(|(s, _)| s.clone())
+            .collect();
+        all_disjoint.sort();
+        for node in all_disjoint {
+            let Some(head) = self.index.object(&node, OWL_MEMBERS) else { continue };
+            let members: Vec<Concept> = self
+                .index
+                .walk_list(&head)
+                .iter()
+                .map(|m| {
+                    if m.starts_with('<') && m != OWL_THING && m != OWL_NOTHING {
+                        let id = self.interner.intern(m);
+                        named_classes.insert(id);
+                    }
+                    self.parse_class_expr(m).to_nnf()
+                })
+                .collect();
+            for i in 0..members.len() {
+                for j in (i + 1)..members.len() {
+                    disjoint_pairs.push((members[i].clone(), members[j].clone()));
+                }
+            }
+        }
+        let mut disjoint_unions: Vec<(String, String)> = self
+            .index
+            .by_subject
+            .iter()
+            .flat_map(|(s, pairs)| {
+                pairs
+                    .iter()
+                    .filter(|(p, _)| p == OWL_DISJOINT_UNION_OF)
+                    .map(move |(_, o)| (s.clone(), o.clone()))
+            })
+            .collect();
+        disjoint_unions.sort();
+        for (class, head) in disjoint_unions {
+            let members_raw = self.index.walk_list(&head);
+            let id = self.interner.intern(&class);
+            named_classes.insert(id);
+            let members: Vec<Concept> = members_raw
+                .iter()
+                .map(|m| {
+                    if m.starts_with('<') && m != OWL_THING && m != OWL_NOTHING {
+                        let mid = self.interner.intern(m);
+                        named_classes.insert(mid);
+                    }
+                    self.parse_class_expr(m).to_nnf()
+                })
+                .collect();
+            let union = match members.len() {
+                0 => Concept::Bottom,
+                1 => members[0].clone(),
+                _ => {
+                    let mut parts = members.clone();
+                    parts.sort();
+                    Concept::Or(parts)
+                }
+            };
+            axioms.push((Concept::Atom(id), union.clone()));
+            axioms.push((union, Concept::Atom(id)));
+            for i in 0..members.len() {
+                for j in (i + 1)..members.len() {
+                    disjoint_pairs.push((members[i].clone(), members[j].clone()));
+                }
+            }
+        }
+
         // Collect rdfs:domain / rdfs:range as GCIs.
         //
         // These are ordinary DL axioms and were previously not read at all, so every
@@ -762,7 +941,7 @@ impl OwlParser {
             {
                 continue;
             }
-            let role = self.interner.intern(&prop_str);
+            let role = self.role_of(&prop_str);
             let cls = self.parse_class_expr(&cls_str).to_nnf();
             if cls_str.starts_with('<') && cls_str != OWL_NOTHING {
                 let id = self.interner.intern(&cls_str);
@@ -911,6 +1090,28 @@ impl OwlParser {
             }
         }
 
+        // Anonymous inverse expressions met while parsing class expressions,
+        // domains and ranges minted inverses after the role hierarchy was closed
+        // under inverses above, so the minted ones join the map and the closure
+        // runs again. It is idempotent on the pairs it has already added.
+        inverse_roles.extend(self.inverse.iter().map(|(&a, &b)| (a, b)));
+        let late_inverse_subprops: Vec<(u32, u32)> = sub_to_super
+            .iter()
+            .flat_map(|(sub, sups)| sups.iter().map(move |sup| (*sub, *sup)))
+            .filter_map(|(sub, sup)| match (inverse_roles.get(&sub), inverse_roles.get(&sup)) {
+                (Some(&sub_inv), Some(&sup_inv)) if sub_inv != sup_inv => Some((sub_inv, sup_inv)),
+                _ => None,
+            })
+            .collect();
+        for (sub_inv, sup_inv) in late_inverse_subprops {
+            sub_to_super.entry(sub_inv).or_default().insert(sup_inv);
+        }
+        for &r in transitive_roles.clone().iter() {
+            if let Some(&inv) = inverse_roles.get(&r) {
+                transitive_roles.insert(inv);
+            }
+        }
+
         // Ensure owl:Thing and owl:Nothing are interned
         let thing_id = self.interner.intern(OWL_THING);
         let nothing_id = self.interner.intern(OWL_NOTHING);
@@ -994,10 +1195,27 @@ impl OwlParser {
         None
     }
 
+    /// A restriction this parser does not model, as an opaque atom named by its
+    /// own blank node.
+    ///
+    /// This used to be `RawConcept::Top`, which is a sound weakening on the
+    /// right of an inclusion and an unsound strengthening on the left. An
+    /// `owl:equivalentClass` puts each side on the left once, so `Narcissist ≡
+    /// ∃loves.Self` became `⊤ ⊑ Narcissist` and every class in the ontology was
+    /// reported a subclass of `Narcissist`. A fresh name is sound in both
+    /// places: every model of the ontology extends to a model of the rewritten
+    /// one by giving the name the expression's extension, so whatever the
+    /// rewritten ontology entails over the original names, the original
+    /// entails. The same blank node always gets the same atom, which keeps the
+    /// two directions of an equivalence talking about one thing.
+    fn opaque_restriction(&mut self, node: &str) -> RawConcept {
+        RawConcept::Named(self.interner.intern(node))
+    }
+
     fn parse_restriction(&mut self, node: &str) -> RawConcept {
         let prop = match self.index.object(node, OWL_ON_PROPERTY) {
-            Some(p) => self.interner.intern(&p),
-            None => return RawConcept::Top,
+            Some(p) => self.role_of(&p),
+            None => return self.opaque_restriction(node),
         };
 
         // someValuesFrom → ∃R.C
@@ -1056,7 +1274,9 @@ impl OwlParser {
                 ]);
             }
 
-        RawConcept::Top
+        // `owl:hasSelf`, a cardinality whose literal does not parse, or anything
+        // else this reader does not know.
+        self.opaque_restriction(node)
     }
 }
 
@@ -1070,35 +1290,287 @@ fn parse_card_value(literal: &str) -> Option<u32> {
     literal.parse().ok()
 }
 
-struct ParseResult {
-    interner: Interner,
-    axioms: Vec<(Concept, Concept)>,
-    named_classes: HashSet<u32>,
-    thing_id: u32,
-    nothing_id: u32,
-    transitive_roles: HashSet<u32>,
-    sub_to_super: HashMap<u32, HashSet<u32>>,
-    disjoint_pairs: Vec<(Concept, Concept)>,
-    inverse_roles: HashMap<u32, u32>,
-    functional_roles: HashSet<u32>,
-    inv_functional_roles: HashSet<u32>,
+pub(crate) struct ParseResult {
+    pub(crate) interner: Interner,
+    pub(crate) axioms: Vec<(Concept, Concept)>,
+    pub(crate) named_classes: HashSet<u32>,
+    pub(crate) thing_id: u32,
+    pub(crate) nothing_id: u32,
+    pub(crate) transitive_roles: HashSet<u32>,
+    pub(crate) sub_to_super: HashMap<u32, HashSet<u32>>,
+    pub(crate) disjoint_pairs: Vec<(Concept, Concept)>,
+    pub(crate) inverse_roles: HashMap<u32, u32>,
+    pub(crate) functional_roles: HashSet<u32>,
+    pub(crate) inv_functional_roles: HashSet<u32>,
     /// rdfs:domain / rdfs:range, kept as ROLE METADATA rather than GCIs.
     /// Encoding them as axioms puts a non-atomic left-hand side into the GCI
     /// list, which lands a disjunction on every node and multiplies branching.
-    role_domains: Vec<(u32, Concept)>,
-    role_ranges: Vec<(u32, Concept)>,
-    individual_types: HashMap<u32, HashSet<u32>>,
+    pub(crate) role_domains: Vec<(u32, Concept)>,
+    pub(crate) role_ranges: Vec<(u32, Concept)>,
+    pub(crate) individual_types: HashMap<u32, HashSet<u32>>,
     /// Individuals typed directly by an ANONYMOUS class expression
     /// (`:a rdf:type [ owl:Restriction … ]`, an intersection/union/complement).
     /// These carry no named-class id, so they cannot live in `individual_types`,
     /// but the constraint they impose is real and an inconsistency arising from
     /// it must be found rather than silently dropped.
-    individual_anon_types: HashMap<u32, Vec<Concept>>,
-    role_assertions: Vec<(u32, u32, u32)>,
+    pub(crate) individual_anon_types: HashMap<u32, Vec<Concept>>,
+    pub(crate) role_assertions: Vec<(u32, u32, u32)>,
     /// Datatype-property assertions, for realization only; never tableau edges.
-    data_assertions: Vec<(u32, u32, u32)>,
+    pub(crate) data_assertions: Vec<(u32, u32, u32)>,
     /// Named class → the concept it is defined as being equivalent to.
-    definitions: HashMap<u32, Concept>,
+    pub(crate) definitions: HashMap<u32, Concept>,
+}
+
+/// The OWL parser's reading of a triple set, before `ProcessedTBox` absorbs it.
+///
+/// `onto_classify_el` normalises these axioms for EL completion rather than
+/// writing a second RDF-to-DL reader: one parser means the tableau and the EL
+/// saturation disagree only where their rules do, never where their reading
+/// of `owl:Restriction` or `rdf:List` does.
+pub(crate) fn parse_owl(triples: Vec<(String, String, String)>) -> ParseResult {
+    OwlParser::new(triples).parse()
+}
+
+// ── Absorption ──────────────────────────────────────────────────────────
+
+/// Rewrites a TBox so that as few axioms as possible sit on every node.
+///
+/// An inclusion whose left-hand side is not a single named class used to go
+/// into the GCI list as `¬C ⊔ D`, and every GCI is added to EVERY node of every
+/// tableau. Each one is a disjunction, so each one can double the branching of
+/// the whole search. That is what kept three different inputs from terminating:
+/// the four-nominal LUBM repro in `benchmark/reasoner/regressions/` (each
+/// `C ≡ ∃worksFor.{d}` puts `∀worksFor.¬{d} ⊔ C` on every node), the ORE 2015 EL
+/// files (thirty-odd `∃r.⊤ ⊑ C` axioms), and the canonical Pizza ontology,
+/// whose defined classes (`CheeseyPizza ≡ Pizza ⊓ ∃hasTopping.CheeseTopping`)
+/// each contribute one reverse half of that shape.
+///
+/// The rewrites are the standard ones (Horrocks, *Optimising Tableaux Decision
+/// Procedures for Description Logics*, 1997; Hudek and Weddell, *Binary
+/// Absorption in Tableaux-Based Reasoning for Description Logics*, 2006), and
+/// each one replaces an axiom by axioms that ENTAIL it over the original names
+/// and are entailed by it once the fresh names are read as the sub-expressions
+/// they stand for. So a model of the rewritten TBox is a model of the original,
+/// and every model of the original extends to one of the rewritten TBox: the
+/// rewrite neither adds nor loses an entailment over the ontology's own names.
+///
+///   - `⊤ ⊑ D` is `D` on every node, with no disjunction.
+///   - `∃r.⊤ ⊑ D` is a DOMAIN of `r`, applied when an `r` edge is made.
+///   - `∃r.F ⊑ X`, with `F` a named class, is `F ⊑ ∀r⁻.X`: whatever is an
+///     `r`-successor in `F` puts `X` on its predecessor. A complex `F` is first
+///     named by a fresh atom.
+///   - `A₁ ⊓ … ⊓ Aₙ ⊑ D` over named classes is a BINARY rule, fired only on a
+///     node that already carries both conjuncts, chained through fresh atoms
+///     when there are more than two.
+///   - `¬A ⊓ C ⊑ D` is `C ⊑ A ⊔ D`, which moves the negation to where a
+///     disjunction is only met on `C`-nodes.
+///   - Anything else in a conjunctive left-hand side stays a disjunction, but
+///     only on the nodes that carry the absorbed part, not on every node.
+///
+/// The fresh atoms are named `_:oo-absorb-N`, a blank-node label, so no output
+/// that lists NAMED classes can ever report one.
+struct Absorber<'a> {
+    interner: &'a mut Interner,
+    inverse: HashMap<u32, u32>,
+    concept_defs: HashMap<u32, Vec<Concept>>,
+    /// `a → [(b, D)]`: a node carrying both `a` and `b` gets `D`. Stored under
+    /// both conjuncts, so whichever arrives second fires the rule.
+    binary_defs: HashMap<u32, Vec<(u32, Concept)>>,
+    gcis: Vec<Concept>,
+    domains: Vec<(u32, Concept)>,
+    /// One fresh atom per distinct `∃r.F` on a left-hand side, so the reverse
+    /// halves of many definitions that share a restriction share its name.
+    exists_names: HashMap<(u32, Concept), u32>,
+    /// One fresh atom per distinct conjunction of named classes.
+    and_names: HashMap<Vec<u32>, u32>,
+    fresh: usize,
+}
+
+impl<'a> Absorber<'a> {
+    fn fresh_atom(&mut self) -> u32 {
+        let id = self.interner.intern(&format!("_:oo-absorb-{}", self.fresh));
+        self.fresh += 1;
+        id
+    }
+
+    /// `r`'s inverse, minting one under the parser's naming scheme when the
+    /// ontology has none.
+    fn inverse_of(&mut self, r: u32) -> u32 {
+        if let Some(&inv) = self.inverse.get(&r) {
+            return inv;
+        }
+        let name = minted_inverse_name(self.interner.resolve(r));
+        let inv = self.interner.intern(&name);
+        self.inverse.insert(r, inv);
+        self.inverse.insert(inv, r);
+        inv
+    }
+
+    fn add_def(&mut self, a: u32, d: Concept) {
+        if d != Concept::Top {
+            self.concept_defs.entry(a).or_default().push(d);
+        }
+    }
+
+    fn universal(&mut self, d: Concept) {
+        match d {
+            Concept::Top => {}
+            Concept::And(parts) => {
+                for p in parts {
+                    self.universal(p);
+                }
+            }
+            other => self.gcis.push(other),
+        }
+    }
+
+    /// The single atom that stands for `a₁ ⊓ … ⊓ aₙ`, wiring the binary rules
+    /// that put it on exactly the nodes carrying every conjunct.
+    fn conjunction(&mut self, mut atoms: Vec<u32>) -> u32 {
+        atoms.sort_unstable();
+        atoms.dedup();
+        if atoms.len() == 1 {
+            return atoms[0];
+        }
+        if let Some(&t) = self.and_names.get(&atoms) {
+            return t;
+        }
+        let mut acc = atoms[0];
+        for (i, &next) in atoms.iter().enumerate().skip(1) {
+            let prefix = atoms[..=i].to_vec();
+            let t = match self.and_names.get(&prefix) {
+                Some(&t) => t,
+                None => {
+                    let t = self.fresh_atom();
+                    self.binary_defs.entry(acc).or_default().push((next, Concept::Atom(t)));
+                    self.binary_defs.entry(next).or_default().push((acc, Concept::Atom(t)));
+                    self.and_names.insert(prefix, t);
+                    t
+                }
+            };
+            acc = t;
+        }
+        acc
+    }
+
+    /// The atom `X` with `∃r.F ⊑ X`, wired so that `X` lands on every node that
+    /// has an `r`-successor in `F`.
+    fn exists_name(&mut self, r: u32, f: Concept) -> u32 {
+        if let Some(&x) = self.exists_names.get(&(r, f.clone())) {
+            return x;
+        }
+        let x = self.fresh_atom();
+        self.exists_names.insert((r, f.clone()), x);
+        match f {
+            Concept::Top => self.domains.push((r, Concept::Atom(x))),
+            Concept::Atom(c) => {
+                let inv = self.inverse_of(r);
+                self.add_def(c, Concept::ForAll(inv, Box::new(Concept::Atom(x))));
+            }
+            other => {
+                let y = self.fresh_atom();
+                self.absorb(other, Concept::Atom(y));
+                let inv = self.inverse_of(r);
+                self.add_def(y, Concept::ForAll(inv, Box::new(Concept::Atom(x))));
+            }
+        }
+        x
+    }
+
+    fn absorb(&mut self, sub: Concept, sup: Concept) {
+        if sup == Concept::Top {
+            return;
+        }
+        let mut parts: Vec<Concept> = Vec::new();
+        let mut stack = vec![sub];
+        while let Some(c) = stack.pop() {
+            match c {
+                Concept::And(cs) => stack.extend(cs),
+                other => parts.push(other),
+            }
+        }
+        let mut atoms: Vec<u32> = Vec::new();
+        let mut rest: Vec<Concept> = Vec::new();
+        let mut moved: Vec<Concept> = Vec::new();
+        for part in parts {
+            match part {
+                Concept::Top => {}
+                // `⊥ ⊓ … ⊑ D` holds of nothing and constrains nothing.
+                Concept::Bottom => return,
+                Concept::Atom(a) => atoms.push(a),
+                Concept::NegAtom(a) => moved.push(Concept::Atom(a)),
+                Concept::Exists(r, f) | Concept::MinCard(r, 1, f) => {
+                    let x = self.exists_name(r, *f);
+                    atoms.push(x);
+                }
+                other => rest.push(other),
+            }
+        }
+        let rhs = if moved.is_empty() {
+            sup
+        } else {
+            moved.push(sup);
+            disjunction(moved)
+        };
+        if !rest.is_empty() {
+            let unabsorbed = if rest.len() == 1 { rest.remove(0) } else { Concept::And(rest) };
+            let body = disjunction(vec![unabsorbed.negate(), rhs]);
+            if atoms.is_empty() {
+                self.gcis.push(body);
+            } else {
+                let t = self.conjunction(atoms);
+                self.add_def(t, body);
+            }
+            return;
+        }
+        if atoms.is_empty() {
+            self.universal(rhs);
+        } else {
+            let t = self.conjunction(atoms);
+            self.add_def(t, rhs);
+        }
+    }
+}
+
+/// Every role a concept mentions.
+fn collect_roles(c: &Concept, out: &mut BTreeSet<u32>) {
+    match c {
+        Concept::Top | Concept::Bottom | Concept::Atom(_) | Concept::NegAtom(_) => {}
+        Concept::And(cs) | Concept::Or(cs) => {
+            for x in cs {
+                collect_roles(x, out);
+            }
+        }
+        Concept::Exists(r, f) | Concept::ForAll(r, f) => {
+            out.insert(*r);
+            collect_roles(f, out);
+        }
+        Concept::MinCard(r, _, f) | Concept::MaxCard(r, _, f) => {
+            out.insert(*r);
+            collect_roles(f, out);
+        }
+    }
+}
+
+/// `C₁ ⊔ … ⊔ Cₙ`, flattened, with `⊥` dropped and `⊤` absorbing the rest.
+fn disjunction(cs: Vec<Concept>) -> Concept {
+    let mut out: Vec<Concept> = Vec::new();
+    let mut stack = cs;
+    while let Some(c) = stack.pop() {
+        match c {
+            Concept::Or(inner) => stack.extend(inner),
+            Concept::Bottom => {}
+            Concept::Top => return Concept::Top,
+            other => out.push(other),
+        }
+    }
+    out.sort();
+    out.dedup();
+    match out.len() {
+        0 => Concept::Bottom,
+        1 => out.remove(0),
+        _ => Concept::Or(out),
+    }
 }
 
 // ── Processed TBox ──────────────────────────────────────────────────────
@@ -1109,11 +1581,14 @@ struct ProcessedTBox {
     concept_defs: HashMap<u32, Vec<Concept>>,
     /// General Concept Inclusions for complex LHS: ¬C ⊔ D.
     gcis: Vec<Concept>,
+    /// Binary absorption rules: `a → [(b, D)]` puts `D` on a node carrying
+    /// both `a` and `b`. See `Absorber`.
+    binary_defs: HashMap<u32, Vec<(u32, Concept)>>,
     /// Disjointness pairs.
     disjoint_pairs: Vec<(Concept, Concept)>,
     /// Transitive roles.
     transitive_roles: HashSet<u32>,
-    /// Role hierarchy: super-role → set of sub-roles.
+    /// Role hierarchy: super-role → every sub-role, transitively.
     super_to_sub: HashMap<u32, HashSet<u32>>,
     /// Inverse role mapping (bidirectional): R → R⁻ and R⁻ → R.
     inverse_roles: HashMap<u32, u32>,
@@ -1146,9 +1621,10 @@ impl ProcessedTBox {
         axioms: &[(Concept, Concept)],
         disjoint_pairs: &[(Concept, Concept)],
         roles: RoleAxioms<'_>,
+        interner: &mut Interner,
     ) -> Self {
         let RoleAxioms {
-            transitive_roles,
+            mut transitive_roles,
             sub_to_super,
             inverse_roles,
             functional_roles,
@@ -1156,9 +1632,6 @@ impl ProcessedTBox {
             role_domains,
             role_ranges,
         } = roles;
-        let mut concept_defs: HashMap<u32, Vec<Concept>> = HashMap::new();
-        let mut gcis: Vec<Concept> = Vec::new();
-
         // ── GCI absorption ──────────────────────────────────────────────
         //
         // An axiom with a non-atomic left-hand side becomes ¬sub ⊔ sup and is
@@ -1198,36 +1671,113 @@ impl ProcessedTBox {
         }
         let axioms: &[(Concept, Concept)] = &absorbed;
 
+        let mut absorber = Absorber {
+            interner,
+            inverse: inverse_roles,
+            concept_defs: HashMap::new(),
+            binary_defs: HashMap::new(),
+            gcis: Vec::new(),
+            domains: Vec::new(),
+            exists_names: HashMap::new(),
+            and_names: HashMap::new(),
+            fresh: 0,
+        };
         for (sub, sup) in axioms {
-            match sub {
-                Concept::Atom(a) => {
-                    concept_defs.entry(*a).or_default().push(sup.clone());
-                }
-                _ => {
-                    // Complex LHS → GCI: ¬sub ⊔ sup
-                    let mut parts = vec![sub.negate(), sup.clone()];
-                    parts.sort();
-                    gcis.push(Concept::Or(parts));
-                }
-            }
+            absorber.absorb(sub.clone(), sup.clone());
+        }
+        // `A disjointWith B` is `A ⊓ B ⊑ ⊥`, and absorbed as such it is a binary
+        // rule that puts `⊥` on a node the moment both labels meet there. The
+        // list `disjoint_pairs` is still checked, but only once a branch has
+        // otherwise finished expanding, so a ≤-merge that fused two disjoint
+        // successors went on expanding everything below them, further merges
+        // included, before the clash was seen. On Pizza that is every
+        // `X ⊑ InterestingPizza` test, which has to rule out every way of
+        // merging four or five pairwise-disjoint toppings down to two.
+        for (a, b) in disjoint_pairs {
+            absorber.absorb(Concept::And(vec![a.clone(), b.clone()]), Concept::Bottom);
         }
 
         // Functional properties: R functional → every node gets ≤1 R.⊤
         for &role in functional_roles {
-            gcis.push(Concept::MaxCard(role, 1, Box::new(Concept::Top)));
+            absorber.gcis.push(Concept::MaxCard(role, 1, Box::new(Concept::Top)));
         }
 
-        // Inverse-functional: R inv-functional → ≤1 R⁻.⊤
+        // A `∀r⁻` that absorption put on a node reaches its `r`-predecessors
+        // through the stored inverse edge `add_role_edge` writes, and through
+        // sub-roles of `r⁻`. So once any inverse is in play, every role the TBox
+        // names needs one, or an edge on a sub-role of `r` would have no
+        // inverse edge for the `∀` to follow.
+        let mut roles_named: BTreeSet<u32> = BTreeSet::new();
+        for (&sub, sups) in sub_to_super {
+            roles_named.insert(sub);
+            roles_named.extend(sups.iter().copied());
+        }
+        roles_named.extend(transitive_roles.iter().copied());
+        roles_named.extend(functional_roles.iter().copied());
+        roles_named.extend(inv_functional_roles.iter().copied());
+        roles_named.extend(role_domains.iter().map(|(r, _)| *r));
+        roles_named.extend(role_ranges.iter().map(|(r, _)| *r));
+        for (sub, sup) in axioms {
+            collect_roles(sub, &mut roles_named);
+            collect_roles(sup, &mut roles_named);
+        }
+        for (a, b) in disjoint_pairs {
+            collect_roles(a, &mut roles_named);
+            collect_roles(b, &mut roles_named);
+        }
+        for r in roles_named {
+            absorber.inverse_of(r);
+        }
+
+        // Inverse-functional: R inv-functional → ≤1 R⁻.⊤. Every role now has
+        // an inverse, so this no longer depends on the ontology naming one;
+        // before, an inverse-functional property with no declared inverse was
+        // silently unconstrained.
         for &role in inv_functional_roles {
-            if let Some(&inv) = inverse_roles.get(&role) {
-                gcis.push(Concept::MaxCard(inv, 1, Box::new(Concept::Top)));
+            let inv = absorber.inverse_of(role);
+            absorber.gcis.push(Concept::MaxCard(inv, 1, Box::new(Concept::Top)));
+        }
+
+        let Absorber { inverse: inverse_roles, concept_defs, binary_defs, gcis, domains, .. } =
+            absorber;
+
+        // The role hierarchy, closed under inverses (`r ⊑ s` gives `r⁻ ⊑ s⁻`)
+        // and then transitively, which is what `successors` and the domain
+        // and range folds below both need.
+        let mut direct_roles: HashMap<u32, HashSet<u32>> = sub_to_super.clone();
+        let pairs: Vec<(u32, u32)> = direct_roles
+            .iter()
+            .flat_map(|(sub, sups)| sups.iter().map(move |sup| (*sub, *sup)))
+            .collect();
+        for (sub, sup) in pairs {
+            if let (Some(&si), Some(&pi)) = (inverse_roles.get(&sub), inverse_roles.get(&sup))
+                && si != pi
+            {
+                direct_roles.entry(si).or_default().insert(pi);
             }
         }
-
-        // Compute super_to_sub from sub_to_super
+        for &r in transitive_roles.clone().iter() {
+            if let Some(&inv) = inverse_roles.get(&r) {
+                transitive_roles.insert(inv);
+            }
+        }
+        let mut super_of: HashMap<u32, HashSet<u32>> = HashMap::new();
+        for (&sub, sups) in &direct_roles {
+            let mut seen: HashSet<u32> = HashSet::new();
+            let mut stack: Vec<u32> = sups.iter().copied().collect();
+            while let Some(x) = stack.pop() {
+                if seen.insert(x)
+                    && let Some(next) = direct_roles.get(&x)
+                {
+                    stack.extend(next.iter().copied());
+                }
+            }
+            seen.remove(&sub);
+            super_of.insert(sub, seen);
+        }
         let mut super_to_sub_map: HashMap<u32, HashSet<u32>> = HashMap::new();
-        for (&sub, supers) in sub_to_super {
-            for &sup in supers {
+        for (&sub, sups) in &super_of {
+            for &sup in sups {
                 super_to_sub_map.entry(sup).or_default().insert(sub);
             }
         }
@@ -1269,19 +1819,6 @@ impl ProcessedTBox {
         // A constraint on a super-role binds its sub-roles, so each role's list
         // is closed over its transitive super-roles once, here, rather than
         // walked on every edge.
-        let mut super_of: HashMap<u32, HashSet<u32>> = HashMap::new();
-        for (&sub, sups) in sub_to_super {
-            let mut seen: HashSet<u32> = HashSet::new();
-            let mut stack: Vec<u32> = sups.iter().copied().collect();
-            while let Some(x) = stack.pop() {
-                if seen.insert(x)
-                    && let Some(next) = sub_to_super.get(&x)
-                {
-                    stack.extend(next.iter().copied());
-                }
-            }
-            super_of.insert(sub, seen);
-        }
         let fold = |src: &[(u32, Concept)]| -> HashMap<u32, Vec<Concept>> {
             let mut direct: HashMap<u32, Vec<Concept>> = HashMap::new();
             for (r, c) in src {
@@ -1301,12 +1838,15 @@ impl ProcessedTBox {
             }
             out
         };
-        let role_domain = fold(role_domains);
+        let mut all_domains: Vec<(u32, Concept)> = role_domains.to_vec();
+        all_domains.extend(domains);
+        let role_domain = fold(&all_domains);
         let role_range = fold(role_ranges);
 
         Self {
             concept_defs,
             gcis,
+            binary_defs,
             disjoint_pairs: disjoint_pairs.to_vec(),
             transitive_roles,
             super_to_sub: super_to_sub_map,
@@ -1320,61 +1860,125 @@ impl ProcessedTBox {
 
 // ── Tableau Node ────────────────────────────────────────────────────────
 
+/// The choice points a label, an edge or a clash depends on.
+///
+/// Dependency-directed backjumping (Horrocks, 1997, section 6.3.2; Baader et
+/// al., *The Description Logic Handbook*, chapter 9). Every label records the
+/// `⊔` and `≤` choices it was derived under. When a branch clashes, the clash's
+/// dependency set is the union of the clashing labels' sets, and a choice point
+/// that is NOT in it did not cause the clash, so trying its other alternatives
+/// cannot remove it: the search jumps straight past it.
+///
+/// Chronological backtracking, which this replaces, re-tried every later
+/// choice before revisiting the one that failed. On the Pizza ontology a pizza
+/// with five toppings carries one closure-axiom disjunction per topping, and a
+/// wrong guess on the pizza itself (say `VegetarianPizza` on `AmericanHot`) only
+/// clashes once a topping is expanded, so every combination of the toppings'
+/// own disjuncts was re-tried first. That is exponential in the topping count
+/// and it is why the three pizzas with the most toppings never finished.
+///
+/// THE SAFETY RULE: a set may be too LARGE and never too small. A set that is
+/// too large only stops a jump the search could have made, which costs time.
+/// A set that is too small jumps past a choice whose other alternative would
+/// have found a model, and turns a satisfiable test into a proof of
+/// unsatisfiability, which is a false subsumption. So anything this code does
+/// not track precisely (a merge, an edge redirected by one, a label read
+/// without a recorded set) is charged to EVERY open choice point.
+type Dep = BTreeSet<u32>;
+
 #[derive(Clone)]
 struct TNode {
     labels: HashSet<Concept>,
+    /// The choice points each label depends on. See `Dep`.
+    deps: HashMap<Concept, Dep>,
     processed: HashSet<Concept>,
     edges: HashMap<u32, HashSet<u32>>,
+    /// The choice points each outgoing edge depends on, keyed by role and
+    /// target. An edge with no entry is read as depending on every open choice.
+    edge_deps: HashMap<(u32, u32), Dep>,
     parent: Option<u32>,
     /// Which role created this node from its parent (for inverse propagation).
     parent_role: Option<u32>,
+    /// The choice points this node's existence depends on: those of the `∃`
+    /// or `≥` label that generated it.
+    created: Dep,
     blocked: bool,
+    /// The node that blocks this one directly, as `update_blocking` last
+    /// decided. `None` for an unblocked node AND for an indirectly blocked one,
+    /// which has no blocker of its own: an ancestor is blocked.
+    blocker: Option<u32>,
 }
 
 impl TNode {
     fn new(parent: Option<u32>, parent_role: Option<u32>) -> Self {
         Self {
             labels: HashSet::new(),
+            deps: HashMap::new(),
             processed: HashSet::new(),
             edges: HashMap::new(),
+            edge_deps: HashMap::new(),
             parent,
             parent_role,
+            created: Dep::new(),
             blocked: false,
+            blocker: None,
         }
     }
 
-    fn has_clash(&self) -> bool {
-        if self.labels.contains(&Concept::Bottom) {
-            return true;
+    /// The union of the dependency sets of `labels`, or `None` if one of them
+    /// has no recorded set, in which case the caller must charge every open
+    /// choice point.
+    fn deps_of<'a>(&self, labels: impl IntoIterator<Item = &'a Concept>) -> Option<Dep> {
+        let mut out = Dep::new();
+        for l in labels {
+            out.extend(self.deps.get(l)?.iter().copied());
         }
-        for label in &self.labels {
-            if let Concept::Atom(a) = label
-                && self.labels.contains(&Concept::NegAtom(*a)) {
-                    return true;
-                }
-        }
-        // MinCard/MaxCard direct clash: ≥n1 R.C and ≤n2 R.C with n1 > n2
-        for label in &self.labels {
-            if let Concept::MinCard(r1, n1, f1) = label {
-                for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other
-                        && r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top) {
-                            return true;
-                        }
-                }
-            }
-            // Exists(R, C) = ≥1 R.C clashes with MaxCard(R, 0, C/Top)
-            if let Concept::Exists(r1, f1) = label {
-                for other in &self.labels {
-                    if let Concept::MaxCard(r2, n2, f2) = other
-                        && r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top) {
-                            return true;
-                        }
-                }
-            }
-        }
-        false
+        Some(out)
     }
+
+    /// `has_clash`, with the choice points the clash depends on.
+    ///
+    /// The outer `Option` is whether there is a clash; the inner one is
+    /// `None` when a clashing label carries no recorded set.
+    fn clash_dep(&self) -> Option<Option<Dep>> {
+        if self.labels.contains(&Concept::Bottom) {
+            return Some(self.deps_of([&Concept::Bottom]));
+        }
+        // Sorted, so the clash reported, and so the dependency set a backjump
+        // follows, does not depend on the label set's random hash seed.
+        let mut sorted: Vec<&Concept> = self.labels.iter().collect();
+        sorted.sort_unstable();
+        for &label in &sorted {
+            if let Concept::Atom(a) = label {
+                let neg = Concept::NegAtom(*a);
+                if self.labels.contains(&neg) {
+                    return Some(self.deps_of([label, &neg]));
+                }
+            }
+        }
+        for &label in &sorted {
+            if let Concept::MinCard(r1, n1, f1) = label {
+                for &other in &sorted {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && n1 > n2 && (f1 == f2 || **f2 == Concept::Top)
+                    {
+                        return Some(self.deps_of([label, other]));
+                    }
+                }
+            }
+            if let Concept::Exists(r1, f1) = label {
+                for &other in &sorted {
+                    if let Concept::MaxCard(r2, n2, f2) = other
+                        && r1 == r2 && *n2 == 0 && (f1 == f2 || **f2 == Concept::Top)
+                    {
+                        return Some(self.deps_of([label, other]));
+                    }
+                }
+            }
+        }
+        None
+    }
+
 }
 
 // ── Explanation Trace ───────────────────────────────────────────────────
@@ -1527,6 +2131,21 @@ struct Tableau {
     /// this stays off by default and nothing changes; the model emitter turns it
     /// on because it has to hand over the graph, not the verdict.
     capture: bool,
+    /// The choice points the label being added right now depends on. Every
+    /// rule sets it to the set of the label that fired it before adding
+    /// anything; between rules it is every open choice point, which is the
+    /// safe value for anything that forgets. See `Dep`.
+    ctx: Dep,
+    /// The `⊔` and `≤` choice points open on the path to this tableau.
+    open: Vec<u32>,
+    /// The id the next choice point will take.
+    next_choice: u32,
+    /// Why the last `expand` that returned `false` failed: the choice points
+    /// its clash depends on. Meaningless after a `true`.
+    fail_dep: Dep,
+    /// Whether any `⊔` branch or `≤` merge has been chosen on the path to
+    /// the graph this tableau holds. See `ClassModel`.
+    nondeterministic: bool,
 }
 
 impl Tableau {
@@ -1538,6 +2157,11 @@ impl Tableau {
             trace: ExplanationTrace::new(false),
             budget: Budget::default(),
             capture: false,
+            ctx: Dep::new(),
+            open: Vec::new(),
+            next_choice: 0,
+            fail_dep: Dep::new(),
+            nondeterministic: false,
         }
     }
 
@@ -1555,6 +2179,11 @@ impl Tableau {
             trace: ExplanationTrace::new(true),
             budget: Budget::default(),
             capture: false,
+            ctx: Dep::new(),
+            open: Vec::new(),
+            next_choice: 0,
+            fail_dep: Dep::new(),
+            nondeterministic: false,
         }
     }
 
@@ -1582,21 +2211,83 @@ impl Tableau {
         id
     }
 
+    /// Every open choice point: the safe dependency set for anything whose
+    /// real set is not tracked.
+    fn all_open(&self) -> Dep {
+        self.open.iter().copied().collect()
+    }
+
+    /// The set of a label on a node, or every open choice point if none is
+    /// recorded.
+    fn label_dep(&self, node_id: u32, c: &Concept) -> Dep {
+        self.nodes
+            .get(&node_id)
+            .and_then(|n| n.deps.get(c).cloned())
+            .unwrap_or_else(|| self.all_open())
+    }
+
+    /// The set of the edge `from --role--> to`, read through the sub-roles of
+    /// `role` and the parent back-link the way `successors` reads them, or
+    /// every open choice point if none is recorded.
+    fn edge_dep(&self, from: u32, role: u32, to: u32) -> Dep {
+        let Some(n) = self.nodes.get(&from) else {
+            return self.all_open();
+        };
+        let mut roles = vec![role];
+        if let Some(subs) = self.tbox.super_to_sub.get(&role) {
+            roles.extend(subs.iter().copied());
+        }
+        for r in roles {
+            if n.edges.get(&r).is_some_and(|t| t.contains(&to))
+                && let Some(d) = n.edge_deps.get(&(r, to))
+            {
+                return d.clone();
+            }
+        }
+        if n.parent == Some(to) {
+            return n.created.clone();
+        }
+        self.all_open()
+    }
+
     fn add_label(&mut self, node_id: u32, concept: Concept) -> bool {
         if concept == Concept::Top {
             return false;
         }
+        let dep = self.ctx.clone();
         let node = self.nodes.get_mut(&node_id).unwrap();
         if !node.labels.insert(concept.clone()) {
             return false;
         }
+        node.deps.insert(concept.clone(), dep.clone());
         // Trigger concept definitions for atomic labels
-        if let Concept::Atom(a) = &concept
-            && let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
+        if let Concept::Atom(a) = &concept {
+            if let Some(defs) = self.tbox.concept_defs.get(a).cloned() {
                 for d in defs {
                     self.add_label(node_id, d);
                 }
             }
+            // A binary rule fires on whichever of its two conjuncts arrives
+            // second, so it is checked from both sides. See `Absorber`. What
+            // it adds depends on BOTH conjuncts.
+            if let Some(rules) = self.tbox.binary_defs.get(a).cloned() {
+                for (other, d) in rules {
+                    let other_dep = self.nodes.get(&node_id).and_then(|n| {
+                        n.labels
+                            .contains(&Concept::Atom(other))
+                            .then(|| n.deps.get(&Concept::Atom(other)).cloned())
+                    });
+                    if let Some(other_dep) = other_dep {
+                        let saved = self.ctx.clone();
+                        let mut both = dep.clone();
+                        both.extend(other_dep.unwrap_or_else(|| self.all_open()));
+                        self.ctx = both;
+                        self.add_label(node_id, d);
+                        self.ctx = saved;
+                    }
+                }
+            }
+        }
         true
     }
 
@@ -1687,13 +2378,21 @@ impl Tableau {
         if !self.nodes.contains_key(&from) || !self.nodes.contains_key(&to) {
             return;
         }
-        self.nodes
-            .get_mut(&from)
-            .unwrap()
-            .edges
-            .entry(role)
-            .or_default()
-            .insert(to);
+        let dep = self.ctx.clone();
+        let from_node = self.nodes.get_mut(&from).unwrap();
+        from_node.edges.entry(role).or_default().insert(to);
+        from_node.edge_deps.entry((role, to)).or_insert_with(|| dep.clone());
+        // The inverse edge holds in every model in which this one does, and it
+        // is stored rather than inferred because a `∀r⁻` placed by absorption
+        // has to reach an `r`-predecessor that is not a tree parent: an ABox
+        // neighbour, or a parent reached through a sub-role of `r`. The parent
+        // back-link in `successors` covered only the second case's simplest
+        // form.
+        if let Some(&inv) = self.tbox.inverse_roles.get(&role) {
+            let to_node = self.nodes.get_mut(&to).unwrap();
+            to_node.edges.entry(inv).or_default().insert(from);
+            to_node.edge_deps.entry((inv, from)).or_insert(dep);
+        }
 
         // Keeping domain and range out of the GCI list is deliberate: as GCIs
         // they are `∃p.⊤ ⊑ D` and `⊤ ⊑ ∀p.R`, both with a non-atomic left-hand
@@ -1727,6 +2426,9 @@ impl Tableau {
     /// Create a new successor node and set up edges (including inverse back-edges).
     fn create_successor(&mut self, parent_id: u32, role: u32, filler: Concept) -> u32 {
         let succ = self.fresh_node(Some(parent_id), Some(role));
+        // The node exists only under the choices its generating `∃` or `≥`
+        // label depends on, which is what the caller left in `ctx`.
+        self.nodes.get_mut(&succ).unwrap().created = self.ctx.clone();
         // The edge goes in through the shared primitive, which is what applies
         // rdfs:domain to this node and rdfs:range to the new one.
         self.add_role_edge(parent_id, role, succ);
@@ -1737,15 +2439,22 @@ impl Tableau {
             self.add_label(succ, gci);
         }
 
-        // Propagate ∀ labels from parent to new successor
-        let parent_labels: Vec<Concept> = self.nodes[&parent_id].labels.iter().cloned().collect();
+        // Propagate ∀ labels from parent to new successor. What lands depends
+        // on the `∀` label as well as on the edge.
+        let edge_ctx = self.ctx.clone();
+        let mut parent_labels: Vec<Concept> = self.nodes[&parent_id].labels.iter().cloned().collect();
+        parent_labels.sort_unstable();
         for label in &parent_labels {
             match label {
                 Concept::ForAll(r, f) if *r == role => {
+                    let mut d = edge_ctx.clone();
+                    d.extend(self.label_dep(parent_id, label));
+                    self.ctx = d;
                     self.add_label(succ, *f.clone());
                     if self.tbox.transitive_roles.contains(r) {
                         self.add_label(succ, Concept::ForAll(*r, f.clone()));
                     }
+                    self.ctx = edge_ctx.clone();
                 }
                 _ => {}
             }
@@ -1765,7 +2474,11 @@ impl Tableau {
             for label in &parent_labels {
                 if let Concept::ForAll(r, f) = label
                     && *r == sup_role {
+                        let mut d = edge_ctx.clone();
+                        d.extend(self.label_dep(parent_id, label));
+                        self.ctx = d;
                         self.add_label(succ, *f.clone());
+                        self.ctx = edge_ctx.clone();
                     }
             }
         }
@@ -1788,24 +2501,36 @@ impl Tableau {
             remove_id, keep_id
         ));
 
+        // Everything the merge moves depends on the merge itself, which the
+        // caller left in `ctx` (the choice, the `≤` label, and the edges and
+        // filler labels that made the two nodes candidates), and on whatever
+        // the moved thing depended on where it was.
+        let merge_ctx = self.ctx.clone();
+
         // 1. Merge labels
-        let remove_labels: Vec<Concept> = self.nodes[&remove_id].labels.iter().cloned().collect();
+        let mut remove_labels: Vec<Concept> = self.nodes[&remove_id].labels.iter().cloned().collect();
+        remove_labels.sort_unstable();
         for label in remove_labels {
+            let mut d = merge_ctx.clone();
+            d.extend(self.label_dep(remove_id, &label));
+            self.ctx = d;
             self.add_label(keep_id, label);
         }
+        self.ctx = merge_ctx.clone();
 
         // 2. Merge edges
         let remove_edges = self.nodes[&remove_id].edges.clone();
         for (role, targets) in remove_edges {
             for target in targets {
                 if target != keep_id && target != remove_id {
-                    self.nodes
-                        .get_mut(&keep_id)
-                        .unwrap()
-                        .edges
-                        .entry(role)
-                        .or_default()
-                        .insert(target);
+                    let mut d = merge_ctx.clone();
+                    match self.nodes[&remove_id].edge_deps.get(&(role, target)) {
+                        Some(e) => d.extend(e.iter().copied()),
+                        None => d.extend(self.all_open()),
+                    }
+                    let keep = self.nodes.get_mut(&keep_id).unwrap();
+                    keep.edges.entry(role).or_default().insert(target);
+                    keep.edge_deps.entry((role, target)).or_insert(d);
                 }
             }
         }
@@ -1821,16 +2546,30 @@ impl Tableau {
             if nid == remove_id {
                 continue;
             }
+            let open = self.all_open();
             let node = self.nodes.get_mut(&nid).unwrap();
-            for targets in node.edges.values_mut() {
+            let mut moved: Vec<u32> = Vec::new();
+            for (&role, targets) in node.edges.iter_mut() {
                 if targets.remove(&remove_id)
                     && nid != keep_id {
                         targets.insert(keep_id);
+                        moved.push(role);
                     }
+            }
+            // An edge redirected to the survivor exists there only because of
+            // the merge.
+            for role in moved {
+                let mut d = merge_ctx.clone();
+                match node.edge_deps.remove(&(role, remove_id)) {
+                    Some(e) => d.extend(e),
+                    None => d.extend(open.iter().copied()),
+                }
+                node.edge_deps.insert((role, keep_id), d);
             }
             // Update parent references
             if node.parent == Some(remove_id) {
                 node.parent = Some(keep_id);
+                node.created.extend(merge_ctx.iter().copied());
             }
         }
 
@@ -1853,6 +2592,9 @@ impl Tableau {
         let out_of_budget = self.budget.spend();
         if depth > max_depth || self.nodes.len() > max_nodes || out_of_budget {
             self.budget.exhausted = true;
+            // An exhausted branch refuted nothing, so it may not license a
+            // jump past any choice point.
+            self.fail_dep = self.all_open();
             return false;
         }
 
@@ -1867,9 +2609,11 @@ impl Tableau {
             // work is: every iteration re-runs blocking over every node.
             if self.budget.spend() {
                 self.budget.exhausted = true;
+                self.fail_dep = self.all_open();
                 return false;
             }
-            if self.any_clash() {
+            if let Some(d) = self.clash() {
+                self.fail_dep = d;
                 return false;
             }
             let mut changed = false;
@@ -1885,14 +2629,23 @@ impl Tableau {
                     continue;
                 }
 
-                let labels: Vec<Concept> = self.nodes[&nid]
+                let mut labels: Vec<Concept> = self.nodes[&nid]
                     .labels
                     .iter()
                     .filter(|l| !self.nodes[&nid].processed.contains(l))
                     .cloned()
                     .collect();
+                // Sorted, like the node traversals. A label set is a HashSet
+                // with a per-instance random seed, and the order rules fire in
+                // decides node ids, which clash is met first and therefore the
+                // dependency set a backjump follows. Unsorted, the number of
+                // branches explored moved between runs of one input (#161).
+                labels.sort_unstable();
 
                 for label in labels {
+                    // Everything this rule adds depends on the label that
+                    // fired it.
+                    self.ctx = self.label_dep(nid, &label);
                     match &label {
                         // ⊓-rule: expand conjunction
                         Concept::And(cs) => {
@@ -1938,6 +2691,7 @@ impl Tableau {
                                 for _ in 0..(n - matching) {
                                     if self.nodes.len() > max_nodes || self.budget.spend() {
                                         self.budget.exhausted = true;
+                                        self.fail_dep = self.all_open();
                                         return false;
                                     }
                                     self.create_successor(nid, role, filler.clone());
@@ -1952,10 +2706,14 @@ impl Tableau {
                             let filler = *filler.clone();
                             let is_transitive = self.tbox.transitive_roles.contains(&role);
                             let succs = self.successors(nid, role);
+                            let forall_dep = self.ctx.clone();
                             for s in succs {
                                 if !self.nodes.contains_key(&s) {
                                     continue;
                                 }
+                                let mut d = forall_dep.clone();
+                                d.extend(self.edge_dep(nid, role, s));
+                                self.ctx = d;
                                 if self.add_label(s, filler.clone()) {
                                     changed = true;
                                 }
@@ -1981,13 +2739,15 @@ impl Tableau {
                 }
             }
 
+            self.ctx = self.all_open();
             self.update_blocking();
             if !changed {
                 break;
             }
         }
 
-        if self.any_clash() {
+        if let Some(d) = self.clash() {
+            self.fail_dep = d;
             return false;
         }
 
@@ -2004,7 +2764,7 @@ impl Tableau {
                 continue;
             }
 
-            let max_labels: Vec<(u32, u32, Concept)> = self.nodes[&nid]
+            let mut max_labels: Vec<(u32, u32, Concept)> = self.nodes[&nid]
                 .labels
                 .iter()
                 .filter(|l| !self.nodes[&nid].processed.contains(l))
@@ -2013,14 +2773,16 @@ impl Tableau {
                     _ => None,
                 })
                 .collect();
+            max_labels.sort_unstable();
 
             for (role, n, filler) in max_labels {
                 let succs = self.successors(nid, role);
-                let matching: Vec<u32> = succs
+                let mut matching: Vec<u32> = succs
                     .iter()
                     .filter(|&&s| self.node_satisfies(s, &filler))
                     .copied()
                     .collect();
+                matching.sort_unstable();
 
                 if matching.len() as u32 > n {
                     self.trace.record(&format!(
@@ -2095,10 +2857,36 @@ impl Tableau {
                     // `budget.exhausted`, which callers turn into `Verdict::Unknown`
                     // and `undecided: true`. The degraded answer is "I did not
                     // finish", never a verdict.
+                    // A merge is a choice point. What it moves is charged to
+                    // the choice, to the `≤` label and to each candidate's
+                    // edge and filler label, on top of what it depended on
+                    // before; see `merge_nodes`.
+                    let choice = self.next_choice;
+                    self.next_choice += 1;
+                    let alternatives = matching.len() * (matching.len() - 1) / 2;
+                    // Why the rule fired at all: the bound, and each candidate's
+                    // edge and its filler label.
+                    let max_label = Concept::MaxCard(role, n, Box::new(filler.clone()));
+                    let mut rule_dep = self.label_dep(nid, &max_label);
+                    for &m in &matching {
+                        rule_dep.extend(self.edge_dep(nid, role, m));
+                        if filler != Concept::Top {
+                            rule_dep.extend(self.label_dep(m, &filler));
+                        }
+                    }
+                    let mut failed = rule_dep.clone();
                     for i in 0..matching.len() {
                         for j in (i + 1)..matching.len() {
                             let mut branch = self.clone();
+                            branch.open.push(choice);
+                            if alternatives > 1 {
+                                branch.nondeterministic = true;
+                            }
+                            let mut d = rule_dep.clone();
+                            d.insert(choice);
+                            branch.ctx = d;
                             branch.merge_nodes(matching[i], matching[j]);
+                            branch.ctx = branch.all_open();
                             if branch.expand(depth + 1) {
                                 *self = branch;
                                 return true;
@@ -2109,8 +2897,16 @@ impl Tableau {
                             if self.budget.stopped_by.is_none() {
                                 self.budget.stopped_by = branch.budget.stopped_by;
                             }
+                            // Backjump, as for a disjunction: a clash that does
+                            // not depend on this merge recurs under every other.
+                            if !branch.fail_dep.contains(&choice) {
+                                self.fail_dep = branch.fail_dep;
+                                return false;
+                            }
+                            failed.extend(branch.fail_dep.iter().copied().filter(|&c| c != choice));
                         }
                     }
+                    self.fail_dep = failed;
                     return false; // All merges lead to clash
                 } else {
                     // No violation, mark as processed
@@ -2135,13 +2931,14 @@ impl Tableau {
             if !self.nodes.contains_key(&nid) || self.nodes[&nid].blocked {
                 continue;
             }
-            let pending_ors: Vec<Concept> = self.nodes[&nid]
+            let mut pending_ors: Vec<Concept> = self.nodes[&nid]
                 .labels
                 .iter()
                 .filter(|l| matches!(l, Concept::Or(_)))
                 .filter(|l| !self.nodes[&nid].processed.contains(l))
                 .cloned()
                 .collect();
+            pending_ors.sort_unstable();
 
             for or_concept in pending_ors {
                 if let Concept::Or(ref disjuncts) = or_concept {
@@ -2162,14 +2959,27 @@ impl Tableau {
                         .unwrap()
                         .processed
                         .insert(or_concept.clone());
+                    let or_dep = self.label_dep(nid, &or_concept);
+                    let choice = self.next_choice;
+                    self.next_choice += 1;
+                    // Why every disjunct failed, less this choice itself.
+                    let mut failed = or_dep.clone();
                     for disjunct in disjuncts {
                         let mut branch = self.clone();
+                        branch.open.push(choice);
+                        branch.nondeterministic = true;
+                        let mut d = or_dep.clone();
+                        d.insert(choice);
+                        branch.ctx = d;
                         branch.add_label(nid, disjunct.clone());
+                        branch.ctx = branch.all_open();
                         if branch.expand(depth + 1) {
                             // Only the model emitter asks for the graph back. See
                             // `Tableau::capture`.
                             if self.capture {
                                 *self = branch;
+                            } else {
+                                self.nondeterministic = true;
                             }
                             return true;
                         }
@@ -2178,33 +2988,67 @@ impl Tableau {
                             if self.budget.stopped_by.is_none() {
                                 self.budget.stopped_by = branch.budget.stopped_by;
                             }
+                        // Backjump: a clash that does not depend on this
+                        // choice would recur under every other disjunct.
+                        if !branch.fail_dep.contains(&choice) {
+                            self.fail_dep = branch.fail_dep;
+                            return false;
+                        }
+                        failed.extend(branch.fail_dep.iter().copied().filter(|&c| c != choice));
                     }
+                    self.fail_dep = failed;
                     return false; // All branches clash
                 }
             }
         }
 
         // Check disjointness constraints
+        let mut disjoint_clash: Option<Dep> = None;
+        let mut by_id: Vec<u32> = self.nodes.keys().copied().collect();
+        by_id.sort_unstable();
         for (a, b) in &self.tbox.disjoint_pairs {
-            for node in self.nodes.values() {
+            for node in by_id.iter().map(|id| &self.nodes[id]) {
                 if node.blocked {
                     continue;
                 }
                 if node.labels.contains(a) && node.labels.contains(b) {
                     self.trace
                         .record(&format!("Clash: disjoint concepts {:?} and {:?}", a, b));
-                    return false;
+                    disjoint_clash = Some(node.deps_of([a, b]).unwrap_or_else(|| self.all_open()));
+                    break;
                 }
             }
+            if disjoint_clash.is_some() {
+                break;
+            }
+        }
+        if let Some(d) = disjoint_clash {
+            self.fail_dep = d;
+            return false;
         }
 
         true // Complete, clash-free
     }
 
-    fn any_clash(&self) -> bool {
-        self.nodes
-            .values()
-            .any(|n| !n.blocked && (n.has_clash() || self.card_clash_via_hierarchy(n)))
+    /// The first clash on an unblocked node, with the choice points it
+    /// depends on. Nodes are visited in id order so the answer does not depend
+    /// on `HashMap` iteration.
+    fn clash(&self) -> Option<Dep> {
+        let mut ids: Vec<u32> = self.nodes.keys().copied().collect();
+        ids.sort_unstable();
+        for id in ids {
+            let n = &self.nodes[&id];
+            if n.blocked {
+                continue;
+            }
+            if let Some(d) = n.clash_dep() {
+                return Some(d.unwrap_or_else(|| self.all_open()));
+            }
+            if let Some(d) = self.card_clash_via_hierarchy(n) {
+                return Some(d.unwrap_or_else(|| self.all_open()));
+            }
+        }
+        None
     }
 
     /// ≥n1 R.C against ≤n2 R.D where n1 > n2 and C ⊑ D.
@@ -2219,7 +3063,7 @@ impl Tableau {
     /// are all of this shape. Ablating its cardinality axioms takes the count to
     /// 0, while ablating rdfs:domain, rdfs:range or owl:disjointWith each leave
     /// all 39 standing.
-    fn card_clash_via_hierarchy(&self, n: &TNode) -> bool {
+    fn card_clash_via_hierarchy(&self, n: &TNode) -> Option<Option<Dep>> {
         let subsumed = |a: &Concept, b: &Concept| -> bool {
             match (a, b) {
                 (Concept::Atom(x), Concept::Atom(y)) => {
@@ -2233,38 +3077,120 @@ impl Tableau {
                 _ => false,
             }
         };
-        for label in &n.labels {
+        let mut sorted: Vec<&Concept> = n.labels.iter().collect();
+        sorted.sort_unstable();
+        for &label in &sorted {
             let (r1, n1, f1) = match label {
                 Concept::MinCard(r, k, f) => (*r, *k, f.as_ref()),
                 Concept::Exists(r, f) => (*r, 1u32, f.as_ref()),
                 _ => continue,
             };
-            for other in &n.labels {
+            for &other in &sorted {
                 if let Concept::MaxCard(r2, n2, f2) = other
                     && r1 == *r2
                     && n1 > *n2
                     && subsumed(f1, f2)
                 {
-                    return true;
+                    return Some(n.deps_of([label, other]));
                 }
             }
         }
-        false
+        None
     }
 
-    /// Applies pairwise ancestor blocking to every node. See
-    /// `is_pairwise_blocked` for the condition.
+    /// Applies pairwise ANYWHERE blocking to every node, and marks the
+    /// descendants of a blocked node indirectly blocked.
+    ///
+    /// The blocker used to have to be an ANCESTOR. On an EL ontology with long
+    /// chains of existentials over distinct classes (ORE 2015 `ore_ont_11497`,
+    /// an anatomy ontology whose developmental stages are each `preceded_by`
+    /// the last, with about three existentials per class) no ancestor ever
+    /// repeats a label before the chain ends, so every distinct path was
+    /// expanded separately and the tree grew exponentially with the chain's
+    /// depth: 21 s, one class undetermined, and a different answer on each run
+    /// as the budget fell in a different place. Anywhere blocking lets ANY
+    /// earlier node with the same pairwise signature block, so each signature
+    /// is expanded once. It is sound for SHIQ with the pairwise condition
+    /// below (Motik, Shearer and Horrocks, *Hypertableau Reasoning for
+    /// Description Logics*, JAIR 36, 2009, section 5), and it is what HermiT
+    /// does.
+    ///
+    /// Nodes are visited in id order, which is creation order, so a blocker is
+    /// always older than the node it blocks and never its descendant. Only an
+    /// unblocked, blockable node goes into the index, so no blocker is itself
+    /// blocked. A node whose parent is blocked, directly or indirectly, is
+    /// indirectly blocked and gets no rule, which is what makes the unravelled
+    /// model well defined. A merge can point a node at a parent with a larger
+    /// id; that parent's status is not yet known when the child is visited, so
+    /// the child is simply not treated as indirectly blocked. Blocking less only
+    /// costs expansion, never soundness.
     fn update_blocking(&mut self) {
         let mut node_ids: Vec<u32> = self.nodes.keys().copied().collect();
-        // Sorted: HashMap iteration order is seeded per process, so an unsorted
-        // traversal makes expansion order (and therefore which checks finish
-        // inside budget) vary run to run. Node ids are assigned sequentially, so
-        // sorting by id is creation order.
         node_ids.sort_unstable();
+        let mut blocked_now: HashSet<u32> = HashSet::new();
+        let mut decided: HashMap<u32, Option<u32>> = HashMap::new();
+        let mut index: HashMap<Vec<Concept>, Vec<u32>> = HashMap::new();
         for &nid in &node_ids {
-            let blocked = self.is_pairwise_blocked(nid);
-            self.nodes.get_mut(&nid).unwrap().blocked = blocked;
+            let node = &self.nodes[&nid];
+            let Some(parent) = node.parent else {
+                // A root is never blocked and never blocks.
+                decided.insert(nid, None);
+                continue;
+            };
+            if blocked_now.contains(&parent) {
+                blocked_now.insert(nid);
+                decided.insert(nid, None);
+                continue;
+            }
+            let mut sig: Vec<Concept> = node.labels.iter().cloned().collect();
+            sig.sort_unstable();
+            let blocker = index
+                .get(&sig)
+                .and_then(|cands| cands.iter().copied().find(|&t| self.pairwise_blocks(t, nid)));
+            match blocker {
+                Some(t) => {
+                    blocked_now.insert(nid);
+                    decided.insert(nid, Some(t));
+                }
+                None => {
+                    decided.insert(nid, None);
+                    index.entry(sig).or_default().push(nid);
+                }
+            }
         }
+        for (nid, blocker) in decided {
+            let n = self.nodes.get_mut(&nid).unwrap();
+            n.blocked = blocked_now.contains(&nid);
+            n.blocker = blocker;
+        }
+    }
+
+    /// Whether `t` blocks `s` under the pairwise condition, labels of the two
+    /// nodes already known to be equal.
+    ///
+    /// Horrocks and Sattler, *A Tableau Decision Procedure for SHOIQ* (JAR 39,
+    /// 2007): once a logic has BOTH inverse roles and number restrictions,
+    /// single-node blocking is not sound, because unravelling replicates the
+    /// fragment between a blocked node and its blocker, and with inverse roles a
+    /// node constrains its predecessor, so the contexts have to match too. For
+    /// `s` a blockable successor of `s'` and `t` one of `t'`, `t` blocks `s`
+    /// iff `L(s) = L(t)`, `L(s') = L(t')`, `L(s,s') = L(t,t')` and
+    /// `L(s',s) = L(t',t)`. Equality, not inclusion.
+    fn pairwise_blocks(&self, t: u32, s: u32) -> bool {
+        let (Some(sn), Some(tn)) = (self.nodes.get(&s), self.nodes.get(&t)) else {
+            return false;
+        };
+        let (Some(sp), Some(tp)) = (sn.parent, tn.parent) else {
+            return false;
+        };
+        let (Some(spn), Some(tpn)) = (self.nodes.get(&sp), self.nodes.get(&tp)) else {
+            return false;
+        };
+        t < s
+            && tn.labels == sn.labels
+            && tpn.labels == spn.labels
+            && self.roles_between(tp, t) == self.roles_between(sp, s)
+            && self.roles_between(t, tp) == self.roles_between(s, sp)
     }
 
     /// The set of roles labelling the edge from `from` to `to`.
@@ -2280,75 +3206,14 @@ impl Tableau {
         }
     }
 
-    /// Pairwise (double) ancestor blocking.
-    ///
-    /// Horrocks and Sattler, *A Tableau Decision Procedure for SHOIQ* (JAR 39,
-    /// 2007): once a logic has BOTH inverse roles and number restrictions,
-    /// single-node blocking is not sound. The reason is unravelling. To build a
-    /// model from a completion graph you replicate the fragment between the
-    /// blocked node and its blocker infinitely often, and that only yields a
-    /// model if the blocked node behaves like its blocker *in its context*.
-    /// With inverse roles a node constrains its predecessor, so the contexts
-    /// have to match too.
-    ///
-    /// The condition, for `s` a blockable successor of `s'` and `t` a blockable
-    /// successor of `t'`, is that `t` blocks `s` iff
-    ///
-    ///   t ≺ s,  L(s) = L(t),  L(s') = L(t'),  L(s,s') = L(t,t'),  L(s',s) = L(t',t)
-    ///
-    /// Note `=`, not `⊆`. This replaces the previous implementation, which used
-    /// ancestor SUBSET blocking on the node label alone and ignored parents and
-    /// edge labels entirely. That was adequate for ALC but unsound for the
-    /// SHIQ this reasoner implements.
-    ///
-    /// This is deliberately the classical ancestor variant rather than HermiT's
-    /// "anywhere" blocking. Anywhere blocking yields smaller models but is a
-    /// further optimisation on top of a correct base; get the base right first.
-    fn is_pairwise_blocked(&self, s: u32) -> bool {
-        self.blocker_of(s).is_some()
-    }
-
-    /// The ancestor that blocks `s`, under the condition `is_pairwise_blocked`
-    /// documents. Split out so that the model emitter can fold a blocked node
-    /// into the node that blocks it, which is the only way a completion graph
-    /// with blocking becomes a finite interpretation. One condition, one place.
+    /// The node that directly blocks `s`, as `update_blocking` last decided.
+    /// Split out so that the model emitter can fold a blocked node into the
+    /// node that blocks it, which is the only way a completion graph with
+    /// blocking becomes a finite interpretation. One decision, one place: the
+    /// emitter reads the blocker the expansion used rather than recomputing
+    /// one under a condition that could drift from it.
     fn blocker_of(&self, s: u32) -> Option<u32> {
-        // Only blockable successors can be blocked. A node with no parent is
-        // a root and is never blocked.
-        let s_parent = self.nodes.get(&s).and_then(|n| n.parent)?;
-        let s_node = self.nodes.get(&s)?;
-        let s_parent_node = self.nodes.get(&s_parent)?;
-
-        let s_labels = &s_node.labels;
-        let s_parent_labels = &s_parent_node.labels;
-        let s_down = self.roles_between(s_parent, s);
-        let s_up = self.roles_between(s, s_parent);
-
-        // Walk strict ancestors, looking for a blocker.
-        let mut cur = s_node.parent;
-        while let Some(t) = cur {
-            let Some(t_node) = self.nodes.get(&t) else {
-                break;
-            };
-            if let Some(t_parent) = t_node.parent {
-                // Node ids are allocated monotonically, so `t < s` is the
-                // strict ordering the calculus requires. It also guarantees we
-                // never create a blocking cycle.
-                if t < s
-                    && t_node.labels == *s_labels
-                    && self
-                        .nodes
-                        .get(&t_parent)
-                        .is_some_and(|tp| tp.labels == *s_parent_labels)
-                    && self.roles_between(t_parent, t) == s_down
-                    && self.roles_between(t, t_parent) == s_up
-                {
-                    return Some(t);
-                }
-            }
-            cur = t_node.parent;
-        }
-        None
+        self.nodes.get(&s).and_then(|n| n.blocker)
     }
 }
 
@@ -2420,7 +3285,7 @@ impl DlReasoner {
     pub fn from_graph(graph: &Arc<GraphStore>) -> anyhow::Result<Self> {
         let triples = graph.all_triples()?;
         let parser = OwlParser::new(triples);
-        let result = parser.parse();
+        let mut result = parser.parse();
 
         // Transitive closure of asserted CLASS subsumption, so an individual typed
         // EnumerationTerm satisfies a conjunct requiring ClassTerm.
@@ -2472,6 +3337,7 @@ impl DlReasoner {
                 role_domains: &result.role_domains,
                 role_ranges: &result.role_ranges,
             },
+            &mut result.interner,
         ));
 
         Ok(Self {
@@ -2512,9 +3378,10 @@ impl DlReasoner {
     /// undetermined, just after eighteen times the work. Per phase fixes the
     /// defect that was reported (the ABox check inheriting a spent clock) and
     /// bounds the change at 3x the old worst case instead of 18x. The cost of
-    /// that choice is that the ceiling cannot be the bound that fires, and every
-    /// `owl-dl` run now says so in its `budget` block rather than leaving a
-    /// reader to infer it from two settings and a phase count.
+    /// that choice is that at the defaults the ceiling is not expected to be the
+    /// bound that fires, and every `owl-dl` run now says which bound did fire in
+    /// its `budget` block rather than leaving a reader to infer it from two
+    /// settings and a phase count.
     ///
     /// THAT 67s NUMBER CANNOT BE REPRODUCED FROM THIS REPOSITORY and is kept only
     /// as the reason a route was abandoned. The corpus it was taken over is not
@@ -2584,6 +3451,42 @@ impl DlReasoner {
     fn decide_satisfiable_within(&self, concept: &Concept, deadline: Option<Instant>) -> Verdict {
         let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), deadline);
         tableau.decide(concept)
+    }
+
+    /// `decide_satisfiable` for a named class, keeping what its model says about
+    /// the class's subsumers. See `ClassModel`.
+    fn satisfiable_with_model(&self, cls: u32, deadline: Option<Instant>) -> (Verdict, Option<ClassModel>) {
+        let mut tableau = Tableau::with_deadline(Arc::clone(&self.tbox), deadline);
+        // The graph of the branch that succeeded is the model; without
+        // `capture` the ⊔-rule hands back the state before the last choice.
+        tableau.capture = true;
+        let verdict = tableau.decide(&Concept::Atom(cls));
+        if !matches!(verdict, Verdict::Satisfiable) {
+            return (verdict, None);
+        }
+        // Node 0 is the root `decide` created. A merge can in principle remove
+        // it, and then there is no root to read, so the class falls back to
+        // pairwise testing rather than being read off the wrong node.
+        let Some(root) = tableau.nodes.get(&0) else {
+            return (verdict, None);
+        };
+        let mut root_classes: Vec<u32> = root
+            .labels
+            .iter()
+            .filter_map(|l| match l {
+                Concept::Atom(a)
+                    if *a != cls
+                        && *a != self.thing_id
+                        && *a != self.nothing_id
+                        && self.named_classes.contains(a) =>
+                {
+                    Some(*a)
+                }
+                _ => None,
+            })
+            .collect();
+        root_classes.sort_unstable();
+        (verdict, Some(ClassModel { root_classes, deterministic: !tableau.nondeterministic }))
     }
 
     /// `decide_subsumption` against a deadline the caller already opened.
@@ -2757,12 +3660,18 @@ impl DlReasoner {
         // and ~10,000 pairs; at the 10s per-test budget the worst case is over
         // a day. A global deadline is what actually stops that.
         //
-        // Checked here at the head of each task, which is the cheap place, AND
-        // folded into every tableau's own deadline below, which is the place
-        // that makes it a ceiling rather than a suggestion: without the fold, a
-        // single tableau that started inside the budget could run for a further
-        // phase-budget's worth of time past it.
-        let out_of_time = || global_deadline.is_some_and(|d| Instant::now() >= d);
+        // It is folded into each phase's own deadline by `phase_deadline_within`,
+        // and that folded deadline is checked at the head of each task, which is
+        // the cheap place, AND inside every tableau, which is the place that
+        // makes it a ceiling rather than a suggestion. The head-of-task check
+        // used to read the GLOBAL deadline alone (#340). A tableau opened after
+        // its phase deadline returns `Unknown` from its first step, so every
+        // task reached after the phase ran out still paid for building one, and
+        // with an undetermined class contributing a pair for every satisfiable
+        // class the sweep ran for 26 times its phase budget on nothing but
+        // those. Checking the folded deadline skips exactly the tableaux that
+        // could only have returned `Unknown`, so no verdict changes.
+        let expired = |d: Option<Instant>| d.is_some_and(|d| Instant::now() >= d);
 
         // ── Satisfiability Agent ─────────────────────────────────────
         let sat_start = Instant::now();
@@ -2773,19 +3682,19 @@ impl DlReasoner {
         // check — which runs last and is the one a user reads for their own data
         // — routinely reported `undecided` on an ABox it decides in microseconds.
         let sat_deadline = self.phase_deadline_within(global_deadline);
-        let sat_results: Vec<(u32, Verdict)> = classes
+        let sat_full: Vec<(u32, Verdict, Option<ClassModel>)> = classes
             .par_iter()
             .map(|&cls| {
-                if out_of_time() {
-                    // Budget gone: report Unknown rather than guessing.
-                    return (cls, Verdict::Unknown);
+                if expired(sat_deadline) {
+                    // Budget gone: report Unknown rather than guessing. This is
+                    // the verdict the tableau would return from its first step.
+                    return (cls, Verdict::Unknown, None);
                 }
-                (
-                    cls,
-                    self.decide_satisfiable_within(&Concept::Atom(cls), sat_deadline),
-                )
+                let (verdict, model) = self.satisfiable_with_model(cls, sat_deadline);
+                (cls, verdict, model)
             })
             .collect();
+        let sat_results: Vec<(u32, Verdict)> = sat_full.iter().map(|(c, v, _)| (*c, *v)).collect();
 
         // Only PROVEN unsatisfiable classes go in the unsatisfiable list.
         // Classes we ran out of budget on are undetermined, and are kept in
@@ -2817,54 +3726,98 @@ impl DlReasoner {
             .filter(|(_, v)| matches!(v, Verdict::Unknown))
             .map(|(c, _)| *c)
             .collect();
+        let sat_clock = if undetermined.is_empty() {
+            None
+        } else {
+            expired_clock(sat_deadline, global_deadline)
+        };
         let sat_time = sat_start.elapsed();
 
         // ── Subsumption Agent ────────────────────────────────────────
         let sub_start = Instant::now();
         let told = self.compute_told_subsumers();
 
-        // Build pairs to test (skip told subsumptions)
-        let mut pairs: Vec<(u32, u32)> = Vec::new();
-        for &sub in &satisfiable {
-            for &sup in &satisfiable {
-                if sub != sup && !told.get(&sub).is_some_and(|s| s.contains(&sup)) {
-                    pairs.push((sub, sup));
+        // What each class's own model already settles, and the pairs left to
+        // test. See `ClassModel`: a named class missing from the root label of
+        // a model of `A` is a proven non-subsumer and is never tested; when the
+        // model was built with no choice, every named class in the root label
+        // is a proven subsumer and is not tested either. Only a class with no
+        // model (undetermined) falls back to testing every pair, which is what
+        // every class used to do.
+        //
+        // That fallback is NOT written out pair by pair (#340). `k` classes with
+        // no model against `n` satisfiable ones is `k x n` pairs, 27 million on
+        // a 6,000-class ontology whose satisfiability phase ran out, and the old
+        // sweep materialised every one, then a verdict for every one. A row
+        // with no model now carries only its class and a count, and its
+        // candidates are generated while the phase budget lasts; whatever the
+        // budget does not reach is counted undetermined in bulk.
+        let sat_set: HashSet<u32> = satisfiable.iter().copied().collect();
+        let mut rows: Vec<PairRow<'_>> = Vec::new();
+        let mut from_models: Vec<(u32, u32)> = Vec::new();
+        for (sub, verdict, model) in &sat_full {
+            if verdict.is_unsat() {
+                continue;
+            }
+            let told_sup = |sup: u32| told.get(sub).is_some_and(|s| s.contains(&sup));
+            match model {
+                Some(m) => {
+                    let mut listed = Vec::new();
+                    for &sup in &m.root_classes {
+                        if !sat_set.contains(&sup) || told_sup(sup) {
+                            continue;
+                        }
+                        if m.deterministic {
+                            from_models.push((*sub, sup));
+                        } else {
+                            listed.push(sup);
+                        }
+                    }
+                    if !listed.is_empty() {
+                        rows.push(PairRow::listed(*sub, listed));
+                    }
+                }
+                None => {
+                    rows.push(PairRow::every(*sub, &satisfiable, &sat_set, told.get(sub)));
                 }
             }
         }
 
-        let subsumption_cut_short = std::sync::atomic::AtomicBool::new(false);
         // This phase's own budget, opened now rather than inherited from the
         // satisfiability sweep that just finished.
         let sub_deadline = self.phase_deadline_within(global_deadline);
-        let inferred: Vec<(u32, u32)> = pairs
-            .par_iter()
-            .filter(|(sub, sup)| {
-                if out_of_time() {
-                    // Untested pairs are NOT non-subsumptions. Flag the run as
-                    // incomplete so no caller reads absence as refutation.
-                    subsumption_cut_short.store(true, std::sync::atomic::Ordering::Relaxed);
-                    return false;
-                }
+        let sweep = sweep_pairs(
+            &rows,
+            || expired(sub_deadline),
+            |sub, sup| {
                 self.decide_subsumption_within(
-                    &Concept::Atom(*sub),
-                    &Concept::Atom(*sup),
+                    &Concept::Atom(sub),
+                    &Concept::Atom(sup),
                     sub_deadline,
                 )
-                .is_unsat()
-            })
-            .cloned()
-            .collect();
-        let subsumption_cut_short =
-            subsumption_cut_short.load(std::sync::atomic::Ordering::Relaxed);
+            },
+        );
+        let pairs_scheduled: usize = rows.iter().map(|r| r.count).sum();
+        let subsumptions_from_models = from_models.len();
+        let mut inferred = from_models;
+        inferred.extend(sweep.inferred);
+        let undetermined_pairs = sweep.undetermined;
+        let pairs_not_reached = sweep.not_reached;
+        let pairs_tested = sweep.tested;
+        let subsumption_cut_short = !undetermined_pairs.is_empty() || pairs_not_reached > 0;
+        let sub_clock = if subsumption_cut_short {
+            expired_clock(sub_deadline, global_deadline)
+        } else {
+            None
+        };
         let sub_time = sub_start.elapsed();
 
         // Build hierarchy (told + inferred)
         let mut hierarchy: HashMap<u32, HashSet<u32>> = HashMap::new();
         for (&cls, supers) in &told {
-            if satisfiable.contains(&cls) {
+            if sat_set.contains(&cls) {
                 for &sup in supers {
-                    if satisfiable.contains(&sup) {
+                    if sat_set.contains(&sup) {
                         hierarchy.entry(cls).or_default().insert(sup);
                     }
                 }
@@ -2892,6 +3845,12 @@ impl DlReasoner {
             unsatisfiable,
             undetermined,
             subsumption_cut_short,
+            undetermined_pairs,
+            pairs_not_reached,
+            pairs_scheduled,
+            satisfiability_clock: sat_clock,
+            subsumption_clock: sub_clock,
+            subsumptions_from_models,
             equivalences,
             inferred_subsumptions: inferred.len(),
             agents: AgentMetrics {
@@ -2901,7 +3860,7 @@ impl DlReasoner {
                     time_ms: sat_time.as_millis() as u64,
                 },
                 subsumption: AgentTaskMetrics {
-                    tasks: pairs.len(),
+                    tasks: pairs_tested,
                     results: inferred.len(),
                     time_ms: sub_time.as_millis() as u64,
                 },
@@ -3282,6 +4241,7 @@ impl DlReasoner {
                 individuals_checked: 0,
                 steps: 0,
                 stopped_by: None,
+                clock: None,
                 inferred_types: HashMap::new(),
             };
         }
@@ -3326,6 +4286,11 @@ impl DlReasoner {
             inferred_types: inferred,
             steps: tableau.budget.steps.load(Ordering::Relaxed),
             stopped_by: tableau.budget.stopped_by,
+            clock: if abox_undecided && tableau.budget.stopped_by == Some("time") {
+                expired_clock(tableau.budget.deadline, global)
+            } else {
+                None
+            },
         }
     }
 
@@ -3381,9 +4346,20 @@ impl DlReasoner {
             .iter()
             .map(|&id| reasoner.interner.resolve(id))
             .collect();
-        let complete = undetermined_names.is_empty()
+        // A search that finished is not a classification that is complete. An
+        // axiom this engine reads only approximately, or not at all, can carry
+        // an entailment the search never had a chance to find, and the list of
+        // such axioms used to be computed only when a model certificate was
+        // requested. So `complete: true` was printed over runs that had
+        // approximated nominals or dropped a property chain, and a reader had
+        // no way to tell. Measured on ORE 2015 `ore_ont_5107`: seven
+        // `ObjectOneOf`, every phase decided, `complete: true`, and none of the
+        // six subsumptions HermiT infers.
+        let unmodelled = DlReasoner::unmodelled_constructs(graph);
+        let search_finished = undetermined_names.is_empty()
             && !result.subsumption_cut_short
             && !abox_result.undecided;
+        let complete = search_finished && unmodelled.is_empty();
 
         // WHICH phase ran out, not merely THAT something did.
         //
@@ -3416,30 +4392,39 @@ impl DlReasoner {
         // called it "the budget that actually bounds the run". It had never
         // bounded one. Each phase opens its own deadline from
         // `tableaux_test_timeout_ms`, which defaults to 10 000 ms; five phases is
-        // a worst case of 50 000 ms, so the 180 000 ms ceiling is dead
-        // arithmetic and cannot fire. Handing the global budget the run instead
-        // means minting a deadline per TABLEAU, which was measured and took a
-        // 20-ontology corpus from 67s to over 600s, and was abandoned. That
-        // number is unreproducible from this tree; `phase_deadline` says why and
-        // names the bench that is.
+        // a worst case of 50 000 ms of tableau time, so at the defaults the
+        // 180 000 ms ceiling is not expected to fire. Handing the global budget
+        // the run instead means minting a deadline per TABLEAU, which was
+        // measured and took a 20-ontology corpus from 67s to over 600s, and was
+        // abandoned. That number is unreproducible from this tree;
+        // `phase_deadline` says why and names the bench that is.
         //
         // What is left is the thing that was missing: SAYING SO. A knob that
         // reads as a safety limit may not enforce nothing, and the arithmetic
         // that decides whether it can fire is two settings and a phase count,
         // which is not something a reader of the output can be expected to do.
         // The ceiling is now genuinely enforced over every phase — see
-        // `phase_deadline_within` — and this block says which of the two bounds
-        // is the one that actually stops the run, including when the answer is
-        // neither.
+        // `phase_deadline_within`.
+        //
+        // TWO answers, and they used to be one (#340). `configured_bound` is the
+        // bound the settings predict, from that arithmetic. `binding_bound` is
+        // the bound that ACTUALLY stopped this run, read off the phases that
+        // were cut short: `"global"` if the ceiling's deadline had passed when
+        // one of them ran out, `"phase"` if only a phase budget had, `"none"` if
+        // no wall clock stopped anything. The prediction is not an observation:
+        // it said "the ceiling cannot be the bound" over a run whose subsumption
+        // sweep had outlived its phase budget by 26 times and was heading for
+        // the ceiling, because the arithmetic assumed every phase ends at its
+        // own deadline and the sweep did not.
         let phase_names = ["consistency", "satisfiability", "subsumption", "abox", "explanation"];
         let global_ms = crate::runtime::classify_timeout_ms();
         let phase_ms = crate::runtime::tableaux_test_timeout_ms();
         let phase_worst_case_ms = phase_ms.map(|ms| ms * phase_names.len() as u64);
-        let (binding_bound, note) = match (global_ms, phase_worst_case_ms) {
+        let (configured_bound, configured_note) = match (global_ms, phase_worst_case_ms) {
             (None, None) => (
                 "none",
                 format!(
-                    "no wall-clock bound of any kind is in force: classify_timeout_ms and \
+                    "No wall-clock bound of any kind is in force: classify_timeout_ms and \
                      tableaux_test_timeout_ms are both 0. The only limits left are the node \
                      cap ({}) and the depth cap ({}), and neither bounds the number of \
                      BRANCHES a tableau explores.",
@@ -3450,9 +4435,9 @@ impl DlReasoner {
             (None, Some(worst)) => (
                 "phase",
                 format!(
-                    "no global bound is in force: classify_timeout_ms is 0. Each of the {} \
-                     phases opens its own {} ms budget, so the worst case for this run is \
-                     {worst} ms.",
+                    "No global bound is in force: classify_timeout_ms is 0. Each of the {} \
+                     phases opens its own {} ms budget, so the tableau work in this run is \
+                     bounded at {worst} ms.",
                     phase_names.len(),
                     phase_ms.unwrap_or(0)
                 ),
@@ -3469,8 +4454,8 @@ impl DlReasoner {
                 "global",
                 format!(
                     "classify_timeout_ms ({g} ms) is at or below the worst case the phase \
-                     budgets permit ({} phases x {} ms = {worst} ms), so it is the bound that \
-                     stops this run.",
+                     budgets permit ({} phases x {} ms = {worst} ms), so it is the bound \
+                     expected to stop a run that needs it.",
                     phase_names.len(),
                     phase_ms.unwrap_or(0)
                 ),
@@ -3478,16 +4463,77 @@ impl DlReasoner {
             (Some(g), Some(worst)) => (
                 "phase",
                 format!(
-                    "classify_timeout_ms ({g} ms) cannot be the bound that stops this run: \
-                     {} phases at {} ms each cap it at {worst} ms. It is enforced as a ceiling \
-                     over every phase and will not fire at this setting. The bound in force is \
-                     the phase budget; lower classify_timeout_ms below {worst} to make it the \
-                     binding one.",
+                    "At these settings classify_timeout_ms ({g} ms) is not expected to be the \
+                     bound: {} phases at {} ms each bound the tableau work at {worst} ms. It \
+                     is enforced as a ceiling over every phase and fires only if the work \
+                     between tableaux (building pair lists and the hierarchy) takes the rest; \
+                     lower it below {worst} ms to make it the expected bound.",
                     phase_names.len(),
                     phase_ms.unwrap_or(0)
                 ),
             ),
         };
+        let stopped_by_clock: Vec<(&str, &str)> = [
+            ("satisfiability", result.satisfiability_clock),
+            ("subsumption", result.subsumption_clock),
+            ("abox", abox_result.clock),
+        ]
+        .into_iter()
+        .filter_map(|(phase, clock)| clock.map(|c| (phase, c)))
+        .collect();
+        let phases_stopped_by = |clock: &str| -> Vec<&str> {
+            stopped_by_clock
+                .iter()
+                .filter(|(_, c)| *c == clock)
+                .map(|(p, _)| *p)
+                .collect()
+        };
+        let by_global = phases_stopped_by("global");
+        let by_phase = phases_stopped_by("phase");
+        let by_cap: Vec<&str> = budget_exhausted_in
+            .iter()
+            .copied()
+            .filter(|p| !stopped_by_clock.iter().any(|(q, _)| q == p))
+            .collect();
+        let binding_bound = if !by_global.is_empty() {
+            "global"
+        } else if !by_phase.is_empty() {
+            "phase"
+        } else {
+            "none"
+        };
+        let mut outcome = match binding_bound {
+            "global" => format!(
+                "The classify_timeout_ms ceiling ({} ms) stopped this run: it had passed \
+                 when {} ran out of time.",
+                global_ms.unwrap_or(0),
+                by_global.join(", ")
+            ),
+            "phase" => format!(
+                "A phase budget ({} ms) stopped this run, in {}; the classify_timeout_ms \
+                 ceiling did not.",
+                phase_ms.unwrap_or(0),
+                by_phase.join(", ")
+            ),
+            _ if by_cap.is_empty() => {
+                "No bound stopped this run: every phase finished inside its budget.".to_string()
+            }
+            _ => "No wall clock stopped this run.".to_string(),
+        };
+        if binding_bound == "global" && !by_phase.is_empty() {
+            outcome.push_str(&format!(
+                " {} had already run out of its own phase budget.",
+                by_phase.join(", ")
+            ));
+        }
+        if !by_cap.is_empty() {
+            outcome.push_str(&format!(
+                " {} {} cut short by the step, node or depth cap, not by a clock.",
+                by_cap.join(", "),
+                if by_cap.len() == 1 { "was" } else { "were" }
+            ));
+        }
+        let note = format!("{outcome} {configured_note}");
 
         let mut hierarchy_json: Vec<serde_json::Value> = Vec::new();
         for (&cls, supers) in &result.hierarchy {
@@ -3567,6 +4613,11 @@ impl DlReasoner {
             "named_classes": reasoner.named_classes.len(),
             "unsatisfiable_classes": unsat_names,
             "complete": complete,
+            "search_finished": search_finished,
+            "constructs_not_modelled": unmodelled
+                .iter()
+                .map(|(k, n)| serde_json::json!({"construct": k, "occurrences": n}))
+                .collect::<Vec<_>>(),
             "budget_exhausted_in": budget_exhausted_in,
             "budget": {
                 "classify_timeout_ms": global_ms,
@@ -3574,6 +4625,7 @@ impl DlReasoner {
                 "phases": phase_names,
                 "phase_worst_case_ms": phase_worst_case_ms,
                 "binding_bound": binding_bound,
+                "configured_bound": configured_bound,
                 "note": note,
             },
             "undetermined_classes": undetermined_names,
@@ -3593,7 +4645,11 @@ impl DlReasoner {
                 },
                 "subsumption_agent": {
                     "pairs_tested": result.agents.subsumption.tasks,
+                    "pairs_scheduled": result.pairs_scheduled,
+                    "pairs_not_reached": result.pairs_not_reached,
                     "subsumptions_found": result.agents.subsumption.results,
+                    "undetermined": result.undetermined_pair_count(),
+                    "read_from_models": result.subsumptions_from_models,
                     "time_ms": result.agents.subsumption.time_ms,
                 },
                 "parallel_workers": result.agents.parallel_workers,
@@ -3625,7 +4681,6 @@ impl DlReasoner {
                     serde_json::json!(describe(reasoner.certify_class_satisfiable(class, &sub))),
                 );
             }
-            let unmodelled = DlReasoner::unmodelled_constructs(graph);
             output["model_certificate"] = serde_json::json!({
                 "dir": root.display().to_string(),
                 "tbox": describe(reasoner.certify_tbox_consistent(&root.join("tbox"))),
@@ -3720,6 +4775,213 @@ impl DlReasoner {
     }
 }
 
+// ── Subsumption sweep ───────────────────────────────────────────────────
+
+/// What one satisfiability test's model says about a class's subsumers.
+///
+/// A complete, clash-free completion graph for `A` is a model of the TBox in
+/// which the root is an instance of `A`, and in that model the root belongs to
+/// a named class `B` exactly when `B` is in the root's label. So every named
+/// class NOT in the root label is a proven non-subsumer of `A`: the model is a
+/// witness that `A ⊓ ¬B` is satisfiable. That half needs nothing else.
+///
+/// The other half needs the run to have made no choice. When no `⊔` branch was
+/// taken and no `≤` merge was chosen, every label in the graph was forced by
+/// deterministic rules from `A` and the TBox, so it holds of the root in EVERY
+/// model of `A`, and every named class in the root label is a subsumer. When a
+/// choice was made, the label is only one model's answer, and each class in it
+/// is a candidate that still needs its own `A ⊓ ¬B` test.
+struct ClassModel {
+    /// Named classes in the root label, the class itself excluded.
+    root_classes: Vec<u32>,
+    /// True when no `⊔` branch and no `≤` merge was taken.
+    deterministic: bool,
+}
+
+
+/// Which wall clock a phase deadline belongs to, if that deadline has passed.
+///
+/// `phase_deadline_within` hands every phase the earlier of its own budget and
+/// the run's ceiling, so a passed deadline is the ceiling exactly when it IS the
+/// ceiling's instant. Read at the end of a phase that was cut short, this is the
+/// bound that actually stopped it, which is what `budget.binding_bound` reports.
+/// It used to report the bound the settings predicted instead, and said
+/// `"phase"` over a run the ceiling had stopped (#340).
+fn expired_clock(deadline: Option<Instant>, global: Option<Instant>) -> Option<&'static str> {
+    let d = deadline?;
+    if Instant::now() < d {
+        return None;
+    }
+    Some(if global == Some(d) { "global" } else { "phase" })
+}
+
+/// The candidate superclasses of one class in the subsumption sweep.
+enum Candidates<'a> {
+    /// Read off a nondeterministic model of the class: every named class in
+    /// its root label that is not already settled.
+    Listed(Vec<u32>),
+    /// No model to read, so every class in `pool` except the class itself and
+    /// `exclude`. Never written out: see `PairRow::every`.
+    Every {
+        pool: &'a [u32],
+        exclude: Option<&'a HashSet<u32>>,
+    },
+}
+
+/// One class's share of the subsumption sweep, with its pair count known
+/// before any pair is generated, so pairs the budget never reaches can be
+/// counted without being built.
+struct PairRow<'a> {
+    sub: u32,
+    candidates: Candidates<'a>,
+    /// How many pairs `(sub, sup)` this row stands for.
+    count: usize,
+}
+
+impl<'a> PairRow<'a> {
+    fn listed(sub: u32, sups: Vec<u32>) -> Self {
+        let count = sups.len();
+        PairRow { sub, candidates: Candidates::Listed(sups), count }
+    }
+
+    /// Every class in `pool` other than `sub` and the members of `exclude`.
+    ///
+    /// `pool` must hold no duplicate and `pool_set` must be exactly its
+    /// members. The count is then `|pool|`, less one if `sub` is in it, less
+    /// the members of `exclude` other than `sub` that are in it, which costs
+    /// `|exclude|` rather than `|pool|`. That difference is the point: for
+    /// `k` classes with no model, counting by walking the pool is the `k x n`
+    /// walk this row exists to avoid.
+    fn every(
+        sub: u32,
+        pool: &'a [u32],
+        pool_set: &HashSet<u32>,
+        exclude: Option<&'a HashSet<u32>>,
+    ) -> Self {
+        let excluded = exclude.map_or(0, |e| {
+            e.iter().filter(|&&x| x != sub && pool_set.contains(&x)).count()
+        });
+        let count = pool.len() - usize::from(pool_set.contains(&sub)) - excluded;
+        PairRow { sub, candidates: Candidates::Every { pool, exclude }, count }
+    }
+}
+
+/// What a sweep of subsumption tests established, kept three-valued.
+#[derive(Default)]
+struct PairSweep {
+    /// Pairs whose test proved `sub ⊓ ¬sup` unsatisfiable, so `sub ⊑ sup`.
+    inferred: Vec<(u32, u32)>,
+    /// Pairs whose test was run and came back `Unknown`. Neither a
+    /// subsumption nor a refutation of one.
+    undetermined: Vec<(u32, u32)>,
+    /// Pairs whose test was run: one tableau each.
+    tested: usize,
+    /// Pairs never tested because the sweep's deadline had passed before they
+    /// were reached. Undetermined exactly as `undetermined` is, but counted
+    /// rather than listed, because there can be tens of millions of them.
+    not_reached: usize,
+}
+
+impl PairSweep {
+    fn merge(mut self, other: PairSweep) -> PairSweep {
+        self.inferred.extend(other.inferred);
+        self.undetermined.extend(other.undetermined);
+        self.tested += other.tested;
+        self.not_reached += other.not_reached;
+        self
+    }
+}
+
+/// Run `decide` over every pair the rows stand for, until `expired` says the
+/// sweep's deadline has passed, and keep the three answers apart.
+///
+/// This used to be a `filter` that kept a pair when its verdict `.is_unsat()`,
+/// which folds `Unknown` into "not subsumed". The sweep only flagged itself
+/// incomplete when the run's GLOBAL ceiling had passed before a pair was
+/// reached; a test whose own phase budget ran out inside it returned
+/// `Unknown`, was dropped exactly as a refuted pair is, and left no trace. The
+/// phase budget is shared by every pair in the sweep, so once it expires every
+/// remaining pair fails that way at once.
+///
+/// Measured on ORE 2015 `ore_ont_8937` (37 classes, 1,326 pairs): the sweep hit
+/// its 10 s phase budget, two runs of one binary returned 36 and then 57
+/// subsumptions against HermiT's 329, and both reported
+/// `budget_exhausted_in: []`, `complete: true`. A result that is wrong and says
+/// it is finished is the failure this codebase exists to rule out.
+///
+/// And once the deadline has passed it STOPS (#340). It used to call `decide`
+/// on every remaining pair, and each call built a tableau that returned
+/// `Unknown` from its first step, so the sweep's wall time grew with the pair
+/// count rather than the budget: 5,042 ms under a 200 ms phase budget, over
+/// 27.5 million pairs, on the issue's 6,000-class ontology. Now a pair reached
+/// after `expired` first says yes is counted in `not_reached` without a call,
+/// and a row reached after that is counted in bulk from its `count` without
+/// generating its pairs. Since the skipped calls could only have returned
+/// `Unknown`, which is what they are counted as, no verdict changes.
+///
+/// Both outputs are sorted, so the result does not depend on how the thread
+/// pool happened to split the work.
+///
+/// Taking the verdict and the clock as functions is what lets a test hand the
+/// sweep an `Unknown` or an expiry deterministically. The real failure needs a
+/// wall clock to run out partway through a sweep, and a test that depends on a
+/// wall clock is the flake `#161` removed.
+fn sweep_pairs<E, F>(rows: &[PairRow<'_>], expired: E, decide: F) -> PairSweep
+where
+    E: Fn() -> bool + Sync,
+    F: Fn(u32, u32) -> Verdict + Sync,
+{
+    // A latch, so that once one worker has seen the deadline pass no worker
+    // reads the clock again.
+    let stopped = AtomicBool::new(false);
+    let stop = || {
+        if stopped.load(Ordering::Relaxed) {
+            return true;
+        }
+        if expired() {
+            stopped.store(true, Ordering::Relaxed);
+            return true;
+        }
+        false
+    };
+    let test = |mut acc: PairSweep, sub: u32, sup: u32| {
+        if stop() {
+            acc.not_reached += 1;
+            return acc;
+        }
+        acc.tested += 1;
+        match decide(sub, sup) {
+            Verdict::Unsatisfiable => acc.inferred.push((sub, sup)),
+            Verdict::Unknown => acc.undetermined.push((sub, sup)),
+            Verdict::Satisfiable => {}
+        }
+        acc
+    };
+    let mut sweep = rows
+        .par_iter()
+        .map(|row| {
+            if stop() {
+                return PairSweep { not_reached: row.count, ..PairSweep::default() };
+            }
+            let sub = row.sub;
+            match &row.candidates {
+                Candidates::Listed(sups) => sups
+                    .par_iter()
+                    .fold(PairSweep::default, |acc, &sup| test(acc, sub, sup))
+                    .reduce(PairSweep::default, PairSweep::merge),
+                Candidates::Every { pool, exclude } => pool
+                    .par_iter()
+                    .filter(|&&sup| sup != sub && !exclude.is_some_and(|e| e.contains(&sup)))
+                    .fold(PairSweep::default, |acc, &sup| test(acc, sub, sup))
+                    .reduce(PairSweep::default, PairSweep::merge),
+            }
+        })
+        .reduce(PairSweep::default, PairSweep::merge);
+    sweep.inferred.sort_unstable();
+    sweep.undetermined.sort_unstable();
+    sweep
+}
+
 // ── Agent Result Types ──────────────────────────────────────────────────
 
 pub struct AgentClassificationResult {
@@ -3730,13 +4992,40 @@ pub struct AgentClassificationResult {
     /// proven satisfiable nor proven unsatisfiable. Their presence means the
     /// classification as a whole is incomplete.
     pub undetermined: Vec<u32>,
-    /// True when the subsumption sweep ran out of global budget, so some pairs
-    /// were never tested. Absence of a subsumption in the output is then not
-    /// evidence that it does not hold.
+    /// True when any subsumption test came back undecided, so the hierarchy
+    /// may be missing pairs. Absence of a subsumption in the output is then
+    /// not evidence that it does not hold.
     pub subsumption_cut_short: bool,
+    /// The ordered pairs `(sub, sup)` whose test was run and came back
+    /// `Unknown`, because a budget expired inside the test. See `sweep_pairs`.
+    pub undetermined_pairs: Vec<(u32, u32)>,
+    /// Pairs never tested because the sweep's deadline (its phase budget, or
+    /// the run's ceiling if that came first) had passed before they were
+    /// reached. Every one is undetermined; they are counted, not listed. See
+    /// `undetermined_pair_count`.
+    pub pairs_not_reached: usize,
+    /// Every pair the sweep had to decide: tested plus not reached. Pairs
+    /// settled by a model or by a told axiom are not in it.
+    pub pairs_scheduled: usize,
+    /// The wall clock that cut the satisfiability phase short, if one did:
+    /// `"phase"` or `"global"`. `None` when the phase finished, or was cut
+    /// short only by a step, node or depth cap.
+    pub satisfiability_clock: Option<&'static str>,
+    /// The same, for the subsumption sweep.
+    pub subsumption_clock: Option<&'static str>,
+    /// Subsumptions read off a satisfiability model built with no choice, so
+    /// never tested pairwise. See `ClassModel`.
+    pub subsumptions_from_models: usize,
     pub equivalences: Vec<(u32, u32)>,
     pub inferred_subsumptions: usize,
     pub agents: AgentMetrics,
+}
+
+impl AgentClassificationResult {
+    /// Every pair left undecided: tested and `Unknown`, plus never reached.
+    pub fn undetermined_pair_count(&self) -> usize {
+        self.undetermined_pairs.len() + self.pairs_not_reached
+    }
 }
 
 pub struct AgentMetrics {
@@ -3772,6 +5061,9 @@ pub struct ABoxResult {
     /// Those call for different responses, and a reader deciding whether to
     /// raise a limit needs to know which limit.
     pub stopped_by: Option<&'static str>,
+    /// When `stopped_by` is `"time"`, which wall clock that was: `"phase"` or
+    /// `"global"`. See `expired_clock`.
+    pub clock: Option<&'static str>,
 }
 
 pub struct ClassificationResult {
@@ -4724,16 +6016,24 @@ impl DlReasoner {
         // so an ontology leaning on asymmetry got a clean verdict with no sign
         // that a constraint had been dropped. That is the one outcome this list
         // exists to prevent.
-        const NOT_MODELLED: [(&str, &str); 9] = [
+        const NOT_MODELLED: [(&str, &str); 13] = [
             ("owl:sameAs", "http://www.w3.org/2002/07/owl#sameAs"),
             ("owl:differentFrom", "http://www.w3.org/2002/07/owl#differentFrom"),
             ("owl:oneOf", "http://www.w3.org/2002/07/owl#oneOf"),
             ("owl:hasValue", "http://www.w3.org/2002/07/owl#hasValue"),
+            // Read as an opaque atom, which is sound and says nothing about
+            // the individual being its own successor.
+            ("owl:hasSelf", "http://www.w3.org/2002/07/owl#hasSelf"),
             ("owl:propertyChainAxiom", "http://www.w3.org/2002/07/owl#propertyChainAxiom"),
             ("owl:hasKey", "http://www.w3.org/2002/07/owl#hasKey"),
             ("owl:ReflexiveProperty", "http://www.w3.org/2002/07/owl#ReflexiveProperty"),
             ("owl:IrreflexiveProperty", "http://www.w3.org/2002/07/owl#IrreflexiveProperty"),
             ("owl:AsymmetricProperty", "http://www.w3.org/2002/07/owl#AsymmetricProperty"),
+            // Disjointness of ROLES is an edge-level constraint, like asymmetry.
+            ("owl:propertyDisjointWith", "http://www.w3.org/2002/07/owl#propertyDisjointWith"),
+            ("owl:AllDisjointProperties", "http://www.w3.org/2002/07/owl#AllDisjointProperties"),
+            // The n-ary form of `owl:differentFrom`, already listed above.
+            ("owl:AllDifferent", "http://www.w3.org/2002/07/owl#AllDifferent"),
         ];
         let mut found = Vec::new();
         for (label, iri) in NOT_MODELLED {
@@ -4749,6 +6049,22 @@ impl DlReasoner {
                 .unwrap_or(0);
             if n > 0 {
                 found.push((label.to_string(), n));
+            }
+        }
+        let q = "SELECT (COUNT(*) AS ?n) WHERE { ?r <http://www.w3.org/2002/07/owl#onProperty> ?p . \
+                 ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }";
+        if let Ok(raw) = graph.sparql_select_union(q)
+            && let Ok(v) = serde_json::from_str::<serde_json::Value>(&raw)
+        {
+            let n = v["results"][0]["n"]
+                .as_str()
+                .and_then(|s| s.trim_matches('"').split('"').next())
+                .and_then(|s| s.parse::<u64>().ok())
+                .unwrap_or(0);
+            if n > 0 {
+                // Read as a role to an opaque class: sound, and blind to
+                // values, so no datatype clash or value count is ever found.
+                found.push(("datatype restriction".to_string(), n));
             }
         }
         found
@@ -5176,5 +6492,149 @@ mod certificate_boundary_tests {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod pair_sweep_tests {
+    use super::*;
+    use std::sync::atomic::AtomicUsize;
+
+    fn never() -> bool {
+        false
+    }
+
+    /// The pairs listed rows stand for, in the order given.
+    fn rows_of(pairs: &[(u32, u32)]) -> Vec<PairRow<'static>> {
+        pairs.iter().map(|&(sub, sup)| PairRow::listed(sub, vec![sup])).collect()
+    }
+
+    /// An undecided subsumption test is reported as undecided, not dropped.
+    ///
+    /// The old sweep kept a pair when its verdict `.is_unsat()` and discarded
+    /// everything else, so the `Unknown` pair below vanished exactly as the
+    /// refuted one did and the sweep could not say it had been cut short.
+    #[test]
+    fn an_unknown_pair_is_kept_apart_from_a_refuted_one() {
+        let rows = rows_of(&[(1, 2), (1, 3), (2, 3), (3, 1)]);
+        let sweep = sweep_pairs(&rows, never, |sub, sup| match (sub, sup) {
+            (1, 2) => Verdict::Unsatisfiable,
+            (1, 3) => Verdict::Unknown,
+            (3, 1) => Verdict::Unknown,
+            _ => Verdict::Satisfiable,
+        });
+        assert_eq!(sweep.inferred, vec![(1, 2)]);
+        assert_eq!(sweep.undetermined, vec![(1, 3), (3, 1)]);
+        assert_eq!((sweep.tested, sweep.not_reached), (4, 0));
+    }
+
+    /// A sweep in which every test was decided has nothing to report.
+    #[test]
+    fn a_fully_decided_sweep_reports_no_undetermined_pair() {
+        let rows = rows_of(&[(1, 2), (2, 1)]);
+        let sweep = sweep_pairs(&rows, never, |sub, _| {
+            if sub == 1 { Verdict::Unsatisfiable } else { Verdict::Satisfiable }
+        });
+        assert_eq!(sweep.inferred, vec![(1, 2)]);
+        assert!(sweep.undetermined.is_empty());
+        assert_eq!(sweep.not_reached, 0);
+    }
+
+    /// A row with no model stands for every other class in the pool that is
+    /// not excluded, and its count says so without walking the pool.
+    #[test]
+    fn a_row_with_no_model_counts_exactly_the_pairs_it_would_generate() {
+        let pool: Vec<u32> = (0..50).collect();
+        let pool_set: HashSet<u32> = pool.iter().copied().collect();
+        // 7 is the class itself, 99 is outside the pool, 3 and 7 are in it.
+        let exclude: HashSet<u32> = [3, 7, 99].into_iter().collect();
+        let row = PairRow::every(7, &pool, &pool_set, Some(&exclude));
+        assert_eq!(row.count, 48, "50 classes, less 7 itself, less 3");
+        let sweep = sweep_pairs(&[row], never, |_, _| Verdict::Satisfiable);
+        assert_eq!(sweep.tested, 48);
+        assert_eq!(sweep.not_reached, 0);
+        let row = PairRow::every(7, &pool, &pool_set, None);
+        assert_eq!(row.count, 49);
+    }
+
+    /// #340: once the deadline has passed, the sweep stops building tableaux.
+    ///
+    /// The old sweep called `decide` on every pair, and after the phase
+    /// deadline each call built a tableau that returned `Unknown` from its
+    /// first step: 27.5 million of them under a 200 ms budget. Here the clock
+    /// expires after `BUDGET` calls. A call already in flight on another
+    /// worker when it expires may still complete, so the bound is `BUDGET`
+    /// plus one per worker, and everything else must be counted, not tested.
+    #[test]
+    fn a_sweep_whose_deadline_passes_stops_deciding_and_counts_the_rest() {
+        const BUDGET: usize = 100;
+        let pool: Vec<u32> = (0..2_000).collect();
+        let pool_set: HashSet<u32> = pool.iter().copied().collect();
+        let mut rows: Vec<PairRow<'_>> = (0..2_000)
+            .map(|sub| PairRow::every(sub, &pool, &pool_set, None))
+            .collect();
+        rows.push(PairRow::listed(5, vec![6, 7, 8]));
+        let total: usize = rows.iter().map(|r| r.count).sum();
+        assert_eq!(total, 2_000 * 1_999 + 3);
+
+        let calls = AtomicUsize::new(0);
+        let sweep = sweep_pairs(
+            &rows,
+            || calls.load(Ordering::SeqCst) >= BUDGET,
+            |sub, sup| {
+                calls.fetch_add(1, Ordering::SeqCst);
+                // Never a proof: nothing below may be reported as inferred
+                // unless a decided call said so.
+                if sub == 0 && sup == 1 { Verdict::Unsatisfiable } else { Verdict::Satisfiable }
+            },
+        );
+        let made = calls.load(Ordering::SeqCst);
+        let workers = rayon::current_num_threads();
+        assert!(
+            made <= BUDGET + workers,
+            "{made} tableaux built after a deadline that passed at {BUDGET}; the sweep \
+             kept deciding pairs it could only have answered Unknown"
+        );
+        assert_eq!(sweep.tested, made, "every call is counted as tested");
+        assert_eq!(
+            sweep.tested + sweep.not_reached,
+            total,
+            "every pair is either tested or counted as not reached"
+        );
+        assert!(sweep.not_reached >= total - BUDGET - workers);
+        assert!(sweep.undetermined.is_empty(), "no tested pair came back Unknown");
+        assert!(
+            sweep.inferred.iter().all(|&p| p == (0, 1)),
+            "only a decided Unsatisfiable may be inferred: {:?}",
+            sweep.inferred
+        );
+    }
+
+    /// A deadline already gone when the sweep starts: no tableau at all, and
+    /// every pair counted from the rows' counts.
+    #[test]
+    fn a_sweep_that_starts_after_its_deadline_builds_nothing() {
+        let pool: Vec<u32> = (0..300).collect();
+        let pool_set: HashSet<u32> = pool.iter().copied().collect();
+        let rows: Vec<PairRow<'_>> =
+            (0..300).map(|sub| PairRow::every(sub, &pool, &pool_set, None)).collect();
+        let sweep = sweep_pairs(&rows, || true, |_, _| {
+            panic!("a tableau was built after the deadline had passed")
+        });
+        assert_eq!(sweep.tested, 0);
+        assert_eq!(sweep.not_reached, 300 * 299);
+        assert!(sweep.inferred.is_empty() && sweep.undetermined.is_empty());
+    }
+
+    /// The clock a phase deadline belongs to is read off the instant itself.
+    #[test]
+    fn an_expired_deadline_names_its_clock() {
+        let past = Instant::now() - std::time::Duration::from_millis(5);
+        let later = Instant::now() + std::time::Duration::from_secs(3600);
+        assert_eq!(expired_clock(Some(past), Some(past)), Some("global"));
+        assert_eq!(expired_clock(Some(past), Some(later)), Some("phase"));
+        assert_eq!(expired_clock(Some(past), None), Some("phase"));
+        assert_eq!(expired_clock(Some(later), Some(later)), None);
+        assert_eq!(expired_clock(None, Some(past)), None);
     }
 }

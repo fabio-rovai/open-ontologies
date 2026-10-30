@@ -47,7 +47,7 @@ for ref_file in sorted(glob.glob(f'{CONF_DIR}/reference/*.rdf')):
     if not reference: continue
 
     result = subprocess.run(
-        [BINARY, 'align', src, tgt, '--min-confidence', '0.80', '--dry-run'],
+        [BINARY, 'align', src, tgt, '--min-confidence', '0.80', '--dry-run', '--scoring', 'legacy'],
         capture_output=True, text=True, timeout=120
     )
     if result.returncode != 0: continue

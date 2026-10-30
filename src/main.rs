@@ -139,13 +139,18 @@ data_dir = "~/.open-ontologies"
 # classify_timeout_ms = 180000        # ceiling for the WHOLE run (ORE's 180s)
 # A run has five phases (consistency, satisfiability, subsumption, ABox,
 # explanation), each opening one phase budget, so at these defaults the ceiling
-# cannot be the bound that fires: 5 x 10000 = 50000, well under 180000. Lower it
-# below that to make it the binding one. Every `owl-dl` run reports which of the
-# two is binding, in `budget.binding_bound`, with a sentence saying why.
+# is not expected to be the bound that fires: 5 x 10000 = 50000, well under
+# 180000. Lower it below that to make it the expected one. Every `owl-dl` run
+# reports the bound that actually stopped it in `budget.binding_bound`, the one
+# these settings predict in `budget.configured_bound`, and a sentence saying why.
+# One-shot CLI commands read this section from <data-dir>/config.toml, and
+# `reason --phase-timeout-ms` / `--classify-timeout-ms` override it for one run
+# (CLI > config > default; no env var). A daemon reads it once, at start.
 
 # [feedback]
 # Lint / enforce self-calibration thresholds (number of dismissals before
-# downgrading then suppressing a (tool, rule_id, entity) triple).
+# downgrading then suppressing a (tool, rule_id, entity) triple). Suppressed
+# issues are listed in the output's `suppressed[]`; errors are never touched.
 # suppress_threshold = 3
 # downgrade_threshold = 2
 
@@ -383,9 +388,18 @@ enum Commands {
     Diff { old_path: String, new_path: String },
     /// Lint: check for missing labels, domains, ranges
     Lint { input: String },
-    /// Defects: check the ONTOLOGY against itself, before any data is judged by it
-    Defects { input: String },
-    /// Convert between RDF formats
+    /// Defects: check the ONTOLOGY against itself, before any data is judged by it.
+    ///
+    /// `defect_count` counts findings, one per row: a class under two disjoint
+    /// pairs is two findings. `affected_classes` counts the distinct classes.
+    Defects {
+        input: String,
+        /// The most rows of any one kind to list. `0` lists every row. The full
+        /// count of a kind cut short is still reported under `truncated`.
+        #[arg(long, default_value_t = open_ontologies::defects::Defects::MAX_PER_KIND)]
+        limit: usize,
+    },
+    /// Convert between RDF formats, or to OWL 2 functional syntax (`--to ofn`)
     Convert {
         path: String,
         #[arg(long)]
@@ -456,6 +470,9 @@ enum Commands {
         base_iri: Option<String>,
     },
     /// Validate against SHACL shapes
+    ///
+    /// Exit code: 0 conforms, 1 does not conform or failed, 2 not determined
+    /// (`conforms: null`).
     Shacl {
         shapes: String,
         /// Validate the snapshot that was TRUE at this instant (#108). Read as
@@ -486,6 +503,13 @@ enum Commands {
         /// impossible and dropping it would answer a different question.
         #[arg(long)]
         verified: bool,
+        /// `json`, `turtle` or `ntriples`. The RDF forms are a W3C
+        /// `sh:ValidationReport` graph. An undetermined run is written
+        /// `sh:conforms false` plus `oo:undetermined true`, and the exit code
+        /// is taken from the verdict, never from the text, so it is the same
+        /// in every format.
+        #[arg(long, default_value = "json")]
+        report_format: String,
     },
     /// Closed-world vocab check: flag data terms not declared in the loaded ontology
     VocabCheck { data: String },
@@ -527,6 +551,20 @@ enum Commands {
         /// refused together with --valid-at or --as-of.
         #[arg(long)]
         all_versions: bool,
+        /// `owl-dl` only: wall-clock budget for one PHASE of the run, in
+        /// milliseconds. `0` means no limit. CLI > `[reasoner]
+        /// tableaux_test_timeout_ms` in `<data-dir>/config.toml` > 10000. No
+        /// environment variable sets it. The run's `budget` block reports the
+        /// value in force. Never proxied: a running daemon fixes its budgets
+        /// at start, so with one up this is refused unless --no-connect.
+        #[arg(long, value_name = "MS")]
+        phase_timeout_ms: Option<usize>,
+        /// `owl-dl` only: wall-clock CEILING for the whole run, in
+        /// milliseconds. `0` means no ceiling. CLI > `[reasoner]
+        /// classify_timeout_ms` in `<data-dir>/config.toml` > 180000. No
+        /// environment variable sets it. Never proxied, as --phase-timeout-ms.
+        #[arg(long, value_name = "MS")]
+        classify_timeout_ms: Option<usize>,
     },
     /// Export the loaded ontology as first-order logic, for a prover or a model finder
     ///
@@ -820,12 +858,20 @@ enum Commands {
     /// Plan changes: diff current vs proposed Turtle
     Plan {
         file: String,
-        /// Skip the conservativity check, which is the only part of a plan
-        /// that is about MEANING and is ON by default since #196. It reasons
+        /// Skip the conservativity check, which asks what the change MEANS
+        /// and is ON by default since #196. It reasons
         /// both graphs to a fixpoint, about 11 microseconds an individual, so
         /// this is the thing to reach for on a store big enough that it hurts.
         #[arg(long)]
         no_conservativity: bool,
+        /// Skip the logic check (#336): the eight TBox self-defect kinds of
+        /// `defects` on the proposed graph against the store, and the owl-dl
+        /// consistency of the proposed graph under the [reasoner] budget. ON by
+        /// default; a new defect or an inconsistency the store did not have
+        /// makes risk_score `high`. The exit code stays 0 either way: read
+        /// `risk_score` and `logic` to gate on it.
+        #[arg(long)]
+        no_logic_check: bool,
     },
     /// Apply planned changes (safe or migrate)
     Apply {
@@ -844,6 +890,8 @@ enum Commands {
     /// Detect drift between two ontology versions
     Drift { file_a: String, file_b: String },
     /// Run design pattern enforcement
+    ///
+    /// Exit code: 0 no error-severity violation, 1 at least one, or failed.
     Enforce {
         #[arg(default_value = "generic")]
         pack: String,
@@ -855,6 +903,9 @@ enum Commands {
     /// certificate; the certificate was accepted; it was REFUSED, which stops
     /// the load; or this build has no checker, so nothing was checked. The last
     /// one is not a pass.
+    ///
+    /// Exit code: 0 accepted or no certificate, 1 refused, unreadable, not
+    /// about this pack, or failed, 2 nothing was checked.
     ///
     /// `pack` stays MCP-only and this does not, on purpose. The receiver is the
     /// party this exists for, and requiring them to run an MCP client to audit
@@ -879,6 +930,8 @@ enum Commands {
         load_even_if_refused: bool,
     },
     /// Run active SPARQL watchers
+    ///
+    /// Exit code: 1 when a watcher blocked the next apply or rolled back, else 0.
     Monitor,
     /// Clear monitor block state
     MonitorClear,
@@ -895,12 +948,41 @@ enum Commands {
         source: String,
         /// Target ontology file (if omitted, aligns against loaded store)
         target: Option<String>,
-        /// Minimum confidence threshold (default 0.85)
-        #[arg(long, default_value = "0.85")]
-        min_confidence: f64,
+        /// Minimum confidence threshold (default 0.95, or 0.85 with
+        /// `--scoring legacy`, which is the same strictness on each scale)
+        #[arg(long)]
+        min_confidence: Option<f64>,
         /// Dry run — show candidates without inserting triples
         #[arg(long)]
         dry_run: bool,
+        /// How the weighted sum becomes a confidence: `informative` (default:
+        /// the weighted mean over the signals both sides carry data for) or
+        /// `legacy` (the fusion the published OAEI figures were measured with)
+        #[arg(long, default_value = "informative")]
+        scoring: String,
+        /// `one-to-one` (default) keeps one row per source and per target;
+        /// `many-to-one` lets several source terms map to one target, for a
+        /// source list finer than its target
+        #[arg(long, default_value = "one-to-one")]
+        cardinality: String,
+    },
+    /// Carry a crosswalk's claims into the target and report any clash
+    ///
+    /// The source's entailed subsumptions are translated through the mapping
+    /// (an SSSOM TSV) and reasoned together with the target's axioms. A clash
+    /// the carried claims ADD means the target denies what the mapping says:
+    /// a wrong row, or two ontologies that disagree. One witness individual is
+    /// typed into each receiving class so a TBox-only taxonomy can clash at
+    /// all, and clashes the target has on its own are reported apart. Exits 1
+    /// when the mapping adds a clash. The same check runs in `batch` as
+    /// `crosswalk-probe`.
+    CrosswalkProbe {
+        /// The ontology the mapping's subjects come from
+        source: String,
+        /// The ontology the mapping's objects come from
+        target: String,
+        /// The crosswalk, as SSSOM TSV (subject_id, predicate_id, object_id)
+        mappings: String,
     },
     /// Accept or reject an alignment candidate
     AlignFeedback {
@@ -1030,7 +1112,10 @@ impl Commands {
             Commands::Stats => cmd("stats", vec![]),
             Commands::Query { query } => cmd("query", vec![query.clone()]),
             Commands::Lint { input } => cmd("lint", vec![absolutize(input)]),
-            Commands::Defects { input } => cmd("defects", vec![absolutize(input)]),
+            Commands::Defects { input, limit } => cmd(
+                "defects",
+                vec![absolutize(input), "--limit".into(), limit.to_string()],
+            ),
             Commands::Reason {
                 profile,
                 certificate,
@@ -1038,7 +1123,16 @@ impl Commands {
                 valid_at,
                 as_of,
                 all_versions,
+                phase_timeout_ms,
+                classify_timeout_ms,
             } => {
+                // The reasoner clocks are process-wide, and the daemon serves
+                // every client from one process. A per-request budget would leak
+                // into concurrent and later runs, so the batch handler takes
+                // none, and the command stays local (see `daemon_refuses`).
+                if phase_timeout_ms.is_some() || classify_timeout_ms.is_some() {
+                    return None;
+                }
                 let mut a = vec!["--profile".into(), profile.clone()];
                 if let Some(c) = certificate {
                     a.push("--certificate".into());
@@ -1271,13 +1365,19 @@ impl Commands {
                 }
                 cmd("trace-label", a)
             }
+            // The batch runner answers in JSON, so an RDF report runs locally
+            // rather than being proxied and coming back in the wrong format.
             Commands::Shacl {
                 shapes,
                 valid_at,
                 as_of,
                 all_versions,
                 verified,
+                report_format,
             } => {
+                if report_format != "json" {
+                    return None;
+                }
                 let mut a = vec![absolutize(shapes)];
                 if let Some(v) = valid_at {
                     a.push("--valid-at".into());
@@ -1335,10 +1435,13 @@ impl Commands {
                 }
                 cmd("ingest", a)
             }
-            Commands::Plan { file, no_conservativity } => {
+            Commands::Plan { file, no_conservativity, no_logic_check } => {
                 let mut a = vec![absolutize(file)];
                 if *no_conservativity {
                     a.push("--no-conservativity".into());
+                }
+                if *no_logic_check {
+                    a.push("--no-logic-check".into());
                 }
                 cmd("plan", a)
             }
@@ -1400,18 +1503,52 @@ impl Commands {
 /// false — so there is one copy now, and one place where the decision to proxy
 /// is made.
 async fn proxy_if_daemon(ctx: &ProxyCtx, input: &str, bail: bool) -> anyhow::Result<Option<i32>> {
-    if ctx.no_connect {
-        return Ok(None);
-    }
-    let Some(info) = open_ontologies::daemon::read_daemon_info(&ctx.data_dir) else {
+    let Some(info) = live_daemon(ctx) else {
         return Ok(None);
     };
+    open_ontologies::connect::proxy_batch(&info, input, bail, json_mode(), ctx.pretty).await
+}
+
+/// The daemon a proxy-able command would be sent to, if any: `None` under
+/// `--no-connect`, with no daemon.json, or when the recorded PID is dead.
+fn live_daemon(ctx: &ProxyCtx) -> Option<open_ontologies::daemon::DaemonInfo> {
+    if ctx.no_connect {
+        return None;
+    }
+    let info = open_ontologies::daemon::read_daemon_info(&ctx.data_dir)?;
     if !open_ontologies::daemon::is_daemon_alive(info.pid) {
         // Stale daemon.json — clean up silently and fall through to local.
         open_ontologies::daemon::remove_daemon_info(&ctx.data_dir);
-        return Ok(None);
+        return None;
     }
-    open_ontologies::connect::proxy_batch(&info, input, bail, json_mode(), ctx.pretty).await
+    Some(info)
+}
+
+/// Why a command that is normally proxied cannot be run while `info`'s daemon
+/// is up, or `None` when it can be run (proxied or locally).
+///
+/// `to_batch_command` keeps a command local when it carries a flag the batch
+/// handler cannot honour. For most commands that is enough. For `reason` it is
+/// not: the graph the caller loaded lives in the daemon, so a local run reads a
+/// different store (an empty one in memory mode) and answers about the wrong
+/// data while looking like a success. Refusing says so instead.
+fn daemon_refuses(cmd: &Commands, info: &open_ontologies::daemon::DaemonInfo) -> Option<String> {
+    match cmd {
+        Commands::Reason { phase_timeout_ms, classify_timeout_ms, .. }
+            if phase_timeout_ms.is_some() || classify_timeout_ms.is_some() =>
+        {
+            Some(format!(
+                "reason --phase-timeout-ms / --classify-timeout-ms cannot be sent to the running \
+                 daemon (pid {}). Its reasoner budgets are fixed when it starts, from [reasoner] in \
+                 its data directory's config.toml, and one request may not change them for every \
+                 other client. A local run would read this process's own store, not the graph the \
+                 daemon holds. Pass --no-connect to reason over the local store, or set [reasoner] \
+                 and restart the daemon.",
+                info.pid
+            ))
+        }
+        _ => None,
+    }
 }
 
 /// The parts of `Cli` the proxy needs, taken before `cli.command` is matched by
@@ -1464,11 +1601,21 @@ fn setup(data_dir: &str) -> anyhow::Result<(StateDb, Arc<GraphStore>)> {
     // server modes (loaded from `<data_dir>/config.toml` if present). This is
     // what makes `open-ontologies load foo.ttl` + `open-ontologies query ...`
     // share state when persistence is enabled.
+    //
+    // The rest of the file applies too (#339). Only `[storage]` used to be kept,
+    // and `runtime::init_from_config` ran in the three server modes alone, so a
+    // one-shot `reason --profile owl-dl` ran on the default reasoner budgets
+    // whatever `[reasoner]` said, and its `budget` block reported those defaults
+    // as though they were the configuration. `init_from_config` only stores
+    // atomics (reasoner caps and clocks, cache prefix, feedback thresholds, repo
+    // list limit, imports policy, webhook timeout, preferred languages): it loads
+    // no model and opens nothing, so it is as cheap here as at server start, and
+    // it overwrites rather than latches, so calling it on every one-shot command
+    // is safe.
     let cfg_path = data_path.join("config.toml");
-    let storage_cfg = open_ontologies::config::Config::load(&cfg_path)
-        .map(|c| c.storage)
-        .unwrap_or_default();
-    let graph = build_main_graph(&storage_cfg, data_path)?;
+    let cfg = open_ontologies::config::Config::load(&cfg_path).unwrap_or_default();
+    open_ontologies::runtime::init_from_config(&cfg);
+    let graph = build_main_graph(&cfg.storage, data_path)?;
     Ok((db, graph))
 }
 
@@ -1568,6 +1715,73 @@ fn output_result_with_exit(result: &str, pretty: bool) {
         Some(v) => v.get("exit_code").and_then(|c| c.as_i64()).unwrap_or(0) as i32,
         None => 1,
     };
+    output_result(result, pretty);
+    if code != 0 {
+        std::process::exit(code);
+    }
+}
+
+/// The commands whose output is a verdict, not just a result.
+#[derive(Clone, Copy)]
+enum Gate {
+    Shacl,
+    Enforce,
+    Unpack,
+    Monitor,
+}
+
+/// Map a gate command's own verdict to an exit code: 0 pass, 1 fail, 2 not
+/// determined.
+///
+/// `output_result_checked` sees only an `error` field, and the failures that
+/// matter here are not errors. `conforms: false` and `certificate_refused` are
+/// verdicts, so `shacl shapes.ttl || exit 1` and `unpack x.oopack || exit 1`
+/// passed on exactly the inputs they exist to catch (#323). An undetermined
+/// verdict (`conforms: null`, no checker to re-run the proof) is not a pass
+/// and not a failure, so it gets its own code rather than being folded into
+/// either.
+fn gate_exit_code(gate: Gate, result: &str) -> i32 {
+    let Ok(v) = serde_json::from_str::<serde_json::Value>(result) else {
+        return 1;
+    };
+    if v.get("error").is_some() {
+        return 1;
+    }
+    match gate {
+        Gate::Shacl => match v.get("conforms") {
+            Some(serde_json::Value::Bool(true)) => 0,
+            Some(serde_json::Value::Bool(false)) => 1,
+            _ => 2,
+        },
+        Gate::Enforce => {
+            let errors = v
+                .get("violations")
+                .and_then(|x| x.as_array())
+                .is_some_and(|vs| vs.iter().any(|x| x["severity"] == "error"));
+            i32::from(errors)
+        }
+        Gate::Unpack => {
+            let verdict = v.pointer("/certificate/verdict").and_then(|x| x.as_str());
+            match verdict {
+                Some(
+                    "certificate_refused"
+                    | "certificate_unreadable"
+                    | "certificate_not_about_this_pack",
+                ) => 1,
+                Some("checker_absent_nothing_was_checked") => 2,
+                _ if v.get("ok") == Some(&serde_json::Value::Bool(false)) => 1,
+                _ => 0,
+            }
+        }
+        Gate::Monitor => match v.get("status").and_then(|x| x.as_str()) {
+            Some("blocked" | "auto_rolled_back") => 1,
+            _ => 0,
+        },
+    }
+}
+
+fn output_result_gated(result: &str, pretty: bool, gate: Gate) {
+    let code = gate_exit_code(gate, result);
     output_result(result, pretty);
     if code != 0 {
         std::process::exit(code);
@@ -1813,6 +2027,11 @@ async fn async_main() -> anyhow::Result<()> {
         if let Some(code) = proxy_if_daemon(&proxy_ctx, &payload, false).await? {
             std::process::exit(code);
         }
+    } else if let Some(info) = live_daemon(&proxy_ctx)
+        && let Some(why) = daemon_refuses(&cli.command, &info)
+    {
+        output_result_checked(&serde_json::json!({ "error": why }).to_string(), cli.pretty);
+        return Ok(());
     }
 
     match cli.command {
@@ -2553,7 +2772,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
-                GraphStore::validate_turtle(&buf)
+                GraphStore::validate_text(&buf)
             } else {
                 GraphStore::validate_file(&input)
             };
@@ -2648,15 +2867,34 @@ async fn async_main() -> anyhow::Result<()> {
         }
         Commands::Diff { old_path, new_path } => {
             use open_ontologies::ontology::OntologyService;
-            let old = std::fs::read_to_string(&old_path)?;
-            let new = std::fs::read_to_string(&new_path)?;
+            // Read both sides as lint does: an RDF/XML file is converted rather
+            // than handed to the Turtle parser, and errors stay JSON. Both sides
+            // resolve relative IRIs against the old file, so `<#Dog>` is the same
+            // IRI in both versions.
+            let read = |path: &str| match GraphStore::read_as_turtle_against(path, &old_path) {
+                Ok(c) => c,
+                Err(e) => {
+                    output_json(
+                        &serde_json::json!({"error": format!("Cannot read {path}: {e}")}),
+                        cli.pretty,
+                    );
+                    std::process::exit(1);
+                }
+            };
+            let old = read(&old_path);
+            let new = read(&new_path);
             let result = OntologyService::diff(&old, &new)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
         }
-        Commands::Defects { input } => {
+        Commands::Defects { input, limit } => {
             use open_ontologies::defects::Defects;
-            let (_db, graph) = setup(&cli.data_dir)?;
+            // The FILE is checked, alone, in a store of its own. This used to
+            // load it into the main store, so under persistent storage it was
+            // checked together with whatever the store held and its triples
+            // were left behind in it, while the same command proxied to a
+            // daemon checked the file alone.
+            let graph = std::sync::Arc::new(GraphStore::new());
             let raw = if input == "-" {
                 let mut buf = String::new();
                 std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
@@ -2689,7 +2927,7 @@ async fn async_main() -> anyhow::Result<()> {
                 output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
                 std::process::exit(1);
             }
-            let result = Defects::check(&graph)
+            let result = Defects::check_with_limit(&graph, limit)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
         }
@@ -2722,6 +2960,32 @@ async fn async_main() -> anyhow::Result<()> {
             let result = OntologyService::lint_with_feedback(&content, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
+        }
+        Commands::Convert { path, to, output } if open_ontologies::ofn_writer::is_ofn_format(&to) => {
+            match open_ontologies::ofn_writer::convert_file(&path) {
+                Ok(out) => {
+                    let mut report = out.report_json();
+                    if let Some(out_path) = output {
+                        std::fs::write(&out_path, &out.text)?;
+                        report["ok"] = serde_json::json!(true);
+                        report["path"] = serde_json::json!(out_path);
+                        output_json(&report, cli.pretty);
+                    } else {
+                        // The document is stdout, so the report goes to stderr,
+                        // and only when it has something to say: a pipe into
+                        // a file stays a valid OFN document, and what it lacks
+                        // is still printed.
+                        print!("{}", out.text);
+                        if !out.not_exported.is_empty() || !out.not_round_trippable.is_empty() {
+                            eprintln!("{report}");
+                        }
+                    }
+                }
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::Convert { path, to, output } => {
             let store = GraphStore::new();
@@ -3024,7 +3288,7 @@ async fn async_main() -> anyhow::Result<()> {
         }
         Commands::Ingest {
             path,
-            format: _format,
+            format,
             mapping,
             base_iri,
         } => {
@@ -3033,7 +3297,7 @@ async fn async_main() -> anyhow::Result<()> {
             let (_db, graph) = setup(&cli.data_dir)?;
 
             let base = base_iri.as_deref().unwrap_or("http://example.org/data/");
-            let rows = DataIngester::parse_file(&path)?;
+            let rows = DataIngester::parse_file_with_format(&path, format.as_deref())?;
 
             if rows.is_empty() {
                 output_json(
@@ -3068,8 +3332,31 @@ async fn async_main() -> anyhow::Result<()> {
             as_of,
             all_versions,
             verified,
+            report_format,
         } => {
             use open_ontologies::shacl::ShaclValidator;
+            use open_ontologies::shacl_report::ReportFormat;
+            let format = match ReportFormat::parse(Some(&report_format)) {
+                Ok(f) => f,
+                Err(e) => {
+                    output_result_gated(&serde_json::json!({"error": e}).to_string(), cli.pretty, Gate::Shacl);
+                    return Ok(());
+                }
+            };
+            // Refused before the store is opened: nothing here needs it.
+            if verified && format != ReportFormat::Json {
+                output_result_gated(
+                    &serde_json::json!({"error":
+                        "--verified cannot be combined with --report-format other than json. \
+                         The verified evaluator returns its own report structure, which the \
+                         sh:ValidationReport writer does not read, so the format would be \
+                         silently dropped."})
+                    .to_string(),
+                    cli.pretty,
+                    Gate::Shacl,
+                );
+                return Ok(());
+            }
             let (_db, graph) = setup(&cli.data_dir)?;
             let shapes_content = std::fs::read_to_string(&shapes)?;
             if verified {
@@ -3088,19 +3375,48 @@ async fn async_main() -> anyhow::Result<()> {
                     open_ontologies::shacl_verified::validate_verified(&graph, &shapes_content)
                         .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}))
                 };
-                output_result(&result.to_string(), cli.pretty);
+                output_result_gated(&result.to_string(), cli.pretty, Gate::Shacl);
                 return Ok(());
             }
-            let result = match open_ontologies::temporal::ScopeRequest::from_args(
+            let report = open_ontologies::temporal::ScopeRequest::from_args(
                 valid_at.as_deref(),
                 as_of.as_deref(),
                 all_versions,
-            ) {
-                Ok(request) => ShaclValidator::validate_scoped(&graph, &shapes_content, &request)
-                    .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
-                Err(e) => serde_json::json!({"error": e.to_string()}).to_string(),
+            )
+            .and_then(|request| ShaclValidator::report_scoped(&graph, &shapes_content, &request));
+            let report = match report {
+                Ok(r) => r,
+                Err(e) => {
+                    output_result_gated(
+                        &serde_json::json!({"error": e.to_string()}).to_string(),
+                        cli.pretty,
+                        Gate::Shacl,
+                    );
+                    return Ok(());
+                }
             };
-            output_result(&result, cli.pretty);
+            if format == ReportFormat::Json {
+                output_result_gated(&report.to_json_string(), cli.pretty, Gate::Shacl);
+                return Ok(());
+            }
+            // The code comes from the JSON verdict through the same mapping
+            // every format uses (#329), not from the Turtle: a graph has no
+            // `conforms` key, and `sh:conforms false` is written for both a
+            // failing run and an undetermined one, which exit 1 and 2.
+            let code = gate_exit_code(Gate::Shacl, &report.to_json_string());
+            match report.render(format) {
+                Ok(rdf) => {
+                    print!("{rdf}");
+                    if code != 0 {
+                        std::process::exit(code);
+                    }
+                }
+                Err(e) => output_result_gated(
+                    &serde_json::json!({"error": e.to_string()}).to_string(),
+                    cli.pretty,
+                    Gate::Shacl,
+                ),
+            }
         }
         Commands::VocabCheck { data } => {
             let (_db, graph) = setup(&cli.data_dir)?;
@@ -3116,9 +3432,21 @@ async fn async_main() -> anyhow::Result<()> {
             valid_at,
             as_of,
             all_versions,
+            phase_timeout_ms,
+            classify_timeout_ms,
         } => {
             use open_ontologies::reason::{InferenceTarget, Reasoner};
+            // `setup` applies `[reasoner]` from config.toml; a flag then wins
+            // over it, the same CLI > config > default order as --storage-mode
+            // (neither clock has an environment variable). The `budget` block
+            // reads these same globals, so it reports what is in force.
             let (_db, graph) = setup(&cli.data_dir)?;
+            if let Some(ms) = phase_timeout_ms {
+                open_ontologies::runtime::set_tableaux_test_timeout_ms(ms);
+            }
+            if let Some(ms) = classify_timeout_ms {
+                open_ontologies::runtime::set_classify_timeout_ms(ms);
+            }
             let request = match open_ontologies::temporal::ScopeRequest::from_args(
                 valid_at.as_deref(),
                 as_of.as_deref(),
@@ -3389,7 +3717,7 @@ async fn async_main() -> anyhow::Result<()> {
         }
 
         // ─── Lifecycle ──────────────────────────────────────────────
-        Commands::Plan { file, no_conservativity } => {
+        Commands::Plan { file, no_conservativity, no_logic_check } => {
             let (db, graph) = setup(&cli.data_dir)?;
             let turtle = std::fs::read_to_string(&file)?;
             let planner = open_ontologies::plan::Planner::new(db, graph);
@@ -3406,10 +3734,18 @@ async fn async_main() -> anyhow::Result<()> {
                     max_rows: 1_000_000,
                 }
             });
+            let checks = open_ontologies::plan::PlanChecks {
+                conservativity: opts,
+                logic: !no_logic_check,
+            };
             let result = planner
-                .plan_checked(&turtle, opts)
+                .plan_with(&turtle, checks)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            // Exit 1 on an error only, as before. A plan is a report, and a
+            // `high` risk_score has always exited 0 when it came from removals;
+            // one that comes from the logic check does the same, so a pipeline
+            // gates on `risk_score` / `logic` and one rule covers both.
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Apply { mode, plan_id } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3443,7 +3779,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = detector
                 .detect(&v1, &v2)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_checked(&result, cli.pretty);
         }
         Commands::Enforce { pack } => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3451,7 +3787,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = enforcer
                 .enforce_with_feedback(&pack, Some(&db))
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            output_result_gated(&result, cli.pretty, Gate::Enforce);
         }
         Commands::Unpack {
             path,
@@ -3472,7 +3808,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = open_ontologies::pack::Packer::new(graph)
                 .unpack(&path, &opts)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{e}"}}"#));
-            output_result(&result, cli.pretty);
+            output_result_gated(&result, cli.pretty, Gate::Unpack);
         }
         Commands::Monitor => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3480,7 +3816,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = monitor.run_watchers();
             let json = serde_json::to_string(&result)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&json, cli.pretty);
+            output_result_gated(&json, cli.pretty, Gate::Monitor);
         }
         Commands::MonitorClear => {
             let (db, graph) = setup(&cli.data_dir)?;
@@ -3717,7 +4053,10 @@ async fn async_main() -> anyhow::Result<()> {
             target,
             min_confidence,
             dry_run,
+            scoring,
+            cardinality,
         } => {
+            use open_ontologies::align::{AlignOptions, Cardinality, Scoring};
             let (db, graph) = setup(&cli.data_dir)?;
             let source_ttl = std::fs::read_to_string(&source)?;
             let target_ttl = match target {
@@ -3725,10 +4064,39 @@ async fn async_main() -> anyhow::Result<()> {
                 None => None,
             };
             let engine = open_ontologies::align::AlignmentEngine::new(db, graph);
-            let result = engine
-                .align(&source_ttl, target_ttl.as_deref(), min_confidence, dry_run)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
-            output_result(&result, cli.pretty);
+            // The command line has one threshold, so the borderline bucket is
+            // empty here exactly as it always was: low == high.
+            let result = Scoring::parse(&scoring)
+                .and_then(|scoring| {
+                    let cardinality = Cardinality::parse(&cardinality)?;
+                    let min_confidence =
+                        min_confidence.unwrap_or_else(|| scoring.default_high_threshold());
+                    engine.align_with_options(
+                        &source_ttl,
+                        target_ttl.as_deref(),
+                        &AlignOptions {
+                            high_threshold: min_confidence,
+                            low_threshold: min_confidence,
+                            dry_run,
+                            scoring,
+                            cardinality,
+                            ..AlignOptions::default()
+                        },
+                    )
+                })
+                .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string());
+            output_result_with_exit(&result, cli.pretty);
+        }
+        Commands::CrosswalkProbe {
+            source,
+            target,
+            mappings,
+        } => {
+            // Runs here rather than through a daemon: it builds its own two
+            // stores and never reads the loaded one.
+            let result = open_ontologies::crosswalk::probe_files(&source, &target, &mappings)
+                .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}));
+            output_result_with_exit(&result.to_string(), cli.pretty);
         }
         Commands::AlignFeedback {
             source,
@@ -3830,7 +4198,7 @@ mod proxy_serialization_tests {
     #[test]
     fn an_absolute_path_is_left_alone() {
         let abs = if cfg!(windows) { r"C:\onto\proposed.ttl" } else { "/onto/proposed.ttl" };
-        let (_, args) = args_of(&Commands::Plan { file: abs.into(), no_conservativity: false });
+        let (_, args) = args_of(&Commands::Plan { file: abs.into(), no_conservativity: false, no_logic_check: false });
         assert_eq!(args, vec![abs.to_string()]);
     }
 
@@ -3885,6 +4253,36 @@ mod proxy_serialization_tests {
         assert!(without.to_batch_command().is_some());
     }
 
+    #[test]
+    fn a_reasoner_budget_flag_is_never_proxied_and_a_live_daemon_refuses_it() {
+        // #339. The clocks are process-wide in the daemon, so a per-request
+        // budget cannot be honoured there; and a local run would read a
+        // different store from the one the caller loaded into the daemon.
+        let reason = |phase: Option<usize>, ceiling: Option<usize>| Commands::Reason {
+            profile: "owl-dl".into(),
+            certificate: None,
+            rules: None,
+            valid_at: None,
+            as_of: None,
+            all_versions: false,
+            phase_timeout_ms: phase,
+            classify_timeout_ms: ceiling,
+        };
+        let info = open_ontologies::daemon::DaemonInfo {
+            pid: 4242,
+            url: "http://127.0.0.1:8080".into(),
+            token: None,
+        };
+        for cmd in [reason(Some(200), None), reason(None, Some(0)), reason(Some(1), Some(2))] {
+            assert!(cmd.to_batch_command().is_none());
+            let why = daemon_refuses(&cmd, &info).expect("a live daemon must refuse it");
+            assert!(why.contains("--no-connect") && why.contains("4242"), "{why}");
+        }
+        let plain = reason(None, None);
+        assert!(plain.to_batch_command().is_some());
+        assert!(daemon_refuses(&plain, &info).is_none());
+    }
+
     /// One instance of every variant `to_batch_command` will proxy. If a new
     /// proxy-able command is added and not listed here it simply goes uncovered;
     /// nothing here passes falsely because of it.
@@ -3896,21 +4294,21 @@ mod proxy_serialization_tests {
             Commands::Stats,
             Commands::Query { query: "SELECT ?s WHERE { ?s ?p ?o }".into() },
             Commands::Lint { input: "x.ttl".into() },
-            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: None, as_of: None, all_versions: false },
+            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: None, as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
             // The scoped form proxies too: a daemon-backed `reason --valid-at`
             // that silently dropped the flag would run over every version and
             // report a snapshot it did not have.
-            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: Some("2026-01-01".into()), as_of: None, all_versions: false },
+            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: Some("2026-01-01".into()), as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false },
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: false, report_format: "json".into() },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: true, verified: false, report_format: "json".into() },
             // The verified form proxies too, for the reason the scoped `reason`
             // form above is here: a daemon-backed `shacl --verified` that
             // silently dropped the flag would run the UNVERIFIED evaluator and
             // answer with a conformance verdict that no theorem stands behind.
-            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true },
+            Commands::Shacl { shapes: "s.ttl".into(), valid_at: None, as_of: None, all_versions: false, verified: true, report_format: "json".into() },
             Commands::Status,
             Commands::Pull { url: "http://example.org".into(), sparql: false, query: None },
             Commands::Push { endpoint: "http://example.org".into(), graph: None },
@@ -3918,7 +4316,9 @@ mod proxy_serialization_tests {
             Commands::History,
             Commands::Rollback { label: "v1".into() },
             Commands::Ingest { path: "x.csv".into(), format: None, mapping: None, base_iri: None },
-            Commands::Plan { file: "p.ttl".into(), no_conservativity: false },
+            Commands::Plan { file: "p.ttl".into(), no_conservativity: false, no_logic_check: false },
+            Commands::Plan { file: "p.ttl".into(), no_conservativity: true, no_logic_check: true },
+            Commands::Defects { input: "x.ttl".into(), limit: 0 },
             Commands::Apply { mode: "safe".into(), plan_id: None },
             Commands::Enforce { pack: "generic".into() },
             Commands::Monitor,

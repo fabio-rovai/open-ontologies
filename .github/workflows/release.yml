@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: scripts/check-release-version.sh "${{ github.ref_name }}"
 
   build:
@@ -37,7 +37,7 @@ jobs:
             artifact_name: open-ontologies.exe
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -66,7 +66,7 @@ jobs:
       - name: Build
         run: cargo build --release --features embeddings,plugins --target ${{ matrix.target }}
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: open-ontologies-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
@@ -89,8 +89,25 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # releases.lean-lang.org has dropped TLS connections for minutes at a
+      # time (19 Oct 2026: every python and lean job failed fetching the
+      # toolchain, with no code at fault). The first attempt may fail; the
+      # second is the one that decides the job, so a real proof failure still
+      # fails it, only later.
+      - id: lean1
+        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
+        continue-on-error: true
+        with:
+          lake-package-directory: lean
+          build: true
+          test: false
+          lint: false
+          use-github-cache: true
+      - if: steps.lean1.outcome == 'failure'
+        run: sleep 90
+      - if: steps.lean1.outcome == 'failure'
+        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
         with:
           lake-package-directory: lean
           build: true
@@ -123,7 +140,7 @@ jobs:
           [ "$fo" = 1 ] || { echo "::error::no first-order resolution checker under either name"; exit 1; }
           ls -la out
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: checkers-x86_64-unknown-linux-gnu
           path: out/*
@@ -140,8 +157,8 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       - name: Rename binaries
         run: |
           for dir in open-ontologies-*/; do
@@ -189,7 +206,7 @@ jobs:
             | sed 's|  .*/|  |' > SHASUMS.txt
           cat SHASUMS.txt
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           # Runs after the rename so each attested subject name is the name the
           # asset is published under.
@@ -204,7 +221,7 @@ jobs:
             : > release-notes.md
           fi
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           body_path: release-notes.md
           files: |

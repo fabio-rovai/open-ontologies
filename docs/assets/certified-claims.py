@@ -38,7 +38,7 @@ TEXT = {
         "down": "downgraded",
         "gap": "{n} term the crosswalk does not carry",
         "gaps": "{n} terms the crosswalk does not carry",
-        "because": "the target has no word for ies:ResponsibleActor, so nothing stronger is defensible",
+        "because": "the target does not put Person or Organisation under ResponsibleActor, so each is the narrower term",
         "entails": "entails {n}",
         "promoted": "{n} fact entailed in {k} of {t} modules",
         "contested": "{n} held by fewer, and named rather than dropped",
@@ -70,7 +70,7 @@ TEXT = {
         "down": "降级",
         "gap": "{n} 个词对照表未收录",
         "gaps": "{n} 个词对照表未收录",
-        "because": "目标方没有 ies:ResponsibleActor 对应的词，因此更强的声明都立不住",
+        "because": "目标方没有把 Person 和 Organisation 放在 ResponsibleActor 之下，因此二者都是更窄的词",
         "entails": "蕴涵 {n}",
         "promoted": "{n} 条事实在 {t} 个模块中的 {k} 个里被蕴涵",
         "contested": "{n} 条只有更少模块持有，逐条列出而不丢弃",
@@ -170,7 +170,10 @@ def main(cw_path, mod_path, mc_path, out_path, lang="en"):
     for row in cw["rows"]:
         claimed, supported = short(row["claimed"]), short(row["supported"])
         down = row["downgraded"]
-        col = WARN if down else OK
+        # A row nothing could be compared on is not upheld, and must not be
+        # drawn in the colour of one.
+        unchecked = row.get("certification", "").startswith("not_refuted")
+        col = WARN if down else (DIM if unchecked else OK)
         A(f'<text x="{x + 16:.0f}" y="{y}" font-size="10.5" fill="{INK}">'
           f'{esc(must_fit(short(row["subject"]), 10.5, CW_ - 150, "crosswalk subject"))}</text>')
         A(f'<text x="{x + CW_ - 16:.0f}" y="{y}" font-size="10" text-anchor="end" fill="{col}">'

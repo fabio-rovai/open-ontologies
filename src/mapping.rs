@@ -25,6 +25,7 @@ pub struct MappingConfig {
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 impl MappingConfig {
     /// Generate a naive 1:1 mapping from column headers.
@@ -95,7 +96,14 @@ impl MappingConfig {
                 // crate cannot parse keep the declared type.
                 let ok = crate::induce::Dt::from_iri(dt).is_none_or(|d| d.accepts(value));
                 if ok {
-                    format!("\"{}\"^^<{}>", escape_ntriples(value), dt)
+                    // The probe admits spreadsheet-style Boolean words, but
+                    // their RDF lexical spelling is lowercase.
+                    let lexical = match (dt.as_str(), value.trim()) {
+                        (XSD_BOOLEAN, "true" | "True" | "TRUE") => "true",
+                        (XSD_BOOLEAN, "false" | "False" | "FALSE") => "false",
+                        _ => value.as_str(),
+                    };
+                    format!("\"{}\"^^<{}>", escape_ntriples(lexical), dt)
                 } else {
                     format!("\"{}\"", escape_ntriples(value))
                 }
@@ -119,14 +127,29 @@ impl MappingConfig {
     }
 }
 
-/// Replace spaces and special characters that are invalid in IRIs with underscores.
+/// Replace invalid IRI characters and encode literal percent signs.
+/// Existing percent escapes remain unchanged.
 fn sanitize_iri(s: &str) -> String {
-    s.chars()
-        .map(|c| match c {
-            ' ' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => '_',
-            _ => c,
-        })
-        .collect()
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '%' => {
+                let mut following = chars.clone();
+                let encoded = matches!(following.next(), Some(c) if c.is_ascii_hexdigit())
+                    && matches!(following.next(), Some(c) if c.is_ascii_hexdigit());
+                if encoded {
+                    out.push('%');
+                } else {
+                    out.push_str("%25");
+                }
+            }
+            ' ' | '"' | '<' | '>' | '{' | '}' | '|' | '\\' | '^' | '`' | '?' => out.push('_'),
+            c if c.is_ascii_control() => out.push('_'),
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 /// Escape characters that are special in N-Triples string literals.

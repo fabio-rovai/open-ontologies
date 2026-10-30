@@ -62,6 +62,33 @@ measurements are in
 | `onto_dl_explain` | Explain why a class is unsatisfiable (clash trace) |
 | `onto_dl_check` | Check if one class is subsumed by another |
 
+## Time budgets for `owl-dl`
+
+An `owl-dl` run has two wall clocks. The phase budget bounds each of its five
+phases (consistency, satisfiability, subsumption, ABox, explanation). The
+ceiling bounds the whole run. `0` means no limit for either clock. Every
+`owl-dl` report carries a `budget` block. It gives the values in force and
+names the bound that actually stops the run.
+
+| Setting | CLI flag (`reason`) | `[reasoner]` key in `config.toml` | Default |
+| ------- | ------------------- | --------------------------------- | ------- |
+| Phase budget | `--phase-timeout-ms` | `tableaux_test_timeout_ms` | 10000 |
+| Ceiling | `--classify-timeout-ms` | `classify_timeout_ms` | 180000 |
+
+The precedence is the flag, then the config file, then the default. No
+environment variable sets either clock. One-shot CLI commands read
+`<data-dir>/config.toml`, and the servers read the file given to `--config`.
+Before #339, one-shot commands ignored `[reasoner]` and always reported the
+defaults.
+
+A running daemon fixes both clocks when it starts, from the `config.toml` in its
+data directory. A proxied `reason` uses those values. A request cannot change
+them, because the clocks are process-wide and the daemon serves every client.
+For that reason, a `reason` that carries either flag is never proxied. If a
+daemon is running, that command is refused. Pass `--no-connect` to run it
+against the data directory's own store, or change `[reasoner]` and restart the
+daemon.
+
 ## Which graphs a run reads
 
 By default, all of them: the default graph and every named graph, flattened.

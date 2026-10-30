@@ -13,10 +13,11 @@ carefully it is run. It fails three well-formedness checks nobody runs.
 
 Right: `gchq/HQDM/hqdm.owl`, the OWL rendering. Well formed by the same three
 checks, and not coherent: this repository's SHIQ tableaux finds most of its
-named classes satisfiable and cannot decide the rest, and an external reasoner
-(HermiT, an opinion in this repository's vocabulary) calls exactly those
-remaining classes unsatisfiable. The figure COMPUTES that intersection from the
-two committed lists; it does not state it.
+named classes satisfiable and the rest unsatisfiable, and an external reasoner
+(HermiT, an opinion in this repository's vocabulary) calls the same classes
+unsatisfiable. The figure COMPUTES that intersection from the two committed
+lists; it does not state it, and it draws any class the engine could not decide
+in amber, so a run that leaves some undecided is drawn as exactly that.
 
 Every count here is computed from the inputs. Nothing is typed twice.
 """
@@ -64,8 +65,8 @@ TEXT = {
         "headline": "HQDM, two shipped renderings: one is not well formed, the other is not coherent",
         "beat1": "1 · left: {n} terms are used as a class and never declared",
         "beat2": "2 · left: {n} rdfs:range declarations name a relation, not a class",
-        "beat3": "3 · right: this engine finds {sat} named classes satisfiable and cannot decide {und}",
-        "beat4": "4 · right: HermiT, an opinion here, calls {n} unsatisfiable, and they are the same {both}",
+        "beat3": "3 · right: this engine finds {sat} named classes satisfiable, {unsat} unsatisfiable, {und} undecided",
+        "beat4": "4 · right: HermiT, an opinion here, calls {n} unsatisfiable, and this engine agrees on {both}",
         "beat5": "5 · both: {a} and {b} names differ only by a trailing underscore",
         "ttl_sub": "· hqdmTop/hqdmFramework · MagmaCore · RDFS",
         "owl_sub": "· gchq/HQDM · OWL, {n} disjointness axioms",
@@ -78,8 +79,8 @@ TEXT = {
         "badrange": ("RANGE IS A RELATION", "rdfs:range naming part_of or participant_in"),
         "twins": ("UNDERSCORE TWINS", "one underscore apart; {n} share domain and range"),
         "sat": ("SATISFIABLE", "named classes this engine's tableaux found a model for"),
-        "und": ("UNDECIDED", "budget ran out before a verdict either way"),
-        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; {n} are the undecided ones"),
+        "unsat": ("UNSATISFIABLE", "every branch of this engine's tableaux closed in a clash"),
+        "oracle": ("ORACLE: UNSATISFIABLE", "HermiT, OM 2026 run; this engine agrees on {n}"),
         "foot1": "Same ontology name, two files, and the defect you find depends on which you fetched; "
                  "neither file says which is canonical.",
         "foot2": "{o} of the {t} underscore twins survive into the OWL rendering. "
@@ -89,8 +90,8 @@ TEXT = {
         "headline": "HQDM 的两个发布文件：一个不是良构的，另一个不是融贯的",
         "beat1": "1 · 左：{n} 个术语被当作类使用，却从未声明",
         "beat2": "2 · 左：{n} 条 rdfs:range 声明指向关系，而不是类",
-        "beat3": "3 · 右：本引擎判定 {sat} 个具名类可满足，另有 {und} 个无法判定",
-        "beat4": "4 · 右：HermiT（在此只是一种意见）判定 {n} 个不可满足，恰好就是同样的 {both} 个",
+        "beat3": "3 · 右：本引擎判定 {sat} 个具名类可满足，{unsat} 个不可满足，{und} 个无法判定",
+        "beat4": "4 · 右：HermiT（在此只是一种意见）判定 {n} 个不可满足，本引擎与其中 {both} 个一致",
         "beat5": "5 · 两者：{a} 对与 {b} 对名称仅相差一个尾部下划线",
         "ttl_sub": "· hqdmTop/hqdmFramework · MagmaCore · RDFS",
         "owl_sub": "· gchq/HQDM · OWL，{n} 条不相交公理",
@@ -103,8 +104,8 @@ TEXT = {
         "badrange": ("值域是关系", "rdfs:range 指向 part_of 或 participant_in"),
         "twins": ("下划线孪生名", "仅相差一个尾部下划线；其中 {n} 对定义域与值域完全相同"),
         "sat": ("可满足", "本引擎的 tableaux 为其找到了模型的具名类"),
-        "und": ("无法判定", "预算用尽，两个方向都没有结论"),
-        "oracle": ("外部意见：不可满足", "HermiT，OM 2026 运行；其中 {n} 个正是无法判定的那些"),
+        "unsat": ("不可满足", "本引擎 tableaux 的每个分支都以冲突告终"),
+        "oracle": ("外部意见：不可满足", "HermiT，OM 2026 运行；本引擎与其中 {n} 个一致"),
         "foot1": "同一个本体名称，两个文件；你发现的缺陷取决于你取到了哪一个，两个文件都没有说明哪一个是规范版本。",
         "foot2": "{t} 对下划线孪生名中有 {o} 对延续到了 OWL 版本。此处每个数字都由测试从数据行重新计算。",
     },
@@ -315,7 +316,7 @@ def window(t0, t1, low, high):
                 kt(0, max(0.0, t0 - 0.3), t0 + 0.2, t1 - 0.3, t1, CYCLE))
 
 
-def panel(A, rows, box, label, undeclared, bad_range, undecided, hermit, disjoint_on):
+def panel(A, rows, box, label, undeclared, bad_range, undecided, unsat, hermit, disjoint_on):
     """Draw one rendering into `box`; returns (names, edges) for the captions."""
     L, Rr, T, B = box
     edges = [(s, o, p) for s, p, o in rows
@@ -352,10 +353,14 @@ def panel(A, rows, box, label, undeclared, bad_range, undecided, hermit, disjoin
         n = names[i]
         bad = n in undeclared_set
         und = n in undecided
-        if und:
-            # An undecided class: amber fill. If the oracle calls it
-            # unsatisfiable as well, a red ring appears over it in beat 4.
-            A(f'<circle cx="{pt[i][0]:.1f}" cy="{pt[i][1]:.1f}" r="{r + 0.8:.1f}" fill="{C_UND}" '
+        uns = n in unsat
+        if und or uns:
+            # A class this engine found unsatisfiable: red fill. One it could
+            # not decide: amber. If the oracle calls it unsatisfiable as well, a
+            # red ring appears over it in beat 4, so agreement and disagreement
+            # with the oracle are both visible.
+            A(f'<circle cx="{pt[i][0]:.1f}" cy="{pt[i][1]:.1f}" r="{r + 0.8:.1f}" '
+              f'fill="{C_BAD if uns else C_UND}" '
               f'opacity="{0.55 + 0.45 * depth[i]:.2f}"/>')
             if n in hermit:
                 A(f'<circle cx="{pt[i][0]:.1f}" cy="{pt[i][1]:.1f}" r="{r + 3.2:.1f}" fill="none" '
@@ -392,7 +397,10 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
     checked = dl["agents"]["satisfiability_agent"]["classes_checked"]
     if sat_found + len(undecided) + len(refuted) != checked:
         raise SystemExit("owl-dl.json does not add up: satisfiable + undecided + unsatisfiable != checked")
-    both = undecided & hermit
+    # What the oracle and this engine agree on. It used to be intersected with
+    # the UNDECIDED set, when the engine refuted none of these classes and left
+    # all 39 undecided; it now finds the same 39 unsatisfiable.
+    both = refuted & hermit
     disjoint_n = sum(1 for s, p, o in owl if p == DISJOINT)
     owl_term = sum(1 for s, p, o in owl if p.startswith(f"<{OWL}") or o.startswith(f"<{OWL}"))
     ttl_owl_term = sum(1 for s, p, o in ttl if p.startswith(f"<{OWL}") or o.startswith(f"<{OWL}"))
@@ -408,8 +416,9 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
       f'class but never declared drawn as hollow red rings, {len(t_bad)} rdfs:range '
       f'declarations naming a relation drawn as red edges, {len(t_pairs)} underscore twins. '
       f'Right, the OWL rendering hqdm.owl: {sat_found} named classes this engine found '
-      f'satisfiable, {len(undecided)} it could not decide drawn amber, and a red ring on '
-      f'the {len(both)} of those an external reasoner calls unsatisfiable.">')
+      f'satisfiable, {len(refuted)} it found unsatisfiable drawn red, {len(undecided)} it '
+      f'could not decide drawn amber, and a red ring on the {len(hermit)} an external reasoner '
+      f'calls unsatisfiable, {len(both)} of them the engine\'s own.">')
     A('<defs><radialGradient id="n"><stop offset="0" stop-color="#bae6fd"/>'
       '<stop offset="1" stop-color="#0ea5e9"/></radialGradient>'
       '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
@@ -422,9 +431,9 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
     MID = W // 2
     A(f'<line x1="{MID}" y1="{GT - 34}" x2="{MID}" y2="{GB + 8}" stroke="#1e3a5f" stroke-dasharray="3 5"/>')
     t_names, t_edges = panel(A, ttl, (34, MID - 22, GT, GB), "hqdm-0.0.1-alpha.ttl",
-                             t_undeclared, t_bad, set(), set(), (0, 0))
+                             t_undeclared, t_bad, set(), set(), set(), (0, 0))
     o_names, o_edges = panel(A, owl, (MID + 22, W - 34, GT, GB), "hqdm.owl",
-                             o_undeclared, o_bad, undecided, hermit, (8.0, 16.0))
+                             o_undeclared, o_bad, undecided, refuted, hermit, (8.0, 16.0))
 
     # Headline, then the beats in order.
     A(f'<text x="34" y="44" font-size="17" font-weight="800" fill="#f8fafc">'
@@ -432,7 +441,7 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
     BEATS = [
         (C_BAD, T["beat1"].format(n=len(t_undeclared)), 0.0, 4.0),
         (C_BAD, T["beat2"].format(n=len(t_bad)), 4.0, 8.0),
-        (C_UND, T["beat3"].format(sat=sat_found, und=len(undecided)), 8.0, 12.0),
+        (C_UND, T["beat3"].format(sat=sat_found, unsat=len(refuted), und=len(undecided)), 8.0, 12.0),
         (C_BAD, T["beat4"].format(n=len(hermit), both=len(both)), 12.0, 16.0),
         (C_WARN, T["beat5"].format(a=len(t_pairs), b=len(o_pairs)), 16.0, 20.0),
     ]
@@ -505,7 +514,7 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
     ]
     right = [
         (C_OK, T["sat"][0], sat_found, T["sat"][1]),
-        (C_UND, T["und"][0], len(undecided), T["und"][1]),
+        (C_BAD, T["unsat"][0], len(refuted), T["unsat"][1]),
         (C_BAD, T["oracle"][0], len(hermit), T["oracle"][1].format(n=len(both))),
     ]
     for col_x, rows_ in ((46, left), (MID + 18, right)):
@@ -537,7 +546,7 @@ def main(ttl_path, owl_path, dl_path, hermit_path, out_path, lang="en"):
           f"{len(t_undeclared)} undeclared, {len(t_bad)} bad ranges, {len(t_pairs)} twins "
           f"({len(t_identical)} identical); owl {len(o_names)} terms/{len(o_edges)} edges, "
           f"{len(o_undeclared)} undeclared, {len(o_bad)} bad ranges, {len(o_pairs)} twins "
-          f"({len(o_identical)} identical), {sat_found} satisfiable, {len(undecided)} undecided, "
+          f"({len(o_identical)} identical), {sat_found} satisfiable, {len(refuted)} unsatisfiable, {len(undecided)} undecided, "
           f"hermit {len(hermit)}, both {len(both)}")
 
 

@@ -90,7 +90,7 @@ Full writeup, including the three-bug analysis and reproduction commands: [`benc
 
 ## OAEI Ontology Alignment
 
-Anatomy 0.829 F1 (9th of 13 in the OAEI 2025 field), Conference 0.438 (below every participating system and both baselines). Full field, both baselines, and the stable-matching ablation: [`benchmark/oaei/README.md`](../benchmark/oaei/README.md)
+Anatomy 0.829 F1 (9th of 13 in the OAEI 2025 field), Conference 0.438 (below every participating system and both baselines), both measured with the fusion now behind `--scoring legacy`. Under the current default Anatomy scores 0.833 at the equivalent threshold; Conference has not been re-run. Full field, both baselines, and the stable-matching ablation: [`benchmark/oaei/README.md`](../benchmark/oaei/README.md)
 
 ## Claim Verification — Compiled Reasoning vs HermiT
 

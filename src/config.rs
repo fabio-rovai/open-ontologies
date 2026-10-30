@@ -523,11 +523,12 @@ pub struct ReasonerConfig {
     /// milliseconds. Default 180 000, the ORE competition convention. **`0`
     /// means no ceiling.**
     ///
-    /// Enforced over every phase, and at the default it cannot be the bound that
-    /// fires, because five phases at 10 000 ms cap a run at 50 000 ms first. Set
-    /// it below that to make it the binding one. Every `owl-dl` run reports which
-    /// of the two is binding in its `budget` block, so this does not have to be
-    /// worked out from these two numbers.
+    /// Enforced over every phase, and at the default it is not expected to be
+    /// the bound that fires, because five phases at 10 000 ms bound the tableau
+    /// work at 50 000 ms first. Set it below that to make it the expected one.
+    /// Every `owl-dl` run reports, in its `budget` block, both the bound these
+    /// settings predict (`configured_bound`) and the one that actually stopped
+    /// it (`binding_bound`), so neither has to be worked out from two numbers.
     ///
     /// NEITHER of these two existed here until the budget was audited. They were
     /// process-wide statics with setters for tests and, for the phase budget, one
@@ -553,11 +554,12 @@ impl Default for ReasonerConfig {
 #[serde(default)]
 pub struct FeedbackConfig {
     /// Number of consecutive dismissals after which a lint/enforce issue
-    /// is fully suppressed for that (tool, rule_id, entity) tuple. Default 3.
+    /// is fully suppressed for that (tool, rule_id, entity) tuple: moved to
+    /// the output's `suppressed[]` list. Errors are exempt. Default 3.
     pub suppress_threshold: i64,
     /// Number of consecutive dismissals after which a lint/enforce issue
-    /// is downgraded one severity level. Must be `< suppress_threshold` to
-    /// take effect. Default 2.
+    /// is downgraded one severity level (warning to info; errors are exempt).
+    /// Must be `< suppress_threshold` to take effect. Default 2.
     pub downgrade_threshold: i64,
 }
 impl Default for FeedbackConfig {
