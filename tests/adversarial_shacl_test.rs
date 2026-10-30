@@ -86,31 +86,42 @@ const PREFIXES: &str = r#"
 // BUCKET ONE: ENGINE DEFECTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── E1. A day that does not exist passes sh:datatype xsd:date ──────────────
+// ── E1. A day that does not exist violates sh:datatype xsd:date ────────────
 //
-// BUCKET: engine defect, and NOT FIXED on this branch.
+// BUCKET: engine defect, FIXED 28 September 2026.
 //
 // SHACL 4.1.2 makes a literal whose lexical form is outside its datatype's
 // lexical space a violation of `sh:datatype`. XSD 1.1 section 3.3.9 puts the
 // day-of-month constraint IN the lexical space of `xsd:date`, so
 // `"2026-02-31"^^xsd:date` is ill formed and must be reported.
 //
-// `ill_typed_test` in `src/shacl.rs` is the helper that implements the lexical
-// test, and for `xsd:date` it is the regex
-// `^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$`. That is
-// positional and counts digits. `2026-02-31` matches it. So does `2026-13-01`.
-// Both conform, on both evaluation paths, and this branch does not change that:
-// closing it means implementing the XSD date lexical space in Rust, which the
-// Lean development already does in `parseDateBody` and the Rust does not, and
-// a regex written by hand to approximate it fails in the direction that reports
-// violations on valid dates.
+// It was not. `ill_typed_test` in `src/shacl.rs` implemented the lexical test
+// as a regex, and for `xsd:date` that regex was
+// `^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$`, which is
+// positional and counts digits. `2026-02-31` matched it. So did `2026-13-01`.
+// Both conformed, on both evaluation paths.
 //
-// The verified evaluator disagrees. Run by hand on 28 September 2026 against
+// The fix puts the calendar in the regex. The month lengths are regex work,
+// and so is the proleptic Gregorian leap rule, because divisibility by 4, 100
+// and 400 depends only on a year's last four digits, however long the year.
+// `xsd:dateTime` also gets the hour, minute, second and timezone ranges the old
+// regex never looked at. `CALENDAR_DATE` in `src/shacl.rs` judges the form the
+// way `parseDateBody` in `lean/Shacl/Term.lean` always has, and because it is
+// inside `datatype_conforms` every site that asks the datatype question asks
+// it in the same words: both evaluation paths, because E2 is what happens when
+// they diverge, and the `sh:or`, `sh:not`, `sh:qualifiedValueShape` and nested
+// `sh:node` sites that splice it positively. An earlier version judged the day
+// in Rust after the query, which only the two direct paths could run.
+//
+// The verified evaluator agreed with this engine's OLD answer on nothing and
+// agrees with its new one. Run by hand on 28 September 2026 against
 // `lean/.lake/build/bin/oo-shacl validate` over exactly this data and these
 // shapes, it returned `conforms: false` with two `DatatypeConstraintComponent`
-// results, one per literal, under the theorem `Shacl.validate_spec`. The
-// command and its output are in decision 0018. It is not asserted here because
-// wiring it in would make this file skip wherever `lake` is absent.
+// results, one per literal, under the theorem `Shacl.validate_spec`, which is
+// now what this engine returns too. The command and its output are in decision
+// 0018, before and after. It is not asserted here because wiring it in would
+// make this file skip wherever `lake` is absent, and
+// `tests/shacl_xsd_date_lexical_test.rs` carries the wider fixture table.
 
 const E1_DATA: &str = r#"
     ex:cert1 a ex:Certificate ; ex:expiresOn "2026-02-31"^^xsd:date .
@@ -157,13 +168,18 @@ fn the_impossible_date_reaches_the_store_with_its_datatype_intact() {
     );
 }
 
-/// The gate says yes. The calendar says there is no such day.
+/// The calendar says there is no such day, and the gate now says so too.
 ///
-/// This test records a DEFECT that is open. When the XSD date lexical space is
-/// implemented in Rust it will fail, and the right response is to change the
-/// expectations here and amend decision 0018, not to weaken it.
+/// This test recorded a DEFECT that is now CLOSED. It read `conforms: true` on
+/// both paths until 28 September 2026 and the expectations were flipped when
+/// the lexical space was implemented, which is what decision 0018 said the
+/// response would have to be. Nothing here was relaxed: both paths are still
+/// asserted, the violation COUNT is still asserted, the focus-node count is
+/// still asserted, and the constraint component is now asserted as well,
+/// because a violation reported under the wrong component would be a different
+/// bug wearing this one's answer.
 #[test]
-fn a_day_that_does_not_exist_conforms_to_sh_datatype_on_both_paths() {
+fn a_day_that_does_not_exist_violates_sh_datatype_on_both_paths() {
     let store = loaded(&format!("{PREFIXES}{E1_DATA}"));
 
     // Oracle. An independent reader of the lexical space, and not this engine.
@@ -184,32 +200,47 @@ fn a_day_that_does_not_exist_conforms_to_sh_datatype_on_both_paths() {
     let property_path = report(&store, &format!("{PREFIXES}{E1_PROPERTY_SHAPES}"));
     assert_eq!(
         property_path["conforms"],
-        serde_json::json!(true),
-        "defect record: an expiry that never arrives passes a date constraint: {property_path}"
+        serde_json::json!(false),
+        "an expiry that never arrives must not pass a date constraint: {property_path}"
     );
-    assert_eq!(property_path["violation_count"], serde_json::json!(0));
+    assert_eq!(property_path["violation_count"], serde_json::json!(2));
     assert_eq!(property_path["focus_nodes"], serde_json::json!(2));
+    for v in property_path["violations"].as_array().unwrap() {
+        assert_eq!(v["constraint"], "datatype", "{property_path}");
+        assert_eq!(
+            v["source_constraint_component"],
+            "http://www.w3.org/ns/shacl#DatatypeConstraintComponent",
+            "{property_path}"
+        );
+    }
 
     // The gate, through a node shape, which is the path that has always run
-    // the lexical test. Same answer, so this is not a divergence between two
-    // paths: it is one lexical test that is too weak on both.
+    // the lexical test. Same answer, which is what E2 is about: one constraint
+    // gets one verdict wherever its author wrote it.
     let node_path = report(&store, &format!("{PREFIXES}{E1_NODE_SHAPES}"));
     assert_eq!(
         node_path["conforms"],
-        serde_json::json!(true),
-        "defect record: the node-shape path runs ill_typed_test and still passes: {node_path}"
+        serde_json::json!(false),
+        "the node-shape path runs the same lexical test: {node_path}"
     );
-    assert_eq!(node_path["violation_count"], serde_json::json!(0));
+    assert_eq!(node_path["violation_count"], serde_json::json!(2));
 }
 
-/// The lexical test is not absent, it is an under-approximation, and that is a
-/// different bug with a different fix. A literal ill formed by SPELLING is
-/// caught on both paths; one ill formed only by the CALENDAR is caught on
-/// neither. Without this the test above could be read as "no lexical test
-/// runs", which was true of the property-shape path before this branch and is
-/// not the finding.
+/// The lexical test reaches the calendar and not only the spelling, and it
+/// stops at the edge of the lexical space rather than past it.
+///
+/// This test was named `the_lexical_test_runs_and_is_a_strict_under_approximation
+/// _of_the_date_space` and the name now states something false, so it is
+/// renamed rather than left to mislead. It used to assert that a form ill
+/// formed by SPELLING was caught and one ill formed only by the CALENDAR was
+/// not. Both are caught now, so the second half is replaced by the measurement
+/// that is actually load-bearing after the fix: the direction the decision
+/// record warned about, which is a tightened test reporting violations on
+/// VALID dates. A real 29 February, a five-digit year and a negative year are
+/// each well formed XSD and each must still conform, and a test that only
+/// checked the rejections would not notice if they stopped.
 #[test]
-fn the_lexical_test_runs_and_is_a_strict_under_approximation_of_the_date_space() {
+fn the_lexical_test_reaches_the_calendar_and_not_only_the_spelling() {
     let misspelt = loaded(&format!("{PREFIXES}{E1_MISSPELT_DATA}"));
     let caught = report(&misspelt, &format!("{PREFIXES}{E1_PROPERTY_SHAPES}"));
     assert_eq!(
@@ -221,12 +252,41 @@ fn the_lexical_test_runs_and_is_a_strict_under_approximation_of_the_date_space()
     assert_eq!(caught["violation_count"], serde_json::json!(1));
 
     let impossible = loaded(&format!("{PREFIXES}{E1_DATA}"));
-    let missed = report(&impossible, &format!("{PREFIXES}{E1_PROPERTY_SHAPES}"));
+    let by_calendar = report(&impossible, &format!("{PREFIXES}{E1_PROPERTY_SHAPES}"));
     assert_eq!(
-        missed["conforms"],
-        serde_json::json!(true),
-        "and one outside it by calendar is not: {missed}"
+        by_calendar["conforms"],
+        serde_json::json!(false),
+        "and one outside it by calendar is too: {by_calendar}"
     );
+    // BOTH of them, and the count is what says so. Measured: a mutation that
+    // stopped checking the day against the month and kept checking the month
+    // left this test GREEN, because `2026-13-01` alone is enough to make the
+    // verdict false. A conformance boolean over two fixtures cannot tell which
+    // of them was caught.
+    assert_eq!(
+        by_calendar["violation_count"],
+        serde_json::json!(2),
+        "the day and the month are two different calendar rules and both fixtures are here \
+         so that both are measured: {by_calendar}"
+    );
+
+    // The other direction, which is the one that would make this fix worse than
+    // the defect. 2024 is a leap year, `12026` is a year XSD allows and the old
+    // regex reported a violation on, and a negative year is well formed XSD
+    // that `lean/Shacl/Term.lean` declines to judge and this engine declines
+    // with it.
+    for lex in ["2024-02-29", "12026-01-01", "-0044-03-15"] {
+        let ttl = format!(
+            "{PREFIXES}ex:ok a ex:Certificate ; ex:expiresOn \"{lex}\"^^xsd:date .",
+        );
+        let valid = loaded(&ttl);
+        let verdict = report(&valid, &format!("{PREFIXES}{E1_PROPERTY_SHAPES}"));
+        assert_eq!(
+            verdict["conforms"],
+            serde_json::json!(true),
+            "{lex} is in the lexical space of xsd:date and must not be reported: {verdict}"
+        );
+    }
 }
 
 // ── E2. One evaluator gave two answers to one constraint ───────────────────
