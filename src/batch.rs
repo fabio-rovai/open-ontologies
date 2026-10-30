@@ -144,6 +144,7 @@ impl BatchRunner {
             "validate" => self.exec_validate(&cmd.args),
             "lint" => self.exec_lint(&cmd.args),
             "defects" => self.exec_defects(&cmd.args),
+            "compile-exceptions" | "compile_exceptions" => self.exec_compile_exceptions(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "certificate-check" | "certificate_check" => self.exec_certificate_check(&cmd.args),
             "fol" => self.exec_fol(&cmd.args),
@@ -342,6 +343,51 @@ impl BatchRunner {
             Ok(result) => serde_json::from_str(&result).unwrap_or(json!({"raw": result})),
             Err(e) => json!({"error": e.to_string()}),
         }
+    }
+
+    /// `compile-exceptions [path] [--out FILE]` (#347). With a path, the file
+    /// is compiled alone in a store of its own, as `defects` checks it, and
+    /// written to `--out` when one is given; without a path, the batch's own
+    /// store is compiled in place, as `onto_compile_exceptions` compiles the
+    /// MCP server's.
+    fn exec_compile_exceptions(&self, args: &[String]) -> Value {
+        let out = Self::flag_value(args, "--out");
+        let mut skip_next = false;
+        let path = args.iter().find(|a| {
+            if std::mem::take(&mut skip_next) {
+                return false;
+            }
+            if a.as_str() == "--out" {
+                skip_next = true;
+                return false;
+            }
+            !a.starts_with("--")
+        });
+        let graph = match path {
+            None => self.graph.clone(),
+            Some(p) => {
+                let content = match crate::graph::GraphStore::read_as_turtle(p) {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                let g = Arc::new(GraphStore::new());
+                if let Err(e) = g.load_turtle(&content, None) {
+                    return json!({"error": e.to_string()});
+                }
+                g
+            }
+        };
+        let mut report = match crate::exceptions::Exceptions::compile(&graph) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        if let Some(out) = out {
+            if let Err(e) = graph.save_file(&out, "turtle") {
+                return json!({"error": e.to_string()});
+            }
+            report["written"] = json!(out);
+        }
+        report
     }
 
     fn exec_reason(&self, args: &[String]) -> Value {

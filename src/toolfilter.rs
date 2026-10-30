@@ -272,7 +272,8 @@ const PROFILES: &[(&str, &str, &[&str])] = &[
          extract modules, and pull in vocabularies to build on.",
         &[
             "onto_save", "onto_convert", "onto_diff", "onto_lint", "onto_lint_feedback",
-            "onto_defects", "onto_dl_check", "onto_dl_explain", "onto_version", "onto_history",
+            "onto_defects", "onto_compile_exceptions", "onto_dl_check", "onto_dl_explain",
+            "onto_version", "onto_history",
             "onto_rollback", "onto_marketplace", "onto_import", "onto_pull", "onto_push",
             "onto_repo_list", "onto_repo_load", "onto_unload", "onto_recompile",
             "onto_cache_status", "onto_cache_list", "onto_cache_remove", "onto_enforce",
@@ -302,6 +303,7 @@ const PROFILES: &[(&str, &str, &[&str])] = &[
          DL tableaux, model finding.",
         &[
             "onto_reason", "onto_reason_incremental", "onto_rules_import", "onto_defects",
+            "onto_compile_exceptions",
             "onto_dlp_boundary", "onto_trace_label", "onto_justify", "onto_provenance",
             "onto_classify_el",
             "onto_dl_check", "onto_dl_explain", "onto_fol_export", "onto_fol_model",
@@ -534,6 +536,7 @@ pub fn expand_group(name: &str) -> &'static [&'static str] {
             "onto_shacl",
             "onto_vocab_check",
             "onto_reason",
+            "onto_compile_exceptions",
             "onto_extend",
             "onto_unload",
             "onto_recompile",

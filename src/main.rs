@@ -399,6 +399,17 @@ enum Commands {
         #[arg(long, default_value_t = open_ontologies::defects::Defects::MAX_PER_KIND)]
         limit: usize,
     },
+    /// Compile explicit exceptions to a disjointness (`exceptFor`) into ordinary
+    /// disjointness axioms (#347).
+    ///
+    /// Reads the FILE alone. The JSON report goes to stdout; the compiled
+    /// Turtle is written only to `--out`, so without it this is a dry run.
+    CompileExceptions {
+        input: String,
+        /// Where to write the compiled ontology, as Turtle.
+        #[arg(long)]
+        out: Option<String>,
+    },
     /// Convert between RDF formats, or to OWL 2 functional syntax (`--to ofn`)
     Convert {
         path: String,
@@ -2963,6 +2974,54 @@ async fn async_main() -> anyhow::Result<()> {
             let result = Defects::check_with_limit(&graph, limit)
                 .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
             output_result_checked(&result, cli.pretty);
+        }
+        Commands::CompileExceptions { input, out } => {
+            use open_ontologies::exceptions::Exceptions;
+            // The file alone, in a store of its own, read the way `defects`
+            // reads it: any serialisation, and a document that cannot be
+            // parsed fails the process rather than compiling to nothing.
+            let graph = std::sync::Arc::new(GraphStore::new());
+            let raw = if input == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                buf
+            } else {
+                match std::fs::read_to_string(&input) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                }
+            };
+            let loaded = GraphStore::content_as_turtle(&input, raw)
+                .and_then(|content| graph.load_turtle(&content, None));
+            if let Err(e) = loaded {
+                output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                std::process::exit(1);
+            }
+            let mut report = match Exceptions::compile(&graph) {
+                Ok(r) => r,
+                Err(e) => {
+                    output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                    std::process::exit(1);
+                }
+            };
+            match &out {
+                Some(path) => {
+                    if let Err(e) = graph.save_file(path, "turtle") {
+                        output_json(&serde_json::json!({"error": e.to_string()}), cli.pretty);
+                        std::process::exit(1);
+                    }
+                    report["written"] = serde_json::json!(path);
+                }
+                None => report["written"] = serde_json::Value::Null,
+            }
+            if json_mode() || cli.pretty {
+                output_json(&report, cli.pretty);
+            } else {
+                println!("{}", open_ontologies::exceptions::render_human(&report));
+            }
         }
         Commands::Lint { input } => {
             use open_ontologies::ontology::OntologyService;
