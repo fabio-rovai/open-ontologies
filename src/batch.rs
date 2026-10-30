@@ -14,6 +14,7 @@ pub struct BatchRunner {
     db: StateDb,
     graph: Arc<GraphStore>,
     pretty: bool,
+    human: bool,
 }
 
 /// A parsed batch command with its arguments.
@@ -25,14 +26,24 @@ struct BatchCmd {
 
 impl BatchRunner {
     pub fn new(db: StateDb, graph: Arc<GraphStore>, pretty: bool) -> Self {
-        Self { db, graph, pretty }
+        Self { db, graph, pretty, human: false }
+    }
+
+    /// Print each result as human-readable text instead of an NDJSON envelope.
+    ///
+    /// `batch --human` printed NDJSON when it ran locally and rendered text when
+    /// a daemon ran it, because only the proxy path read the flag. Both now
+    /// render each result by the command its envelope names.
+    pub fn human(mut self, human: bool) -> Self {
+        self.human = human;
+        self
     }
 
     /// Parse input (auto-detect line vs JSON format) and run all commands,
     /// printing each result as it completes.
     /// Returns the process exit code (0 = success, 1 = at least one error).
     pub async fn run(&self, input: &str, bail: bool) -> i32 {
-        self.run_each(input, bail, |line| self.print_json(line)).await
+        self.run_each(input, bail, |line| self.print_result(line)).await
     }
 
     /// Run all commands and collect results into a Vec instead of printing.
@@ -109,11 +120,17 @@ impl BatchRunner {
         exit_code
     }
 
-    fn print_json(&self, value: &Value) {
-        if self.pretty {
-            println!("{}", serde_json::to_string_pretty(value).unwrap());
+    /// Print one envelope: as JSON, or under `--human` as its result rendered
+    /// by the command it names, exactly as `connect::proxy_batch` prints one.
+    fn print_result(&self, envelope: &Value) {
+        if self.human && !self.pretty {
+            let command = envelope.get("command").and_then(Value::as_str);
+            let result = envelope.get("result").unwrap_or(envelope);
+            println!("{}", crate::output::render_human_for(command, result));
+        } else if self.pretty {
+            println!("{}", serde_json::to_string_pretty(envelope).unwrap());
         } else {
-            println!("{}", value);
+            println!("{}", envelope);
         }
     }
 
@@ -127,6 +144,8 @@ impl BatchRunner {
             "validate" => self.exec_validate(&cmd.args),
             "lint" => self.exec_lint(&cmd.args),
             "defects" => self.exec_defects(&cmd.args),
+            "compile-exceptions" | "compile_exceptions" => self.exec_compile_exceptions(&cmd.args),
+            "repair" => self.exec_repair(&cmd.args),
             "reason" => self.exec_reason(&cmd.args),
             "certificate-check" | "certificate_check" => self.exec_certificate_check(&cmd.args),
             "fol" => self.exec_fol(&cmd.args),
@@ -323,6 +342,134 @@ impl BatchRunner {
         };
         match Defects::check_with_limit(&graph, limit) {
             Ok(result) => serde_json::from_str(&result).unwrap_or(json!({"raw": result})),
+            Err(e) => json!({"error": e.to_string()}),
+        }
+    }
+
+    /// `compile-exceptions [path] [--out FILE]` (#347). With a path, the file
+    /// is compiled alone in a store of its own, as `defects` checks it, and
+    /// written to `--out` when one is given; without a path, the batch's own
+    /// store is compiled in place, as `onto_compile_exceptions` compiles the
+    /// MCP server's.
+    fn exec_compile_exceptions(&self, args: &[String]) -> Value {
+        let out = Self::flag_value(args, "--out");
+        let mut skip_next = false;
+        let path = args.iter().find(|a| {
+            if std::mem::take(&mut skip_next) {
+                return false;
+            }
+            if a.as_str() == "--out" {
+                skip_next = true;
+                return false;
+            }
+            !a.starts_with("--")
+        });
+        let graph = match path {
+            None => self.graph.clone(),
+            Some(p) => {
+                let content = match crate::graph::GraphStore::read_as_turtle(p) {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                let g = Arc::new(GraphStore::new());
+                if let Err(e) = g.load_turtle(&content, None) {
+                    return json!({"error": e.to_string()});
+                }
+                g
+            }
+        };
+        let mut report = match crate::exceptions::Exceptions::compile(&graph) {
+            Ok(r) => r,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        if let Some(out) = out {
+            if let Err(e) = graph.save_file(&out, "turtle") {
+                return json!({"error": e.to_string()});
+            }
+            report["written"] = json!(out);
+        }
+        report
+    }
+
+    /// `repair [path] [--weight-property IRI] [--default-weight N]
+    /// [--weights cost|probability] [--certificate-dir DIR] [--max-nodes N]
+    /// [--max-rounds N] [--out FILE]`. With a path, the file is repaired alone,
+    /// as the CLI subcommand repairs it; without one, the batch's own store is,
+    /// so `load x.ttl` then `repair` repairs what was loaded. The store is never
+    /// changed; `--out` writes the repaired graph as Turtle.
+    fn exec_repair(&self, args: &[String]) -> Value {
+        use crate::repair::{RepairOptions, WeightKind, DEFAULT_MAX_NODES, DEFAULT_MAX_ROUNDS};
+        const VALUED: [&str; 7] = [
+            "--weight-property",
+            "--default-weight",
+            "--weights",
+            "--certificate-dir",
+            "--max-nodes",
+            "--max-rounds",
+            "--out",
+        ];
+        fn number<T: std::str::FromStr>(args: &[String], flag: &str, default: T) -> Result<T, Value> {
+            match BatchRunner::flag_value(args, flag) {
+                None => Ok(default),
+                Some(v) => v
+                    .parse::<T>()
+                    .map_err(|_| json!({"error": format!("{flag} takes a number, got '{v}'")})),
+            }
+        }
+        let weights = match WeightKind::parse(
+            Self::flag_value(args, "--weights").as_deref().unwrap_or("cost"),
+        ) {
+            Ok(w) => w,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        let default_weight = match number(args, "--default-weight", 1.0f64) {
+            Ok(n) => n,
+            Err(e) => return e,
+        };
+        let max_nodes = match number(args, "--max-nodes", DEFAULT_MAX_NODES) {
+            Ok(n) => n.max(1),
+            Err(e) => return e,
+        };
+        let max_rounds = match number(args, "--max-rounds", DEFAULT_MAX_ROUNDS) {
+            Ok(n) => n,
+            Err(e) => return e,
+        };
+        let opts = RepairOptions {
+            weight_property: Self::flag_value(args, "--weight-property"),
+            default_weight,
+            weights,
+            certificate_dir: Self::flag_value(args, "--certificate-dir").map(std::path::PathBuf::from),
+            max_nodes,
+            max_rounds,
+            out: Self::flag_value(args, "--out").map(std::path::PathBuf::from),
+        };
+        let mut skip_next = false;
+        let path = args.iter().find(|a| {
+            if std::mem::take(&mut skip_next) {
+                return false;
+            }
+            if VALUED.contains(&a.as_str()) {
+                skip_next = true;
+                return false;
+            }
+            !a.starts_with("--")
+        });
+        let graph = match path {
+            None => self.graph.clone(),
+            Some(p) => {
+                let content = match crate::graph::GraphStore::read_as_turtle(p) {
+                    Ok(c) => c,
+                    Err(e) => return json!({"error": e.to_string()}),
+                };
+                let g = Arc::new(GraphStore::new());
+                if let Err(e) = g.load_turtle(&content, None) {
+                    return json!({"error": e.to_string()});
+                }
+                g
+            }
+        };
+        match crate::repair::repair(&graph, &opts) {
+            Ok(v) => v,
             Err(e) => json!({"error": e.to_string()}),
         }
     }

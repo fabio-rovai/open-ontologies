@@ -551,21 +551,14 @@ impl ShaclValidator {
                         }
                         "datatype" => {
                             let dt = strip_angle_brackets(obj);
-                            if datatype_is_indistinguishable_in_store(&dt) {
-                                skipped.push(serde_json::json!({
-                                    "shape": strip_angle_brackets(&shape_iri),
-                                    "constraint": "sh:datatype",
-                                    "reason": format!(
-                                        "the SPARQL evaluator reads <{dt}> as the type it derives from, so DATATYPE() cannot tell a conforming value from one of that type; this cannot be decided"
-                                    ),
-                                }));
-                                continue;
-                            }
                             // A literal whose lexical form is not in the
                             // datatype's lexical space is ill-typed and violates
                             // sh:datatype (SHACL 4.1.2), and DATATYPE() alone
                             // cannot see that: "aldi"^^xsd:integer answers
-                            // xsd:integer. `datatype_conforms` tests both.
+                            // xsd:integer. `datatype_conforms` tests both, and
+                            // for `xsd:date` and `xsd:dateTime` the lexical test
+                            // is the calendar itself, so an impossible day is
+                            // caught here without a second pass (decision 0018).
                             checks.push((
                                 "datatype".into(),
                                 format!("!{}", datatype_conforms(&dt, "focus")),
@@ -796,10 +789,6 @@ impl ShaclValidator {
             // and the run came back CLEAN. Same defect in sh:in and sh:not.
             let mut or_alternatives: HashMap<String, Vec<String>> = HashMap::new();
             let mut or_unsupported: HashSet<String> = HashSet::new();
-            // Property shape -> a member datatype DATATYPE() cannot report.
-            // The direct sh:datatype path refuses that question; a member
-            // answering it reported every widened value as matching nothing.
-            let mut or_unpreserved: HashMap<String, String> = HashMap::new();
             let or_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -839,12 +828,7 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    let dt = strip_angle_brackets(dt);
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        or_unpreserved.insert(p, dt);
-                        continue;
-                    }
-                    datatype_conforms(&dt, "val")
+                    datatype_conforms(&strip_angle_brackets(dt), "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -857,13 +841,6 @@ impl ShaclValidator {
                     continue;
                 };
                 or_alternatives.entry(p).or_default().push(clause);
-            }
-            for (p, dt) in &or_unpreserved {
-                or_alternatives.remove(p);
-                if !or_unsupported.contains(p) {
-                    let path = or_paths.get(p).cloned().unwrap_or_default();
-                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:or", &path, dt));
-                }
             }
             for p in &or_unsupported {
                 or_alternatives.remove(p);
@@ -892,10 +869,6 @@ impl ShaclValidator {
             // and 198 real violations were reported as a clean run.
             let mut not_clauses: HashMap<String, Vec<String>> = HashMap::new();
             let mut not_unsupported: HashSet<String> = HashSet::new();
-            // As `or_unpreserved`. Here answering anyway was a false clean: a
-            // value of the forbidden datatype read as xsd:integer, did not
-            // match, and satisfied the negation.
-            let mut not_unpreserved: HashMap<String, String> = HashMap::new();
             let not_rows = query_solutions_bound(
                 &shapes_store,
                 &format!(
@@ -938,12 +911,7 @@ impl ShaclValidator {
                     continue;
                 }
                 let clause = if let Some(dt) = row.get("datatype") {
-                    let dt = strip_angle_brackets(dt);
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        not_unpreserved.insert(p, dt);
-                        continue;
-                    }
-                    datatype_conforms(&dt, "val")
+                    datatype_conforms(&strip_angle_brackets(dt), "val")
                 } else if let Some(c) = row.get("class") {
                     format!(
                         "EXISTS {{ ?val <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
@@ -963,13 +931,6 @@ impl ShaclValidator {
                     continue;
                 };
                 not_clauses.entry(p).or_default().push(clause);
-            }
-            for (p, dt) in &not_unpreserved {
-                not_clauses.remove(p);
-                if !not_unsupported.contains(p) {
-                    let path = not_paths.get(p).cloned().unwrap_or_default();
-                    skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:not", &path, dt));
-                }
             }
             for p in &not_unsupported {
                 not_clauses.remove(p);
@@ -1079,10 +1040,6 @@ impl ShaclValidator {
                     }
                     if let Some(dt) = row.get("datatype") {
                         let dt = strip_angle_brackets(dt);
-                        if datatype_is_indistinguishable_in_store(&dt) {
-                            uncompilable = true;
-                            break;
-                        }
                         clauses.push(format!(
                             "NOT EXISTS {{ ?focus <{path}> ?{v} . FILTER(!{}) }}",
                             datatype_conforms(&dt, &v)
@@ -1226,17 +1183,6 @@ impl ShaclValidator {
                     row.get("message").cloned().filter(|_| !q_message.is_empty()),
                 );
 
-                if let Some(dt) = row.get("datatype").map(|d| strip_angle_brackets(d))
-                    && datatype_is_indistinguishable_in_store(&dt)
-                {
-                    skipped.push(unpreserved_datatype_skip(
-                        &shape_iri,
-                        "sh:qualifiedValueShape",
-                        &q_path,
-                        &dt,
-                    ));
-                    continue;
-                }
                 let clause = if row.get("other").is_some() {
                     None
                 } else if let Some(c) = row.get("class") {
@@ -1507,15 +1453,6 @@ impl ShaclValidator {
                 // sh:datatype
                 if let Some(dt_str) = prop.get("datatype") {
                     let dt = strip_angle_brackets(dt_str);
-                    // DATATYPE() cannot tell these apart from the type they are
-                    // derived from, so the constraint is not decidable here and
-                    // must not be answered. Asking anyway produced a violation
-                    // for every value that satisfied the shape: nine of them in
-                    // jsonld-escaping-conformance, which is how this was found.
-                    if datatype_is_indistinguishable_in_store(&dt) {
-                        skipped.push(unpreserved_datatype_skip(&shape_iri, "sh:datatype", &path, &dt));
-                        continue;
-                    }
                     // One evaluator gave two answers to one constraint. SHACL
                     // 4.1.2 makes a literal whose lexical form is outside its
                     // datatype's lexical space a violation, `DATATYPE()` alone
@@ -1528,13 +1465,17 @@ impl ShaclValidator {
                     // shapes graph got was decided by where its author wrote
                     // the constraint.
                     //
-                    // This closes the divergence and NOT the wider gap.
-                    // `datatype_conforms` tests a REGEX, and the date regex is
-                    // syntactic: `"2026-02-31"^^xsd:date` matches it, so a day
-                    // that does not exist still conforms on both paths. The
-                    // verified evaluator in `lean/Shacl/Term.lean` checks the
-                    // day against `daysInMonth` and reports it, so Lean and
-                    // Rust disagree there. See decision 0018.
+                    // This closed the divergence and, at the time, NOT the
+                    // wider gap: the date regex was syntactic, so
+                    // `"2026-02-31"^^xsd:date` matched it and a day that does
+                    // not exist conformed on both paths. That is engine defect
+                    // E1 and it is closed now. For `xsd:date` and
+                    // `xsd:dateTime` the regex IS the calendar, leap years
+                    // included (`CALENDAR_DATE`), so it judges the form the way
+                    // `parseDateBody` in `lean/Shacl/Term.lean` does, and
+                    // because it lives in `datatype_conforms` every site that
+                    // asks the datatype question asks it in the same words. See
+                    // decision 0018.
                     //
                     // The filter is the negation of `datatype_conforms`, which
                     // cannot be a type error. `DATATYPE(?val) != <dt>` was one
@@ -2841,18 +2782,7 @@ fn compile_node_shape(
                 "EXISTS {{ ?{var} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <{}> }}",
                 strip_angle_brackets(obj)
             )),
-            "datatype" => {
-                // Refused for the same reason as on a property inside the
-                // shape, below: DATATYPE() cannot tell the datatype from the
-                // one it derives from. Only the property form was guarded, so
-                // `sh:node` to a shape declaring `sh:datatype xsd:int` itself
-                // reported every value DATATYPE() read as xsd:integer.
-                let dt = strip_angle_brackets(obj);
-                if datatype_is_indistinguishable_in_store(&dt) {
-                    return None;
-                }
-                clauses.push(datatype_conforms(&dt, var))
-            }
+            "datatype" => clauses.push(datatype_conforms(&strip_angle_brackets(obj), var)),
             "nodeKind" => clauses.push(node_kind_test(&strip_angle_brackets(obj), var)?),
             _ => return None,
         }
@@ -2932,11 +2862,6 @@ fn compile_node_shape(
         }
         if let Some(dt) = row.get("datatype") {
             let dt = strip_angle_brackets(dt);
-            // DATATYPE() cannot tell these apart from the type they derive
-            // from, so a nested shape resting on one is not decidable either.
-            if datatype_is_indistinguishable_in_store(&dt) {
-                return None;
-            }
             clauses.push(format!(
                 "NOT EXISTS {{ ?{var} <{path}> ?{inner} . FILTER(!{}) }}",
                 datatype_conforms(&dt, &inner)
@@ -2995,65 +2920,98 @@ fn node_kind_test(node_kind: &str, var: &str) -> Option<String> {
     })
 }
 
-/// Datatype IRIs that `DATATYPE()` cannot report, so no SPARQL test here can
-/// decide them.
+/// The lexical tests `datatype_conforms` adds for the twelve XSD
+/// integer-derived datatypes and `xsd:dateTimeStamp`, as regexes already
+/// escaped for a SPARQL string literal. Empty for any other datatype.
 ///
-/// The twelve XSD integer-derived types and `xsd:dateTimeStamp`. Since #335 the
-/// store keeps them: the pinned oxigraph (oxigraph/oxigraph#2010) gives
-/// `"5"^^xsd:int` back as written, where 0.5.9 encoded it as
-/// `EncodedTerm::IntegerLiteral` and gave back `"5"^^xsd:integer`. The SPARQL
-/// evaluator, `spareval`, is unpatched and still maps each of these IRIs to its
-/// base type's value before any function sees it, so inside a query
-/// `DATATYPE("5"^^xsd:int)` is `xsd:integer` and `DATATYPE` of an
-/// `xsd:dateTimeStamp` is `xsd:dateTime`, whether the literal came from the
-/// store or the query text. Measured on the new pin over every XSD datatype:
-/// exactly these thirteen; `tests/datatype_preservation_test.rs` pins the set
-/// in both directions. `xsd:yearMonthDuration` and `xsd:dayTimeDuration`,
-/// equally derived, have their own encodings and answer correctly.
+/// Until the oxigraph pin carried the STR and DATATYPE ports (#343), these
+/// thirteen were refused outright: the evaluator read `"5"^^xsd:int` as an
+/// `xsd:integer` before `DATATYPE()` saw it, so no SPARQL test could tell a
+/// conforming value from one of the base type. `DATATYPE()` now answers the
+/// datatype as written, and that settles a value of the wrong datatype. It
+/// does not settle an ill-typed one, because the evaluator parses every one
+/// of the twelve as an unbounded `xsd:integer` and `xsd:dateTimeStamp` as an
+/// `xsd:dateTime`: `"300"^^xsd:byte` is a number to it, and nothing checks the
+/// range. W3C `core/property/datatype-ill-formed` is exactly that case. So the
+/// lexical space is tested here, as `lexical_space_regex` tests the primitive
+/// types.
 ///
-/// A `sh:datatype` test naming one of these cannot be decided by `DATATYPE()`:
-/// a conforming value and one of the base type answer alike. Answering anyway
-/// reports a violation for every value that in fact satisfies the shape.
-fn datatype_is_indistinguishable_in_store(datatype: &str) -> bool {
+/// For a bounded type the regex is the range itself, written digit by digit
+/// by [`numerals_up_to`], so `"300"^^xsd:byte` fails it and
+/// `"+0127"^^xsd:byte` passes. A regex has no width limit, so the 64-bit
+/// bounds of `xsd:long` and `xsd:unsignedLong`, which do not fit the
+/// evaluator's integers, are as exact as the 8-bit ones. `"-0"` is a lexical
+/// form of zero and so lies in every non-negative type. An `xsd:dateTimeStamp`
+/// is an `xsd:dateTime` whose timezone is required, so it takes the dateTime
+/// test and one more.
+fn derived_lexical_space_regexes(datatype: &str) -> Vec<String> {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let Some(local) = datatype.strip_prefix(XSD) else {
-        return false;
+        return Vec::new();
     };
-    matches!(
-        local,
-        "byte"
-            | "short"
-            | "int"
-            | "long"
-            | "unsignedByte"
-            | "unsignedShort"
-            | "unsignedInt"
-            | "unsignedLong"
-            | "positiveInteger"
-            | "negativeInteger"
-            | "nonPositiveInteger"
-            | "nonNegativeInteger"
-            | "dateTimeStamp"
-    )
+    // (the largest value, the magnitude of the smallest) of a bounded type.
+    let bounded = |max: &str, min_magnitude: &str| {
+        format!(
+            "^([+]?0*({})|-0*({}))$",
+            numerals_up_to(max),
+            numerals_up_to(min_magnitude)
+        )
+    };
+    let re = match local {
+        "byte" => bounded("127", "128"),
+        "short" => bounded("32767", "32768"),
+        "int" => bounded("2147483647", "2147483648"),
+        "long" => bounded("9223372036854775807", "9223372036854775808"),
+        "unsignedByte" => bounded("255", "0"),
+        "unsignedShort" => bounded("65535", "0"),
+        "unsignedInt" => bounded("4294967295", "0"),
+        "unsignedLong" => bounded("18446744073709551615", "0"),
+        "nonNegativeInteger" => "^([+]?[0-9]+|-0+)$".to_string(),
+        "positiveInteger" => "^[+]?0*[1-9][0-9]*$".to_string(),
+        "nonPositiveInteger" => "^(-[0-9]+|[+]?0+)$".to_string(),
+        "negativeInteger" => "^-0*[1-9][0-9]*$".to_string(),
+        "dateTimeStamp" => {
+            let mut tests: Vec<String> =
+                lexical_space_regex(&format!("{XSD}dateTime")).into_iter().collect();
+            tests.push("(Z|[+-][0-9]{2}:[0-9]{2})$".to_string());
+            return tests;
+        }
+        _ => return Vec::new(),
+    };
+    vec![re]
 }
 
-
-/// The `skipped_constraints` entry for a constraint that names a datatype
-/// [`datatype_is_indistinguishable_in_store`] says cannot be decided. One
-/// record, so the direct `sh:datatype` constraint and the `sh:or`, `sh:not`
-/// and `sh:qualifiedValueShape` members that name such a datatype refuse in
-/// the same words: the member paths used to answer the question the direct
-/// path refuses, and answered it wrongly.
-fn unpreserved_datatype_skip(shape: &str, constraint: &str, path: &str, datatype: &str) -> serde_json::Value {
-    serde_json::json!({
-        "shape": strip_angle_brackets(shape),
-        "constraint": constraint,
-        "path": path,
-        "datatype": datatype,
-        "reason": "the SPARQL evaluator reads this datatype IRI as the type it \
-                   derives from, so DATATYPE() cannot tell a value carrying it \
-                   from one carrying that type; the constraint was not evaluated",
-    })
+/// A regex alternation matching exactly the decimal numerals from 0 to `max`,
+/// with no leading zero except in `0` itself. `max` is a numeral of that form.
+///
+/// A shorter numeral is always smaller, so every length below `max`'s is
+/// matched whole. A numeral of `max`'s length is smaller exactly when, at the
+/// first digit where the two differ, its digit is the smaller one: one
+/// alternative per position, the digits of `max` before it, a smaller digit
+/// at it, and any digits after. `max` itself closes the list.
+fn numerals_up_to(max: &str) -> String {
+    let digits: Vec<u32> = max.chars().filter_map(|c| c.to_digit(10)).collect();
+    let n = digits.len();
+    let mut alternatives = Vec::new();
+    if n > 1 {
+        alternatives.push("[0-9]".to_string());
+    }
+    if n > 2 {
+        alternatives.push(format!("[1-9][0-9]{{1,{}}}", n - 2));
+    }
+    for (i, &d) in digits.iter().enumerate() {
+        let lowest = if i == 0 && n > 1 { 1 } else { 0 };
+        if d > lowest {
+            alternatives.push(format!(
+                "{}[{lowest}-{}][0-9]{{{}}}",
+                &max[..i],
+                d - 1,
+                n - i - 1
+            ));
+        }
+    }
+    alternatives.push(max.to_string());
+    alternatives.join("|")
 }
 
 /// The SPARQL pattern selecting the focus nodes of one target, bound to `var`.
@@ -3351,9 +3309,11 @@ fn constraint_component(constraint: &str) -> String {
 /// direct `sh:datatype` constraints had: W3C `core/property/or-datatypes-001`
 /// reported one of its three violations.
 fn datatype_conforms(datatype: &str, var: &str) -> String {
-    let lexical = lexical_space_regex(datatype)
+    let lexical: String = lexical_space_regex(datatype)
+        .into_iter()
+        .chain(derived_lexical_space_regexes(datatype))
         .map(|re| format!(" && REGEX(STR(?{var}), \"{re}\")"))
-        .unwrap_or_default();
+        .collect();
     format!("(isLiteral(?{var}) && DATATYPE(?{var}) = <{datatype}>{lexical})")
 }
 
@@ -3365,16 +3325,25 @@ fn datatype_conforms(datatype: &str, var: &str) -> String {
 /// The patterns are the XSD lexical spaces, not the value spaces: `01` is a
 /// valid integer lexical form and `1.` a valid decimal one. Backslashes are
 /// doubled once for the SPARQL string literal they are spliced into.
+///
+/// For `xsd:date` and `xsd:dateTime` the pattern is the calendar, leap years
+/// included, and a match is the whole verdict: no Rust pass follows it at any
+/// site, so the regex must be exact in both directions. `CALENDAR_DATE` says
+/// how, and why a regex can be exact here.
 fn lexical_space_regex(datatype: &str) -> Option<String> {
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
     let local = datatype.strip_prefix(XSD)?;
     let re = match local {
-        "integer" => "^[+-]?[0-9]+$",
-        "decimal" => "^[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$",
-        "double" | "float" => "^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?|[+-]?INF|NaN)$",
-        "boolean" => "^(true|false|1|0)$",
-        "date" => "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?$",
-        "dateTime" => "^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?$",
+        "integer" => "^[+-]?[0-9]+$".to_string(),
+        "decimal" => "^[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$".to_string(),
+        "double" | "float" => {
+            "^([+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?|[+-]?INF|NaN)$".to_string()
+        }
+        "boolean" => "^(true|false|1|0)$".to_string(),
+        "date" => format!("^({CALENDAR_DECLINED}|{CALENDAR_DATE}{CALENDAR_TZ}?$)"),
+        "dateTime" => format!(
+            "^({CALENDAR_DECLINED}|{CALENDAR_DATE}T{CALENDAR_TIME}{CALENDAR_TZ}?$)"
+        ),
         _ => return None,
     };
     // The regex goes inside a SPARQL string literal, where the only legal
@@ -3411,6 +3380,103 @@ fn severity_name(raw: &str) -> String {
         None => iri,
     }
 }
+
+/// **The calendar, as one regex, for `xsd:date` and `xsd:dateTime`.**
+///
+/// XSD 1.1 section 3.3.9 puts the day-of-month constraint IN the lexical space
+/// of `xsd:date`, so `"2026-02-31"^^xsd:date` is ill formed and violates
+/// `sh:datatype` (SHACL 4.1.2). That is engine defect E1 in decision 0018, and
+/// this is its fix. The test lives HERE, inside the expression
+/// `datatype_conforms` builds, and not in a Rust pass after the query, because
+/// that expression is spliced at eight sites and six of them use it
+/// positively: `sh:or` members, `sh:not`, `sh:qualifiedValueShape` and a nested
+/// `sh:node`. A Rust judgement can only follow the two direct `sh:datatype`
+/// queries, so a regex that under-approximated the calendar and relied on Rust
+/// to finish the job would have rejected a valid 29 February at every positive
+/// site. One expression, every site, which is what #333 was for.
+///
+/// It is a date whose day exists in that month in EVERY year, or 29 February
+/// of a leap year. Thirty-one-day months (01 03 05 07 08 10 12) run to 31,
+/// thirty-day months (04 06 09 11) to 30, and February to 28; that is the
+/// first alternative and it does not look at the year beyond its spelling,
+/// which is four digits, or more than four with no leading zero.
+///
+/// **The leap year is read off the last four digits, which is exact.** The rule
+/// is the proleptic Gregorian one `parseDateBody` uses in `lean/Shacl/Term.lean`,
+/// `(y mod 4 = 0 and y mod 100 != 0) or y mod 400 = 0`. Because 100 is a
+/// multiple of 4, `y mod 4` is the last two digits mod 4, and `y mod 100 = 0`
+/// exactly when those two digits are `00`. When they are, `y mod 400 = 0`
+/// exactly when `y / 100` is a multiple of 4, which is read off the two digits
+/// before them in the same way. Two digits form a multiple of four when the
+/// tens digit is even and the units digit is 0, 4 or 8, or the tens digit is
+/// odd and the units digit is 2 or 6: `([02468][048]|[13579][26])`, twenty-five
+/// pairs from `00` to `96`. So a leap year is either a year ending in such a
+/// pair other than `00` (2024, 1904, 12024), or a year ending in such a pair
+/// followed by `00` (2000, 1600, 0400, 10000). 1900 ends in `1900`, `19` is not
+/// a multiple of four, and `1900-02-29` is ill formed; 2000 ends in `2000`,
+/// `20` is, and `2000-02-29` is not. The year is unbounded in length and the
+/// regex never reads more than its last four digits, so nothing overflows.
+///
+/// **Negative years and the year `0000` are DECLINED, and a declined form
+/// conforms.** Both are well formed XSD 1.1. `yearJudgeable` in the Lean
+/// refuses to read either, because every day-number convention it relies on
+/// agrees only on non-negative years, and this engine declines exactly the
+/// forms `yearJudgeable` declines: a lexical form whose first character is `-`,
+/// or whose leading run of digits is four or more zeros. Declining reports
+/// nothing, which is what the engine did before E1 was fixed, and in a
+/// two-valued expression it has to be one side or the other: a declined form
+/// counts as having the datatype at every site, so `sh:not [ sh:datatype
+/// xsd:date ]` reports `"-0044-03-15"^^xsd:date`. The boundary is the Lean's
+/// and not a date grammar's, so it also covers a malformed form that happens
+/// to start with `-`. Decision 0018 records this as the residual gap.
+///
+/// For `xsd:dateTime` the date is followed by `T` and a time. Hours run 00 to
+/// 23, minutes and seconds 00 to 59, and a fraction needs at least one digit.
+/// `24:00:00` is also in the lexical space and denotes midnight starting the
+/// next day, so it admits no other non-zero field, fraction included. The
+/// timezone is `Z` or a signed offset up to fourteen hours, with no minutes on
+/// the fourteenth.
+///
+/// **The expression judges `STR()` of the value inside the query.** Under the
+/// 0.5.9 pin `spareval` rolled an `xsd:dateTime` with a 24 hour and a non-zero
+/// field over before any function saw it, so `"2026-01-01T24:00:01"` reached
+/// this regex as `2026-01-02T00:00:01` and conformed. The pin on 0.5.13
+/// carries the STR fix (#343), which returns the written form, so the regex
+/// judges what was written and agrees with `oo-shacl`. Decision 0018 records
+/// both stages, and
+/// `the_store_and_the_query_engine_keep_the_twenty_four_hour_forms_as_written`
+/// pins it. The 24-hour branch is in the regex because the lexical space has
+/// it; `calendar_expression_tests` at the end of this file reaches it over
+/// plain strings, which nothing rolls over.
+const CALENDAR_DATE: &str = concat!(
+    "(",
+    // A day every year has, in any year this engine judges.
+    "([0-9]{4}|[1-9][0-9]{4,})-(",
+    "(0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01])",
+    "|(0[469]|11)-(0[1-9]|[12][0-9]|30)",
+    "|02-(0[1-9]|1[0-9]|2[0-8])",
+    ")",
+    // 29 February of a leap year: a non-century year whose last two digits
+    // are a multiple of four, or a century whose two digits before `00` are.
+    "|(",
+    "([0-9]{2}|[1-9][0-9]{2,})(0[48]|[2468][048]|[13579][26])",
+    "|([1-9][0-9]*)?([02468][048]|[13579][26])00",
+    ")-02-29",
+    ")"
+);
+
+/// `hh:mm:ss` with an optional fraction, or `24:00:00` with an all-zero one.
+const CALENDAR_TIME: &str = "(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?|24:00:00(\\.0+)?)";
+
+/// `Z`, or an offset up to fourteen hours with no minutes on the fourteenth.
+const CALENDAR_TZ: &str = "(Z|[+-]((0[0-9]|1[0-3]):[0-5][0-9]|14:00))";
+
+/// The forms `yearJudgeable` in `lean/Shacl/Term.lean` declines: a leading `-`,
+/// or a leading run of four or more digits that are all zeros. The greedy
+/// `0{4,}` followed by a non-digit or the end matches only when the WHOLE
+/// leading digit run is zeros, so `00001-01-01` is not declined and is judged
+/// (and is ill formed, being five digits with a leading zero).
+const CALENDAR_DECLINED: &str = "(-|0{4,}([^0-9]|$))";
 
 /// `<http://www.w3.org/ns/shacl#class>` -> `class`, for the node-level rows.
 fn short_sh(pred: &str) -> String {
@@ -3657,4 +3723,289 @@ fn sparql_prologue(
         }
     }
     Ok(Prologue::Declarations(block))
+}
+
+/// The calendar expression, measured against an oracle that is not a regex.
+///
+/// These run the regex `lexical_space_regex` returns through the SPARQL engine
+/// that evaluates it at every splice site, over PLAIN string literals, so
+/// nothing canonicalises a form before the regex sees it. Through a store that
+/// is not true for `xsd:dateTime`: the query engine rolls a parseable 24-hour
+/// form over to the next day before the regex sees it, which is why the
+/// integration tests cannot reach the accepting side of that branch and these
+/// can.
+///
+/// The oracle builds every form from its parts and knows the answer from the
+/// parts: the leap rule is the arithmetic one over the whole year as an
+/// integer, and that arithmetic is itself checked against `chrono` wherever
+/// `chrono` can represent the year. The decline is `yearJudgeable` from
+/// `lean/Shacl/Term.lean`, restated over the year component.
+#[cfg(test)]
+mod calendar_expression_tests {
+    use super::{lexical_space_regex, query_solutions, strip_quotes};
+    use chrono::NaiveDate;
+    use oxigraph::store::Store;
+    use std::collections::BTreeSet;
+
+    const XSD_DATE: &str = "http://www.w3.org/2001/XMLSchema#date";
+    const XSD_DATE_TIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
+    /// How the oracle reads a year component.
+    #[derive(Clone, Copy)]
+    enum Year {
+        /// Spelled as XSD 1.1 allows, non-negative and not all zeros.
+        Judged(u128),
+        /// Negative, or four or more zeros: `yearJudgeable` says no.
+        Declined,
+        /// Not a year spelling at all, so the form is ill formed.
+        Ill,
+    }
+
+    fn year(spelling: &str) -> Year {
+        if spelling.starts_with('-') {
+            return Year::Declined;
+        }
+        let digits = spelling.chars().take_while(|c| c.is_ascii_digit()).count();
+        if digits >= 4 && spelling[..digits].chars().all(|c| c == '0') {
+            return Year::Declined;
+        }
+        if digits != spelling.len() || digits < 4 || (digits > 4 && spelling.starts_with('0')) {
+            return Year::Ill;
+        }
+        Year::Judged(spelling.parse().expect("at most 38 digits in these fixtures"))
+    }
+
+    fn is_leap(y: u128) -> bool {
+        (y.is_multiple_of(4) && !y.is_multiple_of(100)) || y.is_multiple_of(400)
+    }
+
+    fn days_in_month(y: u128, m: u32) -> u32 {
+        let arithmetic = match m {
+            2 if is_leap(y) => 29,
+            2 => 28,
+            4 | 6 | 9 | 11 => 30,
+            1..=12 => 31,
+            _ => 0,
+        };
+        // The arithmetic is the oracle; chrono is the oracle's oracle, wherever
+        // it can hold the year.
+        if (1..=12).contains(&m)
+            && let Ok(y32) = i32::try_from(y)
+            && let Some(first) = NaiveDate::from_ymd_opt(y32, m, 1)
+        {
+            let next = if m == 12 {
+                NaiveDate::from_ymd_opt(y32 + 1, 1, 1)
+            } else {
+                NaiveDate::from_ymd_opt(y32, m + 1, 1)
+            };
+            if let Some(next) = next {
+                let by_chrono = (next - first).num_days() as u32;
+                assert_eq!(arithmetic, by_chrono, "{y}-{m:02}: arithmetic and chrono disagree");
+            }
+        }
+        arithmetic
+    }
+
+    /// Year spellings around every boundary the leap rule has, plus the
+    /// spellings the year rule rejects and the ones it declines.
+    fn year_spellings() -> Vec<String> {
+        let mut out = Vec::new();
+        for range in [
+            1u128..=4,
+            96..=104,
+            396..=404,
+            1596..=1604,
+            1896..=1904,
+            1996..=2004,
+            2020..=2028,
+            2096..=2104,
+            2396..=2404,
+            9996..=10004,
+            12020..=12028,
+            99996..=100004,
+        ] {
+            for y in range {
+                out.push(format!("{y:04}"));
+            }
+        }
+        // A year far past anything a fixed-width integer in the engine could
+        // hold, around a multiple of 400.
+        let big = 10u128.pow(30);
+        for d in [0u128, 1, 4, 100, 200, 400] {
+            out.push((big + d).to_string());
+        }
+        // Rejected spellings: too short, a leading zero on five digits, a sign.
+        for s in ["202", "024", "02024", "00400", "+2024"] {
+            out.push(s.to_string());
+        }
+        // Declined: 0000 in two lengths and negative years either side of the
+        // century rule.
+        for s in ["0000", "00000", "-0001", "-0004", "-0100", "-0400", "-12024"] {
+            out.push(s.to_string());
+        }
+        out
+    }
+
+    /// `(form, in the lexical space)` for every year, every month 00 to 13 and
+    /// every day 00 to 32.
+    fn date_grid() -> Vec<(String, bool)> {
+        let mut out = Vec::new();
+        for y in year_spellings() {
+            for m in 0u32..=13 {
+                for d in 0u32..=32 {
+                    let ok = match year(&y) {
+                        Year::Declined => true,
+                        Year::Ill => false,
+                        Year::Judged(n) => (1..=12).contains(&m) && d >= 1 && d <= days_in_month(n, m),
+                    };
+                    out.push((format!("{y}-{m:02}-{d:02}"), ok));
+                }
+            }
+        }
+        out
+    }
+
+    const TIMEZONES: &[(&str, bool)] = &[
+        ("", true),
+        ("Z", true),
+        ("+00:00", true),
+        ("-00:00", true),
+        ("+13:59", true),
+        ("+14:00", true),
+        ("-14:00", true),
+        ("+14:01", false),
+        ("+14:59", false),
+        ("+15:00", false),
+        ("+01:60", false),
+        ("+1:00", false),
+        ("+0100", false),
+        ("z", false),
+        (" Z", false),
+        ("Z ", false),
+    ];
+
+    /// Which of `forms` the regex for `datatype` accepts, evaluated by the
+    /// SPARQL engine every splice site uses.
+    fn accepted(datatype: &str, forms: &[String]) -> BTreeSet<String> {
+        let re = lexical_space_regex(datatype).expect("a calendar datatype has a lexical regex");
+        let store = Store::new().unwrap();
+        let mut out = BTreeSet::new();
+        for chunk in forms.chunks(4000) {
+            let values: String = chunk.iter().map(|f| format!("\"{f}\" ")).collect();
+            let query = format!(
+                "SELECT ?s WHERE {{ VALUES ?s {{ {values} }} FILTER(REGEX(?s, \"{re}\")) }}"
+            );
+            for row in query_solutions(&store, &query).expect("the calendar regex compiles and runs") {
+                out.insert(strip_quotes(&row["s"]));
+            }
+        }
+        out
+    }
+
+    fn check(datatype: &str, table: &[(String, bool)]) -> usize {
+        let forms: Vec<String> = table.iter().map(|(f, _)| f.clone()).collect();
+        let got = accepted(datatype, &forms);
+        let mut wrong = Vec::new();
+        for (form, ok) in table {
+            if got.contains(form) != *ok {
+                wrong.push(format!("{form} (oracle says {})", if *ok { "in" } else { "out" }));
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "{} of {} forms judged differently from the oracle for <{datatype}>, first 20: {:?}",
+            wrong.len(),
+            table.len(),
+            &wrong[..wrong.len().min(20)]
+        );
+        // Both directions are populated, or this measured nothing.
+        let inside = table.iter().filter(|(_, ok)| *ok).count();
+        assert!(inside > 0 && inside < table.len(), "{datatype}: one-sided table");
+        table.len()
+    }
+
+    #[test]
+    fn the_date_expression_agrees_with_the_calendar_on_every_day_of_every_boundary_year() {
+        let mut table = date_grid();
+        // Timezones over the days the century rule turns on.
+        for date in ["2024-02-29", "2023-02-29", "1900-02-29", "2000-02-29", "2026-12-31"] {
+            let date_ok = table.iter().find(|(f, _)| f == date).unwrap().1;
+            for (tz, tz_ok) in TIMEZONES {
+                table.push((format!("{date}{tz}"), date_ok && *tz_ok));
+            }
+        }
+        // Spellings the grid does not generate.
+        for (form, ok) in [
+            ("2024-2-29", false),
+            ("2024-02-9", false),
+            ("2024-02-29T00:00:00", false),
+            ("", false),
+            ("2024", false),
+            // Declined on its first character, as `yearJudgeable` declines it,
+            // though it is not a date at all. Decision 0018 records this as
+            // part of the residual gap; it is here so that narrowing the
+            // decline is a visible change and not a silent one.
+            ("-garbage", true),
+        ] {
+            table.push((form.to_string(), ok));
+        }
+        let n = check(XSD_DATE, &table);
+        assert!(n > 50_000, "the grid shrank to {n}");
+    }
+
+    #[test]
+    fn the_date_time_expression_agrees_with_the_calendar_and_the_clock() {
+        let mut table = Vec::new();
+        // The date portion, over the century boundaries, at a valid time.
+        for (date, ok) in date_grid() {
+            // The grid writes `{year}-mm-dd`, so the year is all but the last six.
+            let y = &date[..date.len() - 6];
+            if ["1900", "2000", "2023", "2024", "2100", "0400", "12024", "0000", "-0004", "02024"]
+                .contains(&y)
+            {
+                table.push((format!("{date}T12:00:00"), ok));
+            }
+        }
+        // The clock, over every hour and the edges of every other field,
+        // on a leap day and on a day that does not exist.
+        for (date, date_ok) in [("2024-02-29", true), ("2023-02-29", false), ("-0001-02-30", true)] {
+            for h in 0u32..=25 {
+                for mi in [0u32, 30, 59, 60] {
+                    for s in [0u32, 59, 60] {
+                        for frac in ["", ".", ".0", ".000", ".5", ".05"] {
+                            for (tz, tz_ok) in [
+                                ("", true),
+                                ("Z", true),
+                                ("+14:00", true),
+                                ("+14:01", false),
+                                ("-05:00", true),
+                                ("+15:00", false),
+                            ] {
+                                let frac_ok = frac != ".";
+                                let all_zero = frac.chars().all(|c| c == '.' || c == '0');
+                                let clock_ok = frac_ok
+                                    && ((h <= 23 && mi <= 59 && s <= 59)
+                                        || (h == 24 && mi == 0 && s == 0 && all_zero));
+                                let declined = date.starts_with('-');
+                                table.push((
+                                    format!("{date}T{h:02}:{mi:02}:{s:02}{frac}{tz}"),
+                                    declined || (date_ok && clock_ok && tz_ok),
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for (form, ok) in [
+            ("2024-02-29", false),
+            ("2024-02-29T1:00:00", false),
+            ("2024-02-29 12:00:00", false),
+            ("2024-02-29t12:00:00", false),
+        ] {
+            table.push((form.to_string(), ok));
+        }
+        let n = check(XSD_DATE_TIME, &table);
+        assert!(n > 20_000, "the grid shrank to {n}");
+    }
 }

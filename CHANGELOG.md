@@ -6,6 +6,68 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **An exception to a disjointness can be declared and compiled away, so
+  every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
+  reified `owl:disjointWith` axiom (`exc:` is
+  `https://open-ontologies.org/exceptions#`), in either direction, names the
+  classes the disjointness should not reach. `compile-exceptions FILE --out
+  COMPILED` (CLI; without `--out` it is a dry run), `compile-exceptions` in
+  `batch` and `onto_compile_exceptions` (MCP, the loaded store in place)
+  rewrite each annotated `X ⊥ Y` over the asserted hierarchy of named classes
+  under one reading: a class under X and a class under Y stay compatible
+  exactly when an exception, or a class below one, is told-below both. `X ⊥ Y`
+  is removed; with Z the exceptions, what is below them and all their
+  ancestors, `S ⊥ Y` is emitted for every S under X outside Z, `T ⊥ X` for
+  every T under Y outside Z, and `a ⊥ b` for each most general pair inside Z
+  with nothing licensed below both (two exceptions under different
+  intermediate classes keep those intermediates apart). On the issue's
+  example `Houseboat` and its subclass become satisfiable to the owl-dl
+  tableau, `FloatingRestaurant` (under both, not an exception) stays
+  unsatisfiable, and `Car ⊓ Building` is still unsatisfiable. An exception not under both sides is rejected by name
+  (`exception_not_under_both`). The cost is in the report:
+  `exempted_classes`, with `exempted_beyond_the_exceptions` naming those that
+  are not exceptions (here `Vehicle` and `Building`, so an individual typed
+  only as both is no longer a contradiction). The axiom becomes a record
+  (`exc:compiledDisjointWith`, an annotation property) rather than a dangling
+  reification, a re-run adds pairs for new subclasses and never retracts one,
+  and a run over a compiled graph changes nothing. `defects` on an uncompiled
+  store still reports the exception as an error, as every reasoner still
+  does, and marks the row `declared_exception: true` with a hint naming the
+  compile; `declared_exceptions` counts them. The issue's defeasible
+  semantics is not built, for four reasons given in decision 0019.
+
+- **`repair` returns the cheapest set of asserted axioms whose removal makes
+  every class coherent, and says what checked each half of that** (#346).
+  `defects` said that a class could have no instances and `onto_justify` said
+  which axioms were responsible; nothing said which to drop. `repair`
+  (CLI), `onto_repair` (MCP) and `repair` (`batch`) read per-axiom weights
+  from `owl:Axiom` reifications (`--weight-property`, `--default-weight`, 1 by
+  default) and return the dropped axioms with the conflicts each one hits, the
+  total weight, the classes made coherent, `optimal` with its basis, a
+  `lower_bound`, and `--out` writes the repaired Turtle. Coherence is judged in
+  the atomic named-class fragment `defects` judges (`subClassOf`,
+  `disjointWith`, and `equivalentClass` as one axiom with two edges, between
+  IRIs), plus a class disjoint with itself; every other triple is counted by
+  bucket under `scope` and never read. The search is the implicit hitting set
+  loop of Davies and Bacchus (CP 2011): a hitting set of the conflicts
+  collected so far is removed and the fragment re-checked, greedy in the
+  intermediate rounds and exact (branch and bound) once a greedy repair is
+  coherent, and an exact repair that comes out coherent is optimal by
+  monotonicity; it does not enumerate every MinA first. `--weights
+  probability` minimises the summed log-odds of what is dropped, the most
+  probable coherent subset under independence, because summing raw
+  probabilities is not: conflicts `{a=0.6, c=0.9}` and `{b=0.6, c=0.9}` drop
+  `c` under `cost` and `a` and `b` under `probability`, and both are pinned.
+  `p = 1` is hard and a conflict of hard axioms is reported `unrepairable`;
+  `p <= 0.5` is dropped at no cost with that reason. Conflicts are re-run,
+  coherence is re-run (and the `--out` file is read back through `defects`),
+  and with `--certificate-dir` optimality is written as CNF (one clause per
+  conflict, the cost bound as a reduced BDD), refuted by picosat and checked by
+  `oo-lrat` under `Lrat.unsat_of_check`; without either tool the status is
+  `undetermined`, never `refuted`. `max_nodes` and `max_rounds` bound the
+  search and name themselves when they fire. The `lean` CI job now installs
+  Ubuntu's `picosat` and runs `repair_certificate_test` strictly against its
+  `picosat.trace` build.
 - **A plan says whether the change breaks the ontology, and scores it `high`
   when it does** (#336, reported by @jpsanchezcalypso). `risk_score` came from
   removal counts alone, so a change that made a named class unsatisfiable (R1:
@@ -89,6 +151,104 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`--human` renders each command's result by the command's name, so `diff`
+  counts the triples it found and an undetermined `shacl` run says so**
+  (#350, #345). The one-shot CLI called a renderer that picked a rendering by
+  which keys the JSON carried, and four commands printed a wrong answer rather
+  than an unformatted one. `diff` read its numeric counts as arrays and printed
+  `+0 -0` for any two files. An undetermined `shacl` run, exit 2, printed "No
+  violations found." because its empty `violations` matched the `enforce`
+  branch. `validate` printed class, property and individual counts it never
+  computed, as zeros, and `monitor` printed itself as server status. A
+  CONSTRUCT query printed "Triples: 0" over the triples it built. Eighteen of
+  55 offline invocations, `defects` among them, printed raw JSON. The CLI now
+  passes its subcommand path (`diff`, `daemon status`) and
+  `output::renderer_for` maps each name to its own renderer. Verdict commands
+  lead with the verdict (`conforms: true | false | undetermined`), `defects`
+  prints one line per defect or `No defects (N kinds checked).`, `drift`
+  reports terms, velocity and likely renames, and `plan`, `align`,
+  `vocab-check`, `reason` and `lineage` are rendered with their verdict and
+  counts first. A name with no renderer prints its JSON under a line saying no
+  human rendering exists for it, and is never matched by shape. `batch
+  --human` now renders each result by the command its envelope names when it
+  runs locally, as it already did through a daemon. Exit codes are unchanged.
+  A test in `src/main.rs` walks the clap command tree and fails for any
+  subcommand with no renderer registered.
+
+- **SPARQL arithmetic associates to the left** (#349). `8-3-2` answered 7 and
+  `7/20*1000` answered 0.00035, because the pinned Oxigraph 0.5.9 parsed a
+  chain of `+`/`-` or `*`/`/` to the right, where the SPARQL 1.1 grammar makes
+  both left-associative. Every query, SHACL-SPARQL constraint, monitor watcher
+  and rule that computed a ratio, a percentage or a difference of more than two
+  operands without parentheses got a wrong number and no error. Upstream fixed
+  the parser in oxigraph/oxigraph#1974, released in 0.5.12, and the fork pin
+  now sits on 0.5.13 (rev `37db8e15`, branch `oo/lexical-forms-0.5.13`), which
+  also brings upstream's other 0.5.10 to 0.5.13 fixes. `8-3-2` is 3,
+  `7/20*1000` is 350 and `6/20*0.8/1.0*100` is 24, through
+  `GraphStore::sparql_select` and `open-ontologies query` alike
+  (`tests/sparql_arithmetic_associativity_test.rs`, which failed on the old
+  pin with 7, 0.00035 and 37.5). `open-ontologies-lite` required
+  `pyoxigraph>=0.5`, which admits releases with the same defect (0.5.0 and
+  0.5.11 measured at 7 and 0.00035), so its floor is now 0.5.12.
+
+- **`STR()` and `DATATYPE()` read a literal as written, and `sh:datatype`
+  decides the twelve integer-derived types and `xsd:dateTimeStamp`** (#343).
+  #335 made the store keep literals as written, but the SPARQL evaluator still
+  read a known-datatype literal by value before either function saw it, so
+  `STR("4.0"^^xsd:decimal)` was `"4"`, `sh:pattern "\.0$"` reported a lone
+  `"4.0"^^xsd:decimal`, and `DATATYPE()` answered `xsd:integer` for the twelve
+  integer-derived types and `xsd:dateTime` for `xsd:dateTimeStamp`. The engine
+  could not tell a conforming value from one of the base type, so
+  `datatype_is_indistinguishable_in_store` refused every constraint naming one
+  of the thirteen and the verdict was null. The fork pin now carries upstream
+  1392252f (STR) and the DATATYPE commit of oxigraph/oxigraph#2010, ported to
+  0.5.13 because neither is on the 0.5 branch, so both functions read the term
+  as written, whether stored or written in the query. The refusal is deleted
+  at all eight sites (`sh:datatype` on property and node shapes, `sh:or` over
+  values and over property-shape members, `sh:not`, `sh:qualifiedValueShape`,
+  and both nested `sh:node` forms). `DATATYPE()` settles the IRI and not the
+  lexical form, and the evaluator parses each of the twelve as an unbounded
+  `xsd:integer`, so `"300"^^xsd:byte` would have passed: `datatype_conforms`
+  now also tests their lexical spaces as regexes, the bounded ones digit by
+  digit up to the 64-bit limits, and `xsd:dateTimeStamp` as an `xsd:dateTime`
+  with a required timezone. W3C SHACL: `core/property/datatype-ill-formed`
+  (`"300"^^xsd:byte`, `"c"^^xsd:byte` and `"55"^^xsd:integer` against
+  `sh:datatype xsd:byte`) moves from UNDETERMINED to PASS in both columns, so
+  the gated column is PASS 62 (was 61) and the full-tuple column PASS 54 (was
+  53), FAIL unchanged at 15 and 23, and nothing else moves. Tests:
+  `tests/shacl_derived_datatype_test.rs` (renamed from
+  `shacl_datatype_indistinguishable_test.rs`, every refusal turned into a
+  decision in both directions, plus every bound of every bounded type),
+  `tests/datatype_preservation_test.rs` (DATATYPE reports all eighteen
+  datatypes of its document, stored and unstored), and
+  `inside_a_query_a_literal_is_read_as_written`, which replaces
+  `inside_a_query_a_known_datatype_literal_is_still_read_by_value`.
+
+- **An impossible date violates `sh:datatype`, at every site that asks the
+  datatype question** (#348, engine defect E1 in decision 0018).
+  `"2026-02-31"^^xsd:date` and `"1900-02-29"^^xsd:date` used to conform,
+  because the `xsd:date` and `xsd:dateTime` lexical tests were regexes that
+  counted digits. The calendar is now in the regex `datatype_conforms`
+  splices: days per month by month, and 29 February only in a leap year,
+  which a regex can decide exactly because divisibility by 4, 100 and 400
+  depends only on a year's last four digits (2000 is a leap year, 1900 and
+  2100 are not, and a year of any length is read the same way).
+  `xsd:dateTime` also ranges its hour, minute, second and timezone, with
+  `24:00:00` allowed only with every other field zero. Because the test is in
+  the one expression, `sh:or` members, `sh:not`, `sh:qualifiedValueShape` and
+  nested `sh:node` give the same answer as the direct constraint: a valid
+  29 February 2024 is accepted at all eight sites, and under `sh:not`
+  `"2026-02-31"^^xsd:date` conforms because it is not a date. Negative years
+  and the year `0000` are declined exactly where the Lean evaluator declines
+  them, and a declined form still conforms. The expression is checked against
+  an arithmetic calendar, itself checked against `chrono`, over 94,308 forms,
+  and every site over 2,772 forms; the W3C SHACL baseline does not move, and
+  the Rust and Lean evaluators report the same focus nodes on every calendar
+  fixture. The 24-hour forms are judged as written too: with the Oxigraph pin
+  on 0.5.13 and its STR fix (#343), `"2026-01-01T24:00:01"^^xsd:dateTime`
+  reaches the expression as written instead of rolled over to
+  `2026-01-02T00:00:01`, so it is reported here as `oo-shacl` reports it, and
+  of the 24-hour forms only `24:00:00` with every other field zero conforms.
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code

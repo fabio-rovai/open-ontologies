@@ -730,6 +730,32 @@ jobs:
         run: OO_REQUIRE_FIXTURES=1 cargo test --test dl_consistency_differential_test -- --nocapture
       - name: Check the model ingestion, both front ends
         run: OO_REQUIRE_FIXTURES=1 cargo test --test fol_model_ingest_test -- --nocapture
+      - name: Build picosat with proof traces, the solver whose refutations oo-lrat checks
+        # Ubuntu's picosat package cannot serve here: measured in ubuntu:24.04
+        # (picosat 965-2), /usr/bin/picosat.trace is the build WITHOUT trace
+        # support, the same size as /usr/bin/picosat, and `-T` aborts with
+        # "compiled without trace support". `-T` is how src/sat.rs gets the
+        # proof it converts to LRAT, so the solver is built from the upstream
+        # 965 tarball with `--trace`, pinned by its SHA-256.
+        run: |
+          set -euo pipefail
+          curl -sSfL -o "$RUNNER_TEMP/picosat-965.tar.gz" https://fmv.jku.at/picosat/picosat-965.tar.gz
+          echo "15169b4f28ba8f628f353f6f75a100845cdef4a2244f101a02b6e5a26e46a754  $RUNNER_TEMP/picosat-965.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/picosat-965.tar.gz" -C "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP/picosat-965"
+          ./configure.sh --trace
+          make picosat
+          printf 'p cnf 1 2\n1 0\n-1 0\n' > unsat.cnf
+          status=0; ./picosat -T unsat.trace unsat.cnf || status=$?
+          test "$status" -eq 20
+          test -s unsat.trace
+      - name: Refute a cheaper weighted repair through oo-lrat
+        # #346. A weighted repair is called optimal when its branch and bound
+        # closes; with a certificate the same claim is a CNF that picosat
+        # refutes and oo-lrat checks under Lrat.unsat_of_check. Strict, because
+        # the leg that matters needs both tools, and a skip here would leave
+        # the word `refuted` printed by no run that CI ever sees.
+        run: OO_SAT_SOLVER="$RUNNER_TEMP/picosat-965/picosat" OO_REQUIRE_FIXTURES=1 cargo test --test repair_certificate_test -- --nocapture
       - name: Build the release binary the SMT differential drives
         # The differential compares the SMT-LIB THE PRODUCT EMITS, so it runs
         # the real binary rather than linking the library. `cargo test` does not

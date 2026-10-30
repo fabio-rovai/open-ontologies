@@ -8,16 +8,18 @@ send.
 
 ## 1. Twelve XSD integer-derived datatypes, and `xsd:dateTimeStamp`, are not preserved
 
-**Status, 28 Oct 2026.** 1a is fixed in the pinned fork and filed upstream as
-oxigraph/oxigraph#2010 (issue #1989): the store value-encodes a literal only
-when decoding gives it back as written, so these datatypes, and non-canonical
-lexical forms such as `"4.0"^^xsd:decimal`, now survive a load (here #335,
+**Status, 30 Oct 2026.** Both halves are fixed in the pinned fork, which now
+sits on 0.5.13. 1a is filed upstream as oxigraph/oxigraph#2010 (issue #1989):
+the store value-encodes a literal only when decoding gives it back as written,
+so these datatypes, and non-canonical lexical forms such as
+`"4.0"^^xsd:decimal`, survive a load (here #335,
 `tests/datatype_preservation_test.rs::the_store_keeps_every_declared_datatype`).
-1b is NOT fixed: measured on the new pin, `DATATYPE()` still answers
-`xsd:integer` for the twelve and `xsd:dateTime` for `xsd:dateTimeStamp`, and
-`STR()` of a known-datatype literal is still its canonical form, inside any
-query, whether the literal is stored or written in the query text. So the
-workaround below stays.
+1b is fixed by two commits ported to 0.5.13 by hand, neither of which is on the
+0.5 branch: upstream 1392252f, on main, makes `STR()` read the term as written,
+and the DATATYPE commit of #2010, still open, builds on it (here #343). Measured on the new pin,
+`DATATYPE()` answers the written datatype for all thirteen and `STR()` the
+written lexical form, whether the literal is stored or written in the query
+text. The workaround below is gone.
 
 **Two independent defects, in two crates.** They were first reported here as one,
 blamed on storage. That was wrong, and the correction matters for anyone acting
@@ -121,14 +123,19 @@ Neither enum has such a slot today, so this is a coordinated change across the
 two crates, and it wants their conformance suites run against it. It is written
 up here rather than attempted blind.
 
-### Our workaround
+### Our workaround, removed with #343
 
-`datatype_is_indistinguishable_in_store` in `src/shacl.rs` records a
+`datatype_is_indistinguishable_in_store` in `src/shacl.rs` recorded a
 `sh:datatype` constraint (and, since the #333 follow-ups, an `sh:or`, `sh:not`,
 qualified or `sh:node` member) naming one of these as unevaluated rather than
-answering it wrongly. With 1a fixed it rests on 1b alone.
-`tests/datatype_preservation_test.rs` pins the exact set `DATATYPE()` misreports
-and fails in both directions, so the workaround is removed when 1b is fixed.
+answering it wrongly. With 1a and 1b fixed it had no reason left and was
+deleted. One thing it had been hiding remains the engine's to do: `DATATYPE()`
+does not judge a lexical form, and the evaluator parses each of the twelve as
+an unbounded `xsd:integer`, so `"300"^^xsd:byte` is a number to it. The engine
+therefore tests these lexical spaces itself, as regexes
+(`derived_lexical_space_regexes` in `src/shacl.rs`).
+`tests/datatype_preservation_test.rs` now asserts that `DATATYPE()` reports
+every datatype in its document.
 
 ---
 
