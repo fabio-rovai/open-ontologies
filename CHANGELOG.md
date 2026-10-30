@@ -89,6 +89,22 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **SPARQL arithmetic associates to the left** (#349). `8-3-2` answered 7 and
+  `7/20*1000` answered 0.00035, because the pinned Oxigraph 0.5.9 parsed a
+  chain of `+`/`-` or `*`/`/` to the right, where the SPARQL 1.1 grammar makes
+  both left-associative. Every query, SHACL-SPARQL constraint, monitor watcher
+  and rule that computed a ratio, a percentage or a difference of more than two
+  operands without parentheses got a wrong number and no error. Upstream fixed
+  the parser in oxigraph/oxigraph#1974, released in 0.5.12, and the fork pin
+  now sits on 0.5.13 (rev `37db8e15`, branch `oo/lexical-forms-0.5.13`), which
+  also brings upstream's other 0.5.10 to 0.5.13 fixes. `8-3-2` is 3,
+  `7/20*1000` is 350 and `6/20*0.8/1.0*100` is 24, through
+  `GraphStore::sparql_select` and `open-ontologies query` alike
+  (`tests/sparql_arithmetic_associativity_test.rs`, which failed on the old
+  pin with 7, 0.00035 and 37.5). `open-ontologies-lite` required
+  `pyoxigraph>=0.5`, which admits releases with the same defect (0.5.0 and
+  0.5.11 measured at 7 and 0.00035), so its floor is now 0.5.12.
+
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code
