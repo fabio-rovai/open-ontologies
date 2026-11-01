@@ -14,15 +14,19 @@
 //!
 //! # The fragment, and nothing wider
 //!
-//! Coherence is judged in the ATOMIC NAMED-CLASS FRAGMENT, exactly the one
-//! `defects` judges with `disjoint_with_ancestor` and `inherited_disjoint`:
-//! asserted `rdfs:subClassOf` and `owl:disjointWith` between two IRIs, plus
+//! Coherence is judged in the ATOMIC NAMED-CLASS FRAGMENT: asserted
+//! `rdfs:subClassOf` and `owl:disjointWith` between two IRIs, plus
 //! `owl:equivalentClass` between two IRIs read as ONE axiom contributing two
 //! subclass edges. Each asserted triple is one axiom. A class `C` is incoherent
 //! here when it reaches `X` and `Y` through `rdfs:subClassOf*` and `X
 //! owl:disjointWith Y` (or the reverse) is asserted, `X = Y` and `C = X`
-//! included. The one case that goes beyond `defects` is a class asserted
-//! disjoint with itself, which `defects` does not look for.
+//! included. That is the judgement `defects` makes with
+//! `disjoint_with_ancestor` and `inherited_disjoint`, with one case added and
+//! one left out. Added: a class asserted disjoint with itself, which `defects`
+//! does not look for. Left out: `defects` also reads disjointness stated by
+//! `owl:AllDisjointClasses` and `owl:disjointUnionOf` (#353), and an n-ary
+//! axiom is not one triple this module can drop, so a class incoherent only
+//! through one is reported by `defects` and is coherent here.
 //!
 //! Everything else is COUNTED and never read: class expressions on either side
 //! of those three predicates, `owl:AllDisjointClasses`, `owl:disjointUnionOf`,
@@ -1675,7 +1679,9 @@ pub fn repair(graph: &Arc<GraphStore>, opts: &RepairOptions) -> anyhow::Result<V
                              owl:disjointWith Y (or the reverse) is asserted, X = Y and the class \
                              itself included. The same judgement as the onto_defects kinds \
                              disjoint_with_ancestor and inherited_disjoint, plus a class asserted \
-                             disjoint with itself, which onto_defects does not look for",
+                             disjoint with itself, which onto_defects does not look for, and less \
+                             the disjointness onto_defects also reads from owl:AllDisjointClasses \
+                             and owl:disjointUnionOf",
         "coherence_judged_in_this_fragment_only": true,
         "means": "a class coherent here can still have no instances under the whole ontology: \
                   through a class expression, owl:AllDisjointClasses, owl:disjointUnionOf, \
@@ -2032,7 +2038,9 @@ fn write_out(
             "defects_findings_of_the_fragment_kinds": defect_errors,
             "means": "the written file was read back and checked again, by this module and by \
                       onto_defects (disjoint_with_ancestor and inherited_disjoint). Both counts \
-                      are zero unless a class is unrepairable",
+                      are zero unless a class is unrepairable, or, for the onto_defects count \
+                      only, a class is incoherent through owl:AllDisjointClasses or \
+                      owl:disjointUnionOf, which this module does not read",
         },
     }))
 }

@@ -411,8 +411,9 @@ enum Commands {
         out: Option<String>,
     },
     /// Repair: the cheapest set of asserted axioms whose removal makes every
-    /// class coherent, judged in the atomic named-class fragment `defects`
-    /// judges (subClassOf, disjointWith, equivalentClass between IRIs).
+    /// class coherent, judged in the atomic named-class fragment
+    /// (subClassOf, disjointWith, equivalentClass between IRIs). `defects`
+    /// also reads owl:AllDisjointClasses and owl:disjointUnionOf; this does not.
     ///
     /// Conflicts and coherence are re-run; with `--certificate-dir`,
     /// optimality is refuted by `oo-lrat`. The input file is not changed.

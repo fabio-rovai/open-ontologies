@@ -167,6 +167,17 @@ All notable changes to Open Ontologies are documented here.
   exactly what it did before, `complete: false` over unmodelled constructs
   included. The human rendering prints `consistent: undetermined`.
 
+- **`defects` reads disjointness stated by `owl:AllDisjointClasses` and
+  `owl:disjointUnionOf`** (#353). `disjoint_with_ancestor` and
+  `inherited_disjoint` matched `owl:disjointWith` only, so a class made
+  unsatisfiable the OWL 2 way was not reported while the owl-dl tableau found
+  it. Every pair of members of either list now counts as declared disjoint in
+  both checks. On the issue's example `defects` now reports `A` as well as
+  `D`, the same two classes the tableau finds. `repair` still reads pairwise
+  `owl:disjointWith` only and counts the n-ary axioms under
+  `scope.not_considered`, and its descriptions no longer say its fragment is
+  exactly the one `defects` judges.
+
 - **`--human` renders each command's result by the command's name, so `diff`
   counts the triples it found and an undetermined `shacl` run says so**
   (#350, #345). The one-shot CLI called a renderer that picked a rendering by

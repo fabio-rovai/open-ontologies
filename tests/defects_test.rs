@@ -110,6 +110,135 @@ fn a_class_under_two_disjoint_parents_is_reported() {
     );
 }
 
+// ── Disjointness stated the OWL 2 way (#353) ────────────────────────────────
+//
+// Both disjointness checks read `owl:disjointWith` only. A class made empty by
+// `owl:AllDisjointClasses` or `owl:disjointUnionOf` was not reported while the
+// owl-dl tableaux found it, so a clean report over an ontology that states its
+// disjointness in either form proved nothing.
+
+/// `(kind, class)` for every finding, sorted.
+fn findings(report: &serde_json::Value) -> Vec<(String, String)> {
+    let mut v: Vec<(String, String)> = report["defects"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|d| {
+            (
+                d["kind"].as_str().unwrap().to_string(),
+                d["class"].as_str().unwrap_or_default().to_string(),
+            )
+        })
+        .collect();
+    v.sort();
+    v
+}
+
+#[test]
+fn a_class_disjoint_with_its_ancestor_through_all_disjoint_classes_is_reported() {
+    // The repro filed with #353: D is caught through owl:disjointWith, A only
+    // through the n-ary axiom.
+    let report = check(&format!(
+        "{PREFIXES}
+         ex:A a owl:Class ; rdfs:subClassOf ex:B .
+         ex:B a owl:Class .
+         ex:C a owl:Class .
+         ex:D a owl:Class ; rdfs:subClassOf ex:E ; owl:disjointWith ex:E .
+         ex:E a owl:Class .
+         [] a owl:AllDisjointClasses ; owl:members ( ex:A ex:B ex:C ) ."
+    ));
+    assert_eq!(
+        findings(&report),
+        vec![
+            ("disjoint_with_ancestor".to_string(), "<http://example.org/A>".to_string()),
+            ("disjoint_with_ancestor".to_string(), "<http://example.org/D>".to_string()),
+        ],
+        "{report:#}"
+    );
+}
+
+#[test]
+fn a_class_under_two_members_of_all_disjoint_classes_is_reported() {
+    let report = check(&format!(
+        "{PREFIXES}
+         ex:Coral rdfs:subClassOf ex:Plant, ex:Animal .
+         [] a owl:AllDisjointClasses ; owl:members ( ex:Fungus ex:Plant ex:Animal ) ."
+    ));
+    let rows: Vec<_> = report["defects"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|d| d["kind"] == "inherited_disjoint")
+        .collect();
+    assert_eq!(rows.len(), 1, "{report:#}");
+    assert_eq!(rows[0]["class"], "<http://example.org/Coral>");
+    assert_eq!(rows[0]["first"], "<http://example.org/Animal>");
+    assert_eq!(rows[0]["second"], "<http://example.org/Plant>");
+}
+
+#[test]
+fn the_members_of_a_disjoint_union_are_disjoint_with_each_other() {
+    let report = check(&format!(
+        "{PREFIXES}
+         ex:Animal owl:disjointUnionOf ( ex:Vertebrate ex:Invertebrate ) .
+         ex:Chimera rdfs:subClassOf ex:Vertebrate, ex:Invertebrate .
+         ex:Larva rdfs:subClassOf ex:Invertebrate ."
+    ));
+    assert_eq!(
+        findings(&report),
+        vec![("inherited_disjoint".to_string(), "<http://example.org/Chimera>".to_string())],
+        "a class under two members of a disjoint union can have no instances; one under a \
+         single member is fine: {report:#}"
+    );
+}
+
+#[test]
+fn members_of_all_disjoint_classes_with_no_subclass_between_them_are_clean() {
+    // The n-ary arm must not pair a member with itself or report siblings.
+    let report = check(&format!(
+        "{PREFIXES}
+         ex:Cat rdfs:subClassOf ex:Animal .
+         ex:Dog rdfs:subClassOf ex:Animal .
+         ex:Rose rdfs:subClassOf ex:Plant .
+         [] a owl:AllDisjointClasses ; owl:members ( ex:Cat ex:Dog ex:Rose ) .
+         ex:Pet owl:disjointUnionOf ( ex:Cat ex:Dog ) ."
+    ));
+    assert_eq!(report["defect_count"], 0, "{report:#}");
+}
+
+#[test]
+fn defects_and_the_tableaux_agree_on_classes_emptied_by_n_ary_disjointness() {
+    use open_ontologies::reason::Reasoner;
+    let ttl = format!(
+        "{PREFIXES}
+         ex:A a owl:Class ; rdfs:subClassOf ex:B .
+         ex:B a owl:Class . ex:C a owl:Class .
+         [] a owl:AllDisjointClasses ; owl:members ( ex:A ex:B ex:C ) .
+         ex:U owl:disjointUnionOf ( ex:P ex:Q ) .
+         ex:P a owl:Class . ex:Q a owl:Class .
+         ex:R a owl:Class ; rdfs:subClassOf ex:P, ex:Q ."
+    );
+    let report = check(&ttl);
+    let mut from_defects: Vec<String> =
+        findings(&report).into_iter().map(|(_, class)| class).collect();
+    from_defects.sort();
+    from_defects.dedup();
+
+    let store = Arc::new(GraphStore::new());
+    store.load_turtle(&ttl, None).unwrap();
+    let dl: serde_json::Value =
+        serde_json::from_str(&Reasoner::run(&store, "owl-dl", false).unwrap()).unwrap();
+    assert_eq!(dl["search_finished"], true, "{dl:#}");
+    let mut from_tableaux: Vec<String> = dl["unsatisfiable_classes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c.as_str().unwrap().to_string())
+        .collect();
+    from_tableaux.sort();
+    assert_eq!(from_defects, from_tableaux, "defects {report:#}\nowl-dl {dl:#}");
+}
+
 #[test]
 fn an_inverse_pair_that_is_not_mutual_is_reported() {
     let report = check(&format!(

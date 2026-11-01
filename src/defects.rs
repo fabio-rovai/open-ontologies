@@ -17,6 +17,34 @@ use crate::graph::GraphStore;
 
 const OWL: &str = "http://www.w3.org/2002/07/owl#";
 const RDFS: &str = "http://www.w3.org/2000/01/rdf-schema#";
+const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+
+/// A SPARQL group that binds `a` and `b` to two classes the ontology declares
+/// disjoint, by whichever of the three axioms says so.
+///
+/// `owl:disjointWith` is the pairwise form. `owl:AllDisjointClasses` states
+/// the same of every pair in its `owl:members` list, and `owl:disjointUnionOf`
+/// of every pair in its list. Both checks used to read the pairwise form only,
+/// so a class made unsatisfiable the OWL 2 way was missed while the tableaux
+/// found it, and a clean report over such an ontology was no evidence of
+/// absence (#353).
+fn declared_disjoint(a: &str, b: &str) -> String {
+    format!(
+        "{{ {a} <{OWL}disjointWith> {b} }}
+         UNION
+         {{ {b} <{OWL}disjointWith> {a} }}
+         UNION
+         {{ ?allDisjoint a <{OWL}AllDisjointClasses> ; <{OWL}members> ?allDisjointList .
+            ?allDisjointList <{RDF}rest>*/<{RDF}first> {a} .
+            ?allDisjointList <{RDF}rest>*/<{RDF}first> {b} .
+            FILTER({a} != {b}) }}
+         UNION
+         {{ ?union <{OWL}disjointUnionOf> ?unionList .
+            ?unionList <{RDF}rest>*/<{RDF}first> {a} .
+            ?unionList <{RDF}rest>*/<{RDF}first> {b} .
+            FILTER({a} != {b}) }}"
+    )
+}
 
 /// One check: the name it is reported under, the query that finds it, and the
 /// sentence that says why the reader should care.
@@ -318,10 +346,9 @@ impl Defects {
                 query: format!(
                     "SELECT DISTINCT ?class ?ancestor WHERE {{
                        ?class <{RDFS}subClassOf>+ ?ancestor .
-                       {{ ?class <{OWL}disjointWith> ?ancestor }}
-                       UNION
-                       {{ ?ancestor <{OWL}disjointWith> ?class }}
-                     }}"
+                       {}
+                     }}",
+                    declared_disjoint("?class", "?ancestor")
                 ),
                 explanation: "A class that is a kind of something it is also disjoint from can \
                               have no instances at all.",
@@ -335,11 +362,10 @@ impl Defects {
                     "SELECT DISTINCT ?class ?first ?second WHERE {{
                        ?class <{RDFS}subClassOf>+ ?first .
                        ?class <{RDFS}subClassOf>+ ?second .
-                       {{ ?first <{OWL}disjointWith> ?second }}
-                       UNION
-                       {{ ?second <{OWL}disjointWith> ?first }}
+                       {}
                        FILTER(STR(?first) < STR(?second))
-                     }}"
+                     }}",
+                    declared_disjoint("?first", "?second")
                 ),
                 explanation: "The class sits under two ancestors declared disjoint, so it can \
                               have no instances.",
