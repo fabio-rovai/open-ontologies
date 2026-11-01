@@ -3536,9 +3536,26 @@ impl DlReasoner {
     /// `is_consistent` under a ceiling the caller already opened. This is the
     /// first phase of a run and used to be outside the global budget entirely.
     pub fn is_consistent_within(&self, global: Option<Instant>) -> bool {
-        !self
-            .decide_satisfiable_within(&Concept::Top, self.phase_deadline_within(global))
-            .is_unsat()
+        !self.decide_consistency_within(global).0.is_unsat()
+    }
+
+    /// TBox consistency as a three-valued verdict, with the wall clock that
+    /// stopped it when one did (`"phase"` or `"global"`, as `expired_clock`).
+    ///
+    /// `is_consistent_within` collapses `Unknown` to consistent, which is the
+    /// safe direction for a caller that only needs "not proven inconsistent".
+    /// `run` states a headline verdict, and a verdict the search did not reach
+    /// must not be printed as one (#355), so it reads this instead.
+    fn decide_consistency_within(&self, global: Option<Instant>) -> (Verdict, Option<&'static str>) {
+        let mut tableau =
+            Tableau::with_deadline(Arc::clone(&self.tbox), self.phase_deadline_within(global));
+        let verdict = tableau.decide(&Concept::Top);
+        let clock = if verdict.is_unknown() && tableau.budget.stopped_by == Some("time") {
+            expired_clock(tableau.budget.deadline, global)
+        } else {
+            None
+        };
+        (verdict, clock)
     }
 
     /// Explain why a class is unsatisfiable. Returns None if satisfiable.
@@ -4309,15 +4326,30 @@ impl DlReasoner {
         // and the explanation loop had no wall clock at all.
         let global_deadline = Self::global_deadline();
 
-        let tbox_consistent = reasoner.is_consistent_within(global_deadline);
+        let (tbox_verdict, consistency_clock) = reasoner.decide_consistency_within(global_deadline);
         let result = reasoner.classify_parallel_within(global_deadline);
         let abox_result = reasoner.check_abox_within(global_deadline);
 
-        // The headline flag answers for the whole knowledge base. Reporting the TBox alone
-        // while the ABox check has PROVEN an inconsistency in the same output is a false
-        // claim; the three-valued discipline is preserved because an undecided ABox already
-        // defaults to consistent inside check_abox.
-        let consistent = tbox_consistent && abox_result.consistent;
+        // The headline flag answers for the whole knowledge base, in three values.
+        // Reporting the TBox alone while the ABox check has PROVEN an inconsistency in
+        // the same output is a false claim, so a proof from either phase makes it
+        // `false`. It used to be `tbox && abox.consistent`, and both of those default
+        // to consistent when their search runs out, so an inconsistent KB whose ABox
+        // phase hit its budget printed a definite `true` beside `complete: false`
+        // (#355). A phase that ran out and proved nothing now makes it `null`: only a
+        // finished search says `true`.
+        let tbox_consistent: Option<bool> = match tbox_verdict {
+            Verdict::Satisfiable => Some(true),
+            Verdict::Unsatisfiable => Some(false),
+            Verdict::Unknown => None,
+        };
+        let consistent: Option<bool> = if tbox_verdict.is_unsat() || !abox_result.consistent {
+            Some(false)
+        } else if tbox_verdict.is_unknown() || abox_result.undecided {
+            None
+        } else {
+            Some(true)
+        };
 
         // Collect explanations for unsatisfiable classes. One phase, one budget,
         // under the same ceiling as the three before it.
@@ -4356,7 +4388,8 @@ impl DlReasoner {
         // `ObjectOneOf`, every phase decided, `complete: true`, and none of the
         // six subsumptions HermiT infers.
         let unmodelled = DlReasoner::unmodelled_constructs(graph);
-        let search_finished = undetermined_names.is_empty()
+        let search_finished = !tbox_verdict.is_unknown()
+            && undetermined_names.is_empty()
             && !result.subsumption_cut_short
             && !abox_result.undecided;
         let complete = search_finished && unmodelled.is_empty();
@@ -4376,6 +4409,9 @@ impl DlReasoner {
         // the one reporting `undecided`. Naming the phases makes that visible
         // rather than leaving it to be inferred.
         let mut budget_exhausted_in: Vec<&str> = Vec::new();
+        if tbox_verdict.is_unknown() {
+            budget_exhausted_in.push("consistency");
+        }
         if !undetermined_names.is_empty() {
             budget_exhausted_in.push("satisfiability");
         }
@@ -4474,6 +4510,7 @@ impl DlReasoner {
             ),
         };
         let stopped_by_clock: Vec<(&str, &str)> = [
+            ("consistency", consistency_clock),
             ("satisfiability", result.satisfiability_clock),
             ("subsumption", result.subsumption_clock),
             ("abox", abox_result.clock),
@@ -4573,7 +4610,9 @@ impl DlReasoner {
                 }));
             }
             serde_json::json!({
-                "consistent": abox_result.consistent,
+                // `ABoxResult::consistent` is a default when the run is
+                // undecided, not a finding, so it is not printed as one (#355).
+                "consistent": (!abox_result.undecided).then_some(abox_result.consistent),
                 "undecided": abox_result.undecided,
                 "individuals_checked": abox_result.individuals_checked,
                 "inferred": ind_json,

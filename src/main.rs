@@ -411,8 +411,9 @@ enum Commands {
         out: Option<String>,
     },
     /// Repair: the cheapest set of asserted axioms whose removal makes every
-    /// class coherent, judged in the atomic named-class fragment `defects`
-    /// judges (subClassOf, disjointWith, equivalentClass between IRIs).
+    /// class coherent, judged in the atomic named-class fragment
+    /// (subClassOf, disjointWith, equivalentClass between IRIs). `defects`
+    /// also reads owl:AllDisjointClasses and owl:disjointUnionOf; this does not.
     ///
     /// Conflicts and coherence are re-run; with `--certificate-dir`,
     /// optimality is refuted by `oo-lrat`. The input file is not changed.
@@ -601,7 +602,8 @@ enum Commands {
         /// tableaux_test_timeout_ms` in `<data-dir>/config.toml` > 10000. No
         /// environment variable sets it. The run's `budget` block reports the
         /// value in force. Never proxied: a running daemon fixes its budgets
-        /// at start, so with one up this is refused unless --no-connect.
+        /// at start, so with one up this is refused unless --no-connect. A
+        /// `reason` line in a local `batch` takes it too, for that line only.
         #[arg(long, value_name = "MS")]
         phase_timeout_ms: Option<usize>,
         /// `owl-dl` only: wall-clock CEILING for the whole run, in
@@ -1173,8 +1175,10 @@ impl Commands {
             } => {
                 // The reasoner clocks are process-wide, and the daemon serves
                 // every client from one process. A per-request budget would leak
-                // into concurrent and later runs, so the batch handler takes
-                // none, and the command stays local (see `daemon_refuses`).
+                // into concurrent and later runs, so the daemon's batch handler
+                // refuses one, and the command stays local (see
+                // `daemon_refuses`). A local batch owns its process and honours
+                // both flags on a `reason` line (#352).
                 if phase_timeout_ms.is_some() || classify_timeout_ms.is_some() {
                     return None;
                 }
@@ -2590,7 +2594,8 @@ async fn async_main() -> anyhow::Result<()> {
                         // daemon exists to make fast, and it was paying a SQLite
                         // open on every call while the adjacent /lineage route
                         // already cloned the shared one.
-                        let runner = open_ontologies::batch::BatchRunner::new(db, g, false);
+                        let runner = open_ontologies::batch::BatchRunner::new(db, g, false)
+                            .in_daemon(true);
                         let (results, _) = runner.run_collect(&input, bail).await;
                         (axum::http::StatusCode::OK, axum::Json(serde_json::json!(results)))
                     }

@@ -151,6 +151,51 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`reason --profile owl-dl` says `consistent: null` when the search that
+  would decide it did not finish** (#355). The headline was `tbox &&
+  abox.consistent`, and both default to consistent when their search runs
+  out, so an inconsistent knowledge base whose ABox phase hit the clock or
+  the node cap printed a definite `"consistent": true` beside `complete:
+  false` and `abox.undecided: true`. `consistent` is now `false` when either
+  phase proves a clash, `null` when the TBox consistency test or the ABox
+  check ran out without one, and `true` only when both finished.
+  `tbox_consistent` and `abox.consistent` follow the same rule. The TBox
+  consistency test had the same fold one level up and was never counted as a
+  phase that ran out: it is now listed as `consistency` in
+  `budget_exhausted_in`, it makes `search_finished` false, and `budget.note`
+  names the clock or cap that stopped it. A run whose search finished reports
+  exactly what it did before, `complete: false` over unmodelled constructs
+  included. The human rendering prints `consistent: undetermined`.
+
+- **`defects` reads disjointness stated by `owl:AllDisjointClasses` and
+  `owl:disjointUnionOf`** (#353). `disjoint_with_ancestor` and
+  `inherited_disjoint` matched `owl:disjointWith` only, so a class made
+  unsatisfiable the OWL 2 way was not reported while the owl-dl tableau found
+  it. Every pair of members of either list now counts as declared disjoint in
+  both checks. On the issue's example `defects` now reports `A` as well as
+  `D`, the same two classes the tableau finds. `repair` still reads pairwise
+  `owl:disjointWith` only and counts the n-ary axioms under
+  `scope.not_considered`, and its descriptions no longer say its fragment is
+  exactly the one `defects` judges.
+
+- **A `reason` line in `batch` honours `--phase-timeout-ms` and
+  `--classify-timeout-ms`** (#352). Both flags were accepted and dropped, so
+  the run used the configured budgets and reported those in its `budget`
+  block, with nothing to say the flags had been ignored. A local batch now
+  applies them to that line and puts the previous budgets back afterwards, so
+  later lines run at the budgets the batch started with. A missing or
+  non-numeric value is an error naming the flag. A batch the daemon runs
+  refuses either flag, as the one-shot `reason` already was refused, because
+  one request may not move the budgets of every other client.
+
+- **`lint` no longer reports `missing_comment` on a class documented with
+  `skos:definition`, `obo:IAO_0000115` or `dcterms:description`** (#354).
+  The rule read `rdfs:comment` alone, so an ontology documented in the SKOS or
+  OBO Foundry convention got a warning on every class and the classes with no
+  documentation at all were lost in it. Any of the four properties now counts.
+  The rule ID is unchanged, so existing feedback suppressions still apply, and
+  the message names all four.
+
 - **`--human` renders each command's result by the command's name, so `diff`
   counts the triples it found and an undetermined `shacl` run says so**
   (#350, #345). The one-shot CLI called a renderer that picked a rendering by
