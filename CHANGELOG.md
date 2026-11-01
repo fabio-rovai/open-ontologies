@@ -188,6 +188,14 @@ All notable changes to Open Ontologies are documented here.
   refuses either flag, as the one-shot `reason` already was refused, because
   one request may not move the budgets of every other client.
 
+- **`lint` no longer reports `missing_comment` on a class documented with
+  `skos:definition`, `obo:IAO_0000115` or `dcterms:description`** (#354).
+  The rule read `rdfs:comment` alone, so an ontology documented in the SKOS or
+  OBO Foundry convention got a warning on every class and the classes with no
+  documentation at all were lost in it. Any of the four properties now counts.
+  The rule ID is unchanged, so existing feedback suppressions still apply, and
+  the message names all four.
+
 - **`--human` renders each command's result by the command's name, so `diff`
   counts the triples it found and an undetermined `shacl` run says so**
   (#350, #345). The one-shot CLI called a renderer that picked a rendering by

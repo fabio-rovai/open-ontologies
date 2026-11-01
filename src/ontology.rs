@@ -137,14 +137,27 @@ impl OntologyService {
             }
         }
 
-        // Find classes without rdfs:comment
+        // Find classes with no documentation. `rdfs:comment` is one way to give
+        // it; SKOS vocabularies use skos:definition and OBO Foundry ontologies
+        // use IAO_0000115, so a rule that read rdfs:comment alone fired on
+        // every class of a documented FoodOn-style ontology and buried the
+        // classes that really have nothing (#354). The rule ID stays
+        // `missing_comment` so existing feedback suppressions still apply.
         let query = r#"
             SELECT ?class WHERE {
                 { ?class a <http://www.w3.org/2002/07/owl#Class> }
                 UNION
                 { ?class a <http://www.w3.org/2000/01/rdf-schema#Class> }
                 FILTER(isIRI(?class))
-                FILTER NOT EXISTS { ?class <http://www.w3.org/2000/01/rdf-schema#comment> ?comment }
+                FILTER NOT EXISTS {
+                    VALUES ?documentation {
+                        <http://www.w3.org/2000/01/rdf-schema#comment>
+                        <http://www.w3.org/2004/02/skos/core#definition>
+                        <http://purl.obolibrary.org/obo/IAO_0000115>
+                        <http://purl.org/dc/terms/description>
+                    }
+                    ?class ?documentation ?text
+                }
             }
         "#;
         if let Ok(QueryResults::Solutions(solutions)) = SparqlEvaluator::new()
@@ -158,7 +171,11 @@ impl OntologyService {
                         "severity": "warning",
                         "type": "missing_comment",
                         "entity": term.to_string(),
-                        "message": format!("{} has no rdfs:comment", term),
+                        "message": format!(
+                            "{} has no rdfs:comment, skos:definition, obo:IAO_0000115 or \
+                             dcterms:description",
+                            term
+                        ),
                     }));
                 }
             }
