@@ -15,6 +15,9 @@ pub struct BatchRunner {
     graph: Arc<GraphStore>,
     pretty: bool,
     human: bool,
+    /// True when the daemon runs this batch for a client, in the one process
+    /// that serves every client. See [`BatchRunner::in_daemon`].
+    in_daemon: bool,
 }
 
 /// A parsed batch command with its arguments.
@@ -26,7 +29,19 @@ struct BatchCmd {
 
 impl BatchRunner {
     pub fn new(db: StateDb, graph: Arc<GraphStore>, pretty: bool) -> Self {
-        Self { db, graph, pretty, human: false }
+        Self { db, graph, pretty, human: false, in_daemon: false }
+    }
+
+    /// Mark the runner as the daemon's, which serves every client from one
+    /// process.
+    ///
+    /// The reasoner clocks are process-wide. A local batch owns its process,
+    /// so a `reason` line may set them for its own run (#352); in the daemon
+    /// the same setting would move every other client's budget, so the line is
+    /// refused there, as the one-shot `reason` is (`daemon_refuses`).
+    pub fn in_daemon(mut self, in_daemon: bool) -> Self {
+        self.in_daemon = in_daemon;
+        self
     }
 
     /// Print each result as human-readable text instead of an NDJSON envelope.
@@ -481,6 +496,32 @@ impl BatchRunner {
             .unwrap_or("rdfs".to_string());
         let certificate = Self::flag_value(args, "--certificate");
         let rules = Self::flag_value(args, "--rules");
+        // #352. These two were never read here, so a batch line carrying them
+        // ran at the configured budgets, reported those in its `budget` block,
+        // and said nothing about the flags it had dropped. Batch is the one
+        // place a run can load and reason in one process, so it was also the
+        // one place a caller could not bound the tableau.
+        let phase_ms = match Self::ms_flag(args, "--phase-timeout-ms") {
+            Ok(v) => v,
+            Err(e) => return json!({"error": e}),
+        };
+        let ceiling_ms = match Self::ms_flag(args, "--classify-timeout-ms") {
+            Ok(v) => v,
+            Err(e) => return json!({"error": e}),
+        };
+        if self.in_daemon && (phase_ms.is_some() || ceiling_ms.is_some()) {
+            return json!({
+                "error": format!(
+                    "reason --phase-timeout-ms / --classify-timeout-ms cannot be sent to the \
+                     running daemon (pid {}). Its reasoner budgets are fixed when it starts, from \
+                     [reasoner] in its data directory's config.toml, and one request may not \
+                     change them for every other client. Pass --no-connect to run the batch in \
+                     its own process, or set [reasoner] and restart the daemon.",
+                    std::process::id()
+                )
+            });
+        }
+        let _budgets = BudgetOverride::apply(phase_ms, ceiling_ms);
         // #108. Batch is the only entry point that can load and certify in one
         // process, so it is the one a certified run over a versioned store
         // actually uses. A batch runner that did not understand these flags
@@ -1471,6 +1512,22 @@ impl BatchRunner {
             .and_then(|i| args.get(i + 1).cloned())
     }
 
+    /// A millisecond budget flag, as clap reads it on the one-shot command.
+    ///
+    /// `flag_value` alone would turn a missing or malformed value into "no
+    /// flag", which is the silent drop #352 was about, one step further down.
+    fn ms_flag(args: &[String], flag: &str) -> Result<Option<usize>, String> {
+        if !args.iter().any(|a| a == flag) {
+            return Ok(None);
+        }
+        let Some(v) = Self::flag_value(args, flag) else {
+            return Err(format!("{flag} needs a value in milliseconds"));
+        };
+        v.parse::<usize>().map(Some).map_err(|_| {
+            format!("{flag} takes a whole number of milliseconds (0 means no limit), not {v:?}")
+        })
+    }
+
     /// Every value of a repeatable flag, in order (e.g. `--seed A --seed B`).
     ///
     /// `flag_value` returns the FIRST, which silently drops the rest. A seed
@@ -1482,6 +1539,46 @@ impl BatchRunner {
             .filter(|(_, a)| a.as_str() == flag)
             .filter_map(|(i, _)| args.get(i + 1).cloned())
             .collect()
+    }
+}
+
+/// The reasoner budgets one `reason` line asked for, in force until the line
+/// is done.
+///
+/// The clocks are process-wide, and the lines after this one in the same batch
+/// must run at the budgets the batch started with, so the previous values are
+/// put back on drop, an early return or a panic included.
+struct BudgetOverride {
+    phase_ms: Option<usize>,
+    ceiling_ms: Option<usize>,
+}
+
+impl BudgetOverride {
+    fn apply(phase_ms: Option<usize>, ceiling_ms: Option<usize>) -> Self {
+        let previous = Self {
+            phase_ms: phase_ms
+                .map(|_| crate::runtime::tableaux_test_timeout_ms().unwrap_or(0) as usize),
+            ceiling_ms: ceiling_ms
+                .map(|_| crate::runtime::classify_timeout_ms().unwrap_or(0) as usize),
+        };
+        if let Some(ms) = phase_ms {
+            crate::runtime::set_tableaux_test_timeout_ms(ms);
+        }
+        if let Some(ms) = ceiling_ms {
+            crate::runtime::set_classify_timeout_ms(ms);
+        }
+        previous
+    }
+}
+
+impl Drop for BudgetOverride {
+    fn drop(&mut self) {
+        if let Some(ms) = self.phase_ms {
+            crate::runtime::set_tableaux_test_timeout_ms(ms);
+        }
+        if let Some(ms) = self.ceiling_ms {
+            crate::runtime::set_classify_timeout_ms(ms);
+        }
     }
 }
 

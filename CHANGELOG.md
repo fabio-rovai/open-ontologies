@@ -178,6 +178,16 @@ All notable changes to Open Ontologies are documented here.
   `scope.not_considered`, and its descriptions no longer say its fragment is
   exactly the one `defects` judges.
 
+- **A `reason` line in `batch` honours `--phase-timeout-ms` and
+  `--classify-timeout-ms`** (#352). Both flags were accepted and dropped, so
+  the run used the configured budgets and reported those in its `budget`
+  block, with nothing to say the flags had been ignored. A local batch now
+  applies them to that line and puts the previous budgets back afterwards, so
+  later lines run at the budgets the batch started with. A missing or
+  non-numeric value is an error naming the flag. A batch the daemon runs
+  refuses either flag, as the one-shot `reason` already was refused, because
+  one request may not move the budgets of every other client.
+
 - **`--human` renders each command's result by the command's name, so `diff`
   counts the triples it found and an undetermined `shacl` run says so**
   (#350, #345). The one-shot CLI called a renderer that picked a rendering by
