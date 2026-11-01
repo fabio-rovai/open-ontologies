@@ -151,6 +151,22 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`reason --profile owl-dl` says `consistent: null` when the search that
+  would decide it did not finish** (#355). The headline was `tbox &&
+  abox.consistent`, and both default to consistent when their search runs
+  out, so an inconsistent knowledge base whose ABox phase hit the clock or
+  the node cap printed a definite `"consistent": true` beside `complete:
+  false` and `abox.undecided: true`. `consistent` is now `false` when either
+  phase proves a clash, `null` when the TBox consistency test or the ABox
+  check ran out without one, and `true` only when both finished.
+  `tbox_consistent` and `abox.consistent` follow the same rule. The TBox
+  consistency test had the same fold one level up and was never counted as a
+  phase that ran out: it is now listed as `consistency` in
+  `budget_exhausted_in`, it makes `search_finished` false, and `budget.note`
+  names the clock or cap that stopped it. A run whose search finished reports
+  exactly what it did before, `complete: false` over unmodelled constructs
+  included. The human rendering prints `consistent: undetermined`.
+
 - **`--human` renders each command's result by the command's name, so `diff`
   counts the triples it found and an undetermined `shacl` run says so**
   (#350, #345). The one-shot CLI called a renderer that picked a rendering by

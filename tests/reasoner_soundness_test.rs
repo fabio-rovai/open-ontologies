@@ -307,10 +307,15 @@ fn a_giant_min_cardinality_is_bounded_not_an_oom() {
             [ a owl:Restriction ; owl:onProperty ex:R ; owl:minCardinality 2000000000 ] .\n\
         ex:x a ex:C .\n";
     let result = classify(ttl);
-    // Budget exhaustion is never a proof of inconsistency.
+    // Budget exhaustion is never a proof of inconsistency, and it is not a
+    // proof of consistency either. This asserted `true` until #355, which was
+    // the undecided ABox's default printed as a verdict; the headline is now
+    // undetermined, and still never `false`.
     assert_eq!(
-        result["consistent"], true,
-        "a giant min-cardinality must not be reported inconsistent: {result}"
+        result["consistent"],
+        serde_json::Value::Null,
+        "a giant min-cardinality must not be reported inconsistent, nor consistent on a run \
+         that did not finish: {result}"
     );
     // And the reasoner reports it could not decide the ABox rather than fabricating one.
     assert_eq!(
