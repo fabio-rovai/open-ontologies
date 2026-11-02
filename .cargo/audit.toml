@@ -1,48 +1,34 @@
 [advisories]
 ignore = [
-    # quick-xml denial of service advisories, both patched in 0.41.0. This
-    # project's direct dependency is still quick-xml 0.37 (see Cargo.toml), and
-    # Cargo.lock resolves exactly one quick-xml, version 0.37.5, shared by that
-    # direct dependency, calamine 0.30.1, and oxrdfxml 0.2.5 and sparesults
-    # 0.3.5. Those two come from the oxigraph fork that [patch.crates-io] in
-    # Cargo.toml pins by rev, not from crates.io, so no upstream release can
-    # move them on its own. Bumping the direct pin alone would not clear the
-    # advisory either, because the fork's oxrdfxml and sparesults still require
-    # quick-xml "0.37" and the 0.37.5 lockfile entry would stay.
-    # Our own call site is Ingest::parse_xml in src/ingest.rs, which uses a
-    # plain quick_xml Reader and never constructs an NsReader or calls
+    # quick-xml denial of service advisories, both patched in 0.41.0.
+    # Cargo.lock holds two quick-xml, so a bare `cargo tree -i quick-xml` asks
+    # which. `cargo tree -i quick-xml@0.37.5`, with or without --all-features,
+    # names three users of the advised one: this crate's direct dependency
+    # (quick-xml 0.37 in Cargo.toml), oxrdfxml 0.2.5 through oxrdfio and
+    # oxigraph, and sparesults 0.3.5 through oxigraph and spareval.
+    # `cargo tree -i quick-xml@0.42.0` names calamine 0.37.0 alone, and 0.42.0
+    # is patched. oxrdfxml and sparesults come from the oxigraph fork that
+    # [patch.crates-io] in Cargo.toml pins by rev, not from crates.io, so no
+    # upstream release can move them on its own. Bumping the direct pin alone
+    # would not clear the advisory either, because the fork's oxrdfxml and
+    # sparesults still require quick-xml "0.37" and the 0.37.5 lockfile entry
+    # would stay.
+    # Our own call sites are two. DataIngester::parse_xml in src/ingest.rs uses
+    # a plain quick_xml Reader and never constructs an NsReader or calls
     # attributes(), so it falls outside the affected code paths of both
-    # advisories. The oxigraph RDF/XML path falls inside them, because oxrdfxml
-    # parses with NsReader and iterates start tag attributes, and that path is
-    # reachable from third-party input: src/marketplace.rs accepts the "rdfxml"
-    # format for community packs fetched over HTTP, and src/server.rs loads
-    # that fetched content into the store. The risk accepted here is
-    # availability only, and the HTTP transport binds 127.0.0.1 by default.
+    # advisories. The RIF Core reader in src/rulesyntax.rs (`rules-import
+    # --from rif` on the CLI and in batch, and onto_rules_import) builds an
+    # NsReader and iterates attributes, so it falls inside both, on a local
+    # file its caller names. The oxigraph RDF/XML path falls inside them too,
+    # because oxrdfxml parses with NsReader and iterates start tag attributes,
+    # and that path is reachable from third-party input: src/marketplace.rs
+    # accepts the "rdfxml" format for community packs fetched over HTTP, and
+    # src/server.rs loads that fetched content into the store. The risk
+    # accepted here is availability only, and the HTTP transport binds
+    # 127.0.0.1 by default.
     # Remove these entries once the patched fork's oxrdfxml and sparesults
     # build on quick-xml 0.41 or later, or the patch is dropped for an oxigraph
-    # release whose crates do.
+    # release whose crates do, and the direct dependency moves with them.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
-    # zip archive-extraction advisories (symlink escape, SUID/SGID bits kept,
-    # permissions applied through symlinks, and since 2 Nov 2026 an abort on a
-    # symlink entry with a large declared size), all patched only in zip 9.0.0.
-    # Every one of them is in ZipArchive::extract / ZipStreamReader::extract,
-    # which write an archive out to disk. The one remaining path to an affected
-    # zip is calamine 0.30.1 -> zip 4.6.1 (`cargo tree --all-features -i zip`),
-    # and calamine never extracts: it opens the workbook with ZipArchive::new
-    # and reads entries into memory with by_name and by_index, and its source
-    # contains no call to extract or ZipStreamReader. calamine 0.37.0
-    # (18 Oct 2026) requires zip "^9.0", so moving Cargo.toml's calamine from
-    # 0.30 to 0.37 clears all three. That bump crosses seven breaking calamine
-    # releases and also pulls in quick-xml "^0.42" beside the 0.37.5 above, so
-    # it is a change to the spreadsheet reader to be made and tested on its
-    # own, not a lockfile edit.
-    # The other path, duckdb's build-dependency libduckdb-sys, was cleared by
-    # updating duckdb to 1.10506.1, which requires zip "^9". That same update
-    # dropped rust_decimal and with it rkyv, so the RUSTSEC-2026-0235 entry
-    # that stood here is gone. Remove these with that calamine bump.
-    "RUSTSEC-2026-0367",
-    "RUSTSEC-2026-0368",
-    "RUSTSEC-2026-0369",
-    "RUSTSEC-2026-0429",
 ]
