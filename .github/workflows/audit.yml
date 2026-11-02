@@ -1,0 +1,28 @@
+name: Audit
+
+# The full `cargo audit` of main, every day. ci.yml's Audit step fails a pull
+# request only on an advisory that change brings in, and fails a push to main on
+# any advisory, so a new advisory against a dependency main already has would
+# otherwise surface only at main's next push. This run reports it within a day.
+# A scheduled run's failure notifies whoever last edited the cron line below.
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-audit:
+    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Audit Cargo.lock against the advisory database
+        run: |
+          set -euo pipefail
+          # --locked for the reason ci.yml's Audit step gives.
+          cargo install cargo-audit --locked
+          cargo audit
