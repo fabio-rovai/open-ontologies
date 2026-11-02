@@ -925,12 +925,12 @@ mod tests {
     /// its own is checked below too: it mints nothing.
     #[test]
     fn a_checked_word_needs_exit_zero() {
-        let dir = std::env::temp_dir().join("oo-closure-diff-exit-zero");
+        // Per process, so two test runs on one machine do not rewrite each
+        // other's scripts mid-exec.
+        let dir = std::env::temp_dir().join(format!("oo-closure-diff-exit-zero-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let a = dir.join("asserted.tsv");
         let d = dir.join("derivations.tsv");
-        std::fs::write(&a, "").unwrap();
-        std::fs::write(&d, "").unwrap();
         // A script rather than `/bin/true`, which is `/usr/bin/true` on macOS
         // and absent from `/bin` entirely. The suite found that itself. A `.sh`
         // is not executable on Windows either, which CI then found.
@@ -941,21 +941,32 @@ mod tests {
         } else {
             format!("#!/bin/sh\necho '{report}'\nexit 0\n")
         };
-        std::fs::write(&ok, body).unwrap();
         // The same exit code with nothing on stdout: not an acceptance.
         let mute = dir.join(if cfg!(windows) { "mute.cmd" } else { "mute.sh" });
         let mute_body = if cfg!(windows) { "@echo off\r\nexit /b 0\r\n" } else { "#!/bin/sh\nexit 0\n" };
-        std::fs::write(&mute, mute_body).unwrap();
-        #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt as _;
-            for f in [&ok, &mute] {
-                std::fs::set_permissions(f, std::fs::Permissions::from_mode(0o755)).unwrap();
+            let _gate = crate::exec_gate();
+            std::fs::write(&a, "").unwrap();
+            std::fs::write(&d, "").unwrap();
+            std::fs::write(&ok, body).unwrap();
+            std::fs::write(&mute, mute_body).unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt as _;
+                for f in [&ok, &mute] {
+                    std::fs::set_permissions(f, std::fs::Permissions::from_mode(0o755)).unwrap();
+                }
             }
         }
-        let accepted = pe::run_checker(CertKind::OoCert, Some(ok.as_path()), &a, &d, None);
+        let accepted = {
+            let _gate = crate::exec_gate();
+            pe::run_checker(CertKind::OoCert, Some(ok.as_path()), &a, &d, None)
+        };
         assert!(matches!(accepted, CheckerStatus::Accepted(_)), "{accepted:?}");
-        let unnamed = pe::run_checker(CertKind::OoCert, Some(mute.as_path()), &a, &d, None);
+        let unnamed = {
+            let _gate = crate::exec_gate();
+            pe::run_checker(CertKind::OoCert, Some(mute.as_path()), &a, &d, None)
+        };
         assert!(
             matches!(unnamed, CheckerStatus::Unreadable { .. }),
             "exit zero without a theorem name must not be an acceptance: {unnamed:?}"

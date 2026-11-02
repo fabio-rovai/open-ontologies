@@ -31,7 +31,7 @@ use open_ontologies::reason::{InferenceTarget, Reasoner};
 use open_ontologies::verdict::CHECKER_OWNED_WORDS;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock};
 
@@ -188,12 +188,22 @@ fn lake_available() -> bool {
     // `.current_dir(lean_dir())` is not cosmetic: elan resolves the toolchain
     // from the working directory's `lean-toolchain`, and the crate root has
     // none in its ancestry.
-    Command::new("lake")
-        .arg("--version")
-        .current_dir(lean_dir())
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+    //
+    // Spawned under `common::exec_gate`, like every other fork in this binary:
+    // `fake_checker` writes scripts under the gate on other threads, and an
+    // ungated fork in that window hands this child the write descriptor.
+    // `spawn` returns once the child has exec'd, so the gate covers the whole
+    // window and the wait happens outside it.
+    let child = {
+        let _gate = common::exec_gate();
+        Command::new("lake")
+            .arg("--version")
+            .current_dir(lean_dir())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+    };
+    child.and_then(|c| c.wait_with_output()).map(|o| o.status.success()).unwrap_or(false)
 }
 
 fn skip() -> bool {
@@ -210,11 +220,18 @@ fn real_checker() -> PathBuf {
     static BUILT: OnceLock<PathBuf> = OnceLock::new();
     BUILT
         .get_or_init(|| {
-            let out = Command::new("lake")
-                .arg("build")
-                .current_dir(lean_dir())
-                .output()
-                .expect("run lake build");
+            // Gated for the reason `lake_available` is, and only across the
+            // spawn: the build takes minutes and the race is the fork.
+            let child = {
+                let _gate = common::exec_gate();
+                Command::new("lake")
+                    .arg("build")
+                    .current_dir(lean_dir())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .spawn()
+            };
+            let out = child.and_then(|c| c.wait_with_output()).expect("run lake build");
             assert!(
                 out.status.success(),
                 "lake build failed:\n{}\n{}",

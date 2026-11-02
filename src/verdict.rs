@@ -677,7 +677,7 @@ mod tests {
     #[test]
     fn a_non_zero_exit_yields_no_certificate() {
         let (bin, c) = shell_exiting(1);
-        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
+        let run = { let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.expect("the system shell runs");
         assert_eq!(run.exit(), 1);
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
     }
@@ -685,7 +685,7 @@ mod tests {
     #[test]
     fn a_zero_exit_mints_the_theorem_the_checker_named() {
         let (bin, c) = shell_exiting(0);
-        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
+        let run = { let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.expect("the system shell runs");
         let cert = run.accepted_naming(&["OOCert.certificate_sound"]).expect("exit 0");
         assert_eq!(cert.theorem(), "OOCert.certificate_sound");
         assert_eq!(FolVerdict::ModelChecked(cert.clone()).word(), "model_checked");
@@ -699,7 +699,7 @@ mod tests {
     #[test]
     fn a_zero_exit_naming_another_theorem_mints_nothing() {
         let (bin, c) = shell_saying(0, Some("OOCert.something_weaker"));
-        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
+        let run = { let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.expect("the system shell runs");
         assert_eq!(run.exit(), 0);
         assert_eq!(run.named_theorem().as_deref(), Some("OOCert.something_weaker"));
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
@@ -710,7 +710,7 @@ mod tests {
     #[test]
     fn a_zero_exit_naming_no_theorem_mints_nothing() {
         let (bin, c) = shell_saying(0, None);
-        let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
+        let run = { let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.expect("the system shell runs");
         assert_eq!(run.exit(), 0);
         assert_eq!(run.named_theorem(), None);
         assert!(run.accepted_naming(&["OOCert.certificate_sound"]).is_none());
@@ -722,7 +722,7 @@ mod tests {
         let allowed = ["OOCert.horn_certificate_sound", "OOCert.entails_of_builtin_horn"];
         for named in allowed {
             let (bin, c) = shell_saying(0, Some(named));
-            let run = CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).expect("the system shell runs");
+            let run = { let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.expect("the system shell runs");
             let cert = run.accepted_naming(&allowed).expect("exit 0 naming an allowed theorem");
             assert_eq!(
                 cert.theorem(),
@@ -738,7 +738,7 @@ mod tests {
     fn a_checker_that_cannot_start_is_not_a_run() {
         let bin = CheckerBinary::found_at(PathBuf::from("/nonexistent/oo-cert"));
         let c = Command::new("/nonexistent/oo-cert");
-        assert!(CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]).is_err());
+        assert!({ let _gate = crate::exec_gate(); CheckerRun::spawn(&bin, c, &[&a_file("shell", "input")]) }.is_err());
     }
 
     /// The wire words, pinned as literals. A rename that changed one of these

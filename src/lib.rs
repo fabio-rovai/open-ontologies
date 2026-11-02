@@ -152,3 +152,19 @@ pub mod turbo_index;
 #[cfg(feature = "embeddings")]
 pub mod vecstore;
 pub mod webhook;
+
+/// Writing a file and forking a process must not overlap in one test binary,
+/// and the library's own unit tests are one binary: every `#[test]` in `src/`
+/// runs as a thread of the same process. `tests/common/mod.rs` explains the
+/// ETXTBSY race this gate closes for the integration tests. The same race is
+/// here because `closure_diff`'s tests write two scripts and exec them while
+/// `verdict`'s tests fork `/bin/sh`, and a fork that lands during one of those
+/// writes hands the child the write descriptor. Only the order in which
+/// libtest started the tests kept them apart.
+///
+/// Hold it across the write AND across the spawn, as there.
+#[cfg(test)]
+pub(crate) fn exec_gate() -> std::sync::MutexGuard<'static, ()> {
+    static GATE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    GATE.lock().unwrap_or_else(|e| e.into_inner())
+}
