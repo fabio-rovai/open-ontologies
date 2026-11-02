@@ -212,6 +212,17 @@ All notable changes to Open Ontologies are documented here.
   built inside an `ubuntu:22.04` container pinned by digest, and the release
   fails if the binary would need a newer glibc than 2.35.
 
+- **The MCP server manifest and the Claude Code plugin manifest carry the
+  release version, and a tag either disagrees with is refused.**
+  `.mcp/server.json` said 0.1.9 and named the `:0.1.9` image at every release
+  from v0.1.10 to v2.1.0, and `.claude-plugin/plugin.json` said 0.1.0 at every
+  release, although Claude Code does not update an installed plugin until that
+  version changes. Both now carry the release version, and
+  `scripts/check-release-version.sh` refuses a tag that their `version` fields
+  or the image tag disagree with, as it already did for `Cargo.toml`. The
+  README says the ghcr image is linux/amd64 only, and that Apple silicon runs
+  it under emulation with `docker run --platform linux/amd64`.
+
 - **CI fails only for the change under test.** All Linux jobs run on
   ubuntu-24.04 rather than ubuntu-latest, which moves to Ubuntu 26.04 by 19
   Nov 2026 under all four required checks. A failing Windows leg no longer
