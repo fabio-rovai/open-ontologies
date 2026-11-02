@@ -93,14 +93,29 @@ jobs:
 
   build:
     needs: verify-version
+    # By target alone. GitHub otherwise names a matrix job after every value in
+    # its row, and the Linux row holds an image digest.
+    name: build (${{ matrix.target }})
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          # A Linux binary needs no newer glibc than the one it was linked
+          # against. v2.1.0 was linked on GitHub's ubuntu-22.04 image, glibc
+          # 2.35, and needs GLIBC_2.34 at most (read from its ELF version needs
+          # on 2 Nov 2026). That image is browned out from 23 Mar 2027 and
+          # retired on 17 Apr 2027 (actions/runner-images#14254), so the leg
+          # runs on ubuntu-24.04 inside Ubuntu 22.04's own image, which keeps
+          # the 2.35 floor without the retiring VM. Pinned by digest to the
+          # ubuntu:22.04 index as of 2 Nov 2026, built 25 Oct with libc6
+          # 2.35-0ubuntu3.15; its linux/amd64 manifest is
+          # sha256:8a2321a92b438238f93b4346fff61bc4259c99fdd4d9b52ee86f153fee0c344f.
+          - os: ubuntu-24.04
+            container: ubuntu:22.04@sha256:076e7bf82319619f28dd0aa9c02ab34b055ad37100395b4f49a2ffba04fb5e11
             target: x86_64-unknown-linux-gnu
             artifact_name: open-ontologies
+            glibc: '2.35'
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: open-ontologies
@@ -116,7 +131,32 @@ jobs:
             target: x86_64-pc-windows-msvc
             artifact_name: open-ontologies.exe
     runs-on: ${{ matrix.os }}
+    # Only the Linux row names an image. An empty string means no container:
+    # actions/runner#266 (13 Jan 2020) made it so for exactly this matrix, a
+    # Linux container beside macOS and Windows, and runner v2.338.2 still
+    # returns no container for it. `|| ''` turns the key the other rows leave
+    # out into that empty string.
+    container: ${{ matrix.container || '' }}
     steps:
+      # The image is bare Ubuntu 22.04: no sudo, which root does not need, and
+      # none of what the build needs. This runs before checkout so that
+      # actions/checkout finds git and clones rather than downloading a
+      # tarball. clang is for bindgen, which oxrocksdb-sys runs and which
+      # loads libclang (the Dockerfile installs it for the same reason), and
+      # binutils is for the glibc check. The packages come from the 22.04
+      # archive as it is on the day, and the glibc they link against stays
+      # 2.35. apt is bounded as in ci.yml: an unbounded `apt-get update` hung
+      # CI for the full six hour ceiling when a mirror went dark.
+      - name: Install the build tools in the container
+        if: matrix.container
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt=(apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+          "${apt[@]}" update
+          DEBIAN_FRONTEND=noninteractive "${apt[@]}" install -y --no-install-recommends \
+            curl ca-certificates build-essential binutils clang pkg-config libssl-dev libpq-dev git
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The Rust CI tests with, so a release is built by the compiler its commit
       # was tested with and not by whatever was newest on the day of the tag.
@@ -125,28 +165,6 @@ jobs:
         with:
           toolchain: 1.99.1
           targets: ${{ matrix.target }}
-      - name: Install Linux build deps (OpenSSL/libpq)
-        if: runner.os == 'Linux'
-        # Same guard as ci.yml. An unbounded `apt-get update` hung CI for the
-        # full 6 hour job ceiling when the Azure mirror went dark; on the
-        # release path that would stall a tagged build just as silently.
-        timeout-minutes: 5
-        run: |
-          set -euo pipefail
-          missing=()
-          for p in pkg-config libssl-dev libpq-dev; do
-            dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
-          done
-          if [ ${#missing[@]} -eq 0 ]; then
-            echo "Build deps already present on the image; skipping apt."
-            exit 0
-          fi
-          echo "Missing build deps: ${missing[*]}"
-          sudo apt-get -o Acquire::Retries=3 \
-                       -o Acquire::http::Timeout=30 \
-                       -o Acquire::https::Timeout=30 update
-          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                       --no-install-recommends "${missing[@]}"
       - name: Build
         # --locked, so a tag whose Cargo.lock lags Cargo.toml fails instead of
         # publishing dependencies resolved at release time.
@@ -184,6 +202,23 @@ jobs:
             b && $1 == "minos" { print $2; exit }')
           echo "${{ matrix.target }}: minimum macOS $got, expected ${{ matrix.minos }}"
           [ "$got" = "${{ matrix.minos }}" ] || { echo "::error::minimum macOS moved from ${{ matrix.minos }} to $got"; exit 1; }
+      # The newest glibc the Linux binary needs, the highest GLIBC_ version
+      # among the symbols it imports, for the same reason as the macOS check:
+      # an image or toolchain that raised it would drop users silently.
+      - name: The Linux binary keeps its glibc floor
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          floor="${{ matrix.glibc }}"
+          [ -n "$floor" ] || { echo "::error::this Linux leg declares no glibc floor in the matrix"; exit 1; }
+          bin="target/${{ matrix.target }}/release/${{ matrix.artifact_name }}"
+          versions=$(objdump -T "$bin" | { grep -oE 'GLIBC_[0-9]+(\.[0-9]+)+' || true; } | sed 's/^GLIBC_//' | sort -uV)
+          [ -n "$versions" ] || { echo "::error::objdump -T found no GLIBC_ version in $bin"; exit 1; }
+          got=$(tail -n 1 <<<"$versions")
+          echo "${{ matrix.target }}: needs glibc $got at most, floor $floor; references ${versions//$'\n'/ }"
+          [ "$(printf '%s\n' "$got" "$floor" | sort -V | tail -n 1)" = "$floor" ] \
+            || { echo "::error::the binary needs glibc $got, above the $floor floor"; exit 1; }
       - name: Upload binary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
