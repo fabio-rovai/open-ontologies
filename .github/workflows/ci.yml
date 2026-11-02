@@ -330,6 +330,34 @@ jobs:
         # a hand-written list would not: `sql` implies postgres + duckdb.
         run: bash scripts/check-test-collection.sh cargo-test.log "${{ matrix.flags }}"
 
+  # The floor Cargo.toml declares as rust-version, measured rather than written
+  # down. README.md and CONTRIBUTING.md said Rust 1.85+ until 2 Nov 2026 while
+  # the darling 0.23 in Cargo.lock needed 1.88, and nothing could notice. This
+  # checks the default features and the release set with exactly that version,
+  # and scripts/check-toolchain-pins.sh fails if this job and Cargo.toml stop
+  # naming the same one. Not a required check: a dependency update that raises
+  # the floor is a decision to make, and this job is where it becomes visible.
+  msrv:
+    timeout-minutes: 30
+    name: msrv (1.88)
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.88.0
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Check the default features on the declared floor
+        run: cargo check --locked
+      - name: Check the release features on the declared floor
+        run: cargo check --locked --features embeddings,plugins
+
   # The README describes the SHACL validator as differentially tested against
   # pyshacl. tools/shacl_differential.py has existed since August and was
   # referenced by no workflow and no Makefile target, so nothing ran it, no

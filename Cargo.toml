@@ -2,6 +2,13 @@
 name = "open-ontologies"
 version = "2.1.0"
 edition = "2024"
+# The oldest Rust the locked dependencies build with, measured on 2 Nov 2026:
+# 1.87 stops at darling 0.23, which requires 1.88, and 1.88 checks the default
+# features and the release set `embeddings,plugins`. ci.yml's `msrv` job keeps
+# measuring it. The optional `turbovec` feature needs 1.89, which turbovec 1.0
+# requires. With the floor declared, an older cargo refuses this crate by name,
+# and `cargo update` prefers dependency versions that still build on it.
+rust-version = "1.88"
 description = "AI-native ontology engine: an MCP server and CLI for building, validating, querying and reasoning over RDF and OWL, with a native SHIQ tableaux reasoner, SHACL validation and SPARQL. Single binary, no JVM."
 license = "MIT"
 repository = "https://github.com/fabio-rovai/open-ontologies"

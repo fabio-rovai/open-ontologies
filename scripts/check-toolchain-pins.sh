@@ -22,7 +22,8 @@
 #   - Each `FROM rust:` line in the Dockerfile names that version too.
 #   - Two places differ on purpose, and each is held to its own rule instead:
 #     the `msrv` job in ci.yml must check exactly the rust-version Cargo.toml
-#     declares, so neither can move without the other; and canary.yml takes
+#     declares, and be named after it, so neither can move without the other;
+#     and canary.yml takes
 #     stable and beta from its matrix, because its job is to show whether the
 #     next version is safe. canary.yml is never a required check.
 #
@@ -40,15 +41,18 @@ shopt -s nullglob
 files=(.github/workflows/*.yml .github/workflows/*.yaml .github/actions/*/action.yml .github/actions/*/action.yaml)
 [ ${#files[@]} -gt 0 ] || { echo "::error::no workflow files under .github/workflows/"; exit 1; }
 
-# Two kinds of record, one per line:
+# Three kinds of record, one per line, separated by tabs:
 #   STEP <file> <line> <job> <ref> <toolchain>   a dtolnay/rust-toolchain step
 #   BARE <file> <line> <job>                     a job that runs cargo without one
+#   NAME <file> <line> <job> <name>              a job's display name
 # A step runs from its `- ` line to the next line indented no deeper, so `uses:`
 # and `with:` may come in either order. Jobs are the keys one level under
 # `jobs:`; a composite action has none. POSIX awk only, because CI has mawk and
 # macOS has BSD awk.
 records=$(awk -v sq="'" '
+    BEGIN { OFS = "\t" }
     function depth(s) { match(s, /^ */); return RLENGTH }
+    function bare(s) { sub(/[ \t]+#.*$/, "", s); gsub(/"/, "", s); gsub(sq, "", s); return s }
     function end_step() {
         if (in_step && uses != "") {
             print "STEP", file, uses_line, step_job, uses, (tc == "" ? "-" : tc)
@@ -71,9 +75,16 @@ records=$(awk -v sq="'" '
         if (d == 0) { end_job(); in_jobs = (line ~ /^jobs:[ \t]*(#.*)?$/); next }
         if (in_jobs && (job_depth < 0 || d == job_depth) && line ~ /^ *[A-Za-z0-9_-]+:[ \t]*(#.*)?$/) {
             end_job()
-            job_depth = d; job_file = FILENAME
+            job_depth = d; job_file = FILENAME; key_depth = -1
             job = line; sub(/^ */, "", job); sub(/:.*/, "", job)
             next
+        }
+        if (job != "" && d > job_depth) {
+            if (key_depth < 0) key_depth = d
+            if (d == key_depth && line ~ /^ *name:/) {
+                n = line; sub(/^ *name:[ \t]*/, "", n)
+                print "NAME", FILENAME, FNR, job, bare(n)
+            }
         }
         if (job != "" && cargo_line == 0 && (" " line " ") ~ /[^A-Za-z0-9_.\/-]cargo[ \t]/) cargo_line = FNR
         if (!in_step && line ~ /^ *- /) {
@@ -88,8 +99,7 @@ records=$(awk -v sq="'" '
         if (line ~ /^[ \t-]*toolchain:/) {
             tc = line
             sub(/^[ \t-]*toolchain:[ \t]*/, "", tc)
-            sub(/[ \t]+#.*$/, "", tc)
-            gsub(/"/, "", tc); gsub(sq, "", tc); gsub(/[ \t]/, "", tc)
+            tc = bare(tc); gsub(/[ \t]/, "", tc)
         }
     }
     END { end_job() }
@@ -125,11 +135,19 @@ steps=0
 refs=""
 pinned=""
 msrv_seen=0
-while read -r kind file line job ref toolchain; do
+while IFS=$'\t' read -r kind file line job ref toolchain; do
     [ -n "$kind" ] || continue
     if [ "$job" = "-" ]; then where=$file; else where="$job in $file"; fi
     if [ "$kind" = BARE ]; then
         fail "$file" "$line" "$where runs cargo with no dtolnay/rust-toolchain step, so it compiles with whatever Rust the runner image carries"
+        continue
+    fi
+    if [ "$kind" = NAME ]; then
+        # Only the msrv job's name carries a version, the one in Cargo.toml.
+        if [ "$job" = msrv ] && [ "$file" = .github/workflows/ci.yml ] && [ -n "$msrv" ] \
+            && [ "$ref" != "msrv ($msrv)" ]; then
+            fail "$file" "$line" "$where is named '$ref', and Cargo.toml declares rust-version $msrv; name it 'msrv ($msrv)'"
+        fi
         continue
     fi
     steps=$((steps + 1))
