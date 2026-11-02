@@ -151,6 +151,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
+  unbounded allocation in thrift's binary protocol `read_bytes`, published 2
+  Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`
+  files, and parquet 54 decoded their metadata with that thrift. `arrow` and
+  `parquet` move from 54 to 60.1.0, whose parquet has no thrift dependency at
+  all; the code compiled unchanged and every parquet test passes.
+  RUSTSEC-2026-0429 (zip 4.6.1, `ZipArchive::extract` aborting on a symlink
+  entry) joins the documented zip ignores in `.cargo/audit.toml`: it is
+  reached only through calamine 0.30.1, which never extracts.
+
 - **Releases publish every Lean checker the lakefile builds.** Five of the
   ten were never published: `oo-matcert` and `oo-folmodel`, which the engine
   runs itself, and `oo-dlmodel`, `oo-refute` and `oo-dlrefute`, which check

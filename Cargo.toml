@@ -57,8 +57,8 @@ csv = "1"
 quick-xml = { version = "0.37", features = ["serialize"] }
 serde_yaml = "0.9"
 calamine = { version = "0.30", features = ["dates"] }
-arrow = { version = "54", default-features = false, features = ["csv", "json"] }
-parquet = { version = "54", default-features = false, features = ["arrow"] }
+arrow = { version = "60", default-features = false, features = ["csv", "json"] }
+parquet = { version = "60", default-features = false, features = ["arrow"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "postgres"], optional = true }
 duckdb = { version = "1", optional = true, features = ["bundled"] }
 tract-onnx = { version = "0.22", optional = true }
