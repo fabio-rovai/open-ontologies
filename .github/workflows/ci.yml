@@ -463,8 +463,37 @@ jobs:
     # 15 was enough for `pytest -q` on a pure-Python suite. This job now builds
     # `lean/` and a release binary, which is what the `lean` job budgets 45 for.
     timeout-minutes: 45
-    name: python (open-ontologies-lite)
+    # The first leg's displayed name is a REQUIRED CHECK: branch protection
+    # waits for exactly "python (open-ontologies-lite)", and a renamed check
+    # never reports, so every pull request would wait for it. The string is
+    # written out in the matrix and this expression is the whole name. GitHub
+    # adds the matrix values in parentheses to a job id, or to a name with no
+    # expression in it, as `build` shows "build (ubuntu-latest)", and shows an
+    # expression as it evaluates, as `features / ${{ matrix.name }}` shows
+    # "features / breadth (all-features)". So leg one shows that string and
+    # nothing after it.
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    strategy:
+      # The required leg reports its own verdict whatever the other one does.
+      fail-fast: false
+      matrix:
+        include:
+          # REQUIRED. Python 3.10, the floor requires-python declares, with
+          # every dependency held to python/constraints-ci.txt: the 21 versions
+          # this job installed on main in its last three runs (125001267766 on
+          # 1 Nov 2026, 125172010941 and 125275316316 on 2 Nov), so a release of
+          # pytest, rdflib or numpy no longer changes what this check means.
+          # The file's first lines are the uv command that regenerates it.
+          - name: python (open-ontologies-lite)
+            python: '3.10'
+            constraints: '-c constraints-ci.txt'
+          # Never required. The newest Python with whatever resolves on the
+          # day, so a dependency release that breaks the package shows here
+          # first, and in no check that blocks a merge.
+          - name: python (open-ontologies-lite, 3.14 latest deps)
+            python: '3.14'
+            constraints: ''
     env:
       CARGO_INCREMENTAL: 0
     steps:
@@ -472,7 +501,7 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.10'   # the floor declared by requires-python
+          python-version: ${{ matrix.python }}
       # The Lean checker, built by the same local action as the `lean` job;
       # building `lean/` is itself the proof check, and it is what puts
       # `oo-horn` at lean/.lake/build/bin/oo-horn, which is where `find_checker`
@@ -529,7 +558,7 @@ jobs:
         working-directory: python
         env:
           HNSWLIB_NO_NATIVE: "1"
-        run: uv pip install --system --no-cache --no-binary hnswlib -e ".[dev,shacl,align]"
+        run: uv pip install --system --no-cache --no-binary hnswlib ${{ matrix.constraints }} -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q
