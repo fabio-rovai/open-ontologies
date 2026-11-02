@@ -89,6 +89,15 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          # Only main saves, here and in every rust-cache step below. Main's own
+          # entries filled 9.2 of the repository's 10 GB Actions cache on 1 Nov
+          # 2026. A pull request that leaves Cargo.toml and Cargo.lock as main
+          # has them restores main's entry and has nothing to save; one that
+          # changes either, or runs before main has saved, wrote a copy only it
+          # could read, and that evicted main's. On 2 Nov, 3.7 of the 9.8 GB in
+          # use were #359's copies of four keys main also held. The cost is that
+          # such a pull request rebuilds its changes on each push.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Build
         # --locked: a Cargo.lock that does not match Cargo.toml fails here. Without
         # it cargo re-resolves silently, and CI tests, lints and audits a
@@ -296,6 +305,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # Keyed per leg: they build disjoint dependency trees, and sharing one
           # cache between them would thrash it on every run. Not `matrix.name` —
           # GitHub rejects cache keys containing commas, and the rejection is a
@@ -369,6 +379,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # One entry for the two jobs that build the same thing: `cargo build
           # --release` of the default features, here and in `python`. They saved
           # two identical 790 MB entries, and main's own entries alone filled
@@ -455,6 +466,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # Shared with `shacl-differential`, which builds the same --release
           # binary; the comment there has the numbers.
           shared-key: release-default
@@ -584,6 +596,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Certify every shipped ontology through the proved checker
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_certificate_test -- --nocapture
       - name: Check the verified SHACL Core evaluator against the W3C suite
@@ -1098,6 +1111,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Run the suite and hold the ratchet
         run: |
           set -o pipefail
