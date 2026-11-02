@@ -126,15 +126,36 @@ jobs:
         # Linux only. `cargo audit` reads Cargo.lock, which is the same file on
         # both legs, so the Windows run reported nothing the Linux run had not,
         # and it spent six minutes compiling cargo-audit from source to do it.
+        #
+        # On a pull request it fails only on an advisory the change brings in:
+        # the base branch's Cargo.lock is audited the same way and the two are
+        # compared by (advisory, crate, version). An advisory published against
+        # a dependency main already has is on both sides, so it is printed as a
+        # warning here, and it fails main's own audit on the next push and in
+        # the daily run in audit.yml. It no longer turns every open pull request
+        # red: in October 2026 four advisory batches did, in 12 of the 15 pull
+        # request runs that failed, on changes that touched no dependency
+        # (#317 and #328 among them). A push to main still fails on any
+        # advisory.
         if: runner.os == 'Linux'
         run: |
+          set -euo pipefail
           # --locked installs cargo-audit with its own published Cargo.lock.
           # Without it cargo resolves transitive deps to latest, and
           # tinyvec 1.13.0 no longer compiles on current stable
           # ("`vec` is imported here, but it is a module, not a macro"),
           # so the audit step fails for a reason unrelated to this repo.
           cargo install cargo-audit --locked
-          cargo audit
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            cargo audit
+            exit 0
+          fi
+          cargo audit || true
+          git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF"
+          git show FETCH_HEAD:Cargo.lock > "$RUNNER_TEMP/base.lock"
+          cargo audit --json > "$RUNNER_TEMP/head.json" || true
+          cargo audit --json --file "$RUNNER_TEMP/base.lock" > "$RUNNER_TEMP/base.json" || true
+          python3 scripts/audit-new-advisories.py "$RUNNER_TEMP/base.json" "$RUNNER_TEMP/head.json"
 
   # Windows is the only leg that rejects an unrepresentable path, and it rejects
   # it inside actions/checkout, before a line is compiled: `benchmark/lubm\Uni-
