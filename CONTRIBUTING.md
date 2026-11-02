@@ -14,7 +14,7 @@ Thanks for your interest in contributing! This document explains how to get star
 ## Development Setup
 
 **Requirements:**
-- Rust 1.85+ (edition 2024)
+- Rust 1.88+ (edition 2024)
 - For PostgreSQL schema import: `libpq-dev`
 - For embeddings: build with `--features embeddings`, then run `open-ontologies init`, which downloads a 448 MB ONNX model and a 16 MB tokenizer
 
