@@ -3,14 +3,20 @@
 # the runtime's glibc ABI and never skew against it.
 FROM rust:1-slim-bookworm AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# apt is bounded, on update and on install. An apt call with no timeout is what
+# hung CI for the full six hours on 18 Aug 2026 when a mirror went dark, and
+# this one had none.
+RUN printf 'Acquire::Retries "3";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\n' \
+      > /etc/apt/apt.conf.d/80-bounded \
+ && apt-get update && apt-get install -y --no-install-recommends \
     pkg-config libssl-dev libpq-dev build-essential clang && rm -rf /var/lib/apt/lists/*
 
 ENV CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_DEBUG=0
 
 WORKDIR /build
 COPY . .
-RUN cargo build --release --features embeddings,plugins,sql && strip target/release/open-ontologies
+# --locked: the image is built from the committed Cargo.lock or not at all.
+RUN cargo build --release --locked --features embeddings,plugins,sql && strip target/release/open-ontologies
 
 # Collect every shared library the binary transitively needs (direct plus
 # recursive NEEDED deps) into /deps, preserving absolute paths. This replaces a

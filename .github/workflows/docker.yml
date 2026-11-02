@@ -1,39 +1,44 @@
 name: Docker
 
+# Builds the image and runs it, on main and on every pull request that changes
+# what goes into it. It publishes nothing: the ghcr image is pushed by
+# release.yml's `image` job, after the GitHub release it belongs to exists.
+# This workflow used to push on v* tags in parallel with the release and wait
+# for nothing, so a release that failed still moved :latest.
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
     paths:
       - 'Dockerfile'
+      # Both decide what `COPY . .` sees, so both change the image.
+      - '.dockerignore'
+      - '.cargo/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'src/**'
       - '.github/workflows/docker.yml'
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: read
+
+# A superseded pull request build is cancelled; a main build never is, because
+# each main run gets a group of its own.
+concurrency:
+  group: docker-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    # 75: cold builds took 28 to 43 minutes in October, and without a ceiling a
+    # stalled build inherits GitHub's six hours.
+    timeout-minutes: 75
+    runs-on: ubuntu-24.04
     env:
       CARGO_INCREMENTAL: 0
       CARGO_PROFILE_RELEASE_DEBUG: 0
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-
-      # Only on a tag push, where this workflow publishes an image. A tag that
-      # does not carry its own version produces an image whose binary reports
-      # the previous release, and nothing downstream can tell.
-      - name: Verify the tag carries the version it claims
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: scripts/check-release-version.sh "${{ github.ref_name }}"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Free disk space
         run: |
@@ -42,50 +47,39 @@ jobs:
           df -h
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      # Build into the local daemon first so the image can be smoke-tested
-      # before anything is pushed. A plain build only proves the layers
-      # assemble; running the binary proves the dynamic linker can resolve
-      # every shared library, which is exactly what was missing in issue #59
-      # (libz.so.1). Nothing validated the published image before this.
+      # Build into the local daemon so the image can be run. A plain build only
+      # proves the layers assemble; running the binary proves the dynamic
+      # linker can resolve every shared library, which is exactly what was
+      # missing in issue #59 (libz.so.1).
+      #
+      # No Actions cache. `COPY . .` precedes the cargo build, so any change to
+      # the tree misses the one layer that matters, and the exported buildkit
+      # cache was 1.66 GB of the repository's 10 GB budget on 1 Nov 2026, with
+      # a fresh ~1.1 GB cargo layer written on every main push and every pull
+      # request, evicting the Rust caches the required checks run on. The one
+      # build it sped up materially was a tag build right after main, and tags
+      # no longer build here.
       - name: Build image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           load: true
           tags: open-ontologies:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Smoke test (binary starts, all shared libs resolve)
         run: docker run --rm open-ontologies:ci --help
 
-      - name: Log in to GHCR
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        if: startsWith(github.ref, 'refs/tags/v')
-        id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-
-      - name: Push image
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+      # The check release.yml's `image` job makes before it pushes, run here
+      # first, so it is known to work in the distroless image before a tag
+      # depends on it. An explicit data dir, because `status` creates its store
+      # and the answer must not depend on HOME being writable in the image.
+      - name: The image reports the version in Cargo.toml
+        run: |
+          set -euo pipefail
+          want=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+          got=$(docker run --rm open-ontologies:ci --no-connect --data-dir /tmp/oo status \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          echo "Cargo.toml says $want; the image reports $got"
+          [ "$got" = "$want" ] || { echo "::error::the image reports $got and Cargo.toml says $want"; exit 1; }
