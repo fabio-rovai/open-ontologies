@@ -413,6 +413,10 @@ cargo build --release --features embeddings,plugins,sql
 For Intel macOS, for native Windows and for other systems, read
 [docs/quickstart.md](docs/quickstart.md) and [docs/windows.md](docs/windows.md).
 
+The Docker image is for linux/amd64 only, so on Apple silicon run it under
+emulation with
+`docker run --rm -i --platform linux/amd64 ghcr.io/fabio-rovai/open-ontologies:latest`.
+
 The `serve` command starts an MCP server. That server speaks JSON-RPC on stdin and
 stdout. Thus, at start, the server looks as if it stopped, while it waits for a
 client. This behaviour is correct. From a terminal, use the CLI subcommands

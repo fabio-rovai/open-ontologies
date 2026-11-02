@@ -376,6 +376,10 @@ cargo build --release --features embeddings,plugins,sql
 关于 Intel macOS、原生 Windows 以及其他系统，请阅读
 [docs/quickstart.md](docs/quickstart.md) 和 [docs/windows.md](docs/windows.md)。
 
+Docker 镜像只为 linux/amd64 构建，因此在搭载 Apple 芯片的 Mac 上，请用
+`docker run --rm -i --platform linux/amd64 ghcr.io/fabio-rovai/open-ontologies:latest`
+以模拟方式运行它。
+
 `serve` 命令启动一个 MCP 服务器。该服务器在 stdin 和 stdout 上使用 JSON-RPC。因此在启动时，
 服务器看上去像是停住了，其实它在等待客户端。这个行为是正确的。在终端里，请改用 CLI 子命令，
 例如 `open-ontologies validate <file.ttl>`。
