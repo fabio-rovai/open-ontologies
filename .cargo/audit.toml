@@ -24,7 +24,8 @@ ignore = [
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
     # zip archive-extraction advisories (symlink escape, SUID/SGID bits kept,
-    # permissions applied through symlinks), all patched only in zip 9.0.0.
+    # permissions applied through symlinks, and since 2 Nov 2026 an abort on a
+    # symlink entry with a large declared size), all patched only in zip 9.0.0.
     # Every one of them is in ZipArchive::extract / ZipStreamReader::extract,
     # which write an archive out to disk. The one remaining path to an affected
     # zip is calamine 0.30.1 -> zip 4.6.1 (`cargo tree --all-features -i zip`),
@@ -43,4 +44,5 @@ ignore = [
     "RUSTSEC-2026-0367",
     "RUSTSEC-2026-0368",
     "RUSTSEC-2026-0369",
+    "RUSTSEC-2026-0429",
 ]
