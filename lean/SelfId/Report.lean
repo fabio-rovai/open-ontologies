@@ -93,9 +93,9 @@ where it was `IO.println`, which is a change a reviewer can check by grep.
 this prints it unchanged rather than corrupting it, because a checker that
 emits a malformed verdict should look malformed and not look identified. -/
 def println (obj : String) : IO Unit := do
-  let trimmed := obj.trimRight
+  let trimmed := obj.trimAsciiEnd.toString
   if trimmed.endsWith "}" then
-    IO.println (trimmed.dropRight 1 ++ field (← describe) ++ "}")
+    IO.println ((trimmed.dropEnd 1).toString ++ field (← describe) ++ "}")
   else
     IO.println trimmed
 

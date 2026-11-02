@@ -37,14 +37,15 @@ def emitError (reason : String) : IO UInt32 := do
 
 /-- One integer, or nothing. A decimal point is refused by name. -/
 def readInt (s : String) : Option Int :=
-  let t := s.trim
+  let t := s.trimAscii.toString
   if t.isEmpty then none
   else if t.contains '.' then none
-  else if t.startsWith "-" then (String.toNat? (String.mk (t.toList.drop 1))).map (fun n => -(Int.ofNat n))
+  else if t.startsWith "-" then
+    (String.toNat? (String.ofList (t.toList.drop 1))).map (fun n => -(Int.ofNat n))
   else (String.toNat? t).map Int.ofNat
 
 def readRow (s : String) : Option (List Int) :=
-  ((s.trim.splitOn " ").filter (fun w => !w.isEmpty)).foldr
+  ((s.trimAscii.toString.splitOn " ").filter (fun w => !w.isEmpty)).foldr
     (fun w acc => match acc, readInt w with
       | some xs, some v => some (v :: xs)
       | _, _ => none)
@@ -59,12 +60,12 @@ structure Cert where
   C : Matrix
 
 def parse (text : String) : Except String Cert := do
-  let lines := (text.splitOn "\n").filter (fun l => !l.trim.isEmpty)
+  let lines := (text.splitOn "\n").filter (fun l => !l.trimAscii.toString.isEmpty)
   match lines with
   | [] => throw "the certificate is empty"
   | hdr :: rest =>
-    if hdr.trim != "matcert/1" then
-      throw s!"expected a matcert/1 header, found {hdr.trim}"
+    if hdr.trimAscii.toString != "matcert/1" then
+      throw s!"expected a matcert/1 header, found {hdr.trimAscii.toString}"
     else
       let mut dims : Option (Nat × Nat × Nat) := none
       let mut a : List (List Int) := []
@@ -73,7 +74,9 @@ def parse (text : String) : Except String Cert := do
       for line in rest do
         match line.splitOn "\t" with
         | ["dims", ms, ps, ns] =>
-          match String.toNat? ms.trim, String.toNat? ps.trim, String.toNat? ns.trim with
+          match String.toNat? ms.trimAscii.toString,
+                String.toNat? ps.trimAscii.toString,
+                String.toNat? ns.trimAscii.toString with
           | some m, some p, some n => dims := some (m, p, n)
           | _, _, _ => throw s!"dims must be three naturals: {line}"
         | [tag, row] =>
