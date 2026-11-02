@@ -9,7 +9,8 @@ on:
   # this file was to push a v* tag, which publishes. That is how the macos-14
   # retirement on 2 Nov 2026 would have been found: the x86_64-apple-darwin leg
   # failing on a real tag, no GitHub release, and the Docker workflow pushing
-  # :latest regardless.
+  # :latest regardless. `ci-green` runs only for a tag as well, because all it
+  # does is hold `publish` back.
   pull_request:
     paths:
       - '.github/workflows/release.yml'
@@ -324,9 +325,106 @@ jobs:
           path: release/
           if-no-files-found: error
 
+  # NOTHING IS PUBLISHED FROM A COMMIT CI HAS NOT PASSED.
+  #
+  # v2.0.1 shipped on 28 Sep 2026 with no CI run at all. It was tagged on the
+  # v2.0.x branch, which CI does not run on, and this file built and published
+  # it regardless. v2.1.0 raced its CI run instead: the tag came three seconds
+  # after the push to main on 23 Oct, CI passed ten minutes later, and nothing
+  # here would have stopped the release had it failed.
+  #
+  # The four required checks are looked up on the tagged commit by exact name,
+  # from GitHub Actions only, and the newest run of each must have concluded
+  # success. A check still running is polled once a minute for up to 90
+  # minutes, and one that failed stops the release at once. CI runs on pushes
+  # to main and on pull requests into main and nowhere else, so a tag on any
+  # other commit, a backport branch included, fails here until CI has run on
+  # that exact commit.
+  ci-green:
+    if: github.ref_type == 'tag'
+    timeout-minutes: 100
+    runs-on: ubuntu-24.04
+    permissions:
+      checks: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: The tagged commit passed the required CI checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Exactly as GitHub names them. A job renamed in ci.yml has to be
+          # renamed here too, or every release waits out the deadline.
+          required=(
+            "build (ubuntu-latest)"
+            "lean / certificate checker"
+            "SHACL conformance vs the W3C suite"
+            "python (open-ontologies-lite)"
+          )
+          minutes=90
+          # "<passed|failed|running|missing> <conclusion or status> <url>" for
+          # the newest run GitHub Actions made under this exact name. The
+          # newest decides, so a re-run still going is waited for, and a re-run
+          # that failed counts even where an older run passed.
+          newest() {
+            local enc
+            enc=$(jq -rn --arg n "$1" '$n | @uri')
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=$enc&filter=all&per_page=100" \
+              | jq -rs --arg n "$1" '
+                  [.[].check_runs[] | select(.name == $n and .app.slug == "github-actions")]
+                  | max_by(.id)
+                  | if . == null then "missing - -"
+                    elif .status != "completed" then "running \(.status) \(.html_url)"
+                    elif .conclusion == "success" then "passed success \(.html_url)"
+                    else "failed \(.conclusion) \(.html_url)" end'
+          }
+          deadline=$(( $(date +%s) + minutes * 60 ))
+          unanswered=0
+          while :; do
+            passed=() waiting=() failed=() api_failed=false
+            for name in "${required[@]}"; do
+              if ! state=$(newest "$name" 2>"$RUNNER_TEMP/check-runs.err"); then
+                api_failed=true
+                echo "::warning::could not read the check runs named '$name': $(tr '\n' ' ' <"$RUNNER_TEMP/check-runs.err")"
+                waiting+=("'$name' could not be read from the API")
+                continue
+              fi
+              read -r kind detail url <<<"$state"
+              case "$kind" in
+                passed) passed+=("'$name' passed: $url") ;;
+                failed) failed+=("'$name' concluded $detail: $url") ;;
+                running) waiting+=("'$name' is $detail: $url") ;;
+                *) waiting+=("'$name' has no run from GitHub Actions on this commit") ;;
+              esac
+            done
+            if [ "${#failed[@]}" -gt 0 ]; then
+              printf '::error::%s\n' "${failed[@]}"
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run what failed in CI, and re-run this job once it passes."
+              exit 1
+            fi
+            if [ "${#waiting[@]}" -eq 0 ]; then
+              printf '%s\n' "${passed[@]}"
+              exit 0
+            fi
+            if $api_failed; then unanswered=$((unanswered + 1)); else unanswered=0; fi
+            if [ "$unanswered" -ge 5 ]; then
+              echo "::error::Refusing to publish $GITHUB_REF_NAME: the check runs could not be read in five rounds running."
+              exit 1
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              for w in "${waiting[@]}"; do echo "::error::after $minutes minutes, $w"; done
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run this job once CI has passed on that commit; CI runs on pushes to main and on pull requests into main, and nowhere else."
+              exit 1
+            fi
+            printf -v line '%s; ' "${waiting[@]}"
+            echo "$(date -u +%H:%M:%S) waiting: ${line%; }"
+            sleep 60
+          done
+
   publish:
     if: needs.verify-version.outputs.publish == 'true'
-    needs: [verify-version, assemble]
+    needs: [verify-version, assemble, ci-green]
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     permissions:
