@@ -38,9 +38,9 @@
     "@types/react-dom": "^19.1.6",
     "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^4.6.0",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^5.0.5",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "vitest": "^2.1.9"
+    "vitest": "^5.0.5"
   }
 }
