@@ -369,7 +369,7 @@ chmod +x open-ontologies-x86_64-unknown-linux-gnu && mv open-ontologies-x86_64-u
 # Docker
 docker pull ghcr.io/fabio-rovai/open-ontologies:latest
 
-# From source (Rust 1.85+)
+# From source (Rust 1.88+)
 cargo build --release --features embeddings,plugins,sql
 ```
 

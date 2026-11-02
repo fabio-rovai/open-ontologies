@@ -151,6 +151,59 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Releases publish every Lean checker the lakefile builds.** Five of the
+  ten were never published: `oo-matcert` and `oo-folmodel`, which the engine
+  runs itself, and `oo-dlmodel`, `oo-refute` and `oo-dlrefute`, which check
+  what it writes. A user of a release binary could not get those verdicts.
+  The release now reads the list from `lean/lakefile.toml` and fails if a
+  declared checker was not built. The checkers are built from the tagged tree
+  with no cache: v2.1.0's were restored from another workflow's cache and
+  attested as if the release had built them.
+
+- **The Windows binary no longer needs the Visual C++ Redistributable.** The
+  MSVC runtime is linked statically (`.cargo/config.toml`), and the release
+  checks the exe's imports. GitHub's Windows images carry the redistributable,
+  so the missing `VCRUNTIME140.dll` only ever showed on a user's machine.
+
+- **The ghcr image is pushed after its GitHub release exists, and `:latest`
+  only moves forward.** The Docker workflow pushed on the tag in parallel with
+  the release and waited for nothing, so a failed release still moved
+  `:latest`. The release now builds the image from the tagged tree with no
+  cache, runs it, checks the version it reports, and pushes it. A backport tag
+  no longer becomes the GitHub "Latest" release or `:latest`, and a tag with a
+  SemVer pre-release is published as a pre-release.
+
+- **A tag can no longer publish an incomplete release.** The
+  x86_64-apple-darwin leg ran on GitHub's macos-14 image, retired on 2 Nov
+  2026; it now runs on macos-15, still cross-compiled, and each macOS binary
+  must keep its minimum macOS version (10.12 and 11.0). A build leg that
+  uploaded nothing, a missing CHANGELOG section, a `Cargo.lock` that does not
+  match `Cargo.toml`, or an asset that changed between assembly and upload now
+  fails the release instead of publishing without it or with an empty body.
+  Every pull request that changes how the release is built runs all of it as a
+  dry run, except the two jobs that publish.
+
+- **`open-ontologies-lite` releases check their version and the wheel.** The
+  tag, `pyproject.toml`, `__version__` and the built wheel must agree, and the
+  wheel PyPI will receive is installed into a clean environment and imported
+  before it is published.
+
+- **CI fails only for the change under test.** All Linux jobs run on
+  ubuntu-24.04 rather than ubuntu-latest, which moves to Ubuntu 26.04 by 19
+  Nov 2026 under all four required checks. A failing Windows leg no longer
+  cancels the required Linux leg. elan is installed from a release asset
+  checked against its SHA-256, not by piping a script from elan's `master`
+  branch into `sh`, and z3 is pinned by version and digest like cvc5 rather
+  than taken from apt. Every download in the `lean` job is retried and bounded,
+  and picosat is cached so its university server is only contacted on a cold
+  cache. An ETXTBSY race between script writes and forks is closed in the
+  library's unit tests and in `pack_certificate_test`. The `plugins` feature,
+  which ships in every release, is now tested. The Docker workflow no longer
+  exports a 1.1 GB build cache per run into the 10 GB Actions cache that the
+  required checks depend on. Every action runs on Node 24, and builds use
+  `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
+  event-listener, chacha20), and an ignore entry that matched nothing is gone.
+
 - **`reason --profile owl-dl` says `consistent: null` when the search that
   would decide it did not finish** (#355). The headline was `tbox &&
   abox.consistent`, and both default to consistent when their search runs

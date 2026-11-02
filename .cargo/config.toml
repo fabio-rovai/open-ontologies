@@ -1,0 +1,11 @@
+# The MSVC C and C++ runtime is linked into the Windows binary instead of
+# imported, so open-ontologies.exe runs on a Windows machine that has never
+# installed the Visual C++ Redistributable. Until this, the released exe
+# imported VCRUNTIME140.dll and MSVCP140.dll, a requirement written down
+# nowhere and invisible in CI, because GitHub's Windows images carry the
+# redistributable. C and C++ dependencies follow the flag: the cc crate builds
+# them with /MT when crt-static is on. release.yml checks the published exe's
+# imports, so a dependency that undoes this fails the release instead of a
+# user's first run.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

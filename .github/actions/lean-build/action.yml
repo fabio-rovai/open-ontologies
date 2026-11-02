@@ -1,0 +1,97 @@
+name: Build lean/ with a pinned elan
+description: >-
+  Installs elan at a pinned version and digest, installs the toolchain that
+  lean/lean-toolchain names with bounded retries, and runs `lake build` in
+  lean/, which is the proof check. Optionally restores and saves lean/.lake.
+
+# This replaces leanprover/lean-action, which this repository used in three
+# jobs and which installs elan by piping
+# https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh into
+# sh. The action's own commit was pinned and that line was not: whatever elan's
+# master branch held at the moment of the run was executed, unchecksummed, in
+# two required jobs and in the job that builds the checker binaries the release
+# publishes and attests. Here elan is a release asset checked against its
+# SHA-256 before it runs, the same rule the cvc5, picosat and Poly/ML steps in
+# ci.yml follow.
+#
+# The cache key is lean-action's, character for character, so the entries it
+# saved keep matching and keep being refreshed:
+# lake-<os>-<arch>-<hash of lean-toolchain>-<hash of lake-manifest.json>-<sha>.
+#
+# lean/lake-manifest.json lists no packages, so `lake build` needs no network
+# once the toolchain is installed. The toolchain download is the only step that
+# is retried: on 19 Oct 2026 releases.lean-lang.org dropped TLS connections for
+# more than sixteen minutes and failed every python and lean job with no code
+# at fault. A real proof failure is deterministic and fails on the first build.
+#
+# Composite steps cannot take timeout-minutes, so the calling step sets one.
+
+inputs:
+  use-cache:
+    description: >-
+      Restore and save lean/.lake through the Actions cache. The release path
+      passes 'false', so the checkers it publishes are built from the tagged
+      tree and never restored from another run's cache.
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install elan, pinned by version and digest
+      shell: bash
+      env:
+        ELAN_VERSION: 4.2.4
+        ELAN_SHA256: 42b94d4244e8353142c456ec0e4ca6528fd898a6c604d4059f494e706e431f63
+      run: |
+        set -euo pipefail
+        dir="$RUNNER_TEMP/elan-$ELAN_VERSION"
+        mkdir -p "$dir"
+        curl -fsSL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 \
+          -o "$dir/elan.tar.gz" \
+          "https://github.com/leanprover/elan/releases/download/v${ELAN_VERSION}/elan-x86_64-unknown-linux-gnu.tar.gz"
+        echo "${ELAN_SHA256}  $dir/elan.tar.gz" | sha256sum -c -
+        tar -xzf "$dir/elan.tar.gz" -C "$dir"
+        "$dir/elan-init" -y --default-toolchain none
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+        "$HOME/.elan/bin/elan" --version
+
+    - name: Install the toolchain lean/lean-toolchain names
+      shell: bash
+      working-directory: lean
+      run: |
+        set -euo pipefail
+        toolchain=$(cat lean-toolchain)
+        for wait in 0 60 180 300 300; do
+          sleep "$wait"
+          if elan toolchain install "$toolchain"; then
+            lean --version
+            lake --version
+            exit 0
+          fi
+          echo "::warning::elan toolchain install $toolchain failed; trying again"
+        done
+        echo "::error::could not install $toolchain after five attempts"
+        exit 1
+
+    - name: Restore lean/.lake
+      id: restore
+      if: inputs.use-cache == 'true'
+      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: lean/.lake
+        key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain') }}-${{ hashFiles('lean/lake-manifest.json') }}-${{ github.sha }}
+        restore-keys: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain') }}-${{ hashFiles('lean/lake-manifest.json') }}
+
+    - name: Build lean/, which is the proof check
+      shell: bash
+      working-directory: lean
+      run: lake build
+
+    - name: Save lean/.lake
+      if: inputs.use-cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: lean/.lake
+        # The key restore computed, so a lake-manifest.json that `lake build`
+        # rewrites cannot move it between restore and save.
+        key: ${{ steps.restore.outputs.cache-primary-key }}

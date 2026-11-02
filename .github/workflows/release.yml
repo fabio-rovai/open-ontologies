@@ -2,6 +2,33 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # A DRY RUN of the release, on any pull request that changes what the release
+  # is built from or how, and on demand. Every build, checker and assembly step
+  # runs exactly as it does for a tag; `publish` and `image`, the only jobs that
+  # write anywhere, run only for a tag. Until this existed the one way to run
+  # this file was to push a v* tag, which publishes. That is how the macos-14
+  # retirement on 2 Nov 2026 would have been found: the x86_64-apple-darwin leg
+  # failing on a real tag, no GitHub release, and the Docker workflow pushing
+  # :latest regardless.
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/actions/lean-build/**'
+      - '.cargo/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'scripts/check-release-version.sh'
+      - 'scripts/extract-changelog.sh'
+      - 'lean/lakefile.toml'
+      - 'lean/lean-toolchain'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # The tag and the Cargo.toml version are set by separate commits, so a tag can
@@ -9,12 +36,59 @@ jobs:
   # while the binary reports the previous version, which is a silent failure that
   # flatters the release. Checked before anything is built, so no artifact
   # carrying the wrong number is ever produced.
+  #
+  # The CHANGELOG section is checked here too. A tag with no section under its
+  # version used to publish a release with an empty body after one warning.
+  #
+  # `latest` is true only for the highest stable v* tag on the remote, so a
+  # backport such as v2.1.1 after v2.2.0 does not become the GitHub "Latest"
+  # release or move ghcr :latest backwards. A version with a hyphen is a
+  # SemVer pre-release and is published as one.
   verify-version:
     timeout-minutes: 5
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      publish: ${{ steps.v.outputs.publish }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+      latest: ${{ steps.v.outputs.latest }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - run: scripts/check-release-version.sh "${{ github.ref_name }}"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: v
+        name: Decide what this run releases
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            scripts/check-release-version.sh "$GITHUB_REF_NAME"
+            version="${GITHUB_REF_NAME#v}"
+            publish=true
+          else
+            version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+            publish=false
+            echo "Dry run on $GITHUB_REF: everything for $version is built and checked, and nothing is published."
+          fi
+          if ! bash scripts/extract-changelog.sh "$version" > /dev/null; then
+            echo "::error::CHANGELOG.md has no section for $version. Rename [Unreleased] to it before tagging."
+            exit 1
+          fi
+          case "$version" in
+            *-*) prerelease=true ;;
+            *) prerelease=false ;;
+          esac
+          latest=false
+          if [ "$publish" = true ] && [ "$prerelease" = false ]; then
+            highest=$(git ls-remote --tags --refs origin 'v*' | sed 's|.*refs/tags/||' \
+              | { grep -v -- - || true; } | sort -V | tail -n 1)
+            echo "highest stable v* tag on origin: ${highest:-<none>}"
+            if [ "$GITHUB_REF_NAME" = "$highest" ]; then latest=true; fi
+          fi
+          {
+            echo "version=$version"
+            echo "publish=$publish"
+            echo "prerelease=$prerelease"
+            echo "latest=$latest"
+          } >> "$GITHUB_OUTPUT"
+          echo "version=$version publish=$publish prerelease=$prerelease latest=$latest"
 
   build:
     needs: verify-version
@@ -29,15 +103,20 @@ jobs:
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: open-ontologies
-          - os: macos-14
+            minos: '11.0'
+          # macos-15, not macos-14, which GitHub retired on 2 Nov 2026. Both are
+          # Apple silicon images, so this leg was already a cross-compile with
+          # `--target` and stays exactly that.
+          - os: macos-15
             target: x86_64-apple-darwin
             artifact_name: open-ontologies
+            minos: '10.12'
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             artifact_name: open-ontologies.exe
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -64,12 +143,48 @@ jobs:
           sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
                        --no-install-recommends "${missing[@]}"
       - name: Build
-        run: cargo build --release --features embeddings,plugins --target ${{ matrix.target }}
+        # --locked, so a tag whose Cargo.lock lags Cargo.toml fails instead of
+        # publishing dependencies resolved at release time.
+        run: cargo build --release --locked --features embeddings,plugins --target ${{ matrix.target }}
+      # .cargo/config.toml links the MSVC runtime statically. This is the check
+      # that it worked: GitHub's Windows images carry the Visual C++
+      # Redistributable, so a binary that still imports it runs fine here and
+      # fails on a clean Windows machine, which is what v2.1.0 did.
+      - name: The Windows binary imports no Visual C++ runtime
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          vswhere="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
+          dumpbin=$("$vswhere" -latest -products '*' -find 'VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe' | tr -d '\r' | head -n 1)
+          [ -n "$dumpbin" ] || { echo "::error::dumpbin.exe not found"; exit 1; }
+          dumpbin=$(cygpath -u "$dumpbin")
+          deps=$("$dumpbin" -nologo -dependents "target/${{ matrix.target }}/release/${{ matrix.artifact_name }}")
+          echo "$deps"
+          if grep -iE 'vcruntime[0-9]*\.dll|msvcp[0-9]*\.dll' <<<"$deps"; then
+            echo "::error::the binary still needs the Visual C++ Redistributable"
+            exit 1
+          fi
+      # The oldest macOS each binary runs on, as Rust's defaults set it and as
+      # v2.1.0 shipped. A runner image or toolchain that raised it would drop
+      # users silently, so a change has to be made here, on purpose.
+      - name: The macOS binary keeps its minimum macOS version
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          bin="target/${{ matrix.target }}/release/${{ matrix.artifact_name }}"
+          got=$(otool -l "$bin" | awk '
+            /LC_VERSION_MIN_MACOSX/ { m = 1 } /LC_BUILD_VERSION/ { b = 1 }
+            m && $1 == "version" { print $2; exit }
+            b && $1 == "minos" { print $2; exit }')
+          echo "${{ matrix.target }}: minimum macOS $got, expected ${{ matrix.minos }}"
+          [ "$got" = "${{ matrix.minos }}" ] || { echo "::error::minimum macOS moved from ${{ matrix.minos }} to $got"; exit 1; }
       - name: Upload binary
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: open-ontologies-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          if-no-files-found: error
 
   # The checkers, for the one platform that has to run them without a Lean
   # toolchain: the hosted demo.
@@ -79,97 +194,90 @@ jobs:
   # reviewer to install elan and build Lean first, and the demo could not show a
   # certificate at all, so a visitor met a front page whose central claim the
   # page itself could not demonstrate. These binaries are a few MB each.
+  #
+  # EVERY [[lean_exe]] in lean/lakefile.toml is published, read from the lakefile
+  # rather than from a list here. The list here had drifted to five of the ten:
+  # oo-matcert and oo-folmodel, which the engine itself runs, and oo-dlmodel,
+  # oo-refute and oo-dlrefute, which check what the engine writes, were never
+  # published, so a user of a release binary could not get those verdicts.
+  #
+  # Built from the tagged tree with no cache. The job used to restore lean/.lake
+  # from ci.yml's cache, so v2.1.0's checkers were binaries another workflow had
+  # built, attested here as if this one had.
   checkers:
-    # The same gate `build` has. Without it this job builds the whole Lean
-    # development on a tag that is already known to be wrong: nothing is
-    # PUBLISHED, because `release` needs `build` which needs the gate, but
-    # the work is done anyway and the claim that nothing is built before
-    # the check was not true of this job.
+    # The same gate `build` has, so nothing is built for a tag already known
+    # to be wrong.
     needs: verify-version
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      # releases.lean-lang.org has dropped TLS connections for minutes at a
-      # time (19 Oct 2026: every python and lean job failed fetching the
-      # toolchain, with no code at fault). The first attempt may fail; the
-      # second is the one that decides the job, so a real proof failure still
-      # fails it, only later.
-      - id: lean1
-        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
-        continue-on-error: true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build lean/ from the tagged tree, with no cache
+        timeout-minutes: 25
+        uses: ./.github/actions/lean-build
         with:
-          lake-package-directory: lean
-          build: true
-          test: false
-          lint: false
-          use-github-cache: true
-      - if: steps.lean1.outcome == 'failure'
-        run: sleep 90
-      - if: steps.lean1.outcome == 'failure'
-        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1.6.2
-        with:
-          lake-package-directory: lean
-          build: true
-          test: false
-          lint: false
-          use-github-cache: true
-      - name: Name them for the platform they were built on
+          use-cache: 'false'
+      - name: Name every checker for the platform it was built on
         run: |
           set -euo pipefail
           mkdir -p out
+          names=$(python3 -c 'import tomllib; print("\n".join(e["name"] for e in tomllib.load(open("lean/lakefile.toml", "rb"))["lean_exe"]))')
           # oo-cert and oo-horn are required: the demo runs the first and the
-          # repository's own front page quotes the second. The rest are taken
-          # when present, and the first-order checker is accepted under either
-          # of its names so this job survives the rename either way. A missing
-          # REQUIRED checker fails the release rather than publishing a release
-          # that silently lost half of the argument.
+          # repository's own front page quotes the second. The first-order
+          # checker is accepted under either of its names.
           for b in oo-cert oo-horn; do
+            grep -qx "$b" <<<"$names" || { echo "::error::lean/lakefile.toml no longer declares $b"; exit 1; }
+          done
+          grep -qxE 'oo-resolution|oo-fores' <<<"$names" \
+            || { echo "::error::no first-order resolution checker under either name"; exit 1; }
+          for b in $names; do
             src="lean/.lake/build/bin/$b"
-            [ -x "$src" ] || { echo "::error::$b was not built"; exit 1; }
+            [ -x "$src" ] || { echo "::error::$b is declared in lean/lakefile.toml and was not built"; exit 1; }
             cp "$src" "out/${b}-x86_64-unknown-linux-gnu"
           done
-          fo=0
-          for b in oo-lrat oo-resolution oo-fores oo-shacl; do
-            src="lean/.lake/build/bin/$b"
-            if [ -x "$src" ]; then
-              cp "$src" "out/${b}-x86_64-unknown-linux-gnu"
-              case "$b" in oo-resolution|oo-fores) fo=1 ;; esac
-            fi
-          done
-          [ "$fo" = 1 ] || { echo "::error::no first-order resolution checker under either name"; exit 1; }
           ls -la out
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: checkers-x86_64-unknown-linux-gnu
           path: out/*
+          if-no-files-found: error
 
-  release:
-    timeout-minutes: 20
-    needs: [build, checkers]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      # attest-build-provenance signs through Sigstore with the workflow's OIDC
-      # identity and writes the attestation back to the repository, so it needs
-      # both on top of the existing contents: write.
-      id-token: write
-      attestations: write
+  # Everything a release publishes, laid out under its asset names, checked, and
+  # handed to `publish` as one artifact. It runs on dry runs too, so the checks
+  # below are exercised on every pull request that touches this file and not
+  # first on a tag.
+  assemble:
+    needs: [verify-version, build, checkers]
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.verify-version.outputs.version }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-      - name: Rename binaries
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dl
+      # A missing platform fails here. Before, a build leg that uploaded nothing
+      # still passed, and the release published without that platform.
+      - name: Lay out every asset under its published name
         run: |
-          for dir in open-ontologies-*/; do
-            target="${dir%/}"
-            target="${target#open-ontologies-}"
-            if [ -f "${dir}open-ontologies.exe" ]; then
-              mv "${dir}open-ontologies.exe" "${dir}open-ontologies-${target}.exe"
-            else
-              mv "${dir}open-ontologies" "${dir}open-ontologies-${target}"
-            fi
+          set -euo pipefail
+          mkdir -p release/assets
+          for t in x86_64-unknown-linux-gnu aarch64-apple-darwin x86_64-apple-darwin x86_64-pc-windows-msvc; do
+            ext=""
+            [ "$t" = x86_64-pc-windows-msvc ] && ext=".exe"
+            src="dl/open-ontologies-$t/open-ontologies$ext"
+            [ -f "$src" ] || { echo "::error::no engine binary was built for $t"; exit 1; }
+            cp "$src" "release/assets/open-ontologies-$t$ext"
           done
+          names=$(python3 -c 'import tomllib; print("\n".join(e["name"] for e in tomllib.load(open("lean/lakefile.toml", "rb"))["lean_exe"]))')
+          for b in $names; do
+            src="dl/checkers-x86_64-unknown-linux-gnu/$b-x86_64-unknown-linux-gnu"
+            [ -f "$src" ] || { echo "::error::checker $b is missing from the checkers artifact"; exit 1; }
+            cp "$src" release/assets/
+          done
+          chmod +x release/assets/*
+          ls -la release/assets
       # THE BINARY ITSELF, ASKED WHAT IT IS.
       #
       # `verify-version` compares the tag to Cargo.toml before anything builds,
@@ -182,49 +290,142 @@ jobs:
       #
       # The Linux build runs on this runner, so this is a real execution and
       # not a second reading of the same file.
-      - name: The published binary reports the version of its tag
+      - name: The published binary reports the version of its release
         run: |
           set -euo pipefail
-          want="${GITHUB_REF_NAME#v}"
-          bin="open-ontologies-x86_64-unknown-linux-gnu/open-ontologies-x86_64-unknown-linux-gnu"
-          chmod +x "$bin"
+          bin="release/assets/open-ontologies-x86_64-unknown-linux-gnu"
           got=$("./$bin" status | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
-          echo "tag $GITHUB_REF_NAME wants $want; the binary reports $got"
-          if [ "$got" != "$want" ]; then
-            echo "::error::the binary about to be published reports $got and the tag claims $want."
+          echo "release $VERSION; the binary reports $got"
+          if [ "$got" != "$VERSION" ]; then
+            echo "::error::the binary about to be published reports $got and the release claims $VERSION."
             echo "Nothing downstream can tell these apart: status is the only version the engine"
             echo "reports about itself, so an artifact recorded against this release would carry"
             echo "the wrong engine. Refusing to publish."
             exit 1
           fi
       - name: Generate SHASUMS.txt
+        # Asset names only, with sha256sum's two-space separator, so
+        # `sha256sum -c SHASUMS.txt` works as-is next to the downloaded files.
+        working-directory: release/assets
         run: |
-          # Strip the artifact directory so the listed names match the asset
-          # names as downloaded, and keep sha256sum's two-space separator so
-          # `sha256sum -c SHASUMS.txt` works as-is next to the binaries.
-          sha256sum open-ontologies-*/open-ontologies-* checkers-*/oo-* \
-            | sed 's|  .*/|  |' > SHASUMS.txt
+          set -euo pipefail
+          sha256sum -- * > ../SHASUMS.txt
+          mv ../SHASUMS.txt SHASUMS.txt
           cat SHASUMS.txt
+      - name: Extract release notes from CHANGELOG
+        run: bash scripts/extract-changelog.sh "$VERSION" > release/notes.md
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: release/
+          if-no-files-found: error
+
+  publish:
+    if: needs.verify-version.outputs.publish == 'true'
+    needs: [verify-version, assemble]
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      # attest-build-provenance signs through Sigstore with the workflow's OIDC
+      # identity and writes the attestation back to the repository, so it needs
+      # both on top of contents: write.
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: release
+      - name: The assets are the ones assemble checked
+        working-directory: release/assets
+        run: sha256sum -c SHASUMS.txt
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          # Runs after the rename so each attested subject name is the name the
-          # asset is published under.
+          # Each subject is named as the asset it is published under.
           subject-path: |
-            open-ontologies-*/open-ontologies-*
-            checkers-*/oo-*
-      - name: Extract release notes from CHANGELOG
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          if ! bash scripts/extract-changelog.sh "$version" > release-notes.md; then
-            echo "::warning::No CHANGELOG section found for ${version}; publishing with an empty body"
-            : > release-notes.md
-          fi
+            release/assets/open-ontologies-*
+            release/assets/oo-*
       - name: Create release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          body_path: release-notes.md
-          files: |
-            open-ontologies-*/open-ontologies-*
-            checkers-*/oo-*
-            SHASUMS.txt
+          body_path: release/notes.md
+          prerelease: ${{ needs.verify-version.outputs.prerelease }}
+          make_latest: ${{ needs.verify-version.outputs.latest }}
+          fail_on_unmatched_files: true
+          files: release/assets/*
+
+  # The ghcr image, published only once the GitHub release exists. It used to be
+  # pushed by the Docker workflow on the same tag, in parallel with this one and
+  # waiting for nothing, so a release that failed still moved :latest.
+  #
+  # Built from the tagged tree with no cache, smoke-tested, asked its version,
+  # and then pushed by a second build on the same builder, which reuses the
+  # layers just tested. The Docker workflow builds and runs the same image on
+  # every pull request that touches it, with the same two checks.
+  image:
+    if: needs.verify-version.outputs.publish == 'true'
+    needs: [verify-version, publish]
+    timeout-minutes: 75
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_RELEASE_DEBUG: 0
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+      VERSION: ${{ needs.verify-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
+          sudo apt-get clean
+          df -h
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the image from the tagged tree, with no cache
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          no-cache: true
+          tags: open-ontologies:release
+      - name: Smoke test (binary starts, all shared libs resolve)
+        run: docker run --rm open-ontologies:release --help
+      - name: The image reports the version of its release
+        run: |
+          set -euo pipefail
+          # An explicit data dir, so the answer does not depend on HOME being
+          # writable inside the distroless image: `status` creates its store.
+          got=$(docker run --rm open-ontologies:release --no-connect --data-dir /tmp/oo status \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          echo "release $VERSION; the image reports $got"
+          [ "$got" = "$VERSION" ] || { echo "::error::the image reports $got and the release claims $VERSION"; exit 1; }
+      - name: Log in to GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=${{ needs.verify-version.outputs.latest }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+      - name: Push image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

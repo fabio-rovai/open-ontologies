@@ -1,7 +1,9 @@
 name: Python Release
 
 # Publishes the python/ bridge (open-ontologies-lite) to PyPI on a py-v* tag,
-# e.g. `git tag py-v0.1.1 && git push origin py-v0.1.1`.
+# e.g. `git tag py-v0.1.1 && git push origin py-v0.1.1`. The tag uses the
+# version exactly as PEP 440 normalises it (py-v0.6.0rc1, not py-v0.6.0-rc.1),
+# because that is the version the wheel's file name carries.
 #
 # Uses PyPI Trusted Publishing (OIDC): no API token is stored. Configure once at
 # https://pypi.org/manage/project/open-ontologies-lite/settings/publishing/
@@ -10,35 +12,81 @@ name: Python Release
 on:
   push:
     tags: ['py-v*']
+  # A dry run of `build` on any pull request that changes the package's version
+  # or this file. `publish` runs only for a tag.
+  pull_request:
+    paths:
+      - '.github/workflows/python-release.yml'
+      - 'python/pyproject.toml'
+      - 'python/src/open_ontologies_lite/__init__.py'
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # No cache on the publish path, so the wheel is built from this tree and
+      # nothing another run left behind.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
       - name: Build wheel + sdist
         working-directory: python
         run: uv build
       - name: Check metadata
         working-directory: python
         run: uvx twine check dist/*
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      # The version is written in two places, pyproject.toml and __version__,
+      # and a tag can land on a commit where either is stale. Nothing compared
+      # them, so PyPI could receive a wheel whose metadata and whose
+      # `__version__` disagree, under a tag that names neither.
+      - name: The tag, pyproject.toml, __version__ and the wheel agree
+        working-directory: python
+        run: |
+          set -euo pipefail
+          declared=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')
+          code=$(python3 -c 'import ast; t = ast.parse(open("src/open_ontologies_lite/__init__.py").read()); print(next(n.value.value for n in t.body if isinstance(n, ast.Assign) and any(getattr(x, "id", None) == "__version__" for x in n.targets)))')
+          wheel=$(ls dist/*.whl)
+          built=$(basename "$wheel" | cut -d- -f2)
+          echo "pyproject.toml $declared; __version__ $code; wheel $built"
+          [ "$declared" = "$code" ] || { echo "::error::pyproject.toml says $declared and __version__ says $code"; exit 1; }
+          [ "$declared" = "$built" ] || { echo "::error::the wheel is $built and pyproject.toml says $declared"; exit 1; }
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            want="${GITHUB_REF_NAME#py-v}"
+            [ "$want" = "$declared" ] || { echo "::error::tag $GITHUB_REF_NAME and the package version $declared disagree"; exit 1; }
+          fi
+      # CI tests the source tree; this is the file PyPI will receive. Installed
+      # into a clean environment of its own and imported, so a packaging fault
+      # such as a module left out of the wheel fails here and not for the first
+      # user who installs it.
+      - name: The wheel that will be published installs and imports
+        working-directory: python
+        run: |
+          set -euo pipefail
+          uv venv --python python3 "$RUNNER_TEMP/wheel-check"
+          uv pip install --python "$RUNNER_TEMP/wheel-check/bin/python" dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-check/bin/python" -c 'import open_ontologies_lite as m; print(m.__name__, m.__version__, m.__file__)'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
           path: python/dist/
+          if-no-files-found: error
 
   publish:
+    if: github.ref_type == 'tag'
     needs: build
-    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    runs-on: ubuntu-24.04
     environment: pypi
     permissions:
       id-token: write          # OIDC token for Trusted Publishing; no secret needed
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist
           path: dist/

@@ -477,7 +477,9 @@ def discover_w3c(suite, workdir):
         dest = out / (os.path.relpath(p, root) + ".nt")
         if not dest.exists():
             dest.parent.mkdir(parents=True, exist_ok=True)
-            load(p).serialize(destination=str(dest), format="nt")
+            # N-Triples is UTF-8 by definition. Saying so stops rdflib warning
+            # "NTSerializer always uses UTF-8 encoding" on every case.
+            load(p).serialize(destination=str(dest), format="nt", encoding="utf-8")
         return str(dest)
 
     def walk(path):

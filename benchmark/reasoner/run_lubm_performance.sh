@@ -15,6 +15,17 @@ echo "Generating LUBM ontologies..."
 python3 "$SCRIPT_DIR/generate_lubm.py" $SIZES
 echo ""
 
+# The Java side, compiled once, the way run_pizza_correctness.sh does it.
+JAVA_CP=""
+if ls "$SCRIPT_DIR/lib/"*.jar 1>/dev/null 2>&1; then
+    CLASSES_DIR="$SCRIPT_DIR/target/java"
+    mkdir -p "$CLASSES_DIR"
+    JAVAC="$(dirname "$(command -v java)")/javac"
+    [ -x "$JAVAC" ] || JAVAC=javac
+    "$JAVAC" -nowarn -cp "$SCRIPT_DIR/lib/*" -d "$CLASSES_DIR" "$SCRIPT_DIR/JavaReasoner.java"
+    JAVA_CP="$CLASSES_DIR:$SCRIPT_DIR/lib/*"
+fi
+
 # 2. Run benchmarks
 RESULTS_FILE="$RESULTS_DIR/lubm_results.json"
 echo "[" > "$RESULTS_FILE"
@@ -41,10 +52,15 @@ for SIZE in $SIZES; do
     # Errors are NOT swallowed. A benchmark that silently reports a failed
     # run as a fast run is worse than no benchmark, so the harness asserts
     # triples > 0 before trusting any timing.
+    #
+    # The status is captured with `|| OO_STATUS=$?` rather than read from `$?`
+    # on the next line. Under `set -e` a failing assignment ends the script
+    # there, so the FAILED branch below was unreachable and a failed engine run
+    # stopped the whole benchmark without a word.
     START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
+    OO_STATUS=0
     OO_OUT=$(printf 'load %s\nstats\nreason --profile owl-dl\n' "$OWL_FILE" \
-             | $OO_BIN batch -)
-    OO_STATUS=$?
+             | $OO_BIN batch -) || OO_STATUS=$?
     END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
     OO_MS=$((END_MS - START_MS))
 
@@ -74,20 +90,33 @@ print(n)
     fi
 
     # Java reasoners (if available)
+    #
+    # A run that fails records null, never its wall time. This used to put
+    # $SCRIPT_DIR on the classpath, where JavaReasoner.class has never been,
+    # and discard the error with `2>/dev/null || true`, so every row recorded
+    # how long a JVM takes to report a missing class as the HermiT and Pellet
+    # timings. The class is compiled where run_pizza_correctness.sh compiles
+    # it, and stderr is left visible.
     HERMIT_MS="null"
     PELLET_MS="null"
-    if ls "$SCRIPT_DIR/lib/"*.jar 1>/dev/null 2>&1; then
+    if [ -n "$JAVA_CP" ]; then
         START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
-        java -cp "$SCRIPT_DIR:$SCRIPT_DIR/lib/*" JavaReasoner hermit "$OWL_FILE" "$RESULTS_DIR/hermit_lubm_${SIZE}.json" 2>/dev/null || true
-        END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
-        HERMIT_MS=$((END_MS - START_MS))
-        echo "  HermiT: ${HERMIT_MS}ms"
+        if java -cp "$JAVA_CP" JavaReasoner hermit "$OWL_FILE" "$RESULTS_DIR/hermit_lubm_${SIZE}.json"; then
+            END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
+            HERMIT_MS=$((END_MS - START_MS))
+            echo "  HermiT: ${HERMIT_MS}ms"
+        else
+            echo "  HermiT: FAILED (exit $?), recorded as null"
+        fi
 
         START_MS=$(python3 -c "import time; print(int(time.time()*1000))")
-        java -cp "$SCRIPT_DIR:$SCRIPT_DIR/lib/*" JavaReasoner pellet "$OWL_FILE" "$RESULTS_DIR/pellet_lubm_${SIZE}.json" 2>/dev/null || true
-        END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
-        PELLET_MS=$((END_MS - START_MS))
-        echo "  Pellet: ${PELLET_MS}ms"
+        if java -cp "$JAVA_CP" JavaReasoner pellet "$OWL_FILE" "$RESULTS_DIR/pellet_lubm_${SIZE}.json"; then
+            END_MS=$(python3 -c "import time; print(int(time.time()*1000))")
+            PELLET_MS=$((END_MS - START_MS))
+            echo "  Pellet: ${PELLET_MS}ms"
+        else
+            echo "  Pellet: FAILED (exit $?), recorded as null"
+        fi
     fi
 
     if [ "$FIRST" = true ]; then
