@@ -198,6 +198,19 @@ All notable changes to Open Ontologies are documented here.
   wheel PyPI will receive is installed into a clean environment and imported
   before it is published.
 
+- **A release publishes only a commit CI has passed.** v2.0.1 was tagged on a
+  branch CI does not run on and shipped on 28 Sep 2026 with no CI run at all,
+  and `open-ontologies-lite` 0.4.0 was on PyPI a minute before CI started on
+  its commit. Both release workflows now look up the required checks on the
+  tagged commit, wait up to 90 minutes for any still running, and publish
+  nothing if one failed or never ran. CI runs on `main` and on pull requests
+  into `main`, so tag a commit that has been through one of them.
+
+- **The Linux binary still runs on glibc 2.35 (Ubuntu 22.04).** It was built
+  on GitHub's ubuntu-22.04 image, which is retired on 17 Apr 2027. It is now
+  built inside an `ubuntu:22.04` container pinned by digest, and the release
+  fails if the binary would need a newer glibc than 2.35.
+
 - **CI fails only for the change under test.** All Linux jobs run on
   ubuntu-24.04 rather than ubuntu-latest, which moves to Ubuntu 26.04 by 19
   Nov 2026 under all four required checks. A failing Windows leg no longer
