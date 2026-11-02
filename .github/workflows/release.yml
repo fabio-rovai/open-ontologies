@@ -117,8 +117,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
+      # The Rust CI tests with, so a release is built by the compiler its commit
+      # was tested with and not by whatever was newest on the day of the tag.
+      # ci.yml's build job says why it is pinned this way.
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
+          toolchain: 1.99.1
           targets: ${{ matrix.target }}
       - name: Install Linux build deps (OpenSSL/libpq)
         if: runner.os == 'Linux'

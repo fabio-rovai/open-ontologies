@@ -1,7 +1,10 @@
 # Pin the builder to the same Debian release as the distroless runtime
 # (bookworm / Debian 12) so the shared libraries copied across stages share
 # the runtime's glibc ABI and never skew against it.
-FROM rust:1-slim-bookworm AS builder
+#
+# And to the Rust version the workflows pin, rather than `rust:1`, which moves
+# to each new stable. scripts/check-toolchain-pins.sh fails when the two differ.
+FROM rust:1.99.1-slim-bookworm AS builder
 
 # apt is bounded, on update and on install. An apt call with no timeout is what
 # hung CI for the full six hours on 18 Aug 2026 when a mirror went dark, and
