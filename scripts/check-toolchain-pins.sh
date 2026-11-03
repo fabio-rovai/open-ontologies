@@ -46,9 +46,13 @@ files=(.github/workflows/*.yml .github/workflows/*.yaml .github/actions/*/action
 #   BARE <file> <line> <job>                     a job that runs cargo without one
 #   NAME <file> <line> <job> <name>              a job's display name
 # A step runs from its `- ` line to the next line indented no deeper, so `uses:`
-# and `with:` may come in either order. Jobs are the keys one level under
-# `jobs:`; a composite action has none. POSIX awk only, because CI has mawk and
-# macOS has BSD awk.
+# and `with:` may come in either order. A `uses:` line is matched with its
+# quotes stripped, so double, single or no quotes read the same. A job runs
+# cargo when a line has `cargo` before a space, a tab or the line's end, as a
+# word or as the last segment of a path such as ~/.cargo/bin/cargo; the
+# directory in .cargo/ and the word cargo-audit do not count. Jobs are the keys
+# one level under `jobs:`; a composite action has none. POSIX awk only, because
+# CI has mawk and macOS has BSD awk.
 records=$(awk -v sq="'" '
     BEGIN { OFS = "\t" }
     function depth(s) { match(s, /^ */); return RLENGTH }
@@ -86,13 +90,14 @@ records=$(awk -v sq="'" '
                 print "NAME", FILENAME, FNR, job, bare(n)
             }
         }
-        if (job != "" && cargo_line == 0 && (" " line " ") ~ /[^A-Za-z0-9_.\/-]cargo[ \t]/) cargo_line = FNR
+        if (job != "" && cargo_line == 0 && (" " line " ") ~ /[^A-Za-z0-9_.-]cargo[ \t]/) cargo_line = FNR
         if (!in_step && line ~ /^ *- /) {
             in_step = 1; step_depth = d; file = FILENAME; step_job = (job == "" ? "-" : job)
         }
         if (!in_step) next
-        if (match(line, /uses:[ \t]*"?dtolnay\/rust-toolchain@[^ \t"#]*/)) {
-            uses = substr(line, RSTART, RLENGTH); sub(/.*@/, "", uses)
+        unquoted = line; gsub(/"/, "", unquoted); gsub(sq, "", unquoted)
+        if (match(unquoted, /uses:[ \t]*dtolnay\/rust-toolchain@[^ \t#]*/)) {
+            uses = substr(unquoted, RSTART, RLENGTH); sub(/.*@/, "", uses)
             if (uses == "") uses = "-"
             uses_line = FNR
         }
