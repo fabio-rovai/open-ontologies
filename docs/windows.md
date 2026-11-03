@@ -9,7 +9,7 @@ This repository can be built on native Windows with the MSVC Rust toolchain. The
 - Visual Studio 2022 Build Tools
 - Windows 11 SDK `10.0.22621.0` or newer
 - LLVM for `libclang.dll`
-- Node.js 20+ with `npm.cmd`
+- Node.js 22.12+ with `npm.cmd`, which vite 7 and vitest 5 require; vitest 5 also leaves out 23 and 25
 
 ## Required Windows components
 

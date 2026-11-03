@@ -120,7 +120,7 @@ The live working file is `~/.open-ontologies/studio-live.ttl`. On startup the en
 ### Prerequisites
 
 - **Rust + Cargo**: install via `curl https://sh.rustup.rs -sSf | sh`
-- **Node.js 18+**: install via Homebrew: `brew install node`
+- **Node.js 22.12+**: vite 7 and vitest 5 require it, and vitest 5 also leaves out 23 and 25. Install via Homebrew: `brew install node`
 - **Tauri CLI**: installed as a dev dependency (`npm install` handles this)
 - **Engine binary**: must be built once before first run (see below)
 
