@@ -20,6 +20,8 @@ on:
       - 'Cargo.lock'
       - 'scripts/check-release-version.sh'
       - 'scripts/extract-changelog.sh'
+      - '.mcp/server.json'
+      - '.claude-plugin/plugin.json'
       - 'lean/lakefile.toml'
       - 'lean/lean-toolchain'
   workflow_dispatch:
@@ -65,6 +67,10 @@ jobs:
             publish=true
           else
             version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+            # The check a tag gets, for the tag this version would have, so a
+            # change that leaves .mcp/server.json or .claude-plugin/plugin.json
+            # behind Cargo.toml fails here and not at the tag.
+            scripts/check-release-version.sh "v$version"
             publish=false
             echo "Dry run on $GITHUB_REF: everything for $version is built and checked, and nothing is published."
           fi
