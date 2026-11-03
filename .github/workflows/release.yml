@@ -369,12 +369,16 @@ jobs:
   # here would have stopped the release had it failed.
   #
   # The four required checks are looked up on the tagged commit by exact name,
-  # from GitHub Actions only, and the newest run of each must have concluded
-  # success. A check still running is polled once a minute for up to 90
-  # minutes, and one that failed stops the release at once. CI runs on pushes
-  # to main and on pull requests into main and nowhere else, so a tag on any
-  # other commit, a backport branch included, fails here until CI has run on
-  # that exact commit.
+  # and only CI's runs for a push of that commit to main count: a check run
+  # must belong to a check suite GitHub Actions (app 15368) created with
+  # head_branch main and the commit as `after`. A pull request run does not
+  # count. GitHub reports it on the head commit, but it built and tested that
+  # commit merged with main as main then was, which is another tree whenever
+  # main had moved on. A fork's pull request suite has no `after`, even from a
+  # branch the fork calls main. The newest counted run of each check must have
+  # concluded success. One still running is polled once a minute for up to 90
+  # minutes, and one that failed stops the release at once. A commit that
+  # never reached main, a backport branch included, is never published.
   ci-green:
     if: github.ref_type == 'tag'
     timeout-minutes: 100
@@ -398,16 +402,25 @@ jobs:
             "python (open-ontologies-lite)"
           )
           minutes=90
+          # The ids, as a JSON array, of the check suites GitHub Actions
+          # created for a push of this commit to main. A tag push and a pull
+          # request run get suites under their own tag or branch name.
+          push_suites() {
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-suites?app_id=15368&per_page=100" \
+              | jq -cs --arg sha "$GITHUB_SHA" \
+                  '[.[].check_suites[] | select(.head_branch == "main" and .after == $sha) | .id]'
+          }
           # "<passed|failed|running|missing> <conclusion or status> <url>" for
-          # the newest run GitHub Actions made under this exact name. The
-          # newest decides, so a re-run still going is waited for, and a re-run
-          # that failed counts even where an older run passed.
+          # the newest run under this exact name in one of the suites in $2.
+          # The newest decides, so a re-run still going is waited for, and a
+          # re-run that failed counts even where an older run passed.
           newest() {
             local enc
             enc=$(jq -rn --arg n "$1" '$n | @uri')
             gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=$enc&filter=all&per_page=100" \
-              | jq -rs --arg n "$1" '
-                  [.[].check_runs[] | select(.name == $n and .app.slug == "github-actions")]
+              | jq -rs --arg n "$1" --argjson suites "$2" '
+                  [.[].check_runs[]
+                   | select(.name == $n and .app.slug == "github-actions" and (.check_suite.id | IN($suites[])))]
                   | max_by(.id)
                   | if . == null then "missing - -"
                     elif .status != "completed" then "running \(.status) \(.html_url)"
@@ -418,21 +431,31 @@ jobs:
           unanswered=0
           while :; do
             passed=() waiting=() failed=() api_failed=false
-            for name in "${required[@]}"; do
-              if ! state=$(newest "$name" 2>"$RUNNER_TEMP/check-runs.err"); then
-                api_failed=true
-                echo "::warning::could not read the check runs named '$name': $(tr '\n' ' ' <"$RUNNER_TEMP/check-runs.err")"
-                waiting+=("'$name' could not be read from the API")
-                continue
-              fi
-              read -r kind detail url <<<"$state"
-              case "$kind" in
-                passed) passed+=("'$name' passed: $url") ;;
-                failed) failed+=("'$name' concluded $detail: $url") ;;
-                running) waiting+=("'$name' is $detail: $url") ;;
-                *) waiting+=("'$name' has no run from GitHub Actions on this commit") ;;
-              esac
-            done
+            # Fails closed: with no suite list nothing can pass this round, and
+            # five unreadable rounds in a row fail the job below.
+            if ! suites=$(push_suites 2>"$RUNNER_TEMP/check-suites.err"); then
+              api_failed=true
+              echo "::warning::could not read the check suites on $GITHUB_SHA: $(tr '\n' ' ' <"$RUNNER_TEMP/check-suites.err")"
+              for name in "${required[@]}"; do
+                waiting+=("'$name' could not be matched to a push to main, because the check suites could not be read")
+              done
+            else
+              for name in "${required[@]}"; do
+                if ! state=$(newest "$name" "$suites" 2>"$RUNNER_TEMP/check-runs.err"); then
+                  api_failed=true
+                  echo "::warning::could not read the check runs named '$name': $(tr '\n' ' ' <"$RUNNER_TEMP/check-runs.err")"
+                  waiting+=("'$name' could not be read from the API")
+                  continue
+                fi
+                read -r kind detail url <<<"$state"
+                case "$kind" in
+                  passed) passed+=("'$name' passed: $url") ;;
+                  failed) failed+=("'$name' concluded $detail: $url") ;;
+                  running) waiting+=("'$name' is $detail: $url") ;;
+                  *) waiting+=("'$name' has no run from CI for a push of this commit to main") ;;
+                esac
+              done
+            fi
             if [ "${#failed[@]}" -gt 0 ]; then
               printf '::error::%s\n' "${failed[@]}"
               echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run what failed in CI, and re-run this job once it passes."
@@ -444,12 +467,12 @@ jobs:
             fi
             if $api_failed; then unanswered=$((unanswered + 1)); else unanswered=0; fi
             if [ "$unanswered" -ge 5 ]; then
-              echo "::error::Refusing to publish $GITHUB_REF_NAME: the check runs could not be read in five rounds running."
+              echo "::error::Refusing to publish $GITHUB_REF_NAME: the check suites or check runs could not be read in five rounds running."
               exit 1
             fi
             if [ "$(date +%s)" -ge "$deadline" ]; then
               for w in "${waiting[@]}"; do echo "::error::after $minutes minutes, $w"; done
-              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run this job once CI has passed on that commit; CI runs on pushes to main and on pull requests into main, and nowhere else."
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Push that commit to main, and re-run this job once CI has passed on the push; a pull request run does not count."
               exit 1
             fi
             printf -v line '%s; ' "${waiting[@]}"

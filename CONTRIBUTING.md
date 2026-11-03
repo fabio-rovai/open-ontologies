@@ -94,13 +94,13 @@ Releases are cut from tags and their GitHub release notes are populated automati
 
 1. Add the CHANGELOG.md entry for the new version first. Both heading formats in use are recognized by the automation: `## X.Y.Z - YYYY-MM-DD` (bare version) and `## [X.Y.Z] - YYYY-MM-DD` (bracketed version).
 2. Bump `version` in `Cargo.toml` to the same `X.Y.Z` and commit both changes together.
-3. Put that commit through CI: push it to `main`, or make it the head of a pull request into `main`. CI runs nowhere else, and a release will not publish a commit CI has not passed.
+3. Push that commit to `main`, so that CI runs on it there. A release counts only CI's run for a push of the tagged commit to `main`. A pull request's run does not count: it tests the pull request merged with `main` as `main` then was, not the commit itself. Merging or squashing a pull request puts a new commit on `main`, and that is the commit to tag.
 4. Tag that commit: `git tag vX.Y.Z` (the tag carries the leading `v`; the CHANGELOG heading does not need one).
 5. Push the tag: `git push origin vX.Y.Z`. It can go up with the commit, because the release waits for CI.
 
-Pushing the tag fires `.github/workflows/release.yml`. Before anything is built it checks that the tag, `Cargo.toml` and a CHANGELOG section agree; it then builds and checks every binary, and waits up to 90 minutes for the four required CI checks on the tagged commit. Only then does it publish the release, with that CHANGELOG section as the body, and push the ghcr image. A version mismatch, a missing CHANGELOG section, or a required check that failed or never ran stops the release before anything is published.
+Pushing the tag fires `.github/workflows/release.yml`. Before anything is built it checks that the tag, `Cargo.toml` and a CHANGELOG section agree; it then builds and checks every binary, and waits up to 90 minutes for the four required checks in CI's run for the push of the tagged commit to `main`. Only then does it publish the release, with that CHANGELOG section as the body, and push the ghcr image. A version mismatch, a missing CHANGELOG section, or a required check that failed, or never ran on a push to `main`, stops the release before anything is published.
 
-`open-ontologies-lite` is published to PyPI from a `py-vX.Y.Z` tag by `.github/workflows/python-release.yml`, which holds the upload back the same way until `python (open-ontologies-lite)` has passed on the tagged commit.
+`open-ontologies-lite` is published to PyPI from a `py-vX.Y.Z` tag by `.github/workflows/python-release.yml`, which holds the upload back the same way until `python (open-ontologies-lite)` has passed in CI's run for the push of the tagged commit to `main`.
 
 ## Code Style
 

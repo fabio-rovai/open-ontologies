@@ -201,10 +201,11 @@ All notable changes to Open Ontologies are documented here.
 - **A release publishes only a commit CI has passed.** v2.0.1 was tagged on a
   branch CI does not run on and shipped on 28 Sep 2026 with no CI run at all,
   and `open-ontologies-lite` 0.4.0 was on PyPI a minute before CI started on
-  its commit. Both release workflows now look up the required checks on the
-  tagged commit, wait up to 90 minutes for any still running, and publish
-  nothing if one failed or never ran. CI runs on `main` and on pull requests
-  into `main`, so tag a commit that has been through one of them.
+  its commit. Both release workflows now look up the required checks in CI's
+  run for the push of the tagged commit to `main`, wait up to 90 minutes for
+  any still running, and publish nothing if one failed or never ran there. A
+  pull request's run does not count, because it tests the pull request merged
+  with `main` and not the commit, so tag the commit once it is on `main`.
 
 - **The Linux binary still runs on glibc 2.35 (Ubuntu 22.04).** It was built
   on GitHub's ubuntu-22.04 image, which is retired on 17 Apr 2027. It is now
