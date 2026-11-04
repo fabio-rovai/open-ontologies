@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The whole certified vocabulary, in one place, checked from outside the crate.
 //!
 //! `src/verdict.rs` makes a certified verdict unconstructible without evidence:

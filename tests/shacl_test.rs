@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::graph::GraphStore;
 use open_ontologies::shacl::ShaclValidator;
 use oxigraph::io::RdfFormat;

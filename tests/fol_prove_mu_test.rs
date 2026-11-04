@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Zhaozhou's 無: a question the ontology cannot be asked is returned unasked,
 //! with the verdict `mu`, and no prover is consulted about it.
 //!

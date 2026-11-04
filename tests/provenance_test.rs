@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Provenance semirings, on graphs whose annotation is known by hand.
 //!
 //! The polynomials here are checked EXACTLY, string and all. A test that

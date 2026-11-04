@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! CDC (Change Data Capture) state tracking for SQL ingest.
 //!
 //! Pattern borrowed from

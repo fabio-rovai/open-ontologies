@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The tableaux verdict, checked against a model rather than against an oracle.**
 //!
 //! `tests/owl2_conformance_test.rs` asserts what this engine's `owl-dl` path

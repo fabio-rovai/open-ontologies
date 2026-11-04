@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Full BC+ semantics extensions for the Dynamics layer (#43 follow-up).
 //!
 //! v0.4 base shipped the deterministic-single-effect subset of BC+

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Feedback may waive warnings and infos, never errors, and never silently.
 //!
 //! Issue #325: once a (tool, rule, entity) had been dismissed

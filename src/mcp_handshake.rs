@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A guard over the MCP server transport for the window before `initialize`.
 //!
 //! rmcp's server handshake reads messages itself until it sees `initialize`

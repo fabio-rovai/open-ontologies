@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Compiled claim verification: the Tardygrada Layer 3 hot path.
 //!
 //! Design and measurements: `docs/layer3-compiled-reasoning.md`.

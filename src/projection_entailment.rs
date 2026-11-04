@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Does a retrieved slice still support the claims an answer rests on?
 //!
 //! [`crate::projection_check`] answers "how much of the source neighbourhood

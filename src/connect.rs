@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! HTTP client that proxies CLI batch commands to a running daemon.
 
 use crate::daemon::DaemonInfo;

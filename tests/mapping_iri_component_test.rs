@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Mapping IDs, generated predicates and lookup values must form valid IRIs.
 use open_ontologies::graph::GraphStore;
 use open_ontologies::mapping::{FieldMapping, MappingConfig};

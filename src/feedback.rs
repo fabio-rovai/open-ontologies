@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use crate::state::StateDb;
 
 /// What to do with an issue based on feedback history.

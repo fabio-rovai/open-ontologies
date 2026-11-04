@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Many small graphs that reason separately, and a fact promoted when enough
 //! of them agree.
 //!

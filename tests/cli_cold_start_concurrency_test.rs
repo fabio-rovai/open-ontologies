@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Two subcommands starting at once on a cold data directory must both work.
 //!
 //! Every subcommand opens `<data_dir>/open-ontologies.db` through

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **What a read transaction costs in memory, against what the copy costs (#181).**
 //!
 //! Oxigraph warns that "the transaction keeps the complete set of changes into

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Human-readable rendering of JSON result values for CLI output.
 //!
 //! A result is rendered by the renderer registered for the NAME of the command

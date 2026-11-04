@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Unified SQL data source abstraction.
 //!
 //! Provides a single entry point for the data pipeline to talk to multiple SQL

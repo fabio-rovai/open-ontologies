@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:qualifiedValueShape` with `sh:qualifiedMinCount` / `sh:qualifiedMaxCount`.
 //!
 //! Modelled on the investment-fund vertical, which is where the corpus run found

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A certified token says WHICH artefact was accepted, not merely that
 //! something was.
 //!

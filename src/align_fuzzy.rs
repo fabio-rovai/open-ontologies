@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! FLORA-style fuzzy-logic alignment adjudication (#38).
 //!
 //! Per the ISWC 2025 paper "FLORA: Fuzzy Logic Over Relational Alignments,"

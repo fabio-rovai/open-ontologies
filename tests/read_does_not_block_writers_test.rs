@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A certified read no longer stops the store (#181).**
 //!
 //! `triples_outside` is the selection the certified reasoning paths use, and it

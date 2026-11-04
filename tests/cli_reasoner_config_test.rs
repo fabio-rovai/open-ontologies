@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! One-shot CLI commands honour `[reasoner]` in `<data-dir>/config.toml` (#339).
 //!
 //! `setup()` loaded `config.toml` and kept only its `[storage]` section, and

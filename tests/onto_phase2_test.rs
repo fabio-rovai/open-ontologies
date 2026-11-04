@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::graph::GraphStore;
 use open_ontologies::state::StateDb;
 use open_ontologies::ontology::OntologyService;

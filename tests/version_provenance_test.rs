@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The crate version must be the version that was released.
 //!
 //! It was not. v1.4.0 was tagged from a tree whose `Cargo.toml` still said

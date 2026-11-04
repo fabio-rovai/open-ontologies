@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The OWL 2 functional-syntax reader (`src/ofn.rs`), held to the W3C mapping.
 //!
 //! Every family test writes an OFN fragment and the Turtle that "OWL 2 Mapping

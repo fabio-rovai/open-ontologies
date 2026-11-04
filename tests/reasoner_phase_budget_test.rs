@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Each phase of a reasoning run gets its own budget.
 //!
 //! `DlReasoner` fixed ONE wall-clock deadline when it was constructed and shared

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A numeric claim, and the two different sentences this repository can say
 //! about one.
 //!

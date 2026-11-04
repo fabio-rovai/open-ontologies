@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Vacuous conformance: shapes that matched no focus nodes.
 //!
 //! A SHACL run whose shapes target classes that appear nowhere in the data

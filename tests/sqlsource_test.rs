@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Tests for `sqlsource::detect_driver` and `duckdb_target` that work even
 //! without any SQL feature flag enabled. These exercise the connection-string
 //! parsing logic that the data-pipeline docs rely on.

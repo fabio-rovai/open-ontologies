@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 #![cfg(feature = "duckdb")]
 //! Integration tests for the DuckDB SQL backbone.
 //!

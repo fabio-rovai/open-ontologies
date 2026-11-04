@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #293: diff and drift on a poisoned blank-node graph.**
 //!
 //! Both commands canonicalise blank nodes with RDFC-1.0 before comparing.

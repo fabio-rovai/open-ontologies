@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A SPARQL constraint reports once per solution, and this pins which engine
 //! is right about that.**
 //!

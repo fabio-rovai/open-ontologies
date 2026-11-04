@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Issue #260: a request arriving before `initialize` must not end the process.
 //!
 //! The report was a fresh 2.0 install whose client sent

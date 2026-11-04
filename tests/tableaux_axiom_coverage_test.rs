@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Axioms the DL parser used to skip in silence.**
 //!
 //! The parser read binary `owl:disjointWith` and nothing else that states

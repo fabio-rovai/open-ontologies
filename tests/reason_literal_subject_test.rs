@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! No rule may conclude a triple whose subject is a literal.
 //!
 //! Found by an adversarial audit, 13 Sep 2026, on

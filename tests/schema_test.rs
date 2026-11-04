@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 #![cfg(feature = "postgres")]
 
 use open_ontologies::schema::{TableInfo, ColumnInfo, ForeignKey, SchemaIntrospector};

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Plans must outlive the `Planner` that computed them.
 //!
 //! Regression coverage for #91. Every real call site — the `plan`/`apply` CLI

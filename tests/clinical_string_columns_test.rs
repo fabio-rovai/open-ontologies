@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 mod common;
 
 use arrow::array::{ArrayRef, Int32Array, LargeStringArray, StringArray};

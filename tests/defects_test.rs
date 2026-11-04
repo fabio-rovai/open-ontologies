@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The ontology is checked before the data is.
 //!
 //! A self-contradicting ontology makes every fact-level conclusion suspect, so

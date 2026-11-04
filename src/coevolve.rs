@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Combined OWL+SHACL co-evolution validator (#33, K-CAP 2025).
 //!
 //! The K-CAP 2025 paper "Co-evolving OWL ontologies and SHACL shapes" shows

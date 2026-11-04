@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Knowledge packs: a verified graph, its evidence and its proof in one
 //! portable file.
 //!

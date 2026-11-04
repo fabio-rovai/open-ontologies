@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Reading a finite structure back out of a solver, and writing it in the form
 //! the verified checker reads.
 //!

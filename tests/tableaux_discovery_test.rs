@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Entity discovery must not depend on explicit typing declarations.
 //!
 //! Three defects shared one root cause and were found from the outside, by probing the

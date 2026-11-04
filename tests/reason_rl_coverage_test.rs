@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The ten OWL 2 RL rules added on the `owl-rl-completeness` branch.
 //!
 //! `tests/lean_certificate_test.rs` already proves that everything the engine

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! JSON-LD is a first-class RDF serialisation and the underlying `oxrdfio`
 //! already supports it, but the engine's format handling did not: `.jsonld`
 //! fell through extension detection to Turtle, so a valid JSON-LD document was

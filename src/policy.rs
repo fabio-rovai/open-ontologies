@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! ARGOS-style policy governance for state-changing actions (#40, ISWC 2025
 //! WOP).
 //!

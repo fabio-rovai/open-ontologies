@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! KGCL (Knowledge Graph Change Language) serialization for drift reports.
 //!
 //! Spec: <https://github.com/INCATools/kgcl>

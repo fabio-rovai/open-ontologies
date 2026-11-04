@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 /// Database schema introspection and OWL generation.
 pub struct TableInfo {
     pub name: String,

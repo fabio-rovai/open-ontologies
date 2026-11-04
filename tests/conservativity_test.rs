@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Adding an axiom either changes what the ontology already said, or it does
 //! not, and the difference is invisible to every other number a plan reports.
 //!

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Poincaré ball model — distance, exponential map, and Riemannian SGD.
 //! Curvature c = 1.0 (unit ball).
 

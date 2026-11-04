@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Round-trip test: construct OpenOntologiesServer, then exercise
 //! the domain functions it delegates to (graph store, ontology service).
 //! This validates that the server wiring is correct without needing

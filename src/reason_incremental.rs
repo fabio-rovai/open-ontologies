@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Incremental reasoning: derive the consequences of an addition without
 //! recomputing the closure.
 //!

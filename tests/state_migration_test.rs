@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Upgrade-in-place tests for the `StateDb` schema.
 //!
 //! These open **checked-in binary fixtures** under `tests/fixtures/state/`, not

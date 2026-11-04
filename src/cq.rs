@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Competency-question runner + LLM-assisted verification (#29 + #39).
 //!
 //! Competency questions (CQs) are the OBO/Foundry standard for documenting

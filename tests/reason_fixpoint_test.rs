@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The reasoner must reach a fixpoint of its own rule set in one run.
 //!
 //! Found by an adversarial audit, 13 Sep 2026. Only the three data indices

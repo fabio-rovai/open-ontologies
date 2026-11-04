@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Does each step of a reasoning trace follow, and if not, which kind of not?
 //!
 //! `src/dlp.rs` asks which of an ontology's axioms the rule table can see.

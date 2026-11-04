@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Modules that reason alone, and facts that earn "true everywhere".
 //!
 //! The premise is not assumed, it is DEMONSTRATED by

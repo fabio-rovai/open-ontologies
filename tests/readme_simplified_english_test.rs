@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The front page claims Simplified Technical English. This measures the claim.
 //!
 //! `README.md` says it follows the writing rules of ASD-STE100. A claim about

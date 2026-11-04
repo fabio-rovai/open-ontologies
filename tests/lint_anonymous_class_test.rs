@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Anonymous class expressions are not terms anyone can label, document or give a domain.
 //!
 //! `owl:Restriction`, `owl:unionOf` and `owl:intersectionOf` operands are all typed

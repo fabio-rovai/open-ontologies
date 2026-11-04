@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! G4. The verdict discipline, and the test that fails if it is ever relaxed.
 //!
 //! Decision 0006 item 4 fixes five fields and five words, and the reason the

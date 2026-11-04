@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::sync::Arc;
 
 use open_ontologies::extract_scaffold::{build_scaffold, validate_extraction};

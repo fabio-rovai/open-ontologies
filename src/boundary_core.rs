@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The pure core of the certificate boundary, over bytes and nothing else.
 //!
 //! `docs/trusted-computing-base.md` says that every Lean theorem in `lean/` is

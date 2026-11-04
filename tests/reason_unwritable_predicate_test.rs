@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A conclusion whose PREDICATE is not an IRI.
 //!
 //! # The defect

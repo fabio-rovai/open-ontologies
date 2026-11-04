@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use crate::graph::GraphStore;
 use crate::monitor::Monitor;
 use crate::state::StateDb;

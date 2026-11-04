@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `plan` must see the ABox, and `apply` must write a delta rather than
 //! clearing the store.
 //!

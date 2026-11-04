@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Entailment preservation under graph projection, by closure difference.
 //!
 //! [`crate::projection_entailment`] asks the question of a SUPPLIED set of

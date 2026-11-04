@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Named graphs survive a dataset round trip (issue #95).
 //!
 //! Temporal assertions live in named graphs whose validity is described in the

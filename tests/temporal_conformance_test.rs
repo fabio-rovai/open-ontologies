@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Bi-temporal conformance corpus for `onto_temporal_*` (issue #95).
 //!
 //! Pins the CURRENT semantics of `Temporal::snapshot`, `query_at` and

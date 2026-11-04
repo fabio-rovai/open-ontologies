@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The Turtle validation report against the W3C suite's expected reports (#318).
 //!
 //! `tests/w3c_shacl_conformance_test.rs` compares the JSON report on the

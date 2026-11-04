@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Soundness regressions for the OWL-DL tableaux reasoner.
 //!
 //! These tests use ontologies whose satisfiability is a mathematical certainty,

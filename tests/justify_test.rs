@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Axiom pinpointing, on graphs whose answer is known by hand.
 //!
 //! Every fixture here is small enough that the minimal set can be worked out on

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The figure says what a fresh run says, or it is not a figure.
 //!
 //! `docs/assets/certified-claims.svg` shows counts, predicates, module names

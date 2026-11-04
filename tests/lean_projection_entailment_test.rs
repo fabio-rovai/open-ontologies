@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Entailment preservation under graph projection, end to end.
 //!
 //! `src/projection_check.rs` reports how much of a seed's neighbourhood

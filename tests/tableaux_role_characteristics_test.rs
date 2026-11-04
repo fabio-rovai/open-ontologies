@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Role characteristics the SHIQ tableau claims to support, pinned against the
 //! answer a reader would act on.
 //!

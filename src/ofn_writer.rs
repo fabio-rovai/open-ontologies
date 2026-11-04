@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! An RDF graph written as OWL 2 Functional-Style Syntax (OFN), issue #322.
 //!
 //! # What this inverts, and why only that

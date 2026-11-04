@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use crate::drift::jaro_winkler;
 use crate::graph::GraphStore;
 

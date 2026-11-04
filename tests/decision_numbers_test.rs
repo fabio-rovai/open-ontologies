@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #185.** One number, one decision, and every decision in the index.
 //!
 //! `docs/decisions/` numbers records in their filename and nothing checked the

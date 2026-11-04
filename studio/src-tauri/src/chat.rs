@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::io::BufRead;
 use std::io::Write;
 use std::path::{Path, PathBuf};

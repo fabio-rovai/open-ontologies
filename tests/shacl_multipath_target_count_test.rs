@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Counting when a focus node reaches its target class by more than one path.
 //!
 //! `sh:targetClass` selects SHACL instances, which is `rdf:type` followed by zero

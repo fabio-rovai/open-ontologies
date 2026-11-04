@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Classification answers HermiT's question with HermiT's answer.**
 //!
 //! Classification used to test every ordered pair of classes, and on Pizza

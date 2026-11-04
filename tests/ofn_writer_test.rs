@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The OWL 2 functional-syntax WRITER (issue #322) against its reader.
 //!
 //! The writer claims to be the inverse of `src/ofn.rs`, so the test of it is

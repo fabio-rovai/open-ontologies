@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The DLP boundary report, and the one distinction it exists to keep.
 //!
 //! `onto_rules_import` refuses a non-Horn SWRL or RIF construct by name and

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the optional RRF (Reciprocal Rank Fusion) strategy in
 //! `onto_align` — Cormack et al. SIGIR 2009, validated for ontology alignment
 //! by Agent-OM at VLDB 2025.

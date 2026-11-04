@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! OWL 2 Conformance Validation Oracle
 //!
 //! # Timeouts are disabled here, deliberately

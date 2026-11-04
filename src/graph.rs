@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::collections::BTreeSet;
 use std::io::Cursor;
 use std::path::Path;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Reading a solver's model back, and every way of failing to.
 //!
 //! Two printed formats, one structure. Z3 prints `define-fun` bodies that have

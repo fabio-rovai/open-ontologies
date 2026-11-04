@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The tool reference lists every tool, and the front page lists none of them.**
 //!
 //! Issue #196: the README sold surface area. A visitor met four abstract nouns

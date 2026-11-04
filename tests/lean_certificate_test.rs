@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The Lean certificate layer, end to end.
 //!
 //! `reason --certificate DIR` writes what the reasoner started from and, for

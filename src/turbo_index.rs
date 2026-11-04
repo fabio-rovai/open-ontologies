@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! TurboQuant-backed cosine index over (IRI -> L2-normalised text embedding).
 //!
 //! An alternative backend to [`crate::hnsw_index::CosineIndex`], built on

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! One sheet in, one ontology out, with the evidence for every line of it.
 //!
 //! A spreadsheet is a claim about a domain made by someone who did not write

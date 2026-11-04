@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Regression tests for issue #131.
 //!
 //! Violation objects carried `constraint`, `focus_node`, `message` and
