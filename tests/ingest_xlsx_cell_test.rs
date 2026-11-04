@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Cells that calamine 0.30 read wrongly, read as the workbook says.
 //!
 //! Each workbook is assembled here from its XML parts, so the input behind
