@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the CIVeX action-certification scaffold (#42).
 
 use open_ontologies::civex::{certify_action, ActionFrame, Verdict};

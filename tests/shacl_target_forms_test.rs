@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The three explicit target forms: `sh:targetNode`, `sh:targetSubjectsOf`,
 //! `sh:targetObjectsOf`.
 //!

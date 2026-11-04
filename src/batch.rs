@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Batch mode — run multiple CLI commands against a single shared graph store.
 //!
 //! Reads commands from a file or stdin (one per line, or JSON array),

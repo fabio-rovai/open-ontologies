@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::sync::Arc;
 use oxigraph::io::RdfFormat;
 use crate::drift::jaro_winkler;

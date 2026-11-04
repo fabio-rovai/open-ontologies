@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Derived XSD datatypes must survive a load.
 //!
 //! RDF 1.1 makes the datatype IRI part of a literal's identity: `"0"^^xsd:integer`

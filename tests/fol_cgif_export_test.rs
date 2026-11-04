@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! CGIF, the second of ISO/IEC 24707's three Common Logic dialects.
 //!
 //! This engine emitted CLIF only, which made its Common Logic support partial

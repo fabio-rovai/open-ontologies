@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The certifying pipeline: export, solve, ingest, CHECK, and report a verdict
 //! that says what it rests on.
 //!

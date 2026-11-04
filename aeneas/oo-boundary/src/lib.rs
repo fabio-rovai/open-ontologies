@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The extraction target for Charon and Aeneas.
 //!
 //! This crate has ONE line of its own. `src/boundary_core.rs` at the repository

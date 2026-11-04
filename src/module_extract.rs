@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Syntactic locality modules: `⊥`, `⊤`, and the iterated `⊥⊤*`.
 //!
 //! [`crate::segment_retrieve`] produces a SLICE, and [`crate::closure_diff`]

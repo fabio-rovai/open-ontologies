@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `--human` renders every command's result by the command's NAME (#350, #345).
 //!
 //! The renderer used to be picked by sniffing which keys the JSON carried, and

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 #![cfg(feature = "embeddings")]
 
 use open_ontologies::vecstore::VecStore;

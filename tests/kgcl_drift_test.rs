@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::drift::DriftDetector;
 use open_ontologies::kgcl::KgclChange;
 use open_ontologies::state::StateDb;

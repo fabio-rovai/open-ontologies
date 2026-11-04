@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The goal-free form: which CONCLUSIONS a projection preserves.
 //!
 //! `src/projection_entailment.rs` asks the question of a supplied goal set, for

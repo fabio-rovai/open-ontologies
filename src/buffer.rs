@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Build-time modelling buffer.
 //!
 //! Keeps proprietary material out of the payloads sent to a remote model while

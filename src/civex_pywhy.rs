@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! PyWhy/DoWhy backdoor identification subprocess wrapper (#48).
 //!
 //! Scaffold implementation of the Causal flagship's substantive v0.5 work:

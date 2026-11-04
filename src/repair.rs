@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Weighted repair: the cheapest set of asserted axioms whose removal makes
 //! every class coherent, with the evidence for each half of that sentence.
 //!

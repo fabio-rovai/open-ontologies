@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Native SELECT rows must reach the human renderer on local and proxy paths.
 
 use open_ontologies::{graph::GraphStore, output};

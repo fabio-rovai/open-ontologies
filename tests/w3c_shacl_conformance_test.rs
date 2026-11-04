@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The official W3C SHACL test suite, run against this engine as a ratchet.
 //!
 //! # Why this exists

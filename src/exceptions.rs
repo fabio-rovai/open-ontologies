@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Explicit exceptions to a disjointness, compiled away before any tool sees
 //! them (#347).
 //!

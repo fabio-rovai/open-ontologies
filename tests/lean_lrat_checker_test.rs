@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `oo-lrat` end to end, through the same discipline every other checker uses.
 //!
 //! The point of this checker is the one thing `src/fol_solve.rs` says it does

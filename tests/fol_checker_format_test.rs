@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The three new printers: SMT-LIB 2, LADR, and the checker's own format.
 //!
 //! One representation, five printers. `src/tptp.rs` computes `Form` once and

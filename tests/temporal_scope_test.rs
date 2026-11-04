@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Graph scope for the verdict-producing tools (#108).
 //!
 //! The defect: `Reasoner::run` read the store through `GraphStore::all_triples`,

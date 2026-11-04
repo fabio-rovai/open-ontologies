@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::config::{resolve_storage_mode_from, StorageConfig, StorageMode};
 use open_ontologies::graph::GraphStore;
 use tempfile::TempDir;

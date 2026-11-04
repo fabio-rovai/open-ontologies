@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The W3C SHACL test suite, run against the VERIFIED evaluator in `lean/Shacl/`.
 //!
 //! # What this measures, and why it exists

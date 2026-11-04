@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::ingest::DataIngester;
 use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};

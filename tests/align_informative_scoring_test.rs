@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Confidence is a weighted mean over the signals that carry information for
 //! the pair, not over every signal the engine knows.
 //!

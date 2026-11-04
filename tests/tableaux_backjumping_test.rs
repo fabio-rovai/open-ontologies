@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A clash that does not depend on a choice is not retried under its other
 //! alternatives.**
 //!

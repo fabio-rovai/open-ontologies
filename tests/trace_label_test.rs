@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A reasoning trace is labelled step by step, and the third answer is the point.**
 //!
 //! `src/trace_label.rs` reads a trace that CLAIMS inference steps and returns a

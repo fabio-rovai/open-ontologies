@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Corpus ingestion: read a folder of documents, build the knowledge graph.
 //!
 //! Wraps `demo/corpus_pipeline.py` and streams its output to the UI as

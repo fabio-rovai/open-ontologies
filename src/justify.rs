@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Axiom pinpointing: which ASSERTED triples are responsible for a conclusion.
 //!
 //! A justification (a MinA, a minimal axiom set) for a conclusion `T` is a

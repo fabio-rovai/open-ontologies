@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Provenance semirings over the derivation DAG the reasoner already builds.
 //!
 //! Every derived triple carries an algebraic expression over the ASSERTED

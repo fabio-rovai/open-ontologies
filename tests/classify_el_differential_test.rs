@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `onto_classify_el` against the tableau and against HermiT (#324).
 //!
 //! The EL saturation claims `complete: true` on input inside EL. That claim is

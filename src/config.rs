@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::path::Path;

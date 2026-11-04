@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Certified verdicts that cannot be spelled without the evidence.
 //!
 //! Every certified word this engine prints — `model_checked`, the OWL-level

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Standard rule syntaxes into the Horn certificate layer, end to end.
 //!
 //! `lean/OOCert/Horn.lean` proves one soundness theorem good for every rule

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Absorption keeps every entailment and stops the GCI blowup.**
 //!
 //! Before `Absorber`, an inclusion whose left-hand side was not a single named

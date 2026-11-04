@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! End-to-end runnable demo of the three-layer architecture
 //! (Dynamics #43 → Causal hookup → Planner #45) shipped on PR #46.
 //!

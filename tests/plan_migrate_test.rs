@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `migrate` must pair each removal with a plausible replacement.
 //!
 //! The third finding on #91: `apply_migrate` paired *every* removed class with

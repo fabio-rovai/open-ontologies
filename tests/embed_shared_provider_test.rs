@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 #![cfg(feature = "embeddings")]
 //! The embedding provider is built once per process, not once per HTTP session
 //! (#262).

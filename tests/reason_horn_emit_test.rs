@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The engine as a PRODUCER of Horn certificates.
 //!
 //! `lean/OOCert/Horn.lean` checks a certificate over any rule table, proved

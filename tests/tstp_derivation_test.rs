@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! What the TSTP checker verifies, and every way of making it say no.
 //!
 //! A checker that has never rejected anything is not a checker. Half of this

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A module is not a smaller slice, it is a slice with a theorem.
 //!
 //! The tests that matter here are the ones that would pass for a heuristic too,

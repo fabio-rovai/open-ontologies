@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Task profiles: the named subsets of the tool surface, and the one property
 //! that has to hold for ever.
 //!

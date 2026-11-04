@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The W3C RDFC-1.0 suite, run against `open_ontologies::canon`.**
 //!
 //! A canonicaliser is a trusted component. If it gives two different datasets

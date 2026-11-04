@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Does adding these axioms change anything I could already say?
 //!
 //! [`crate::closure_diff`] already computes `closure(G) \ closure(P)` for a

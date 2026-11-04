@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The optimality half of a weighted repair, refuted by `oo-lrat`.
 //!
 //! `repair` says a repair is optimal when its branch and bound closes. With

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `onto_shacl` and `shacl` write a W3C `sh:ValidationReport` graph (#318).
 //!
 //! Three things were missing. The default path's results had no value node:

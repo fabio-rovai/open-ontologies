@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `lint` could not read RDF/XML, and `batch` could not reach `vocab-check`.
 //!
 //! `validate` has always sniffed the serialisation before parsing. `lint` did not: it read

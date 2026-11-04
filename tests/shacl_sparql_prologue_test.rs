@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A `sh:sparql` constraint whose SELECT declares its own prefixes.
 //!
 //! SHACL pre-binds `$this`, and this validator binds it by wrapping the author's

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Soundness of the `owl-rl-ext` forward-chaining rules.
 //!
 //! Found 13 Sep 2026 while designing the Lean certificate layer: `cls-svf1`

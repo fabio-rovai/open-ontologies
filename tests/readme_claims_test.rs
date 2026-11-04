@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The README's tool count must be the tool count, in every place it is stated.
 //!
 //! It drifted. The file said 110 while the server exposed 111, and it said it in four

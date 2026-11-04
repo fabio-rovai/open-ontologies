@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `classify_timeout_ms` bounds a real run, or the run says that it does not.
 //!
 //! The setting defaults to 180 000 ms and its own documentation calls it "the

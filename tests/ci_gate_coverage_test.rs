@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A test that can skip everywhere it runs, and runs nowhere it could not skip, is a
 //! gate in name only. This file is the gate on that.
 //!

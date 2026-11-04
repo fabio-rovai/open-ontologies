@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Learn Poincaré embeddings from the ontology class hierarchy.
 //! Uses Riemannian SGD to push parent-child pairs closer and
 //! negative samples apart in the Poincaré ball.

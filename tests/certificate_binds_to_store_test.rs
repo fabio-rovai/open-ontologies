@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Issue #158: a certificate says which graph it is about, and the answer can
 //! be wrong.
 //!

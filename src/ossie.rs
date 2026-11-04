@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Apache Ossie ontology documents -> OWL 2 DL + SHACL (#ossie).
 //!
 //! [Apache Ossie](https://ossie.apache.org/) (incubating, formerly Open Semantic

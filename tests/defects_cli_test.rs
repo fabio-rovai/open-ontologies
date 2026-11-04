@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The `defects` command as a shell citizen.
 //!
 //! Written before the command exists, and the exit-code case is written first

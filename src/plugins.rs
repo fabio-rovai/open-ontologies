@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! WASM plugin host — the in-process community extension surface.
 //!
 //! Plugins are `.wasm` modules (wasm32-unknown-unknown) discovered from the

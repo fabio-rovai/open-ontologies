@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A named class carrying `owl:unionOf`, `owl:intersectionOf` or
 //! `owl:complementOf` defines that class, and the reasoner used to drop it.
 //!

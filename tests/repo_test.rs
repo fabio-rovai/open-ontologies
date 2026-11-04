@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the on-disk ontology repository helpers
 //! (`src/repo.rs`) used by the `onto_repo_list` and `onto_repo_load` MCP
 //! tools.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! SHIQ Tableaux Reasoner with Agent-Based Classification
 //!
 //! A native Rust implementation of a tableaux decision procedure for

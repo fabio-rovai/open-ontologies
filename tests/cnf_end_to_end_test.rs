@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Decision 0005's chain, closed for the clausal fragment, on a real ontology.
 //!
 //! `ies-building-extension.ttl` is exported as CNF with a goal that is two

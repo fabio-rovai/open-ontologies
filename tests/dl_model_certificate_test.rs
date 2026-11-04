@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Model certificates for the SHIQ tableaux reasoner, end to end.
 //!
 //! `src/tableaux.rs` answers satisfiability, classification and ABox

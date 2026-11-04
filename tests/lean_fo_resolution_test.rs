@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `oo-resolution` end to end.
 //!
 //! Decision 0005 names the missing piece: certifying a superposition proof

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Graph-projection loss audit (#35).
 //!
 //! Per the IJCAI 2025 paper "How to Mitigate Information Loss in Knowledge

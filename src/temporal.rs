@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Bi-temporal facts: when something was true, and when we learned it.
 //!
 //! Two clocks, deliberately independent:

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A restriction the DL parser cannot read must not become `⊤`.**
 //!
 //! `parse_restriction` returned `RawConcept::Top` for any restriction it did not

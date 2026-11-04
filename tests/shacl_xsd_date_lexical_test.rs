@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The XSD calendar lexical spaces, on both SHACL evaluation paths.**
 //!
 //! Engine defect E1 in `docs/decisions/0018-conformance-is-not-truth.md`:

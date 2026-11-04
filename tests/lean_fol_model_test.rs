@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `oo-folmodel` end to end: the shipped fixtures, and the engine's own output.
 //!
 //! `lean/Fol/` carries the theorem. `Fol.satisfiable_of_check` says an

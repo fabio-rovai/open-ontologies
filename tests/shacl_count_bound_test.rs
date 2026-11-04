@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A malformed count bound must never turn a shape into a no-op (#321).
 //!
 //! `sh:minCount` was read with `unwrap_or(0)` and `sh:maxCount` with

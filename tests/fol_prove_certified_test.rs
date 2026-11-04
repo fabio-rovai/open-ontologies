@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `onto_fol_prove`'s certified path: CNF first, `oo-resolution` after the replay,
 //! and the word `refutation_certified` only from a minted token.
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use oxigraph::io::RdfFormat;
 
 /// A standard ontology available in the marketplace catalogue.

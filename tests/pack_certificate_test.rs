@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Proof-carrying packs: the receiver re-runs the checker and refuses the load.
 //!
 //! `onto_pack` used to write a graph, a checksum over it, and the lint and

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Claim support: is a fact in the graph actually backed by the source it
 //! cites, and does it cite one at all.
 //!

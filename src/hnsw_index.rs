@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! HNSW-accelerated cosine search for the in-memory vector store.
 //!
 //! Wraps `instant-distance` to provide approximate nearest-neighbour search

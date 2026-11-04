@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Defects found by an adversarial audit of the SHACL validator, 13 Sep 2026.
 //!
 //! All four predate the `sh:sparql` pre-binding work and were found while

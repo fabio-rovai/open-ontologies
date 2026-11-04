@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the IES4 enforce rule pack (#24).
 //!
 //! The pack adds three checks beyond the existing `boro` pack:

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Tests for per-name cache management:
 //!  - `OntologyRegistry::list_cached`
 //!  - `OntologyRegistry::unload_named`

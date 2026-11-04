@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:minLength`, `sh:maxLength`, `sh:lessThan`, `sh:lessThanOrEquals`.
 //!
 //! Chosen by census rather than by taste: across 88 shapes files in 39 of this

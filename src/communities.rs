@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Community detection over the loaded graph, and the skeletons a language
 //! model needs to summarise each community.
 //!

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Tool exposure filter for the MCP server.
 //!
 //! This lets operators restrict which `onto_*` tools are advertised over MCP

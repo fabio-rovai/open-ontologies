@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Does a tool answer the same question the same way when the identical
 //! triples arrive in a different serialisation?
 //!

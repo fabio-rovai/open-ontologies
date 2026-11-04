@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Defects in the ontology itself, found before any data is judged against it.
 //!
 //! A self-contradicting ontology makes every fact-level conclusion suspect, so

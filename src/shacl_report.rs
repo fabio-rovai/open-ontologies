@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The W3C `sh:ValidationReport` graph for a SHACL run (#318).
 //!
 //! `onto_shacl` answered only in its own JSON. pyshacl, Jena and TopBraid all

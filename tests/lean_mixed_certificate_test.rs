@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! One certificate carrying both rule families.
 //!
 //! Until `lean/OOCert/Mixed.lean` landed, a certificate was either all built-in

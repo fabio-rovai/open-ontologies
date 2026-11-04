@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Propositional refutation, with the proof checked rather than believed.
 //!
 //! `fol_solve.rs` states the problem this module answers: "two solvers agreeing

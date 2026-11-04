@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:or` on a property shape: each value must satisfy at least one alternative.
 //!
 //! Before this, `sh:or` reached `skipped` and suppressed the verdict, so a shapes

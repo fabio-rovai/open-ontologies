@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Reading the derivation a prover emits, and re-checking what can honestly be
 //! re-checked.
 //!

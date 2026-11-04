@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Conformance is not truth.** Data that passes a sound SHACL gate and lies.
 //!
 //! The dual of reward hacking on a verifier. Where a policy learns to satisfy a

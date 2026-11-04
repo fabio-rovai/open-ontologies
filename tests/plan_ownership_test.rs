@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A plan belongs to whoever computed it.
 //!
 //! Persisting plans (#91) fixed `apply`, but put every caller's plans in one

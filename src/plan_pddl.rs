@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Planner stub (#45) — PDDL emission from Dynamics action schemas.
 //!
 //! Compiles registered [`crate::dynamics::ActionSchema`]s into a PDDL domain

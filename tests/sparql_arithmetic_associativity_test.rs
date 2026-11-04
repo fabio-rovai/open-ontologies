@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! SPARQL arithmetic associates to the left (#349).
 //!
 //! The SPARQL 1.1 grammar makes `AdditiveExpression` and

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Property tests for the trusted computing base of the Lean certificate layer.
 //!
 //! `lean/` proves a conditional: IF the asserted graph is `G` and IF these steps

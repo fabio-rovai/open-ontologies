@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Shared helper for tests that need a fixture the repository does not carry.
 //!
 //! Several tests used to `return` when their fixture was missing, three of them

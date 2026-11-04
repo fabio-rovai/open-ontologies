@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The HQDM audit figure draws two shipped renderings of one ontology and
 //! states counts for both. This recomputes every one of them from the committed
 //! inputs and requires the asset, both READMEs and the engine to agree.

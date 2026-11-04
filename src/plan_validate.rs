@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Plan validator (#45, LLM-Modulo `Validator` role).
 //!
 //! Companion to [`crate::plan_pddl::compile_domain`]. The compile primitive

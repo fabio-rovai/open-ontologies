@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A load is all or nothing to a concurrent reader.**
 //!
 //! `load_turtle` already parsed the whole document before touching the store,

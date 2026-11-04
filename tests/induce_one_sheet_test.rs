@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! One sheet in, one ontology out, and the shapes it induces can FAIL.
 //!
 //! The rows satisfy their own induced shapes by construction, which is why a

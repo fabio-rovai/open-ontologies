@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Every gate, shown firing on deliberately broken input, with what it said.
 //!
 //! A gate that cannot fail is decoration, and a gate whose failure nobody has

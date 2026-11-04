@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Ontology registry with TTL-based eviction and on-demand reload.
 //!
 //! The registry tracks the *currently loaded* ontology (a single active slot

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use anyhow::Result;
 use rusqlite::Connection;
 use std::path::Path;

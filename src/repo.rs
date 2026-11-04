@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! On-disk ontology repository support.
 //!
 //! A "repo" is one or more host directories (configured via

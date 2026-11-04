@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:node`: every value node must conform to another node shape.
 //!
 //! This is the first constraint here that is genuinely recursive. A referenced

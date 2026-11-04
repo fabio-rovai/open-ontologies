@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! OWL 2 EL classification by completion (#30, #324).
 //!
 //! The axioms are read by the tableau's own OWL parser
