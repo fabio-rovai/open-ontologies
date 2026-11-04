@@ -1045,14 +1045,31 @@ jobs:
           key: polyml-5.9.2-2-${{ runner.arch }}
       - name: Install Poly/ML, the second kernel's runtime
         if: steps.polyml.outputs.cache-hit != 'true'
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           # Pinned by digest, not by name. The component URL is stable and the
           # tarball is not signed, so the hash is the only thing that says the
           # bytes CI links against are the bytes that were checked by hand.
-          curl -fsSL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o /tmp/polyml.tar.gz https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz
-          echo "67351868c05440d72a514ca60e8ee1d3252b288d746eb7ad236bda5fcaf12272  /tmp/polyml.tar.gz" | sha256sum -c -
+          #
+          # Two hosts, because the cache is not enough on its own. The Actions
+          # cache sits at its 10 GB limit with the Rust build caches, so this
+          # 3 MB entry is evicted whenever a lockfile change brings a new set of
+          # them, and on 4 Nov 2026 the next run found it gone while
+          # isabelle.in.tum.de refused connections: the required lean job failed
+          # without running a test. isabelle.sketis.net is the Isabelle
+          # component mirror and served the same 38,740,810 bytes, digest
+          # 67351868..., that day. Each host's bytes must pass the same hash.
+          got=
+          for url in https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz \
+                     https://isabelle.sketis.net/components/polyml-5.9.2-2.tar.gz; do
+            if curl -fsSL --retry 3 --retry-all-errors --connect-timeout 20 --max-time 300 -o /tmp/polyml.tar.gz "$url" \
+              && echo "67351868c05440d72a514ca60e8ee1d3252b288d746eb7ad236bda5fcaf12272  /tmp/polyml.tar.gz" | sha256sum -c -; then
+              got=$url; break
+            fi
+            echo "::warning::Poly/ML not fetched from $url; trying the next host"
+          done
+          [ -n "$got" ] || { echo "::error::no host served Poly/ML 5.9.2-2 with the pinned digest"; exit 1; }
           mkdir -p ~/polyml
           # One platform directory out of the eight in the tarball, unwrapped so
           # POLYDIR is the same path whatever the runner's architecture is: 20 MB
