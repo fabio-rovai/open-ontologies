@@ -376,6 +376,10 @@ cargo build --release --features embeddings,plugins,sql
 关于 Intel macOS、原生 Windows 以及其他系统，请阅读
 [docs/quickstart.md](docs/quickstart.md) 和 [docs/windows.md](docs/windows.md)。
 
+Docker 镜像只为 linux/amd64 构建，因此在搭载 Apple 芯片的 Mac 上，请用
+`docker run --rm -i --platform linux/amd64 ghcr.io/fabio-rovai/open-ontologies:latest`
+以模拟方式运行它。
+
 `serve` 命令启动一个 MCP 服务器。该服务器在 stdin 和 stdout 上使用 JSON-RPC。因此在启动时，
 服务器看上去像是停住了，其实它在等待客户端。这个行为是正确的。在终端里，请改用 CLI 子命令，
 例如 `open-ontologies validate <file.ttl>`。
@@ -415,8 +419,9 @@ cargo build --release --features embeddings,plugins,sql
 功能数量多本身并不是论据。
 
 有些工具需要一个可选的 Cargo feature，缺少该 feature 时它们返回错误。四个工具需要
-`embeddings`。两个工具需要 `plugins`。两个工具需要 `postgres` 或 `duckdb`。已发布的可执行
-文件和 GHCR 镜像使用默认 feature 集。因此它们不带那八个工具。
+`embeddings`。两个工具需要 `plugins`。两个工具需要 `postgres` 或 `duckdb`。发布的可执行文件
+带有 `embeddings` 和 `plugins`，因此只缺少需要 `postgres` 或 `duckdb` 的那两个工具。GHCR 镜像
+还带有 `sql`，它会打开 `postgres` 和 `duckdb`，因此带有全部八个工具。
 
 Python 包 `open-ontologies-lite` 现在也能推理。它用纯 Python 推理，不需要 Rust 工具链。
 同样的 Lean 可执行文件检查它的证书。该包是第二个引擎。不信任那个引擎没有任何代价，因为

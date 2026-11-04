@@ -13,7 +13,8 @@ on:
   push:
     tags: ['py-v*']
   # A dry run of `build` on any pull request that changes the package's version
-  # or this file. `publish` runs only for a tag.
+  # or this file. `publish`, and `ci-green`, which guards it, run only for a
+  # tag.
   pull_request:
     paths:
       - '.github/workflows/python-release.yml'
@@ -77,9 +78,116 @@ jobs:
           path: python/dist/
           if-no-files-found: error
 
+  # Nothing reaches PyPI from a commit CI has not passed. release.yml's
+  # ci-green job puts the same gate on the engine, whose v2.0.1 shipped with no
+  # CI run at all, and its comment says why only CI's runs for a push of the
+  # tagged commit to main count, and not a pull request's. Here it waits for
+  # the one required check that tests this package. py-v0.4.0 was on PyPI at
+  # 11:17 UTC on 19 Aug 2026, a minute before CI first started on its commit.
+  # The newest counted run of that check must have concluded success: a run
+  # still going is polled once a minute for up to 90 minutes, and one that
+  # failed stops the release at once.
+  ci-green:
+    if: github.ref_type == 'tag'
+    timeout-minutes: 100
+    runs-on: ubuntu-24.04
+    permissions:
+      checks: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: The tagged commit passed the required CI check
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Exactly as GitHub names it. A job renamed in ci.yml has to be
+          # renamed here too, or every release waits out the deadline.
+          required=(
+            "python (open-ontologies-lite)"
+          )
+          minutes=90
+          # The ids, as a JSON array, of the check suites GitHub Actions
+          # created for a push of this commit to main. A tag push and a pull
+          # request run get suites under their own tag or branch name.
+          push_suites() {
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-suites?app_id=15368&per_page=100" \
+              | jq -cs --arg sha "$GITHUB_SHA" \
+                  '[.[].check_suites[] | select(.head_branch == "main" and .after == $sha) | .id]'
+          }
+          # "<passed|failed|running|missing> <conclusion or status> <url>" for
+          # the newest run under this exact name in one of the suites in $2.
+          # The newest decides, so a re-run still going is waited for, and a
+          # re-run that failed counts even where an older run passed.
+          newest() {
+            local enc
+            enc=$(jq -rn --arg n "$1" '$n | @uri')
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=$enc&filter=all&per_page=100" \
+              | jq -rs --arg n "$1" --argjson suites "$2" '
+                  [.[].check_runs[]
+                   | select(.name == $n and .app.slug == "github-actions" and (.check_suite.id | IN($suites[])))]
+                  | max_by(.id)
+                  | if . == null then "missing - -"
+                    elif .status != "completed" then "running \(.status) \(.html_url)"
+                    elif .conclusion == "success" then "passed success \(.html_url)"
+                    else "failed \(.conclusion) \(.html_url)" end'
+          }
+          deadline=$(( $(date +%s) + minutes * 60 ))
+          unanswered=0
+          while :; do
+            passed=() waiting=() failed=() api_failed=false
+            # Fails closed: with no suite list nothing can pass this round, and
+            # five unreadable rounds in a row fail the job below.
+            if ! suites=$(push_suites 2>"$RUNNER_TEMP/check-suites.err"); then
+              api_failed=true
+              echo "::warning::could not read the check suites on $GITHUB_SHA: $(tr '\n' ' ' <"$RUNNER_TEMP/check-suites.err")"
+              for name in "${required[@]}"; do
+                waiting+=("'$name' could not be matched to a push to main, because the check suites could not be read")
+              done
+            else
+              for name in "${required[@]}"; do
+                if ! state=$(newest "$name" "$suites" 2>"$RUNNER_TEMP/check-runs.err"); then
+                  api_failed=true
+                  echo "::warning::could not read the check runs named '$name': $(tr '\n' ' ' <"$RUNNER_TEMP/check-runs.err")"
+                  waiting+=("'$name' could not be read from the API")
+                  continue
+                fi
+                read -r kind detail url <<<"$state"
+                case "$kind" in
+                  passed) passed+=("'$name' passed: $url") ;;
+                  failed) failed+=("'$name' concluded $detail: $url") ;;
+                  running) waiting+=("'$name' is $detail: $url") ;;
+                  *) waiting+=("'$name' has no run from CI for a push of this commit to main") ;;
+                esac
+              done
+            fi
+            if [ "${#failed[@]}" -gt 0 ]; then
+              printf '::error::%s\n' "${failed[@]}"
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run what failed in CI, and re-run this job once it passes."
+              exit 1
+            fi
+            if [ "${#waiting[@]}" -eq 0 ]; then
+              printf '%s\n' "${passed[@]}"
+              exit 0
+            fi
+            if $api_failed; then unanswered=$((unanswered + 1)); else unanswered=0; fi
+            if [ "$unanswered" -ge 5 ]; then
+              echo "::error::Refusing to publish $GITHUB_REF_NAME: the check suites or check runs could not be read in five rounds running."
+              exit 1
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              for w in "${waiting[@]}"; do echo "::error::after $minutes minutes, $w"; done
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Push that commit to main, and re-run this job once CI has passed on the push; a pull request run does not count."
+              exit 1
+            fi
+            printf -v line '%s; ' "${waiting[@]}"
+            echo "$(date -u +%H:%M:%S) waiting: ${line%; }"
+            sleep 60
+          done
+
   publish:
     if: github.ref_type == 'tag'
-    needs: build
+    needs: [build, ci-green]
     timeout-minutes: 10
     runs-on: ubuntu-24.04
     environment: pypi

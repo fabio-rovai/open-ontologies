@@ -157,62 +157,6 @@ All notable changes to Open Ontologies are documented here.
   files, and parquet 54 decoded their metadata with that thrift. `arrow` and
   `parquet` move from 54 to 60.1.0, whose parquet has no thrift dependency at
   all; the code compiled unchanged and every parquet test passes.
-  RUSTSEC-2026-0429 (zip 4.6.1, `ZipArchive::extract` aborting on a symlink
-  entry) joins the documented zip ignores in `.cargo/audit.toml`: it is
-  reached only through calamine 0.30.1, which never extracts.
-
-- **Releases publish every Lean checker the lakefile builds.** Five of the
-  ten were never published: `oo-matcert` and `oo-folmodel`, which the engine
-  runs itself, and `oo-dlmodel`, `oo-refute` and `oo-dlrefute`, which check
-  what it writes. A user of a release binary could not get those verdicts.
-  The release now reads the list from `lean/lakefile.toml` and fails if a
-  declared checker was not built. The checkers are built from the tagged tree
-  with no cache: v2.1.0's were restored from another workflow's cache and
-  attested as if the release had built them.
-
-- **The Windows binary no longer needs the Visual C++ Redistributable.** The
-  MSVC runtime is linked statically (`.cargo/config.toml`), and the release
-  checks the exe's imports. GitHub's Windows images carry the redistributable,
-  so the missing `VCRUNTIME140.dll` only ever showed on a user's machine.
-
-- **The ghcr image is pushed after its GitHub release exists, and `:latest`
-  only moves forward.** The Docker workflow pushed on the tag in parallel with
-  the release and waited for nothing, so a failed release still moved
-  `:latest`. The release now builds the image from the tagged tree with no
-  cache, runs it, checks the version it reports, and pushes it. A backport tag
-  no longer becomes the GitHub "Latest" release or `:latest`, and a tag with a
-  SemVer pre-release is published as a pre-release.
-
-- **A tag can no longer publish an incomplete release.** The
-  x86_64-apple-darwin leg ran on GitHub's macos-14 image, retired on 2 Nov
-  2026; it now runs on macos-15, still cross-compiled, and each macOS binary
-  must keep its minimum macOS version (10.12 and 11.0). A build leg that
-  uploaded nothing, a missing CHANGELOG section, a `Cargo.lock` that does not
-  match `Cargo.toml`, or an asset that changed between assembly and upload now
-  fails the release instead of publishing without it or with an empty body.
-  Every pull request that changes how the release is built runs all of it as a
-  dry run, except the two jobs that publish.
-
-- **`open-ontologies-lite` releases check their version and the wheel.** The
-  tag, `pyproject.toml`, `__version__` and the built wheel must agree, and the
-  wheel PyPI will receive is installed into a clean environment and imported
-  before it is published.
-
-- **CI fails only for the change under test.** All Linux jobs run on
-  ubuntu-24.04 rather than ubuntu-latest, which moves to Ubuntu 26.04 by 19
-  Nov 2026 under all four required checks. A failing Windows leg no longer
-  cancels the required Linux leg. elan is installed from a release asset
-  checked against its SHA-256, not by piping a script from elan's `master`
-  branch into `sh`, and z3 is pinned by version and digest like cvc5 rather
-  than taken from apt. Every download in the `lean` job is retried and bounded,
-  and picosat is cached so its university server is only contacted on a cold
-  cache. An ETXTBSY race between script writes and forks is closed in the
-  library's unit tests and in `pack_certificate_test`. The `plugins` feature,
-  which ships in every release, is now tested. The Docker workflow no longer
-  exports a 1.1 GB build cache per run into the 10 GB Actions cache that the
-  required checks depend on. Every action runs on Node 24, and builds use
-  `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
-  event-listener, chacha20), and an ignore entry that matched nothing is gone.
 
 - **XLSX ingest reads with calamine 0.38, and `cargo audit` no longer finds
   zip 4.6.1 or calamine 0.30.** calamine 0.30 required zip 4, and zip 4.6.1
@@ -261,6 +205,128 @@ All notable changes to Open Ontologies are documented here.
   reference, now reads as empty, and an `<is/>` with no `<t>` is an empty
   string, as `<is><t/></is>` already was. `tests/ingest_xlsx_cell_test.rs`
   holds five of the corrections, and each of its tests fails on calamine 0.30.
+
+- **Releases publish every Lean checker the lakefile builds.** Five of the
+  ten were never published: `oo-matcert` and `oo-folmodel`, which the engine
+  runs itself, and `oo-dlmodel`, `oo-refute` and `oo-dlrefute`, which check
+  what it writes. A user of a release binary could not get those verdicts.
+  The release now reads the list from `lean/lakefile.toml` and fails if a
+  declared checker was not built. The checkers are built from the tagged tree
+  with no cache: v2.1.0's were restored from another workflow's cache and
+  attested as if the release had built them.
+
+- **The Windows binary no longer needs the Visual C++ Redistributable.** The
+  MSVC runtime is linked statically (`.cargo/config.toml`), and the release
+  checks the exe's imports. GitHub's Windows images carry the redistributable,
+  so the missing `VCRUNTIME140.dll` only ever showed on a user's machine.
+
+- **The ghcr image is pushed after its GitHub release exists, and `:latest`
+  only moves forward.** The Docker workflow pushed on the tag in parallel with
+  the release and waited for nothing, so a failed release still moved
+  `:latest`. The release now builds the image from the tagged tree with no
+  cache, runs it, checks the version it reports, and pushes it. A backport tag
+  no longer becomes the GitHub "Latest" release or `:latest`, and a tag with a
+  SemVer pre-release is published as a pre-release.
+
+- **A tag can no longer publish an incomplete release.** The
+  x86_64-apple-darwin leg ran on GitHub's macos-14 image, retired on 2 Nov
+  2026; it now runs on macos-15, still cross-compiled, and each macOS binary
+  must keep its minimum macOS version (10.12 and 11.0). A build leg that
+  uploaded nothing, a missing CHANGELOG section, a `Cargo.lock` that does not
+  match `Cargo.toml`, or an asset that changed between assembly and upload now
+  fails the release instead of publishing without it or with an empty body.
+  Every pull request that changes how the release is built runs all of it as a
+  dry run, except the two jobs that publish and the CI gate in front of them.
+
+- **`open-ontologies-lite` releases check their version and the wheel.** The
+  tag, `pyproject.toml`, `__version__` and the built wheel must agree, and the
+  wheel PyPI will receive is installed into a clean environment and imported
+  before it is published.
+
+- **A release publishes only a commit CI has passed.** v2.0.1 was tagged on a
+  branch CI does not run on and shipped on 28 Sep 2026 with no CI run at all,
+  and `open-ontologies-lite` 0.4.0 was on PyPI a minute before CI started on
+  its commit. Both release workflows now look up the required checks in CI's
+  run for the push of the tagged commit to `main`, wait up to 90 minutes for
+  any still running, and publish nothing if one failed or never ran there. A
+  pull request's run does not count, because it tests the pull request merged
+  with `main` and not the commit, so tag the commit once it is on `main`.
+
+- **The Linux binary still runs on glibc 2.35 (Ubuntu 22.04).** It was built
+  on GitHub's ubuntu-22.04 image, which is retired on 17 Apr 2027. It is now
+  built inside an `ubuntu:22.04` container pinned by digest, and the release
+  fails if the binary would need a newer glibc than 2.35.
+
+- **The MCP server manifest and the Claude Code plugin manifest carry the
+  release version, and a tag either disagrees with is refused.**
+  `.mcp/server.json` said 0.1.9 and named the `:0.1.9` image at every release
+  from v0.1.10 to v2.1.0, and `.claude-plugin/plugin.json` said 0.1.0 at every
+  release, although Claude Code does not update an installed plugin until that
+  version changes. Both now carry the release version, and
+  `scripts/check-release-version.sh` refuses a tag that their `version` fields
+  or the image tag disagree with, as it already did for `Cargo.toml`. The
+  release dry run makes the same check on a pull request that changes either
+  file, and `server.json`'s description now fits the 100 characters the
+  registry schema allows. The README says the ghcr image is linux/amd64 only,
+  and that Apple silicon runs it under emulation with
+  `docker run --platform linux/amd64`. It also says which feature-gated tools
+  the release binaries and the image carry, where it said they had none: the
+  binaries have the `embeddings` and `plugins` tools, and the image has those
+  and the two that need `postgres` or `duckdb`.
+
+- **CI fails only for the change under test.** All Linux jobs run on
+  ubuntu-24.04 rather than ubuntu-latest, which moves to Ubuntu 26.04 by 19
+  Nov 2026 under all four required checks. A failing Windows leg no longer
+  cancels the required Linux leg. elan is installed from a release asset
+  checked against its SHA-256, not by piping a script from elan's `master`
+  branch into `sh`, and z3 is pinned by version and digest like cvc5 rather
+  than taken from apt. Every download in the `lean` job is retried and bounded,
+  and picosat is cached so its university server is only contacted on a cold
+  cache. An ETXTBSY race between script writes and forks is closed in the
+  library's unit tests and in `pack_certificate_test`. The `plugins` feature,
+  which ships in every release, is now tested. The Docker workflow no longer
+  exports a 1.1 GB build cache per run into the 10 GB Actions cache that the
+  required checks depend on. Every action runs on Node 24, and builds use
+  `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
+  event-listener, chacha20), and an ignore entry that matched nothing is gone.
+
+- **Every push to `main` gets its own CI run.** Pushes shared one
+  concurrency group, and with `cancel-in-progress` off GitHub still lets a
+  newer run displace one that is waiting, so the middle of three quick pushes
+  never ran and a release tag on it would wait for checks that never come.
+  Each push to `main` now has a group of its own commit.
+
+- **A new compiler, a new Python package or a newly published advisory no
+  longer turns a required check red by arriving.** The required checks, the
+  release, the benchmark, the daily audit and the Docker builder compile with
+  Rust 1.99.1, not with whatever stable is newest on the day.
+  `scripts/check-toolchain-pins.sh`, run in the required Linux build, fails a
+  bump that misses one of them, and a weekly canary lints and tests on stable and beta to show when the pin can
+  move. The required Python check installs the versions pinned in
+  `python/constraints-ci.txt`, and a second leg, not required, runs Python
+  3.14 on whatever PyPI holds. `cargo audit` fails a pull request, and now a
+  push to `main`, only on an advisory that change brings in; the daily audit
+  of `main` and Dependabot alerts report one published against a dependency
+  `main` already has. Only `main` saves the Rust build cache, so a pull
+  request no longer evicts the entries the required checks restore.
+
+- **`Cargo.toml` declares the Rust floor, 1.88** (`rust-version`), the oldest
+  Rust the locked dependencies build with. A job that is not required checks
+  the default and release features on 1.88.0, and `cargo update` now prefers
+  dependency versions that still build on it. The optional `turbovec` feature
+  needs 1.89.
+
+- **`lean/` builds with no deprecation warnings.** The 24 deprecated `String`
+  calls that Lean 4.33.1 warned about now use the functions they unfolded to,
+  and the ten checkers give the same answers as before on 12,552 test inputs.
+
+- **Studio's lockfiles have no `npm audit` findings.**
+  `studio/package-lock.json` had 21, three of them critical. Updates inside the
+  declared ranges cleared 11, and the other 10 came from vitest and
+  `@vitest/coverage-v8` 2.1.9, which move to 5.0.5. The agent sidecar's own
+  lockfile had four, and updates inside its ranges clear them. Studio's tests
+  now need Node.js 22.12 or later, not 23 or 25, and `studio/README.md` and
+  `docs/windows.md` say so where they said 18+ and 20+.
 
 - **`reason --profile owl-dl` says `consistent: null` when the search that
   would decide it did not finish** (#355). The headline was `tbox &&
@@ -405,6 +471,7 @@ All notable changes to Open Ontologies are documented here.
   reaches the expression as written instead of rolled over to
   `2026-01-02T00:00:01`, so it is reported here as `oo-shacl` reports it, and
   of the 24-hour forms only `24:00:00` with every other field zero conforms.
+
 - **MCP `onto_lint` and `onto_diff`, and CLI `diff`, read RDF/XML and
   relative-IRI Turtle** (#317, @vishalhabib99). They passed the raw file to
   the Turtle parser, so an RDF/XML `.owl` file failed with "Invalid IRI code
@@ -500,6 +567,7 @@ All notable changes to Open Ontologies are documented here.
   SPARQL evaluator. The reason now says so (`... so DATATYPE() cannot tell a
   value carrying it from one carrying that type ...`). The set of datatypes and
   every verdict are unchanged, by measurement on the new pin.
+
 - **A datatype the store cannot tell apart is refused inside `sh:or`,
   `sh:not` and `sh:qualifiedValueShape`, as it already was on its own.** The
   store widens xsd:int, xsd:nonNegativeInteger and the other integer-derived
@@ -510,16 +578,19 @@ All notable changes to Open Ontologies are documented here.
   over values of exactly that type. Each now records the constraint in
   `skipped_constraints` with the direct path's reason and suppresses the
   verdict. W3C columns unchanged (61, 53).
+
 - **`sh:node` to a shape whose own `sh:datatype` the store cannot tell apart
   is refused rather than answered.** The shape compiler refused such a
   datatype on a property inside the referenced shape and not on the shape
   itself, so every value the store had widened was reported. The `sh:node` is
   now recorded as not evaluated. W3C columns unchanged.
+
 - **A node-level `sh:or` result carries the node shape's `sh:severity`.** It
   was written `"Violation"` whatever the shape declared, and the RDF report
   followed it with `sh:resultSeverity sh:Violation`; it now uses the declared
   term, through the same `severity_name` as every other path (#334). W3C
   columns unchanged.
+
 - **A custom `sh:severity` keeps its namespace in the JSON report** (#334).
   Every path set `severity` to the text after the last `#` of the declared
   IRI, and every reader takes a bare name as `sh:`, so W3C
@@ -530,6 +601,7 @@ All notable changes to Open Ontologies are documented here.
   whole, on node-shape, property-shape, qualified and `sh:sparql` results. The
   RDF report already wrote the declared term. W3C full-tuple column 52 to 53
   PASS; gated column unchanged at 61.
+
 - **A value that is not a well-typed literal of D no longer satisfies a
   `sh:datatype D` test anywhere in the SHACL engine** (#333). The test was
   spliced as `DATATYPE(?v) = <D>`, a SPARQL type error for an IRI or blank
@@ -554,6 +626,7 @@ All notable changes to Open Ontologies are documented here.
   triples behind in it; it now uses a store of its own, as the proxied form
   does. No other MCP-only check (`onto_dlp_boundary`, `onto_dl_check`) is a CLI
   command, so none is proxied and none was given a batch arm.
+
 - **`diff` and `drift` no longer hang on a symmetric blank-node graph** (#293).
   Both canonicalised blank nodes through oxrdf's RDFC-1.0, which sets no limit
   on `hash_n_degree_quads` calls, so the cost was factorial: a 7-node
@@ -572,6 +645,7 @@ All notable changes to Open Ontologies are documented here.
   blank-node stars cost 10 s and 1.78 GB to refuse; permutations are now
   generated lazily in the same order, and the same input takes 0.04 s and
   17 MB.
+
 - **Lint and enforce feedback can no longer waive an error, and never drop an
   issue without a record** (#325, reported by @noahgift). After
   `suppress_threshold` dismissals (default 3) an issue was removed whatever its
@@ -584,6 +658,7 @@ All notable changes to Open Ontologies are documented here.
   `entity`, `original_severity`, `dismissals` and `message`. `issue_count`,
   `compliance` and `suppressed_count` are computed as before.
   `tests/feedback_suppression_test.rs` holds it for both tools.
+
 - **A malformed SHACL count bound no longer turns a shape into a no-op** (#321,
   reported by @noahgift). `sh:minCount` fell back to 0 and `sh:maxCount` to
   `u64::MAX` when the bound did not parse, and a bad `sh:qualifiedMinCount` /
@@ -597,6 +672,7 @@ All notable changes to Open Ontologies are documented here.
   `readNat` declined "one" and -1 but evaluated `1.0` as 1. `onto_shacl_check`
   reports every ill-formed count or length literal as `ill_formed_literal`
   with its reason. `tests/shacl_count_bound_test.rs` holds it.
+
 - **`onto_classify_el` is an EL classifier now, and says when its table is not
   complete** (reported by @noahgift in #324). It ran the OWL-RL-ext rules
   under a header saying they were "sufficient for the EL fragment" and returned
@@ -618,6 +694,7 @@ All notable changes to Open Ontologies are documented here.
   tableau on 120 generated EL TBoxes (no disagreement; dropping the range
   rule makes it report 6) and against HermiT's
   Pizza classification (every reported pair entailed).
+
 - **The W3C SHACL conformance harness can say no, field by field, and
   ratchets a second, full-tuple column** (reported by @noahgift in #319). It
   compared `sh:conforms` and the set of (focus, source shape, component) and
@@ -635,6 +712,7 @@ All notable changes to Open Ontologies are documented here.
   the engine did not read `sh:severity`, had been false since #206 and is gone.
   A planted control mutates one PASS case's expected report in each of the six
   fields and requires each copy to be rejected by name.
+
 - **`tools/shacl_differential.py` can no longer go green on nothing**
   (reported by @noahgift in #320). It exited 0 on everything but a FALSE_CLEAN,
   including no cases, no pyshacl and no comparisons, and the CI job's

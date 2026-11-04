@@ -7,9 +7,12 @@ on:
 
 # Superseded branch runs are cancelled; main runs are kept so every commit
 # keeps its own status. Three pushes to main landed inside 33 minutes on
-# 2026-08-18 and each one started a fresh 6 hour hang.
+# 2026-08-18 and each one started a fresh 6 hour hang. A push to main gets a
+# group of its own commit: in a shared group, cancel-in-progress false still
+# lets a newer run displace one that is waiting, so the middle of three quick
+# pushes would never run, and release.yml's ci-green would refuse a tag on it.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Read-only, stated here rather than inherited from the repository default,
@@ -56,14 +59,36 @@ jobs:
       CARGO_PROFILE_DEV_DEBUG: 0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # In the required Linux leg, so a pull request that moves the Rust
+      # version in some places and not others cannot be merged. It reads the
+      # tree, needs nothing installed and reports in seconds. It fails unless
+      # every workflow and the Dockerfile name the same Rust version; the
+      # script's header says why that matters.
+      - name: Every workflow and the Dockerfile pin one Rust version
+        if: matrix.os == 'ubuntu-latest'
+        run: bash scripts/check-toolchain-pins.sh
       - name: Free disk space
         if: runner.os == 'Linux'
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
           sudo apt-get clean
           df -h
-      - uses: dtolnay/rust-toolchain@stable
+      # Rust 1.99.1, the version every job here ran on 1 Nov 2026 (run
+      # 41357717049), and no longer `@stable`, which installs whatever is newest
+      # on the day of the run: 1.100.0 is due on 12 Nov 2026, and a new stable
+      # brings clippy lints that `-D warnings` makes errors in this required
+      # check. The compiler now moves when a commit moves it, in every workflow
+      # and the Dockerfile together; scripts/check-toolchain-pins.sh, run by the
+      # `paths` job, fails a partial bump, and canary.yml shows when the next
+      # version is safe to move to.
+      #
+      # The action is pinned to master's commit and given the version as
+      # `toolchain:`. Its `1.99.1` branch would not take that input: the version
+      # branches hard-code their version, and each is regenerated as a new commit
+      # whenever master moves (all of them on 16 Oct 2026).
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
+          toolchain: 1.99.1
           components: clippy
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -75,6 +100,15 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          # Only main saves, here and in every rust-cache step below. Main's own
+          # entries filled 9.2 of the repository's 10 GB Actions cache on 1 Nov
+          # 2026. A pull request that leaves Cargo.toml and Cargo.lock as main
+          # has them restores main's entry and has nothing to save; one that
+          # changes either, or runs before main has saved, wrote a copy only it
+          # could read, and that evicted main's. On 2 Nov, 3.7 of the 9.8 GB in
+          # use were #359's copies of four keys main also held. The cost is that
+          # such a pull request rebuilds its changes on each push.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Build
         # --locked: a Cargo.lock that does not match Cargo.toml fails here. Without
         # it cargo re-resolves silently, and CI tests, lints and audits a
@@ -127,17 +161,23 @@ jobs:
         # both legs, so the Windows run reported nothing the Linux run had not,
         # and it spent six minutes compiling cargo-audit from source to do it.
         #
-        # On a pull request it fails only on an advisory the change brings in:
-        # the base branch's Cargo.lock is audited the same way and the two are
-        # compared by (advisory, crate, version). An advisory published against
-        # a dependency main already has is on both sides, so it is printed as a
-        # warning here, and it fails main's own audit on the next push and in
-        # the daily run in audit.yml. It no longer turns every open pull request
-        # red: in October 2026 four advisory batches did, in 12 of the 15 pull
-        # request runs that failed, on changes that touched no dependency
-        # (#317 and #328 among them). A push to main still fails on any
-        # advisory.
+        # A pull request and a push to main each fail only on an advisory they
+        # bring in. The Cargo.lock they start from, the base branch's or the
+        # one main had before the push, is audited the same way, and the two
+        # are compared by (advisory, crate, version), so an advisory published
+        # against a dependency main already has is a warning. Such advisories
+        # turned 12 of October 2026's 15 failed pull request runs red on
+        # changes that touched no dependency (#317 and #328 among them), and
+        # on 2 Nov 2026 they turned main's required check red on 6b898b73 with
+        # no code change, until #360. A push with no base to compare, because
+        # `before` is all zeros or cannot be fetched, gets the full audit and
+        # fails on any advisory. The alarm for new advisories is audit.yml's
+        # daily full audit of main, with Dependabot alerts (on since 2 Nov
+        # 2026).
         if: runner.os == 'Linux'
+        env:
+          # The commit main pointed at before this push. Only a push reads it.
+          BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
           # --locked installs cargo-audit with its own published Cargo.lock.
@@ -146,13 +186,19 @@ jobs:
           # ("`vec` is imported here, but it is a module, not a macro"),
           # so the audit step fails for a reason unrelated to this repo.
           cargo install cargo-audit --locked
-          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF"
+            git show FETCH_HEAD:Cargo.lock > "$RUNNER_TEMP/base.lock"
+          elif [[ $BEFORE =~ ^[0-9a-f]{40}$ && ! $BEFORE =~ ^0+$ ]] \
+            && git fetch --no-tags --depth=1 origin "$BEFORE" \
+            && git show FETCH_HEAD:Cargo.lock > "$RUNNER_TEMP/base.lock"; then
+            echo "Comparing with the Cargo.lock of $BEFORE, main before this push."
+          else
+            echo "::warning::No Cargo.lock to compare this push with (before: '$BEFORE'), so the full audit decides."
             cargo audit
             exit 0
           fi
           cargo audit || true
-          git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF"
-          git show FETCH_HEAD:Cargo.lock > "$RUNNER_TEMP/base.lock"
           cargo audit --json > "$RUNNER_TEMP/head.json" || true
           cargo audit --json --file "$RUNNER_TEMP/base.lock" > "$RUNNER_TEMP/base.json" || true
           python3 scripts/audit-new-advisories.py "$RUNNER_TEMP/base.json" "$RUNNER_TEMP/head.json"
@@ -262,8 +308,9 @@ jobs:
                        -o Acquire::https::Timeout=30 update
           sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
                        --no-install-recommends "${missing[@]}"
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
         with:
+          toolchain: 1.99.1
           components: clippy
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -275,6 +322,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # Keyed per leg: they build disjoint dependency trees, and sharing one
           # cache between them would thrash it on every run. Not `matrix.name` —
           # GitHub rejects cache keys containing commas, and the rejection is a
@@ -298,6 +346,34 @@ jobs:
         # was actually built. The script expands them through [features], which
         # a hand-written list would not: `sql` implies postgres + duckdb.
         run: bash scripts/check-test-collection.sh cargo-test.log "${{ matrix.flags }}"
+
+  # The floor Cargo.toml declares as rust-version, measured rather than written
+  # down. README.md and CONTRIBUTING.md said Rust 1.85+ until 2 Nov 2026 while
+  # the darling 0.23 in Cargo.lock needed 1.88, and nothing could notice. This
+  # checks the default features and the release set with exactly that version,
+  # and scripts/check-toolchain-pins.sh fails if this job and Cargo.toml stop
+  # naming the same one. Not a required check: a dependency update that raises
+  # the floor is a decision to make, and this job is where it becomes visible.
+  msrv:
+    timeout-minutes: 30
+    name: msrv (1.88)
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.88.0
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Check the default features on the declared floor
+        run: cargo check --locked
+      - name: Check the release features on the declared floor
+        run: cargo check --locked --features embeddings,plugins
 
   # The README describes the SHACL validator as differentially tested against
   # pyshacl. tools/shacl_differential.py has existed since August and was
@@ -335,7 +411,9 @@ jobs:
       RDFLIB_VERSION: "7.6.0"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # Save the build cache even when the job fails. The default discards
@@ -346,6 +424,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # One entry for the two jobs that build the same thing: `cargo build
           # --release` of the default features, here and in `python`. They saved
           # two identical 790 MB entries, and main's own entries alone filled
@@ -401,8 +480,37 @@ jobs:
     # 15 was enough for `pytest -q` on a pure-Python suite. This job now builds
     # `lean/` and a release binary, which is what the `lean` job budgets 45 for.
     timeout-minutes: 45
-    name: python (open-ontologies-lite)
+    # The first leg's displayed name is a REQUIRED CHECK: branch protection
+    # waits for exactly "python (open-ontologies-lite)", and a renamed check
+    # never reports, so every pull request would wait for it. The string is
+    # written out in the matrix and this expression is the whole name. GitHub
+    # adds the matrix values in parentheses to a job id, or to a name with no
+    # expression in it, as `build` shows "build (ubuntu-latest)", and shows an
+    # expression as it evaluates, as `features / ${{ matrix.name }}` shows
+    # "features / breadth (all-features)". So leg one shows that string and
+    # nothing after it.
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    strategy:
+      # The required leg reports its own verdict whatever the other one does.
+      fail-fast: false
+      matrix:
+        include:
+          # REQUIRED. Python 3.10, the floor requires-python declares, with
+          # every dependency held to python/constraints-ci.txt: the 21 versions
+          # this job installed on main in its last three runs (125001267766 on
+          # 1 Nov 2026, 125172010941 and 125275316316 on 2 Nov), so a release of
+          # pytest, rdflib or numpy no longer changes what this check means.
+          # The file's first lines are the uv command that regenerates it.
+          - name: python (open-ontologies-lite)
+            python: '3.10'
+            constraints: '-c constraints-ci.txt'
+          # Never required. The newest Python with whatever resolves on the
+          # day, so a dependency release that breaks the package shows here
+          # first, and in no check that blocks a merge.
+          - name: python (open-ontologies-lite, 3.14 latest deps)
+            python: '3.14'
+            constraints: ''
     env:
       CARGO_INCREMENTAL: 0
     steps:
@@ -410,7 +518,7 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.10'   # the floor declared by requires-python
+          python-version: ${{ matrix.python }}
       # The Lean checker, built by the same local action as the `lean` job;
       # building `lean/` is itself the proof check, and it is what puts
       # `oo-horn` at lean/.lake/build/bin/oo-horn, which is where `find_checker`
@@ -419,7 +527,9 @@ jobs:
       - name: Build lean/ (the proof check)
         timeout-minutes: 30
         uses: ./.github/actions/lean-build
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # Save the build cache even when the job fails. The default discards
@@ -430,6 +540,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # Shared with `shacl-differential`, which builds the same --release
           # binary; the comment there has the numbers.
           shared-key: release-default
@@ -464,7 +575,7 @@ jobs:
         working-directory: python
         env:
           HNSWLIB_NO_NATIVE: "1"
-        run: uv pip install --system --no-cache --no-binary hnswlib -e ".[dev,shacl,align]"
+        run: uv pip install --system --no-cache --no-binary hnswlib ${{ matrix.constraints }} -e ".[dev,shacl,align]"
       - name: Test
         working-directory: python
         run: python -m pytest -q
@@ -546,7 +657,9 @@ jobs:
       - name: Build lean/ (the proof check)
         timeout-minutes: 30
         uses: ./.github/actions/lean-build
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # Save the build cache even when the job fails. The default discards
@@ -557,6 +670,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Certify every shipped ontology through the proved checker
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_certificate_test -- --nocapture
       - name: Check the verified SHACL Core evaluator against the W3C suite
@@ -931,14 +1045,31 @@ jobs:
           key: polyml-5.9.2-2-${{ runner.arch }}
       - name: Install Poly/ML, the second kernel's runtime
         if: steps.polyml.outputs.cache-hit != 'true'
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           # Pinned by digest, not by name. The component URL is stable and the
           # tarball is not signed, so the hash is the only thing that says the
           # bytes CI links against are the bytes that were checked by hand.
-          curl -fsSL --retry 5 --retry-all-errors --connect-timeout 20 --max-time 300 -o /tmp/polyml.tar.gz https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz
-          echo "67351868c05440d72a514ca60e8ee1d3252b288d746eb7ad236bda5fcaf12272  /tmp/polyml.tar.gz" | sha256sum -c -
+          #
+          # Two hosts, because the cache is not enough on its own. The Actions
+          # cache sits at its 10 GB limit with the Rust build caches, so this
+          # 3 MB entry is evicted whenever a lockfile change brings a new set of
+          # them, and on 4 Nov 2026 the next run found it gone while
+          # isabelle.in.tum.de refused connections: the required lean job failed
+          # without running a test. isabelle.sketis.net is the Isabelle
+          # component mirror and served the same 38,740,810 bytes, digest
+          # 67351868..., that day. Each host's bytes must pass the same hash.
+          got=
+          for url in https://isabelle.in.tum.de/components/polyml-5.9.2-2.tar.gz \
+                     https://isabelle.sketis.net/components/polyml-5.9.2-2.tar.gz; do
+            if curl -fsSL --retry 3 --retry-all-errors --connect-timeout 20 --max-time 300 -o /tmp/polyml.tar.gz "$url" \
+              && echo "67351868c05440d72a514ca60e8ee1d3252b288d746eb7ad236bda5fcaf12272  /tmp/polyml.tar.gz" | sha256sum -c -; then
+              got=$url; break
+            fi
+            echo "::warning::Poly/ML not fetched from $url; trying the next host"
+          done
+          [ -n "$got" ] || { echo "::error::no host served Poly/ML 5.9.2-2 with the pinned digest"; exit 1; }
           mkdir -p ~/polyml
           # One platform directory out of the eight in the tarball, unwrapped so
           # POLYDIR is the same path whatever the runner's architecture is: 20 MB
@@ -1058,7 +1189,9 @@ jobs:
       CARGO_PROFILE_DEV_DEBUG: 0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # Save the build cache even when the job fails. The default discards
@@ -1069,6 +1202,7 @@ jobs:
           # after a full build, and the lean job rebuilt a release binary from
           # cold for twelve minutes on a rerun that changed one line.
           cache-on-failure: true
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Run the suite and hold the ratchet
         run: |
           set -o pipefail

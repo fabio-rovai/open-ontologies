@@ -413,6 +413,10 @@ cargo build --release --features embeddings,plugins,sql
 For Intel macOS, for native Windows and for other systems, read
 [docs/quickstart.md](docs/quickstart.md) and [docs/windows.md](docs/windows.md).
 
+The Docker image is for linux/amd64 only, so on Apple silicon run it under
+emulation with
+`docker run --rm -i --platform linux/amd64 ghcr.io/fabio-rovai/open-ontologies:latest`.
+
 The `serve` command starts an MCP server. That server speaks JSON-RPC on stdin and
 stdout. Thus, at start, the server looks as if it stopped, while it waits for a
 client. This behaviour is correct. From a terminal, use the CLI subcommands
@@ -456,8 +460,9 @@ and this page does not list them. A large list of features is not the argument.
 
 Some tools need an optional Cargo feature, and they return an error without that
 feature. Four tools need `embeddings`. Two tools need `plugins`. Two tools need
-`postgres` or `duckdb`. The published binaries and the GHCR image use the default
-feature set. Thus they do not carry those eight tools.
+`postgres` or `duckdb`. The release binaries have `embeddings` and `plugins`, so
+they lack only the two tools that need `postgres` or `duckdb`. The GHCR image also
+has `sql`, which turns on `postgres` and `duckdb`, so it carries all eight tools.
 
 The Python package `open-ontologies-lite` also reasons now. It reasons in pure
 Python, and it needs no Rust toolchain. The same Lean binaries check its

@@ -48,11 +48,11 @@ partial def parseTerm (s : List Char) : Option (Term × List Char) :=
   match s with
   | 'v' :: rest =>
     let (ds, rest') := rest.span Char.isDigit
-    if ds.isEmpty then none else some (.var (String.mk ds).toNat!, rest')
+    if ds.isEmpty then none else some (.var (String.ofList ds).toNat!, rest')
   | 'f' :: rest =>
     let (ds, rest') := rest.span Char.isDigit
     if ds.isEmpty then none else
-      let f := (String.mk ds).toNat!
+      let f := (String.ofList ds).toNat!
       match rest' with
       | '[' :: inner =>
         match parseArgs inner with
@@ -83,7 +83,7 @@ def parseLit (s : String) : Option Lit :=
     if sign != '+' && sign != '-' then none else
     let (ds, rest') := rest.span Char.isDigit
     if ds.isEmpty then none else
-      let p := (String.mk ds).toNat!
+      let p := (String.ofList ds).toNat!
       let args : Option (List Term) :=
         match rest' with
         | '[' :: inner => (parseArgs inner).map Prod.fst
@@ -123,24 +123,27 @@ def parseFile (text : String) : Option Parsed := do
       else if kind == "c" then
         match rest with
         | [i, cl] =>
-          let n ← i.trim.toNat?
+          let n ← i.trimAscii.toString.toNat?
           let c ← parseClause cl
           cs := cs ++ [(n, c)]
         | _ => failure
       else if kind == "r" then
         match rest with
         | [i, concl, ci, lc, sc, rc, dj, ld, sd, rd] =>
-          let n ← i.trim.toNat?
+          let n ← i.trimAscii.toString.toNat?
           ls := ls ++ [⟨n, ← parseClause concl, .resolve
-            (← ci.trim.toNat?) (← parseLit lc.trim) (← parseSubst sc) (← parseClause rc)
-            (← dj.trim.toNat?) (← parseLit ld.trim) (← parseSubst sd) (← parseClause rd)⟩]
+            (← ci.trimAscii.toString.toNat?) (← parseLit lc.trimAscii.toString)
+              (← parseSubst sc) (← parseClause rc)
+            (← dj.trimAscii.toString.toNat?) (← parseLit ld.trimAscii.toString)
+              (← parseSubst sd) (← parseClause rd)⟩]
         | _ => failure
       else if kind == "f" then
         match rest with
         | [i, concl, ci, la, lb, sg, rst] =>
-          let n ← i.trim.toNat?
+          let n ← i.trimAscii.toString.toNat?
           ls := ls ++ [⟨n, ← parseClause concl, .factor
-            (← ci.trim.toNat?) (← parseLit la.trim) (← parseLit lb.trim)
+            (← ci.trimAscii.toString.toNat?)
+            (← parseLit la.trimAscii.toString) (← parseLit lb.trimAscii.toString)
             (← parseSubst sg) (← parseClause rst)⟩]
         | _ => failure
       else failure

@@ -9,7 +9,8 @@ on:
   # this file was to push a v* tag, which publishes. That is how the macos-14
   # retirement on 2 Nov 2026 would have been found: the x86_64-apple-darwin leg
   # failing on a real tag, no GitHub release, and the Docker workflow pushing
-  # :latest regardless.
+  # :latest regardless. `ci-green` runs only for a tag as well, because all it
+  # does is hold `publish` back.
   pull_request:
     paths:
       - '.github/workflows/release.yml'
@@ -19,6 +20,8 @@ on:
       - 'Cargo.lock'
       - 'scripts/check-release-version.sh'
       - 'scripts/extract-changelog.sh'
+      - '.mcp/server.json'
+      - '.claude-plugin/plugin.json'
       - 'lean/lakefile.toml'
       - 'lean/lean-toolchain'
   workflow_dispatch:
@@ -64,6 +67,10 @@ jobs:
             publish=true
           else
             version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')
+            # The check a tag gets, for the tag this version would have, so a
+            # change that leaves .mcp/server.json or .claude-plugin/plugin.json
+            # behind Cargo.toml fails here and not at the tag.
+            scripts/check-release-version.sh "v$version"
             publish=false
             echo "Dry run on $GITHUB_REF: everything for $version is built and checked, and nothing is published."
           fi
@@ -92,14 +99,29 @@ jobs:
 
   build:
     needs: verify-version
+    # By target alone. GitHub otherwise names a matrix job after every value in
+    # its row, and the Linux row holds an image digest.
+    name: build (${{ matrix.target }})
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
+          # A Linux binary needs no newer glibc than the one it was linked
+          # against. v2.1.0 was linked on GitHub's ubuntu-22.04 image, glibc
+          # 2.35, and needs GLIBC_2.34 at most (read from its ELF version needs
+          # on 2 Nov 2026). That image is browned out from 23 Mar 2027 and
+          # retired on 17 Apr 2027 (actions/runner-images#14254), so the leg
+          # runs on ubuntu-24.04 inside Ubuntu 22.04's own image, which keeps
+          # the 2.35 floor without the retiring VM. Pinned by digest to the
+          # ubuntu:22.04 index as of 2 Nov 2026, built 25 Oct with libc6
+          # 2.35-0ubuntu3.15; its linux/amd64 manifest is
+          # sha256:8a2321a92b438238f93b4346fff61bc4259c99fdd4d9b52ee86f153fee0c344f.
+          - os: ubuntu-24.04
+            container: ubuntu:22.04@sha256:076e7bf82319619f28dd0aa9c02ab34b055ad37100395b4f49a2ffba04fb5e11
             target: x86_64-unknown-linux-gnu
             artifact_name: open-ontologies
+            glibc: '2.35'
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: open-ontologies
@@ -115,33 +137,40 @@ jobs:
             target: x86_64-pc-windows-msvc
             artifact_name: open-ontologies.exe
     runs-on: ${{ matrix.os }}
+    # Only the Linux row names an image. An empty string means no container:
+    # actions/runner#266 (13 Jan 2020) made it so for exactly this matrix, a
+    # Linux container beside macOS and Windows, and runner v2.338.2 still
+    # returns no container for it. `|| ''` turns the key the other rows leave
+    # out into that empty string.
+    container: ${{ matrix.container || '' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - name: Install Linux build deps (OpenSSL/libpq)
-        if: runner.os == 'Linux'
-        # Same guard as ci.yml. An unbounded `apt-get update` hung CI for the
-        # full 6 hour job ceiling when the Azure mirror went dark; on the
-        # release path that would stall a tagged build just as silently.
-        timeout-minutes: 5
+      # The image is bare Ubuntu 22.04: no sudo, which root does not need, and
+      # none of what the build needs. This runs before checkout so that
+      # actions/checkout finds git and clones rather than downloading a
+      # tarball. clang is for bindgen, which oxrocksdb-sys runs and which
+      # loads libclang (the Dockerfile installs it for the same reason), and
+      # binutils is for the glibc check. The packages come from the 22.04
+      # archive as it is on the day, and the glibc they link against stays
+      # 2.35. apt is bounded as in ci.yml: an unbounded `apt-get update` hung
+      # CI for the full six hour ceiling when a mirror went dark.
+      - name: Install the build tools in the container
+        if: matrix.container
+        timeout-minutes: 10
+        shell: bash
         run: |
           set -euo pipefail
-          missing=()
-          for p in pkg-config libssl-dev libpq-dev; do
-            dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
-          done
-          if [ ${#missing[@]} -eq 0 ]; then
-            echo "Build deps already present on the image; skipping apt."
-            exit 0
-          fi
-          echo "Missing build deps: ${missing[*]}"
-          sudo apt-get -o Acquire::Retries=3 \
-                       -o Acquire::http::Timeout=30 \
-                       -o Acquire::https::Timeout=30 update
-          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                       --no-install-recommends "${missing[@]}"
+          apt=(apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+          "${apt[@]}" update
+          DEBIAN_FRONTEND=noninteractive "${apt[@]}" install -y --no-install-recommends \
+            curl ca-certificates build-essential binutils clang pkg-config libssl-dev libpq-dev git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The Rust CI tests with, so a release is built by the compiler its commit
+      # was tested with and not by whatever was newest on the day of the tag.
+      # ci.yml's build job says why it is pinned this way.
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
+          targets: ${{ matrix.target }}
       - name: Build
         # --locked, so a tag whose Cargo.lock lags Cargo.toml fails instead of
         # publishing dependencies resolved at release time.
@@ -179,6 +208,23 @@ jobs:
             b && $1 == "minos" { print $2; exit }')
           echo "${{ matrix.target }}: minimum macOS $got, expected ${{ matrix.minos }}"
           [ "$got" = "${{ matrix.minos }}" ] || { echo "::error::minimum macOS moved from ${{ matrix.minos }} to $got"; exit 1; }
+      # The newest glibc the Linux binary needs, the highest GLIBC_ version
+      # among the symbols it imports, for the same reason as the macOS check:
+      # an image or toolchain that raised it would drop users silently.
+      - name: The Linux binary keeps its glibc floor
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          floor="${{ matrix.glibc }}"
+          [ -n "$floor" ] || { echo "::error::this Linux leg declares no glibc floor in the matrix"; exit 1; }
+          bin="target/${{ matrix.target }}/release/${{ matrix.artifact_name }}"
+          versions=$(objdump -T "$bin" | { grep -oE 'GLIBC_[0-9]+(\.[0-9]+)+' || true; } | sed 's/^GLIBC_//' | sort -uV)
+          [ -n "$versions" ] || { echo "::error::objdump -T found no GLIBC_ version in $bin"; exit 1; }
+          got=$(tail -n 1 <<<"$versions")
+          echo "${{ matrix.target }}: needs glibc $got at most, floor $floor; references ${versions//$'\n'/ }"
+          [ "$(printf '%s\n' "$got" "$floor" | sort -V | tail -n 1)" = "$floor" ] \
+            || { echo "::error::the binary needs glibc $got, above the $floor floor"; exit 1; }
       - name: Upload binary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -320,9 +366,129 @@ jobs:
           path: release/
           if-no-files-found: error
 
+  # NOTHING IS PUBLISHED FROM A COMMIT CI HAS NOT PASSED.
+  #
+  # v2.0.1 shipped on 28 Sep 2026 with no CI run at all. It was tagged on the
+  # v2.0.x branch, which CI does not run on, and this file built and published
+  # it regardless. v2.1.0 raced its CI run instead: the tag came three seconds
+  # after the push to main on 23 Oct, CI passed ten minutes later, and nothing
+  # here would have stopped the release had it failed.
+  #
+  # The four required checks are looked up on the tagged commit by exact name,
+  # and only CI's runs for a push of that commit to main count: a check run
+  # must belong to a check suite GitHub Actions (app 15368) created with
+  # head_branch main and the commit as `after`. A pull request run does not
+  # count. GitHub reports it on the head commit, but it built and tested that
+  # commit merged with main as main then was, which is another tree whenever
+  # main had moved on. A fork's pull request suite has no `after`, even from a
+  # branch the fork calls main. The newest counted run of each check must have
+  # concluded success. One still running is polled once a minute for up to 90
+  # minutes, and one that failed stops the release at once. A commit that
+  # never reached main, a backport branch included, is never published.
+  ci-green:
+    if: github.ref_type == 'tag'
+    timeout-minutes: 100
+    runs-on: ubuntu-24.04
+    permissions:
+      checks: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: The tagged commit passed the required CI checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Exactly as GitHub names them. A job renamed in ci.yml has to be
+          # renamed here too, or every release waits out the deadline.
+          required=(
+            "build (ubuntu-latest)"
+            "lean / certificate checker"
+            "SHACL conformance vs the W3C suite"
+            "python (open-ontologies-lite)"
+          )
+          minutes=90
+          # The ids, as a JSON array, of the check suites GitHub Actions
+          # created for a push of this commit to main. A tag push and a pull
+          # request run get suites under their own tag or branch name.
+          push_suites() {
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-suites?app_id=15368&per_page=100" \
+              | jq -cs --arg sha "$GITHUB_SHA" \
+                  '[.[].check_suites[] | select(.head_branch == "main" and .after == $sha) | .id]'
+          }
+          # "<passed|failed|running|missing> <conclusion or status> <url>" for
+          # the newest run under this exact name in one of the suites in $2.
+          # The newest decides, so a re-run still going is waited for, and a
+          # re-run that failed counts even where an older run passed.
+          newest() {
+            local enc
+            enc=$(jq -rn --arg n "$1" '$n | @uri')
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=$enc&filter=all&per_page=100" \
+              | jq -rs --arg n "$1" --argjson suites "$2" '
+                  [.[].check_runs[]
+                   | select(.name == $n and .app.slug == "github-actions" and (.check_suite.id | IN($suites[])))]
+                  | max_by(.id)
+                  | if . == null then "missing - -"
+                    elif .status != "completed" then "running \(.status) \(.html_url)"
+                    elif .conclusion == "success" then "passed success \(.html_url)"
+                    else "failed \(.conclusion) \(.html_url)" end'
+          }
+          deadline=$(( $(date +%s) + minutes * 60 ))
+          unanswered=0
+          while :; do
+            passed=() waiting=() failed=() api_failed=false
+            # Fails closed: with no suite list nothing can pass this round, and
+            # five unreadable rounds in a row fail the job below.
+            if ! suites=$(push_suites 2>"$RUNNER_TEMP/check-suites.err"); then
+              api_failed=true
+              echo "::warning::could not read the check suites on $GITHUB_SHA: $(tr '\n' ' ' <"$RUNNER_TEMP/check-suites.err")"
+              for name in "${required[@]}"; do
+                waiting+=("'$name' could not be matched to a push to main, because the check suites could not be read")
+              done
+            else
+              for name in "${required[@]}"; do
+                if ! state=$(newest "$name" "$suites" 2>"$RUNNER_TEMP/check-runs.err"); then
+                  api_failed=true
+                  echo "::warning::could not read the check runs named '$name': $(tr '\n' ' ' <"$RUNNER_TEMP/check-runs.err")"
+                  waiting+=("'$name' could not be read from the API")
+                  continue
+                fi
+                read -r kind detail url <<<"$state"
+                case "$kind" in
+                  passed) passed+=("'$name' passed: $url") ;;
+                  failed) failed+=("'$name' concluded $detail: $url") ;;
+                  running) waiting+=("'$name' is $detail: $url") ;;
+                  *) waiting+=("'$name' has no run from CI for a push of this commit to main") ;;
+                esac
+              done
+            fi
+            if [ "${#failed[@]}" -gt 0 ]; then
+              printf '::error::%s\n' "${failed[@]}"
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Re-run what failed in CI, and re-run this job once it passes."
+              exit 1
+            fi
+            if [ "${#waiting[@]}" -eq 0 ]; then
+              printf '%s\n' "${passed[@]}"
+              exit 0
+            fi
+            if $api_failed; then unanswered=$((unanswered + 1)); else unanswered=0; fi
+            if [ "$unanswered" -ge 5 ]; then
+              echo "::error::Refusing to publish $GITHUB_REF_NAME: the check suites or check runs could not be read in five rounds running."
+              exit 1
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              for w in "${waiting[@]}"; do echo "::error::after $minutes minutes, $w"; done
+              echo "::error::Refusing to publish $GITHUB_REF_NAME from $GITHUB_SHA. Push that commit to main, and re-run this job once CI has passed on the push; a pull request run does not count."
+              exit 1
+            fi
+            printf -v line '%s; ' "${waiting[@]}"
+            echo "$(date -u +%H:%M:%S) waiting: ${line%; }"
+            sleep 60
+          done
+
   publish:
     if: needs.verify-version.outputs.publish == 'true'
-    needs: [verify-version, assemble]
+    needs: [verify-version, assemble, ci-green]
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     permissions:

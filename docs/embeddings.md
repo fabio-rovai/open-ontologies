@@ -10,7 +10,7 @@ Open Ontologies has a dual-space vector store for semantic search and alignment,
 onto_load → onto_embed → onto_search "domestic animal"
 ```
 
-This subsystem is a compile-time feature. Build with `cargo build --release --features embeddings`. The pre-built binaries and the GHCR image do not have it, and on those `onto_embed`, `onto_search`, `onto_similarity` and `onto_hnsw_build` return `Compiled without embeddings feature. Rebuild with --features embeddings`. On a build that has the feature, `open-ontologies init` downloads a 448 MB ONNX model and a 16 MB tokenizer into `~/.open-ontologies/models`. All inference then runs locally via tract, a pure Rust ONNX runtime, with no API keys and no external services.
+This subsystem is a compile-time feature. The release binaries and the GHCR image are built with it. A build from source needs `cargo build --release --features embeddings`, because the default feature set is empty, and a build without the feature does not offer `onto_embed`, `onto_search`, `onto_similarity` and `onto_hnsw_build`: the server leaves them out of its tool list and logs that each one needs `--features embeddings`. On a build that has the feature, `open-ontologies init` downloads a 448 MB ONNX model and a 16 MB tokenizer into `~/.open-ontologies/models`. All inference then runs locally via tract, a pure Rust ONNX runtime, with no API keys and no external services.
 
 ## Tools
 

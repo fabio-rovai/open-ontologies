@@ -1,10 +1,11 @@
 name: Audit
 
-# The full `cargo audit` of main, every day. ci.yml's Audit step fails a pull
-# request only on an advisory that change brings in, and fails a push to main on
-# any advisory, so a new advisory against a dependency main already has would
-# otherwise surface only at main's next push. This run reports it within a day.
-# A scheduled run's failure notifies whoever last edited the cron line below.
+# The full `cargo audit` of main, every day: the alarm for new advisories.
+# ci.yml's Audit step fails a pull request or a push to main only on an
+# advisory it brings in, so an advisory published against a dependency main
+# already has is only a warning there. This run reports it within a day, and so
+# do Dependabot alerts, on since 2 Nov 2026. A scheduled run's failure notifies
+# whoever last edited the cron line below.
 on:
   schedule:
     - cron: '23 5 * * *'
@@ -19,7 +20,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dtolnay/rust-toolchain@stable
+      # The Rust CI uses, so a new stable that stops cargo-audit compiling
+      # cannot fail this run in place of an advisory. ci.yml's build job says
+      # why it is pinned this way.
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: 1.99.1
       - name: Audit Cargo.lock against the advisory database
         run: |
           set -euo pipefail

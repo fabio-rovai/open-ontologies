@@ -1,0 +1,66 @@
+name: Canary
+
+# Shows when a Rust toolchain bump is safe. Every other workflow compiles with
+# the one version scripts/check-toolchain-pins.sh holds them to, so a new stable
+# no longer turns a required check red by arriving. That leaves the question of
+# when to move the pin, and this answers it: once a week it lints every target
+# and runs the test suite on the current stable and beta. A green stable leg says
+# the pin can move to the version it names; a red beta leg is up to six weeks'
+# notice of what the next stable will break.
+#
+# It is never a required check and runs on no pull request, so nothing it finds
+# can block a merge. A scheduled run's failure notifies whoever last edited the
+# cron line below.
+on:
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    # The build job's ceiling for the same clippy and test work. Every run here
+    # is a cold one, because there is no cache (see below).
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    strategy:
+      # Each channel reports its own verdict, so a beta failure cannot cancel the
+      # stable leg that says whether the pin can move.
+      fail-fast: false
+      matrix:
+        toolchain: [stable, beta]
+    env:
+      CARGO_INCREMENTAL: 0
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/share/chromium /usr/local/share/edge
+          sudo apt-get clean
+          df -h
+      # The same pinned action as every other workflow, given a channel instead
+      # of a version. check-toolchain-pins.sh exempts this file from the version
+      # rule and from nothing else.
+      #
+      # No rust-cache. A scheduled run is a run on main, so it would save, and
+      # main's own entries filled 9.2 of the repository's 10 GB Actions cache on
+      # 1 Nov 2026; two more toolchains' entries a week would evict the ones the
+      # required checks restore.
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
+      - name: Name the version this run measured
+        env:
+          CHANNEL: ${{ matrix.toolchain }}
+        run: |
+          line="$CHANNEL is $(rustc --version)"
+          echo "$line"
+          echo "$line" >> "$GITHUB_STEP_SUMMARY"
+      - name: Clippy, every target
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --locked
