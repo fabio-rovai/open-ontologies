@@ -214,6 +214,54 @@ All notable changes to Open Ontologies are documented here.
   `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
   event-listener, chacha20), and an ignore entry that matched nothing is gone.
 
+- **XLSX ingest reads with calamine 0.38, and `cargo audit` no longer finds
+  zip 4.6.1 or calamine 0.30.** calamine 0.30 required zip 4, and zip 4.6.1
+  carries four advisories patched only in zip 9, RUSTSEC-2026-0367, 0368, 0369
+  and 0429, which `.cargo/audit.toml` ignored; the last reached the advisory
+  database on 2 Nov 2026. All four are in `ZipArchive::extract` or
+  `ZipStreamReader::extract`, which calamine never calls. calamine 0.37 and
+  later require zip 9, and the four ignores are gone. RUSTSEC-2026-0436, a
+  panic and unbounded allocation in calamine's CFB parser on a malformed
+  compound file, failed the scheduled audit of main on 3 Nov 2026 and is
+  patched in 0.38.0. The CFB parser reads XLS files and VBA projects, and
+  ingest opens only XLSX and never reads a VBA project, but the audit fails
+  on the lockfile whatever the call sites, and 0.38.0 is the release. No call
+  site changed. 0.38.0 also reads an XLSX package whose workbook part is not
+  `xl/workbook.xml`, by following `_rels/.rels`, and decodes every `_xHHHH_`
+  escape, surrogate pairs included, where 0.37 decoded `_x00HH_` alone.
+  Measured on calamine 0.37.0 against 0.30, on 28 workbooks of ordinary content (the four
+  committed fixtures, and 24 built to cover every cell type, 32 built-in and
+  44 custom number formats in both date systems, rich, phonetic and inline
+  strings, offset and sparse layouts, formulas and Strict OOXML), the rows
+  `parse_xlsx_file` returns, the header order and the datatypes `onto_induce`
+  infers are identical. On 37 workbooks built to isolate the changes in
+  calamine's changelog, and in three of 63 LibreOffice 26.2 re-saves, cells
+  that calamine 0.30 read wrongly now read as the workbook says. An empty
+  shared string, `<si/>` or one holding only a phonetic run, no longer moves
+  every later shared string onto the wrong cell. An empty `<v/>` in a
+  shared-string, boolean or untyped cell is empty, where the first two read
+  the first shared string and `true`, so none of them makes its row the header
+  any more. A boolean `FALSE` is false. Excel's `_x00HH_` escapes are decoded,
+  so the `_x000D_` Excel writes for a carriage return is one. A custom number
+  format is tested for dates after its entities are decoded, so
+  `"Week of "d mmm yyyy` formats a date, and a `*` fill takes the next
+  character literally, so `0*s` formats a number. The East Asian built-in
+  formats 27 to 36 and 50 to 58 are dates, and a 1904 workbook that prefixes
+  its SpreadsheetML elements is read in the 1904 system. Rich text after a
+  plain run, CDATA, and an inline string after a redundant `<v>` are read, and
+  a worksheet outside `xl/worksheets/`, or bound under a prefix other than
+  `r:`, opens. Text follows XML and Excel: a literal CR LF reads as LF, while
+  `&#13;` stays a carriage return, and a `<t>` without `xml:space="preserve"`
+  loses its leading and trailing ASCII whitespace, which can change a header
+  name. Two malformed inputs are now refused: a boolean cell whose value is
+  not `0`, `1`, `true` or `false`, and a package with no `_rels/.rels`. A
+  shared-string index past the end of the table is an error where it was a
+  panic. Three malformed cells changed the other way: a `<v>` placed after an
+  inline string, against the schema's order, or holding a digit as a character
+  reference, now reads as empty, and an `<is/>` with no `<t>` is an empty
+  string, as `<is><t/></is>` already was. `tests/ingest_xlsx_cell_test.rs`
+  holds five of the corrections, and each of its tests fails on calamine 0.30.
+
 - **`reason --profile owl-dl` says `consistent: null` when the search that
   would decide it did not finish** (#355). The headline was `tbox &&
   abox.consistent`, and both default to consistent when their search runs
