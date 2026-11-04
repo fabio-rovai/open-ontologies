@@ -214,15 +214,22 @@ All notable changes to Open Ontologies are documented here.
   `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
   event-listener, chacha20), and an ignore entry that matched nothing is gone.
 
-- **XLSX ingest reads with calamine 0.37, and `cargo audit` no longer finds
-  zip 4.6.1.** calamine 0.30 required zip 4, and zip 4.6.1 carries four
-  advisories patched only in zip 9, RUSTSEC-2026-0367, 0368, 0369 and 0429,
-  which `.cargo/audit.toml` ignored; the last reached the advisory database on
-  2 Nov 2026. All four are in `ZipArchive::extract` or
-  `ZipStreamReader::extract`, which calamine never calls. calamine 0.37.0
-  requires zip 9, the only zip left is 9.0.4, and the four ignores are gone.
-  No call site changed.
-  Measured before and after on 28 workbooks of ordinary content (the four
+- **XLSX ingest reads with calamine 0.38, and `cargo audit` no longer finds
+  zip 4.6.1 or calamine 0.30.** calamine 0.30 required zip 4, and zip 4.6.1
+  carries four advisories patched only in zip 9, RUSTSEC-2026-0367, 0368, 0369
+  and 0429, which `.cargo/audit.toml` ignored; the last reached the advisory
+  database on 2 Nov 2026. All four are in `ZipArchive::extract` or
+  `ZipStreamReader::extract`, which calamine never calls. calamine 0.37 and
+  later require zip 9, and the four ignores are gone. RUSTSEC-2026-0436, a
+  panic and unbounded allocation in calamine's CFB parser on a malformed
+  compound file, failed the scheduled audit of main on 3 Nov 2026 and is
+  patched in 0.38.0. The CFB parser reads XLS files and VBA projects, and
+  ingest opens only XLSX and never reads a VBA project, but the audit fails
+  on the lockfile whatever the call sites, and 0.38.0 is the release. No call
+  site changed. 0.38.0 also reads an XLSX package whose workbook part is not
+  `xl/workbook.xml`, by following `_rels/.rels`, and decodes every `_xHHHH_`
+  escape, surrogate pairs included, where 0.37 decoded `_x00HH_` alone.
+  Measured on calamine 0.37.0 against 0.30, on 28 workbooks of ordinary content (the four
   committed fixtures, and 24 built to cover every cell type, 32 built-in and
   44 custom number formats in both date systems, rich, phonetic and inline
   strings, offset and sparse layouts, formulas and Strict OOXML), the rows

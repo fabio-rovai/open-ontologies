@@ -6,7 +6,7 @@ ignore = [
     # names three users of the advised one: this crate's direct dependency
     # (quick-xml 0.37 in Cargo.toml), oxrdfxml 0.2.5 through oxrdfio and
     # oxigraph, and sparesults 0.3.5 through oxigraph and spareval.
-    # `cargo tree -i quick-xml@0.42.0` names calamine 0.37.0 alone, and 0.42.0
+    # `cargo tree -i quick-xml@0.42.0` names calamine 0.38.0 alone, and 0.42.0
     # is patched. oxrdfxml and sparesults come from the oxigraph fork that
     # [patch.crates-io] in Cargo.toml pins by rev, not from crates.io, so no
     # upstream release can move them on its own. Bumping the direct pin alone
