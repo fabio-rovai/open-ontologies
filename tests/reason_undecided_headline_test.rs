@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The owl-dl headline says `consistent: null` when the search that would
 //! decide it did not finish.
 //!
