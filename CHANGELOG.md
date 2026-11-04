@@ -290,12 +290,18 @@ All notable changes to Open Ontologies are documented here.
   `--locked`. A lockfile update clears three `cargo audit` warnings (tokio,
   event-listener, chacha20), and an ignore entry that matched nothing is gone.
 
+- **Every push to `main` gets its own CI run.** Pushes shared one
+  concurrency group, and with `cancel-in-progress` off GitHub still lets a
+  newer run displace one that is waiting, so the middle of three quick pushes
+  never ran and a release tag on it would wait for checks that never come.
+  Each push to `main` now has a group of its own commit.
+
 - **A new compiler, a new Python package or a newly published advisory no
   longer turns a required check red by arriving.** The required checks, the
   release, the benchmark, the daily audit and the Docker builder compile with
   Rust 1.99.1, not with whatever stable is newest on the day.
-  `scripts/check-toolchain-pins.sh` fails a bump that misses one of them, and
-  a weekly canary lints and tests on stable and beta to show when the pin can
+  `scripts/check-toolchain-pins.sh`, run in the required Linux build, fails a
+  bump that misses one of them, and a weekly canary lints and tests on stable and beta to show when the pin can
   move. The required Python check installs the versions pinned in
   `python/constraints-ci.txt`, and a second leg, not required, runs Python
   3.14 on whatever PyPI holds. `cargo audit` fails a pull request, and now a

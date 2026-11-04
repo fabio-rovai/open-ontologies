@@ -7,9 +7,12 @@ on:
 
 # Superseded branch runs are cancelled; main runs are kept so every commit
 # keeps its own status. Three pushes to main landed inside 33 minutes on
-# 2026-08-18 and each one started a fresh 6 hour hang.
+# 2026-08-18 and each one started a fresh 6 hour hang. A push to main gets a
+# group of its own commit: in a shared group, cancel-in-progress false still
+# lets a newer run displace one that is waiting, so the middle of three quick
+# pushes would never run, and release.yml's ci-green would refuse a tag on it.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Read-only, stated here rather than inherited from the repository default,
@@ -56,6 +59,14 @@ jobs:
       CARGO_PROFILE_DEV_DEBUG: 0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # In the required Linux leg, so a pull request that moves the Rust
+      # version in some places and not others cannot be merged. It reads the
+      # tree, needs nothing installed and reports in seconds. It fails unless
+      # every workflow and the Dockerfile name the same Rust version; the
+      # script's header says why that matters.
+      - name: Every workflow and the Dockerfile pin one Rust version
+        if: matrix.os == 'ubuntu-latest'
+        run: bash scripts/check-toolchain-pins.sh
       - name: Free disk space
         if: runner.os == 'Linux'
         run: |
@@ -215,12 +226,6 @@ jobs:
             exit 1
           fi
           echo "All tracked paths are representable on Windows."
-      # In this job because, like the step above, it reads the tree and needs
-      # nothing installed, so it reports in seconds. It fails unless every
-      # workflow and the Dockerfile name the same Rust version; the script's
-      # header says why that matters.
-      - name: Every workflow and the Dockerfile pin one Rust version
-        run: bash scripts/check-toolchain-pins.sh
 
   # Optional features are compiled by nothing above: `default = []`, and the
   # three cargo invocations in `build` are bare. A green run there says nothing
