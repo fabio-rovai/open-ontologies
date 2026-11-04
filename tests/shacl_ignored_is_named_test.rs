@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The verified SHACL compiler NAMES what it ignores, instead of discarding it.
 //!
 //! Issue #206. `ignoredParams` in `lean/Shacl/Compile.lean` lists seven SHACL

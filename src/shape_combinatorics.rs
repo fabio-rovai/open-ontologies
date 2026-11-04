@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Property-combination lattice + data-driven SHACL shape induction (#36,
 //! K-CAP 2025 Kastor).
 //!

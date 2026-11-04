@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The MCP `onto_lint` and `onto_diff` handlers must read a file the way
 //! `onto_load` and CLI `lint` do.
 //!

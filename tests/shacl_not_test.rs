@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:not`, the constraint that zeroed 198 real violations.
 //!
 //! In the Scottish land register build a layer-2 shapes graph expressed its

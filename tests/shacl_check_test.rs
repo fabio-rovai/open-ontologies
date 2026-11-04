@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for `ShaclValidator::check_shapes` (#18).
 //!
 //! Verifies the structural dry-run primitive: the function must catch missing

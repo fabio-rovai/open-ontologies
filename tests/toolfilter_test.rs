@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the MCP tool exposure filter (`src/toolfilter.rs`)
 //! and its application to `OpenOntologiesServer`.
 //!

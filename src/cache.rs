@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Compile cache for ontology files.
 //!
 //! A loaded ontology is serialized as N-Quads (line-based and just as fast to

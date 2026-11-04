@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! What a change to the reasoner's budgets costs, measured rather than asserted.
 //!
 //! `src/tableaux.rs` carries a cost measurement in a doc comment — "a

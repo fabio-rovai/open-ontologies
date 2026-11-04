@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A classification that says it is complete must be the classification.**
 //!
 //! The subsumption sweep decides `A ⊑ B` by asking whether `A ⊓ ¬B` is

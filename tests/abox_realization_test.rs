@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Realizing individuals into classes DEFINED by owl:equivalentClass.
 //!
 //! `check_abox` reads concept labels off one completed tableau. That is sound for detecting

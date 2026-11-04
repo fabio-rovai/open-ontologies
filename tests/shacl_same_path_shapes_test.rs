@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Two property shapes on one path, each carrying its own list-valued constraint.
 //!
 //! `sh:or`, `sh:in` and `sh:not` all nest a list or a shape under a property shape

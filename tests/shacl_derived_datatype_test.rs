@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:datatype` naming one of the twelve XSD integer-derived datatypes or
 //! `xsd:dateTimeStamp` (#343).
 //!

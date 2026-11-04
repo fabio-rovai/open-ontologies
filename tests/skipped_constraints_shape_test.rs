@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #170.** Every `skipped_constraints` entry names the shape it came from.
 //!
 //! The field is recorded per constraint-evaluation SITE, not per shape, so one

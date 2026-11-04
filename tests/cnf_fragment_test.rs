@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The clausal fragment, and the CNF the exporter can emit for it.
 //!
 //! The measurement behind this is in `src/tptp.rs`: OWL 2 RL forbids an

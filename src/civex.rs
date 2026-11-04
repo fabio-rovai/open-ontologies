@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! CIVeX-style causal certificate for state-changing ontology actions (#42).
 //!
 //! A scaffold port of the verifier described in **CIVeX: Causal Intervention

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **What Oxigraph 0.5's transactions actually give this repository (#181).**
 //!
 //! `docs/decisions/0010-the-input-is-a-value-and-not-a-store.md` justifies

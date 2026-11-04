@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! ONNX-based text embedding using tract.
 //! Loads a sentence-transformer model exported to ONNX format.
 

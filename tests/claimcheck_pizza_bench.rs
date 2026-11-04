@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Latency of the compiled claim check on the REAL Pizza ontology.
 //!
 //! Loads the output of `CompileOntology.java` (`/tmp/pizza_compiled.json`) so

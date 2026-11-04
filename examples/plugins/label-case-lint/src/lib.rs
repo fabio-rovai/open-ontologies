@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Reference Open Ontologies plugin (ABI v1): lints class labels for
 //! convention violations. Demonstrates the full contract — manifest,
 //! allocation, packed-pointer returns, and consuming injected SPARQL

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:targetClass` must select SHACL instances, not only direct `rdf:type` matches.
 //!
 //! SHACL defines a SHACL instance as a node reachable by `rdf:type` followed by zero or

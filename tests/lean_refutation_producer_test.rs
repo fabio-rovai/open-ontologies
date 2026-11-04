@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The producer for `oo-refute/1`, end to end.
 //!
 //! `lean/OOCert/Refute.lean` has checked refutations since the day it landed,

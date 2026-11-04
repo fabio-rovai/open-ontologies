@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **RDFC-1.0, the W3C RDF Dataset Canonicalization algorithm.**
 //!
 //! A certified run needs to say WHICH graph it was about, and a graph is only

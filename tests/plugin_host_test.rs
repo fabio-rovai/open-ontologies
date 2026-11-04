@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! WASM plugin host integration tests (ABI v1).
 //!
 //! Plugins here are assembled from WAT at test time so the suite needs no

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Remote text embedder targeting any OpenAI-compatible `/embeddings` HTTP API.
 //!
 //! Works with the official OpenAI API as well as drop-in replacements such as

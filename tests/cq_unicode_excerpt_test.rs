@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::sync::Arc;
 
 use open_ontologies::cq::{CompetencyQuestion, run_cq_suite};

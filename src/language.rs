@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Natural-language handling for ontology labels.
 //!
 //! RDF labels carry an optional BCP-47 language tag (`"Dog"@en`). Before this

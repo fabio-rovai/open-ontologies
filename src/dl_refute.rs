@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Certifying UNSATISFIABILITY, the half `src/tableaux.rs` could not certify.
 //!
 //! `ModelOutcome` hands over a finite interpretation when the answer is yes.

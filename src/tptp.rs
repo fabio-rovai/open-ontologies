@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! First-order export: hand an ontology to the automated-theorem-proving
 //! ecosystem, in TPTP FOF and in ISO/IEC 24707 CLIF.
 //!

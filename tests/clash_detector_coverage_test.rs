@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! One graph per clash detector, and a near-miss twin for each that must stay clean.
 //!
 //! Issue #160: all 295 tracked RDF files sweep clean under the ten clash

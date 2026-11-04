@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A gate command must tell the shell what its verdict was (#323).
 //!
 //! `cli_exit_codes_test.rs` covers commands whose failure is an `error` field.

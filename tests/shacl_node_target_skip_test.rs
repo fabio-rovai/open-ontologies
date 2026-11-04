@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A node shape's own constraints are EVALUATED whatever target form selected
 //! the shape, and the ones this validator cannot evaluate are recorded.
 //!

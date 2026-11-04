@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Fingerprint of the embedding configuration that produced a vector.
 //!
 //! # Why this exists

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #168.** A focus node reachable by more than one type path was
 //! selected once per path, so every core constraint checked it more than once
 //! and reported each violation more than once.

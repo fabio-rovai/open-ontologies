@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The 1-to-1 selection must never resolve a tie silently.
 //!
 //! Stable matching keeps the best target for each source and the best source

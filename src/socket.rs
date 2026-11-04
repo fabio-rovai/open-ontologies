@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Unix domain socket adapter for the Tardygrada language.
 //!
 //! Speaks newline-delimited JSON over `SOCK_STREAM`.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Apache Ossie ontology import, checked against the reference document.
 //!
 //! `tests/fixtures/ossie_enterprise_ontology.yaml` is an Ossie ontology document

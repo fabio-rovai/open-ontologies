@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Fast Downward subprocess wrapper (#50, Planner #45 follow-up).
 //!
 //! Per the LLM-Modulo convention (Kambhampati arXiv 2402.01817), the

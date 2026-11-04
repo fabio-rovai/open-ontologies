@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! End-to-end integration tests across the three-layer architecture
 //! (#43 Dynamics → #44 Causal hookup → #45 Planner stub).
 //!

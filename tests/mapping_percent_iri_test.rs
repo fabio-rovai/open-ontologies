@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Invalid literal percent characters must not produce invalid mapped IRIs.
 use open_ontologies::graph::GraphStore;
 use open_ontologies::mapping::{FieldMapping, MappingConfig};

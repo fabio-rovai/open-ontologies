@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Runtime-tunable knobs derived from `Config`.
 //!
 //! Many internal modules (`tableaux`, `reason`, `cache`, `feedback`,

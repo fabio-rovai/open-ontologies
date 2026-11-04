@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #192.** A false clean: `$this` inside a sub-SELECT.
 //!
 //! `prebinding_violation` already refused `MINUS`, `SERVICE`, a `VALUES` over

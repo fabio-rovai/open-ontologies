@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! TCB-14: the premise order the engine emits is the order the checker matches,
 //! and the two agree BY CONSTRUCTION rather than by a corpus test noticing.
 //!

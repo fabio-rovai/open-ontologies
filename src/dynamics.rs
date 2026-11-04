@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Dynamics layer — action schemas + applicability + apply (#43).
 //!
 //! Foundation of the three-layer architecture (Dynamics → Causal → Planner).

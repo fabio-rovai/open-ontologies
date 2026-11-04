@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::time::Duration;
 
 /// Fire-and-forget webhook delivery. Timeout is configurable via

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! mmRAG benchmark adapter (#41, ISWC 2025).
 //!
 //! Implements the full multi-modal RAG evaluation scoring convention from

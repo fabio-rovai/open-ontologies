@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the MCP-native LLM-as-oracle pattern (#16).
 //!
 //! Verifies that `AlignmentEngine::align_with_thresholds` correctly partitions candidates

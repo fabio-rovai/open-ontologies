@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **Issue #162.** The README's runnable example is run.
 //!
 //! "Try the checker itself" prints three `oo-horn check` invocations and the

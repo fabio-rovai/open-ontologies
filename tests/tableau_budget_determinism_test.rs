@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A verdict must not depend on how fast the machine is (#161).**
 //!
 //! `reasoner_soundness_test::direct_role_clash_is_detected_control` failed

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The generic Horn-rule certificate layer.
 //!
 //! The checker in `lean/OOCert/Rules.lean` has one arm per built-in rule, which

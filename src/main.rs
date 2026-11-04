@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use clap::{Parser, Subcommand};
 use rmcp::ServiceExt;
 use std::sync::Arc;

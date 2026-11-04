@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Regression tests for issue #132.
 //!
 //! A `sh:sparql` constraint was evaluated by wrapping the author's SELECT as a

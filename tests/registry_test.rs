@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Integration tests for the compile cache (`src/cache.rs`) and the
 //! ontology registry (`src/registry.rs`).
 //!

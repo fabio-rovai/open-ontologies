@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `oo-refute/1`: certifying that a graph has NO model.
 //!
 //! Seventeen rules in the OWL 2 RL profile conclude `false` rather than a

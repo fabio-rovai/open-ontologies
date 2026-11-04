@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use open_ontologies::enforce::Enforcer;
 use open_ontologies::feedback::record_tool_feedback;
 use open_ontologies::graph::GraphStore;

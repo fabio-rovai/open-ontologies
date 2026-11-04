@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `validate` must not report parse events as triples.
 //!
 //! An RDF graph is a set, so a statement repeated in the source contributes one triple

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Closed-world vocabulary check for generated DATA graphs (#vocab).
 //!
 //! The gap this fills: SHACL is **open-world**. It silently ignores any predicate

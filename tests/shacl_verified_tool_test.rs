@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The verified SHACL evaluator, reachable from a tool (session feedback).**
 //!
 //! `Shacl/` is a mechanised SHACL Core evaluator whose soundness is a

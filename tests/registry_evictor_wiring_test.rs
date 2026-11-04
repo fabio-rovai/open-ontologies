@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The evictor the HTTP server spawns is wired to a registry nothing loads into, so it
 //! can never evict anything. This file pins that.
 //!

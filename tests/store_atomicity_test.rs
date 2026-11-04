@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A reader can see a half-written graph, and a transaction stops it.**
 //!
 //! `docs/decisions/0010-the-input-is-a-value-and-not-a-store.md` says "no

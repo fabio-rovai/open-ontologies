@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Schema-guided structured-extraction scaffolding (#28, OntoGPT SPIRES,
 //! MCP-native).
 //!

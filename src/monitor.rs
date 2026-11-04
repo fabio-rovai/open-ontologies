@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use crate::graph::GraphStore;
 use crate::ontology::OntologyService;
 use crate::state::StateDb;

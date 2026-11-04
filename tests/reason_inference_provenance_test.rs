@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Inferred triples must stay distinguishable from asserted ones.
 //!
 //! The defect this pins (flaw hunt, 30 Aug 2026, D2): `reason` merged

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Two proof assistants, one certificate format, and the question of whether the two
 //! formalisations actually say the same thing.
 //!

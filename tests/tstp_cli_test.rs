@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `fol-prove` through the real binary, because an exit code that does not
 //! bite is the same defect as a check that does not run.
 //!

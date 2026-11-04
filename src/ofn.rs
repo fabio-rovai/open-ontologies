@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! OWL 2 Functional-Style Syntax (OFN) read into the RDF graph it denotes.
 //!
 //! # The gap this closes

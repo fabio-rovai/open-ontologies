@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The emitted first-order logic IS the translation `OwlLean/Translation.lean`
 //! defines, for a set of worked cases.
 //!

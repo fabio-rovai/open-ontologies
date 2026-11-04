@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `load` in one-shot CLI mode must say when nothing was kept.
 //!
 //! With the default in-memory storage backend every CLI invocation builds a

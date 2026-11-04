@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `align` against SKOS vocabularies, and against a mix of OWL and SKOS.
 //!
 //! The candidate generator used to read `?c a owl:Class` and nothing else, so a

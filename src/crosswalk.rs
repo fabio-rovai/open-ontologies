@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Certify what a crosswalk CLAIMS against what the two ontologies ENTAIL.
 //!
 //! A mapping file says `ies:Person skos:exactMatch hqdm:Person`. Nothing checks

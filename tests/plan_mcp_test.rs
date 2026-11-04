@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The MCP `onto_plan` / `onto_apply` handlers must share plan state.
 //!
 //! Part of the #91 regression set. `onto_plan` and `onto_apply` are independent

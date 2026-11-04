@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! OAEI-style alignment evaluation harness (#31).
 //!
 //! Given a reference alignment (gold standard) and a computed alignment

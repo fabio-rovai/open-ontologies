@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A `reason` line in a batch takes the same budgets as the one-shot command.
 //!
 //! `batch` accepted `reason --phase-timeout-ms N --classify-timeout-ms M` and

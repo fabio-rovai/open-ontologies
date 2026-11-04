@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! TBox-slice retrieval for ontology-grounded RAG (#34, SEMANTiCS 2025
 //! GrOWL-RAG).
 //!

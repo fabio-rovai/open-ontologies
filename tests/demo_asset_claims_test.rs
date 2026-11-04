@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The animated asset in the README states the checker's own output.**
 //!
 //! `docs/assets/demo-certify.svg` shows a terminal printing `"asserted":3`,

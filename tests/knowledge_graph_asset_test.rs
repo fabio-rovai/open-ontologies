@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **The README's graph states figures, so the figures are re-derived.**
 //!
 //! `docs/assets/knowledge-graph.svg` is drawn from a real certified run over

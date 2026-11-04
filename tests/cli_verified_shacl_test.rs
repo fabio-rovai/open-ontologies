@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The verified SHACL evaluator, from the command line.
 //!
 //! Issue #203 is titled "the verified evaluator is unreachable from

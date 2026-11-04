@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Supported repeated wildcards must not stall repository listing.
 use open_ontologies::repo::glob_match;
 

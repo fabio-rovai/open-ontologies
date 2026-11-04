@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The contradiction probe, reached the way a user reaches it.
 //!
 //! `crosswalk::contradiction_probe` carries a crosswalk's claims into the

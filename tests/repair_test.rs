@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Weighted repair, on fixtures whose optimum is worked out by hand.
 //!
 //! Each fixture is small enough that the cheapest repair can be checked on

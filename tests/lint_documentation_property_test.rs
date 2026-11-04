@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `missing_comment` means the class is undocumented, not that it lacks one
 //! particular property.
 //!

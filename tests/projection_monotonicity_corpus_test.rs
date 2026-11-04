@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The monotonicity differential, run for real over every ontology this
 //! repository ships.
 //!

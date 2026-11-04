@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! In-memory vector store with dual-space search (cosine + Poincaré)
 //! and SQLite persistence.
 

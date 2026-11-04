@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Tests for the build-time modelling buffer.
 //!
 //! The canary suite is the one that matters commercially: it converts "the

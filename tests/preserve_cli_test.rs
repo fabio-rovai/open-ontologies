@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! The command line, end to end, including the exit codes.
 //!
 //! Wiring that nothing exercises is how `push` came to be proxied to a batch

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 pub mod align;
 pub mod align_fuzzy;
 pub mod batch;

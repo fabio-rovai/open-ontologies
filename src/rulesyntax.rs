@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Standard rule syntaxes read into the Horn rule table the Lean checker takes.
 //!
 //! # The gap this closes

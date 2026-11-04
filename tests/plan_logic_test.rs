@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A plan asks whether the change is LOGICALLY safe, not only how big it is (#336).
 //!
 //! `risk_score` was derived from removal counts alone. A change that made a named

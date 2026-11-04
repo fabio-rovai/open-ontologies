@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Which of YOUR axioms the rule engine can actually see.
 //!
 //! # The gap this closes

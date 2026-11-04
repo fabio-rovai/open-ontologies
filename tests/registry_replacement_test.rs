@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Failed source/cache replacements must preserve the last successful dataset.
 use std::sync::Arc;
 

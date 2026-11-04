@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! `sh:class` must be evaluated, not skipped.
 //!
 //! Until this test was written the constraint was collected by no query, evaluated by no

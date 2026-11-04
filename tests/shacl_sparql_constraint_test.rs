@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Regression tests for issue #98.
 //!
 //! `sh:sparql` constraints were not read at all, so a shapes graph built entirely

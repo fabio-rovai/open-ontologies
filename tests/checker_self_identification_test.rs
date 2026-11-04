@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Every checker says WHICH BINARY is running, and a reader can check it.
 //!
 //! Issue #204. Every checker printed the name of the theorem its acceptance

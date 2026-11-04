@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A label signature already expanded somewhere is not expanded again.**
 //!
 //! Blocking used to require the blocker to be an ANCESTOR. An EL ontology whose

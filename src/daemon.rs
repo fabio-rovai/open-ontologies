@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Background daemon management — start/stop/status for the persistent HTTP store.
 
 use std::path::PathBuf;

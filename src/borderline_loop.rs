@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Generalised iterative borderline-pair review loop (#37, NORA NeurIPS
 //! 2025).
 //!

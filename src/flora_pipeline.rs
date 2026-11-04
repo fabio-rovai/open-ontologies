@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! End-to-end FLORA alignment pipeline (#38 follow-on).
 //!
 //! Wires the signal extractor to the FLORA fuzzy inference engine so the

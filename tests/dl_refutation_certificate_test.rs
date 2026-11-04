@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! Refutation certificates for the SHIQ tableaux reasoner, end to end.
 //!
 //! `tests/dl_model_certificate_test.rs` closes the loop for the POSITIVE

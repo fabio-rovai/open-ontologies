@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! **A phase budget bounds the subsumption sweep, and the run says which
 //! clock stopped it** (#340).
 //!

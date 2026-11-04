@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A prover's derivation, translated into `lean/Fo`'s certificate format and
 //! checked by `oo-resolution`, whose acceptance discharges `Fo.unsat_of_check`.
 //!

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! A crosswalk's match TYPE is a claim, and this is the thing that checks it.
 //!
 //! `src/align.rs` picks `exactMatch` when label similarity exceeds 0.8 and

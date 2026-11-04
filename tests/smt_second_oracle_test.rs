@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 //! cvc5 as a SECOND SMT oracle, and the differential that measures whether it
 //! disagrees with Z3.
 //!
