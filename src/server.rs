@@ -1234,10 +1234,29 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; the engine joins them against the existing closure (semi-naive evaluation), so the work is proportional to what changed rather than to the size of the store. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those. This path has NO snapshot form: it reads the union of every graph and materialises into the default graph, so over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) it is REFUSED unless `all_versions: true` says the union of every version is what you meant. Use onto_reason with valid_at / as_of for a snapshot.")]
+    #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; or pass `removed` with an empty delta to withdraw assertions and unsupported consequences atomically. Materialisation persists all captured support in the existing store. The inference loop joins them against the existing closure (semi-naive evaluation), while durable support reconciliation currently scans the dataset and ledger. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those. This path has NO snapshot form: it reads the union of every graph and materialises into the default graph, so over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) it is REFUSED unless `all_versions: true` says the union of every version is what you meant. Use onto_reason with valid_at / as_of for a snapshot.")]
     async fn onto_reason_incremental(&self, Parameters(input): Parameters<OntoReasonIncrementalInput>) -> String {
-        use crate::reason_incremental::{parse_ntriples, IncrementalReasoner};
-        let delta = parse_ntriples(&input.delta);
+        use crate::reason_incremental::IncrementalReasoner;
+        if let Some(removed) = input.removed.as_deref() {
+            if input.materialize == Some(false) {
+                return Self::err_json("removed requires materialize=true; no retraction was performed");
+            }
+            let removed = match crate::graph::GraphStore::parse_triples_ordered(removed, "ntriples") {
+                Ok(t) => t,
+                Err(e) => return Self::err_json(e),
+            };
+            // Retraction is independently atomic. Refuse a mixed request so a
+            // malformed addition cannot leave a half-applied patch.
+            if !input.delta.trim().is_empty() {
+                return Self::err_json("submit removals and additions as separate incremental operations");
+            }
+            return self.graph.retract_assertions(&removed)
+                .map(|r| r.to_string()).unwrap_or_else(Self::err_json);
+        }
+        let delta = match crate::graph::GraphStore::parse_triples_ordered(&input.delta, "ntriples") {
+            Ok(delta) => delta,
+            Err(e) => return Self::err_json(e),
+        };
         if delta.is_empty() {
             return r#"{"error":"delta parsed to no triples: expected N-Triples"}"#.to_string();
         }
@@ -2393,8 +2412,19 @@ impl OpenOntologiesServer {
             .unwrap_or_else(Self::err_json)
     }
 
-    #[tool(name = "onto_provenance", description = "PROVENANCE SEMIRINGS: the algebraic expression over the ASSERTED triples that a derived triple carries. Green, Karvounarakis and Tannen's construction applied to this engine's rule table, evaluated over the full derivation DAG rather than over `derivations.tsv`, which records only the FIRST derivation of each triple and would give one monomial wherever the closure supports several. Six semirings: `boolean` (derivability), `why` (sets of sets of asserted triples, absorptive, whose minimal elements are the justifications), `lineage` (Which(X): the union of everything that contributes, which is NOT a justification and is usually far from minimal), `counting` (the number of proof trees), `tropical` (min-plus: the cheapest proof tree, summing leaf weights with multiplicity) and `trust` (max-min: the confidence of the best derivation, which is the confidence of its weakest premise). RECURSION IS WHERE PROVENANCE GOES WRONG QUIETLY AND THIS TOOL DOES NOT. Datalog is recursive, so a triple whose support contains a cycle has arbitrarily many proof trees and its counting annotation DIVERGES. `why`, `trust` and `tropical` are absorptive and converge; `boolean` and `lineage` are NOT absorptive and converge for a different reason, which is that their value lattices are finite, and the payload says which reason applies to which. `counting` does not converge, so round k of the iteration counts proof trees of HEIGHT AT MOST k, `depth_bound` (default 32) is reported beside the number, `value_is_exact` is false unless the iteration stabilised on its own, and `cycle_in_support` names a triple on the cycle when there is one. A saturated 128-bit counter is reported as saturated rather than as a count. `why` is worst-case exponential, so `max_monomials` (default 64) caps it; the monomials KEPT are the smallest, which is what keeps the survivors an antichain, and a truncated run WITHDRAWS the claim that its monomials are minimal supports rather than keeping it. min-plus refuses a negative weight because it is absorptive only for non-negative ones; max-min refuses a weight above 1.0 because its multiplicative identity is 1 and a larger weight would make a conjunction come out smaller than the algebra says. NOTHING HERE IS MACHINE-CHECKED. The Lean layer certifies that a derivation step is sound; no theorem says a monomial is minimal or that the list of them is complete. onto_justify verifies a support set by re-running the engine without each of its elements; this tool does algebra. `owl-dl` is refused.")]
+    #[tool(name = "onto_provenance", description = "PROVENANCE SEMIRINGS: the algebraic expression over the ASSERTED triples that a derived triple carries. Green, Karvounarakis and Tannen's construction applied to this engine's rule table, evaluated over the full derivation DAG rather than over `derivations.tsv`, which records only the FIRST derivation of each triple and would give one monomial wherever the closure supports several. Six semirings: `boolean` (derivability), `why` (sets of sets of asserted triples, absorptive, whose minimal elements are the justifications), `lineage` (Which(X): the union of everything that contributes, which is NOT a justification and is usually far from minimal), `counting` (the number of proof trees), `tropical` (min-plus: the cheapest proof tree, summing leaf weights with multiplicity) and `trust` (max-min: the confidence of the best derivation, which is the confidence of its weakest premise). RECURSION IS WHERE PROVENANCE GOES WRONG QUIETLY AND THIS TOOL DOES NOT. Datalog is recursive, so a triple whose support contains a cycle has arbitrarily many proof trees and its counting annotation DIVERGES. `why`, `trust` and `tropical` are absorptive and converge; `boolean` and `lineage` are NOT absorptive and converge for a different reason, which is that their value lattices are finite, and the payload says which reason applies to which. `counting` does not converge, so round k of the iteration counts proof trees of HEIGHT AT MOST k, `depth_bound` (default 32) is reported beside the number, `value_is_exact` is false unless the iteration stabilised on its own, and `cycle_in_support` names a triple on the cycle when there is one. A saturated 128-bit counter is reported as saturated rather than as a count. `why` is worst-case exponential, so `max_monomials` (default 64) caps it; the monomials KEPT are the smallest, which is what keeps the survivors an antichain, and a truncated run WITHDRAWS the claim that its monomials are minimal supports rather than keeping it. min-plus refuses a negative weight because it is absorptive only for non-negative ones; max-min refuses a weight above 1.0 because its multiplicative identity is 1 and a larger weight would make a conjunction come out smaller than the algebra says. NOTHING HERE IS MACHINE-CHECKED. The Lean layer certifies that a derivation step is sound; no theorem says a monomial is minimal or that the list of them is complete. onto_justify verifies a support set by re-running the engine without each of its elements; this tool does algebra. `owl-dl` is refused. When materialised support exists the response also includes its durable evidence, rule versions and withdrawal history. Pass certificate_dir to export that ledger and an existing-format proof forest; only oo-cert can check semantic soundness.")]
     async fn onto_provenance(&self, Parameters(input): Parameters<OntoProvenanceInput>) -> String {
+        let durable_certificate = if let Some(dir) = input.certificate_dir.as_deref() {
+            let ledger = match self.graph.ledger() {
+                Ok(Some(ledger)) => ledger,
+                Ok(None) => return Self::err_json("no durable materialisation has been recorded; run onto_reason first"),
+                Err(e) => return Self::err_json(e),
+            };
+            match ledger.export_certificate(std::path::Path::new(&expand_tilde(dir))) {
+                Ok(report) => Some(report),
+                Err(e) => return Self::err_json(e),
+            }
+        } else { None };
         let semirings = match input.semirings {
             None => crate::provenance::Semiring::all(),
             Some(names) => {
@@ -2442,7 +2472,10 @@ impl OpenOntologiesServer {
             weights,
         };
         crate::provenance::annotate(&self.graph, input.triple.as_deref(), &opts)
-            .map(|v| v.to_string())
+            .map(|mut v| {
+                if let Some(report) = durable_certificate { v["durable_certificate"] = report; }
+                v.to_string()
+            })
             .unwrap_or_else(Self::err_json)
     }
 
