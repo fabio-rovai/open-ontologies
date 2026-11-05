@@ -151,6 +151,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`reason --profile owl-dl` no longer reports `consistent: true` when the
+  tableau omits an axiom** (#356). When the graph uses an unmodelled construct
+  and no clash was proved, the headline is `null`; a proved clash remains
+  `false`.
+
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
   Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`
