@@ -1,0 +1,299 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
+//! Exercise the existing public reasoning/write interfaces, not a second
+//! lifecycle service. Withdrawal must change query results in the SAME commit.
+
+use open_ontologies::graph::{GraphStore, ReadScope};
+use open_ontologies::reason::{InferenceTarget, Reasoner};
+use open_ontologies::reason_incremental::IncrementalReasoner;
+use open_ontologies::truth_maintenance::{LEDGER_GRAPH, Ledger};
+use std::sync::Arc;
+
+const PREFIX: &str =
+    "@prefix : <http://example.org/> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .";
+fn graph(ttl: &str) -> Arc<GraphStore> {
+    let g = Arc::new(GraphStore::new());
+    g.load_turtle(&format!("{PREFIX}\n{ttl}"), None).unwrap();
+    g
+}
+fn t(s: &str, p: &str, o: &str) -> (String, String, String) {
+    (s.into(), p.into(), o.into())
+}
+fn holds(g: &GraphStore, s: &str, class: &str) -> bool {
+    g.all_triples().unwrap().contains(&t(
+        &format!("<http://example.org/{s}>"),
+        "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",
+        &format!("<http://example.org/{class}>"),
+    ))
+}
+fn reason(g: &Arc<GraphStore>) {
+    Reasoner::run(g, "rdfs", true).unwrap();
+}
+
+#[test]
+fn existing_reasoner_persists_all_alternatives_and_delete_retracts_transitively() {
+    let g = graph(
+        ":A rdfs:subClassOf :C . :B rdfs:subClassOf :C . :C rdfs:subClassOf :D . :x a :A, :B .",
+    );
+    reason(&g);
+    assert!(holds(&g, "x", "D"));
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(holds(&g, "x", "C"), "the independent B derivation survives");
+    assert!(holds(&g, "x", "D"));
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/B> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "C"));
+    assert!(!holds(&g, "x", "D"));
+    assert!(
+        !g.ledger()
+            .unwrap()
+            .unwrap()
+            .history
+            .last()
+            .unwrap()
+            .withdrawn_facts
+            .is_empty()
+    );
+}
+
+#[test]
+fn recursive_support_does_not_survive_withdrawal_of_its_last_seed() {
+    let g = graph(":A rdfs:subClassOf :B . :B rdfs:subClassOf :A . :x a :A .");
+    reason(&g);
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "A"));
+    assert!(!holds(&g, "x", "B"));
+}
+
+#[test]
+fn reassertion_is_independent_of_the_derived_copy() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    g.load_turtle(&format!("{PREFIX} :x a :B ."), None).unwrap();
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(holds(&g, "x", "B"));
+}
+
+#[test]
+fn repeated_reasoning_never_promotes_inferences_to_assertions() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    reason(&g);
+    assert_eq!(
+        g.triples_in_scope(&ReadScope::AllGraphs).unwrap().0.len(),
+        2
+    );
+    let dir = tempfile::tempdir().unwrap();
+    Reasoner::run_full(
+        &g,
+        "rdfs",
+        false,
+        InferenceTarget::DefaultGraph,
+        Some(dir.path()),
+    )
+    .unwrap();
+    let asserted = std::fs::read_to_string(dir.path().join("asserted.tsv")).unwrap();
+    assert!(!asserted.contains("<http://example.org/x>\t<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>\t<http://example.org/B>"));
+}
+
+#[test]
+fn independent_named_graph_evidence_is_withdrawn_separately() {
+    let g = graph(":A rdfs:subClassOf :B .");
+    g.load_nquads("<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/A> <http://example.org/source1> .\n<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/A> <http://example.org/source2> .").unwrap();
+    reason(&g);
+    g.sparql_update("CLEAR GRAPH <http://example.org/source1>")
+        .unwrap();
+    assert!(holds(&g, "x", "B"));
+    g.sparql_update("CLEAR GRAPH <http://example.org/source2>")
+        .unwrap();
+    assert!(!holds(&g, "x", "B"));
+}
+
+#[test]
+fn dataset_backup_restores_dependencies_and_they_still_retract() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    let snapshot = g.snapshot("nquads").unwrap();
+    let restored = Arc::new(GraphStore::new());
+    restored.load_nquads(&snapshot).unwrap();
+    assert_eq!(restored.triple_count(), g.triple_count());
+    restored
+        .sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&restored, "x", "B"));
+}
+
+#[test]
+fn legacy_interfaces_do_not_count_or_reason_over_metadata() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    assert_eq!(g.triple_count(), 3);
+    assert_eq!(g.all_triples().unwrap().len(), 3);
+    assert!(!g.serialize("turtle").unwrap().contains(LEDGER_GRAPH));
+    let v: serde_json::Value = serde_json::from_str(
+        &g.sparql_select_union("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(v["results"].as_array().unwrap().len(), 3);
+}
+
+#[test]
+fn rule_retirement_withdraws_only_conclusions_without_independent_support() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A . :y a :B .");
+    reason(&g);
+    let pack = open_ontologies::truth_maintenance::builtin_rule_pack_hash();
+    g.invalidate_rule("rdfs9", &pack).unwrap();
+    assert!(!holds(&g, "x", "B"));
+    assert!(holds(&g, "y", "B"));
+}
+
+#[test]
+fn incremental_inference_uses_the_same_durable_support_and_can_be_retracted() {
+    let g = graph(":A rdfs:subClassOf :B . :B rdfs:subClassOf :C .");
+    reason(&g);
+    g.load_turtle(&format!("{PREFIX} :x a :A ."), None).unwrap();
+    let delta = vec![t(
+        "<http://example.org/x>",
+        "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",
+        "<http://example.org/A>",
+    )];
+    IncrementalReasoner::run(&g, &delta, true).unwrap();
+    assert!(holds(&g, "x", "C"));
+    g.retract_assertions(&delta).unwrap();
+    assert!(!holds(&g, "x", "B"));
+    assert!(!holds(&g, "x", "C"));
+}
+
+#[test]
+fn durable_proof_export_uses_existing_checker_inputs_and_keeps_all_alternatives() {
+    let g = graph(":A rdfs:subClassOf :C . :B rdfs:subClassOf :C . :x a :A, :B .");
+    reason(&g);
+    let dir = tempfile::tempdir().unwrap();
+    let ledger = g.ledger().unwrap().unwrap();
+    let manifest = ledger.export_certificate(dir.path()).unwrap();
+    assert_eq!(manifest["verdict"], "not_checked");
+    let restored: Ledger =
+        serde_json::from_slice(&std::fs::read(dir.path().join("ledger.json")).unwrap()).unwrap();
+    assert_eq!(restored.derivations.len(), ledger.derivations.len());
+    assert!(
+        std::fs::read_to_string(dir.path().join("derivations.tsv"))
+            .unwrap()
+            .contains("rdfs9")
+    );
+}
+
+#[test]
+fn deleting_an_assertion_keeps_its_independent_derivation() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A, :B .");
+    reason(&g);
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/B> }")
+        .unwrap();
+    assert!(holds(&g, "x", "B"));
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "B"));
+}
+
+#[test]
+fn failed_load_and_update_preserve_both_data_and_support() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    let before = g.snapshot("nquads").unwrap();
+    assert!(
+        g.load_ntriples(
+            "<http://example.org/new> <http://example.org/p> <http://example.org/o> .\ninvalid"
+        )
+        .is_err()
+    );
+    assert!(
+        g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }; INVALID")
+            .is_err()
+    );
+    assert_eq!(g.snapshot("nquads").unwrap(), before);
+}
+
+#[test]
+fn new_evidence_marks_the_recorded_closure_incomplete_until_reasoning_runs() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    reason(&g);
+    assert!(g.ledger().unwrap().unwrap().fixpoint_reached);
+    g.load_turtle(&format!("{PREFIX} :y a :A ."), None).unwrap();
+    assert!(!g.ledger().unwrap().unwrap().fixpoint_reached);
+    reason(&g);
+    assert!(holds(&g, "y", "B"));
+    assert!(g.ledger().unwrap().unwrap().fixpoint_reached);
+}
+
+#[test]
+fn persisted_dependencies_survive_store_reopen() {
+    let dir = tempfile::tempdir().unwrap();
+    {
+        let g = Arc::new(GraphStore::open_persistent(dir.path()).unwrap());
+        g.load_turtle(&format!("{PREFIX} :A rdfs:subClassOf :B . :x a :A ."), None)
+            .unwrap();
+        reason(&g);
+    }
+    let g = GraphStore::open_persistent(dir.path()).unwrap();
+    assert!(holds(&g, "x", "B"));
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "B"));
+}
+
+#[test]
+fn blank_node_support_survives_dataset_backup() {
+    let g = graph(":A rdfs:subClassOf :B . _:person a :A .");
+    reason(&g);
+    let snapshot = g.snapshot("nquads").unwrap();
+    let restored = Arc::new(GraphStore::new());
+    restored.load_nquads(&snapshot).unwrap();
+    restored
+        .sparql_update("DELETE WHERE { ?s a <http://example.org/A> }")
+        .unwrap();
+    assert!(!restored.all_triples().unwrap().iter().any(|(_, p, o)| p
+        == "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+        && o == "<http://example.org/B>"));
+}
+
+#[test]
+fn sparql_reinsertion_after_withdrawal_creates_new_active_evidence() {
+    let g = graph(":A rdfs:subClassOf :B . :B rdfs:subClassOf :A . :x a :A .");
+    reason(&g);
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "B"));
+    g.sparql_update("INSERT DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(holds(&g, "x", "A"));
+    assert!(holds(&g, "x", "B"));
+}
+
+#[test]
+fn withdrawing_a_named_graph_assertion_reveals_its_independent_inference() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    g.load_nquads("<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/B> <http://example.org/source> .").unwrap();
+    reason(&g);
+    assert_eq!(
+        g.triple_count(),
+        3,
+        "no redundant inference copy is needed yet"
+    );
+    g.sparql_update("CLEAR GRAPH <http://example.org/source>")
+        .unwrap();
+    assert!(holds(&g, "x", "B"));
+    assert!(
+        g.triples_in_scope(&ReadScope::AllGraphs)
+            .unwrap()
+            .0
+            .iter()
+            .all(|t| t.2 != "<http://example.org/B>" || t.0 == "<http://example.org/A>")
+    );
+    g.sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    assert!(!holds(&g, "x", "B"));
+}

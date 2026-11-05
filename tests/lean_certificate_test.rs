@@ -379,3 +379,34 @@ fn every_shipped_ontology_certifies() {
         failures.iter().map(|(f, t)| format!("--- {f}\n{t}")).collect::<Vec<_>>().join("\n")
     );
 }
+
+#[test]
+fn durable_proof_forest_checks_after_withdrawal_and_rejects_tampering() {
+    if skip() {
+        return;
+    }
+    let graph = Arc::new(GraphStore::new());
+    graph.load_turtle("@prefix : <http://example.org/> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . :A rdfs:subClassOf :C . :B rdfs:subClassOf :C . :x a :A, :B .", None).unwrap();
+    Reasoner::run(&graph, "rdfs", true).unwrap();
+    graph
+        .sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    graph
+        .ledger()
+        .unwrap()
+        .unwrap()
+        .export_certificate(dir.path())
+        .unwrap();
+    let (ok, output) = check(dir.path());
+    assert!(ok, "durable certificate rejected: {output}");
+    let path = dir.path().join("derivations.tsv");
+    let proof = std::fs::read_to_string(&path).unwrap();
+    assert!(!proof.is_empty());
+    // Change only the first conclusion, leaving its premises intact.
+    let mut fields: Vec<_> = proof.trim_end().split('\t').map(str::to_owned).collect();
+    fields[1] = "<http://example.org/forged>".into();
+    std::fs::write(path, format!("{}\n", fields.join("\t"))).unwrap();
+    let (ok, _) = check(dir.path());
+    assert!(!ok, "checker accepted a forged durable conclusion");
+}

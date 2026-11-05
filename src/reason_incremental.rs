@@ -73,6 +73,7 @@ pub struct IncrementalReasoner;
 /// against. Transitive closures are precomputed, so propagating a new type
 /// through a hierarchy is a lookup rather than a search.
 struct Schema {
+    derivations: crate::reason::DerivationGraph,
     superclasses: HashMap<String, HashSet<String>>,
     superproperties: HashMap<String, HashSet<String>>,
     domains: HashMap<String, Vec<String>>,
@@ -123,6 +124,7 @@ impl Schema {
         // it so the caller can report an incomplete closure instead of a wrong one
         // presented as complete.
         let truncated = std::cell::Cell::new(false);
+        let schema_triples = std::cell::RefCell::new(Vec::new());
         let pairs = |pred: &str| -> anyhow::Result<Vec<(String, String)>> {
             let q = format!("SELECT ?s ?o WHERE {{ ?s {pred} ?o }} LIMIT {SCAN_LIMIT}");
             // The schema is a question about the whole store: subclass/domain/range
@@ -149,6 +151,10 @@ impl Schema {
             if rows.len() >= SCAN_LIMIT {
                 truncated.set(true);
             }
+            schema_triples.borrow_mut().extend(
+                rows.iter()
+                    .map(|(s, o)| (s.clone(), pred.to_string(), o.clone())),
+            );
             Ok(rows)
         };
         let typed = |cls: &str| -> anyhow::Result<HashSet<String>> {
@@ -168,6 +174,10 @@ impl Schema {
             if rows.len() >= SCAN_LIMIT {
                 truncated.set(true);
             }
+            schema_triples.borrow_mut().extend(
+                rows.iter()
+                    .map(|s| (s.clone(), RDF_TYPE.to_string(), cls.to_string())),
+            );
             Ok(rows)
         };
 
@@ -203,13 +213,27 @@ impl Schema {
             inverses.entry(o).or_default().push(s);
         }
 
+        let transitive = typed(OWL_TRANSITIVE)?;
+        let symmetric = typed(OWL_SYMMETRIC)?;
+        // Schema closure is small and records the actual chains behind a
+        // precomputed superclass lookup. A synthetic A subClassOf C premise
+        // with no recorded A -> B -> C derivation would defeat retraction.
+        let schema_store = Arc::new(GraphStore::new());
+        let text = schema_triples
+            .borrow()
+            .iter()
+            .map(|(s, p, o)| format!("{s} {p} {o} .\n"))
+            .collect::<String>();
+        schema_store.load_ntriples(&text)?;
+        let derivations = crate::reason::Reasoner::derivation_graph(&schema_store, "owl-rl")?;
         Ok(Schema {
+            derivations,
             superclasses: close(&sub_class),
             superproperties: close(&sub_prop),
             domains,
             ranges,
-            transitive: typed(OWL_TRANSITIVE)?,
-            symmetric: typed(OWL_SYMMETRIC)?,
+            transitive,
+            symmetric,
             inverses,
             truncated: truncated.get(),
         })
@@ -238,8 +262,13 @@ impl IncrementalReasoner {
     }
 
     /// Derive and materialise the consequences of `delta` against the closure
-    /// already in the store, without reading the store into memory.
-    pub fn run(graph: &Arc<GraphStore>, delta: &[Triple], materialize: bool) -> anyhow::Result<String> {
+    /// already in the store. The inference loop uses targeted queries;
+    /// durable materialisation additionally reconciles the assertion snapshot.
+    pub fn run(
+        graph: &Arc<GraphStore>,
+        delta: &[Triple],
+        materialize: bool,
+    ) -> anyhow::Result<String> {
         Self::run_scoped(graph, delta, materialize, false)
     }
 
@@ -299,12 +328,27 @@ impl IncrementalReasoner {
             .to_string());
         }
 
+        let source_token = if materialize {
+            Some(graph.reasoning_token()?)
+        } else {
+            None
+        };
+        let asserted = if materialize {
+            Some(
+                graph
+                    .triples_in_scope(&crate::graph::ReadScope::AllGraphs)?
+                    .0,
+            )
+        } else {
+            None
+        };
         let schema = Schema::read(graph)?;
 
         // Targeted join: the objects an edge leads on to, and the subjects
         // that lead into it. Only asked for transitive properties, and only
         // about terms the delta actually mentions.
-        let neighbours = |term: &str, pred: &str, forward: bool| -> Vec<String> {
+        let neighbours_truncated = std::cell::Cell::new(false);
+        let neighbours = |term: &str, pred: &str, forward: bool| -> anyhow::Result<Vec<String>> {
             let q = if forward {
                 format!("SELECT ?x WHERE {{ {term} {pred} ?x }} LIMIT 10000")
             } else {
@@ -312,22 +356,27 @@ impl IncrementalReasoner {
             };
             // The neighbours of a delta term are instance edges that may live in any
             // named graph, so this store-question reads the union too.
-            graph
-                .sparql_select_union(&q)
-                .ok()
-                .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
-                .and_then(|v| v.get("results").and_then(|r| r.as_array()).cloned())
-                .map(|rows| {
-                    rows.iter()
-                        .filter_map(|r| Some(r.get("x")?.as_str()?.to_string()))
-                        .collect()
+            let raw = graph.sparql_select_union(&q)?;
+            let value: serde_json::Value = serde_json::from_str(&raw)?;
+            let rows = value["results"].as_array().ok_or_else(|| {
+                anyhow::anyhow!("incremental neighbour query returned no solution rows")
+            })?;
+            if rows.len() >= 10000 {
+                neighbours_truncated.set(true);
+            }
+            rows.iter()
+                .map(|row| {
+                    row["x"].as_str().map(str::to_owned).ok_or_else(|| {
+                        anyhow::anyhow!("incremental neighbour query returned an unbound term")
+                    })
                 })
-                .unwrap_or_default()
+                .collect()
         };
 
         let mut derived: HashSet<Triple> = HashSet::new();
         let mut frontier: Vec<Triple> = delta.to_vec();
         let mut rounds = 0usize;
+        let mut instances = schema.derivations.instances.clone();
 
         // Semi-naive: each round derives only from what the previous round
         // produced. Re-deriving something the store already holds is harmless
@@ -336,7 +385,15 @@ impl IncrementalReasoner {
             rounds += 1;
             let mut next: Vec<Triple> = Vec::new();
             {
-                let mut emit = |t: Triple, next: &mut Vec<Triple>| {
+                let mut emit = |t: Triple,
+                                rule: &'static str,
+                                premises: Vec<Triple>,
+                                next: &mut Vec<Triple>| {
+                    instances.push(crate::reason::RuleInstance {
+                        rule,
+                        conclusion: t.clone(),
+                        premises,
+                    });
                     if derived.insert(t.clone()) {
                         next.push(t);
                     }
@@ -346,7 +403,15 @@ impl IncrementalReasoner {
                     if p == RDF_TYPE {
                         if let Some(supers) = schema.superclasses.get(o) {
                             for sup in supers {
-                                emit((s.clone(), p.clone(), sup.clone()), &mut next);
+                                emit(
+                                    (s.clone(), p.clone(), sup.clone()),
+                                    "rdfs9",
+                                    vec![
+                                        (s.clone(), p.clone(), o.clone()),
+                                        (o.clone(), RDFS_SUBCLASS.into(), sup.clone()),
+                                    ],
+                                    &mut next,
+                                );
                             }
                         }
                         continue;
@@ -354,29 +419,94 @@ impl IncrementalReasoner {
 
                     if let Some(supers) = schema.superproperties.get(p) {
                         for sup in supers {
-                            emit((s.clone(), sup.clone(), o.clone()), &mut next);
+                            emit(
+                                (s.clone(), sup.clone(), o.clone()),
+                                "rdfs7",
+                                vec![
+                                    (s.clone(), p.clone(), o.clone()),
+                                    (p.clone(), RDFS_SUBPROP.into(), sup.clone()),
+                                ],
+                                &mut next,
+                            );
                         }
                     }
                     for d in schema.domains.get(p).into_iter().flatten() {
-                        emit((s.clone(), RDF_TYPE.to_string(), d.clone()), &mut next);
+                        emit(
+                            (s.clone(), RDF_TYPE.to_string(), d.clone()),
+                            "rdfs2",
+                            vec![
+                                (s.clone(), p.clone(), o.clone()),
+                                (p.clone(), RDFS_DOMAIN.into(), d.clone()),
+                            ],
+                            &mut next,
+                        );
                     }
                     if o.starts_with('<') {
                         for r in schema.ranges.get(p).into_iter().flatten() {
-                            emit((o.clone(), RDF_TYPE.to_string(), r.clone()), &mut next);
+                            emit(
+                                (o.clone(), RDF_TYPE.to_string(), r.clone()),
+                                "rdfs3",
+                                vec![
+                                    (s.clone(), p.clone(), o.clone()),
+                                    (p.clone(), RDFS_RANGE.into(), r.clone()),
+                                ],
+                                &mut next,
+                            );
                         }
                         if schema.symmetric.contains(p) {
-                            emit((o.clone(), p.clone(), s.clone()), &mut next);
+                            emit(
+                                (o.clone(), p.clone(), s.clone()),
+                                "prp-symp",
+                                vec![
+                                    (p.clone(), RDF_TYPE.into(), OWL_SYMMETRIC.into()),
+                                    (s.clone(), p.clone(), o.clone()),
+                                ],
+                                &mut next,
+                            );
                         }
                         for inv in schema.inverses.get(p).into_iter().flatten() {
-                            emit((o.clone(), inv.clone(), s.clone()), &mut next);
+                            let forward = schema.derivations.closure.contains(&(
+                                p.clone(),
+                                OWL_INVERSE.into(),
+                                inv.clone(),
+                            ));
+                            let (rule, axiom) = if forward {
+                                ("prp-inv1", (p.clone(), OWL_INVERSE.into(), inv.clone()))
+                            } else {
+                                ("prp-inv2", (inv.clone(), OWL_INVERSE.into(), p.clone()))
+                            };
+                            emit(
+                                (o.clone(), inv.clone(), s.clone()),
+                                rule,
+                                vec![axiom, (s.clone(), p.clone(), o.clone())],
+                                &mut next,
+                            );
                         }
                     }
                     if schema.transitive.contains(p) {
-                        for far in neighbours(o, p, true) {
-                            emit((s.clone(), p.clone(), far), &mut next);
+                        for far in neighbours(o, p, true)? {
+                            emit(
+                                (s.clone(), p.clone(), far.clone()),
+                                "prp-trp",
+                                vec![
+                                    (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
+                                    (s.clone(), p.clone(), o.clone()),
+                                    (o.clone(), p.clone(), far),
+                                ],
+                                &mut next,
+                            );
                         }
-                        for near in neighbours(s, p, false) {
-                            emit((near, p.clone(), o.clone()), &mut next);
+                        for near in neighbours(s, p, false)? {
+                            emit(
+                                (near.clone(), p.clone(), o.clone()),
+                                "prp-trp",
+                                vec![
+                                    (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
+                                    (near, p.clone(), s.clone()),
+                                    (s.clone(), p.clone(), o.clone()),
+                                ],
+                                &mut next,
+                            );
                         }
                     }
                     // eq-rep-s (owl:sameAs subject replacement) used to run
@@ -399,18 +529,38 @@ impl IncrementalReasoner {
             frontier = next;
         }
 
-        if materialize && !derived.is_empty() {
-            let mut ntriples = String::new();
-            for (s, p, o) in &derived {
-                ntriples.push_str(s);
-                ntriples.push(' ');
-                ntriples.push_str(p);
-                ntriples.push(' ');
-                ntriples.push_str(o);
-                ntriples.push_str(" .\n");
-            }
-            graph.load_ntriples(&ntriples)?;
-        }
+        let durable = if let Some(asserted) = asserted {
+            let mut closure: HashSet<_> = asserted.iter().cloned().collect();
+            anyhow::ensure!(
+                delta.iter().all(|t| closure.contains(t)),
+                "incremental materialisation requires delta facts to be loaded as assertions first"
+            );
+            closure.extend(derived.iter().cloned());
+            closure.extend(schema.derivations.closure.iter().cloned());
+            let dag = crate::reason::DerivationGraph {
+                profile_used: "owl-rl-incremental".into(),
+                asserted,
+                closure,
+                instances,
+                // This DAG is the addition's support, not a replacement for a
+                // complete profile run. It must not retire other derivations.
+                fixpoint_reached: false,
+                iterations: rounds,
+                clashes: Vec::new(),
+                refused_unserialisable: 0,
+            };
+            Some(
+                graph.commit_reasoning(
+                    &dag,
+                    crate::reason::InferenceTarget::DefaultGraph,
+                    source_token
+                        .as_deref()
+                        .expect("materialisation captured a source token"),
+                )?,
+            )
+        } else {
+            None
+        };
 
         let sample: Vec<String> = derived
             .iter()
@@ -426,8 +576,16 @@ impl IncrementalReasoner {
             "rounds": rounds,
             "materialized": materialize && !derived.is_empty(),
             "sample_inferences": sample,
-            "complete": !schema.truncated,
+            "complete": !schema.truncated && !neighbours_truncated.get() && frontier.is_empty(),
         });
+        if let Some(durable) = durable {
+            out["truth_maintenance"] = durable;
+        }
+        if neighbours_truncated.get() || !frontier.is_empty() {
+            out["incomplete_reason"] = serde_json::json!(
+                "a neighbour scan or iteration limit was reached; run full reasoning for a complete closure"
+            );
+        }
         if schema.truncated {
             out["warning"] = serde_json::Value::String(format!(
                 "a schema scan hit the {SCAN_LIMIT}-row cap, so the schema this closure was \
@@ -452,7 +610,11 @@ pub fn parse_ntriples(text: &str) -> Vec<Triple> {
         // Object may contain spaces inside a literal, so split only twice.
         let mut parts = line.splitn(3, char::is_whitespace);
         if let (Some(s), Some(p), Some(o)) = (parts.next(), parts.next(), parts.next()) {
-            out.push((s.trim().to_string(), p.trim().to_string(), o.trim().to_string()));
+            out.push((
+                s.trim().to_string(),
+                p.trim().to_string(),
+                o.trim().to_string(),
+            ));
         }
     }
     out
@@ -477,7 +639,12 @@ mod tests {
         // Declaring an EXISTING property transitive/symmetric/functional retroactively
         // changes what its existing edges entail; the delta frontier cannot reach them,
         // so this must route to a full onto_reason rather than silently under-derive.
-        for c in [OWL_TRANSITIVE, OWL_SYMMETRIC, OWL_FUNCTIONAL, OWL_INVERSE_FUNCTIONAL] {
+        for c in [
+            OWL_TRANSITIVE,
+            OWL_SYMMETRIC,
+            OWL_FUNCTIONAL,
+            OWL_INVERSE_FUNCTIONAL,
+        ] {
             assert!(
                 IncrementalReasoner::applies_to(&[t("<p>", RDF_TYPE, c)]).is_err(),
                 "declaring {c} must be refused as non-incremental"

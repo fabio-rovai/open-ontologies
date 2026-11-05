@@ -289,8 +289,7 @@ impl OntologyService {
             "ntriples" => RdfFormat::NTriples,
             _ => anyhow::bail!("unsupported saved version format: {format}"),
         };
-        store.clear()?;
-        let count = store.load_content(&content, rdf_format)?;
+        let count = store.replace_content(&content, rdf_format)?;
         Ok(serde_json::json!({
             "ok": true,
             "label": label,
