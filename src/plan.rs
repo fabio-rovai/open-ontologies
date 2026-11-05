@@ -597,8 +597,7 @@ impl Planner {
         let delta = self.triple_delta(&plan.new_turtle)?;
         let (inserted, deleted) = delta.counts();
         if delta.reload {
-            self.graph.clear()?;
-            self.graph.load_turtle(&plan.new_turtle, None)?;
+            self.graph.replace_content(&plan.new_turtle, oxigraph::io::RdfFormat::Turtle)?;
         } else {
             self.write_delta(&delta)?;
         }
@@ -796,8 +795,7 @@ impl Planner {
         let delta = self.triple_delta(&plan.new_turtle)?;
         let (inserted, deleted) = delta.counts();
         if delta.reload {
-            self.graph.clear()?;
-            self.graph.load_turtle(&plan.new_turtle, None)?;
+            self.graph.replace_content(&plan.new_turtle, oxigraph::io::RdfFormat::Turtle)?;
         } else {
             self.write_delta(&delta)?;
         }
