@@ -144,7 +144,9 @@ pub fn skolemise_with_prefix(
 ) -> anyhow::Result<(Arc<GraphStore>, BTreeMap<String, String>)> {
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     let mut nt = String::new();
-    for (s, p, o) in g.all_triples()? {
+    // Preserve assertion/inference separation while replacing blank nodes.
+    // A copied derived triple must not become a fresh axiom of the proof.
+    for (s, p, o) in g.triples_in_scope(&crate::graph::ReadScope::AllGraphs)?.0 {
         let mut one = |term: &str| -> String {
             if let Some(label) = term.strip_prefix("_:") {
                 let iri = format!("<{prefix}{label}>");

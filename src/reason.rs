@@ -1625,6 +1625,10 @@ impl Reasoner {
             let mut parsed: serde_json::Value = serde_json::from_str(&raw)?;
             if parsed.is_object() {
                 parsed["scope"] = manifest.to_json();
+                parsed["truth_maintenance"] = serde_json::json!({
+                    "supported": false,
+                    "reason": "The tableaux path does not capture ground rule instances; its materialisations have no durable dependency guarantee."
+                });
                 return Ok(parsed.to_string());
             }
             return Ok(raw);
@@ -1644,6 +1648,11 @@ impl Reasoner {
         // named graphs, and `asserted.tsv` below is written from exactly this
         // list, so the certificate is about the graph the scope selected and
         // `scope.tsv` says which one that was.
+        let source_token = if materialize {
+            Some(graph.reasoning_token()?)
+        } else {
+            None
+        };
         let (raw_triples, graphs_read) = graph.triples_in_scope(scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
@@ -1742,7 +1751,15 @@ impl Reasoner {
         // too: the per-rule premise vectors are built behind that flag, and a
         // DAG whose hyperedges carried no premises would be a set of
         // disconnected nodes wearing the word "derivation".
-        let mut capture = capture;
+        // Every materialising run records the SAME rule instances used by
+        // explanation. Persistence belongs here, below CLI/MCP/batch adapters,
+        // so none can publish anonymous inferences through an older API.
+        let mut durable_capture = Capture::default();
+        let mut capture = if materialize && capture.is_none() {
+            Some(&mut durable_capture)
+        } else {
+            capture
+        };
         let certify = certificate_dir.is_some() || capture.is_some();
         let mut derivations: Vec<Derivation> = Vec::new();
         let mut recorded: HashSet<Fact> = HashSet::new();
@@ -2502,30 +2519,8 @@ impl Reasoner {
 
         let inferred_count = triple_set.len() - initial_size;
 
-        // Materialize inferred triples
-        if materialize && inferred_count > 0 {
-            let original: HashSet<Fact> = facts.iter().copied().collect();
-            let mut lines = String::new();
-            for &(s, p, o) in &triple_set {
-                if !original.contains(&(s, p, o)) {
-                    lines.push_str(interner.resolve(s));
-                    lines.push(' ');
-                    lines.push_str(interner.resolve(p));
-                    lines.push(' ');
-                    lines.push_str(interner.resolve(o));
-                    if target == InferenceTarget::Inferred {
-                        lines.push_str(" <");
-                        lines.push_str(INFERRED_GRAPH);
-                        lines.push('>');
-                    }
-                    lines.push_str(" .\n");
-                }
-            }
-            match target {
-                InferenceTarget::DefaultGraph => graph.load_ntriples(&lines)?,
-                InferenceTarget::Inferred => graph.load_nquads(&lines)?,
-            };
-        }
+        // Materialisation is committed below, together with the complete
+        // derivation graph. No inferred triple is visible without its support.
 
         // Sample
         let original: HashSet<Fact> = facts.iter().copied().collect();
@@ -2922,6 +2917,13 @@ impl Reasoner {
                     .collect(),
                 refused_unserialisable: refused.len(),
             });
+            if materialize {
+                result["truth_maintenance"] = graph.commit_reasoning(
+                    cap.out.as_ref().expect("the derivation graph was just captured"),
+                    target,
+                    source_token.as_deref().expect("materialisation captured a source token"),
+                )?;
+            }
         }
 
         Ok(result.to_string())
