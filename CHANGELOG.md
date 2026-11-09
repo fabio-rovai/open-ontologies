@@ -156,6 +156,17 @@ All notable changes to Open Ontologies are documented here.
   and no clash was proved, the headline is `null`; a proved clash remains
   `false`.
 
+- **The bundled SQLite is 3.54.1, and the minimum Rust is 1.89**
+  (RUSTSEC-2026-0459, CVE-2026-119375, published 30 Oct 2026). SQLite before
+  3.54.0 can return uninitialised page-cache memory when it opens a database
+  together with a `-wal` file whose page size differs from the database's.
+  The binary bundled SQLite 3.46.0 through rusqlite 0.32 and libsqlite3-sys
+  0.30.1. rusqlite moves to 0.41.1, the first release whose libsqlite3-sys
+  (0.39.1) bundles a patched SQLite. rusqlite 0.41 requires Rust 1.89, so
+  `rust-version`, the `msrv` CI job, the README and CONTRIBUTING move from
+  1.88 to 1.89. The only SQLite file this crate opens is its own state
+  database in the data directory (`src/state.rs`).
+
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
   Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`
