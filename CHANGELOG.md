@@ -172,7 +172,17 @@ All notable changes to Open Ontologies are documented here.
   Streamable HTTP clients before 3.9.0 buffer response bodies with no size
   limit. The flaw is in rmcp's client features, which this crate never
   enables; it runs rmcp as a server only. `.cargo/audit.toml` ignores the
-  advisory and records that evidence, until rmcp moves to 3.9.
+  advisory and records that evidence, until rmcp moves to 3.9. That move is
+  still owed: GHSA-9pj6-vhgr-3mwh, which RustSec does not list, lets an
+  unauthenticated client grow the Streamable HTTP server's session table
+  one entry per request before rmcp 2.0.0, and `serve-http` is exposed to it.
+
+- **zip moves from 9.0.4 to 9.0.5** (GHSA-m665-v7pm-7grj, CVE-2026-115905,
+  rated critical). zip 9.0.4 and earlier read a different file name from the
+  central directory than from the local header, so a crafted archive can
+  extract to a path its listing does not show. zip reaches this crate only
+  through calamine for XLSX ingest, which reads entries through `ZipArchive`
+  and never extracts to disk. The change is to Cargo.lock alone.
 
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
