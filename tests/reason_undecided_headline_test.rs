@@ -55,6 +55,15 @@ const BRANCHING_TBOX: &str = ":A a owl:Class . :B a owl:Class . :A owl:disjointW
     :P a owl:Class . :Q a owl:Class . :P owl:disjointWith :Q .\n\
     owl:Thing rdfs:subClassOf [ owl:unionOf ( :A :B ) ] , [ owl:unionOf ( :P :Q ) ] .\n";
 
+/// A property chain can entail the edge that violates an all-values restriction.
+/// `owl-dl` omits that axiom, so its finished search cannot prove consistency.
+const PROPERTY_CHAIN_CLASH: &str = ":hasParent a owl:ObjectProperty .\n\
+    :hasGrandparent a owl:ObjectProperty ; owl:propertyChainAxiom ( :hasParent :hasParent ) .\n\
+    :NoGrandparent a owl:Class ; owl:equivalentClass [ a owl:Restriction ; owl:onProperty :hasGrandparent ; owl:allValuesFrom owl:Nothing ] .\n\
+    :a a owl:NamedIndividual , :NoGrandparent ; :hasParent :b .\n\
+    :b a owl:NamedIndividual ; :hasParent :c .\n\
+    :c a owl:NamedIndividual .\n";
+
 fn store(ttl: &str) -> Arc<GraphStore> {
     let g = Arc::new(GraphStore::new());
     g.load_turtle(ttl, None).expect("ontology must parse");
@@ -120,6 +129,15 @@ fn the_uncapped_run_proves_the_repro_inconsistent() {
     assert_eq!(v["consistent"], false, "{v:#}");
     assert_eq!(v["abox"]["consistent"], false, "{v:#}");
     assert_eq!(v["search_finished"], true, "{v:#}");
+}
+
+#[test]
+fn an_unmodelled_property_chain_does_not_prove_the_kb_consistent() {
+    let v = owl_dl(&format!("{PREFIXES}{PROPERTY_CHAIN_CLASH}"), None);
+    assert_eq!(v["consistent"], serde_json::Value::Null, "{v:#}");
+    assert_eq!(v["complete"], false, "{v:#}");
+    assert_eq!(v["search_finished"], true, "{v:#}");
+    assert_eq!(v["constructs_not_modelled"][0]["construct"], "owl:propertyChainAxiom", "{v:#}");
 }
 
 #[test]
