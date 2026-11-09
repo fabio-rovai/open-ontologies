@@ -167,6 +167,13 @@ All notable changes to Open Ontologies are documented here.
   1.88 to 1.89. The only SQLite file this crate opens is its own state
   database in the data directory (`src/state.rs`).
 
+- **`cargo audit` passes again on main.** Besides RUSTSEC-2026-0459 above,
+  the scheduled audit of 9 Nov 2026 failed on RUSTSEC-2026-0462: rmcp's
+  Streamable HTTP clients before 3.9.0 buffer response bodies with no size
+  limit. The flaw is in rmcp's client features, which this crate never
+  enables; it runs rmcp as a server only. `.cargo/audit.toml` ignores the
+  advisory and records that evidence, until rmcp moves to 3.9.
+
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
   Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`

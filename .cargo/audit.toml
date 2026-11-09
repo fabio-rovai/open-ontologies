@@ -31,4 +31,19 @@ ignore = [
     # release whose crates do, and the direct dependency moves with them.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
+    # rmcp before 3.9.0: its Streamable HTTP clients read JSON and error
+    # response bodies with no size limit (published 5 Nov 2026). The affected
+    # code sits behind rmcp's client features,
+    # `transport-streamable-http-client-reqwest` and
+    # `transport-streamable-http-client-unix-socket`. Cargo.toml asks for
+    # `server`, `transport-io` and `transport-streamable-http-server`, and
+    # `cargo tree -e features -i rmcp --all-features` lists no client feature,
+    # so the vulnerable code is not compiled into any build. This crate is an
+    # MCP server only: src/ and tests/ never name RoleClient, ClientHandler or
+    # StreamableHttpClient, and the CLI's daemon proxy (src/connect.rs) talks
+    # to its own daemon with reqwest, not with rmcp. The patched rmcp is two
+    # major versions ahead of the 1.4 this crate builds against.
+    # Remove this entry when rmcp moves to 3.9.0 or later, or before enabling
+    # any rmcp client feature.
+    "RUSTSEC-2026-0462",
 ]
