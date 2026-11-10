@@ -12,6 +12,14 @@ individual, and datatype ranges are skipped. An ontology that uses
 measurements are in
 [benchmark/reasoner/regressions/README.md](../benchmark/reasoner/regressions/README.md).
 
+An `owl-dl` report lists constructs it does not model in
+`constructs_not_modelled`. If the search finds no clash while that list is
+non-empty, the whole-graph `consistent` value is `null`: the search only
+established that no clash was found in the weaker axiom set it handled. A
+proved clash still returns `false`. Check `complete` and
+`constructs_not_modelled` alongside `consistent` before treating a positive
+result as a statement about the whole ontology.
+
 | DL Feature | Symbol | OWL Construct |
 | ---------- | ------ | ------------- |
 | Atomic negation | not A | complementOf |
