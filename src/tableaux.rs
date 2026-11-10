@@ -4069,11 +4069,19 @@ impl DlReasoner {
                         }
                         // nominal: the filler names the object itself
                         // class filler: the object is typed by it
-                        o == target
-                            || self
-                                .individual_types
-                                .get(&o)
-                                .is_some_and(|ot| self.has_type(ot, target))
+                        o == target || {
+                            let mut object_types =
+                                self.individual_types.get(&o).cloned().unwrap_or_default();
+                            object_types.extend(
+                                self.asserted_concepts(o)
+                                    .into_iter()
+                                    .filter_map(|c| match c {
+                                        Concept::Atom(a) => Some(a),
+                                        _ => None,
+                                    }),
+                            );
+                            self.has_type(&object_types, target)
+                        }
                     })
                 })
             }
