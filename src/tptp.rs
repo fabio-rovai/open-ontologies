@@ -4611,10 +4611,11 @@ pub fn export(
     std::fs::write(dir.join("problem.tsv"), &problem_tsv)?;
 
     let mut goal_files = Vec::new();
+    let goals_dir = dir.join("goals");
+    let mut current_goal_outputs = std::collections::BTreeSet::new();
     let mut not_asked: Vec<GoalNotAsked> = Vec::new();
     if let Some(path) = goals {
         let text = std::fs::read_to_string(path)?;
-        let goals_dir = dir.join("goals");
         std::fs::create_dir_all(&goals_dir)?;
         let mut manifest = Vec::new();
         for (i, line) in text.lines().enumerate() {
@@ -4653,14 +4654,18 @@ pub fn export(
                 goals_dir.join(&name),
                 syntax.render(&gp, &format!("{ontology_iri}#goal-{i:05}"))?,
             )?;
+            current_goal_outputs.insert(name.clone());
             let (gtsv, gdigest) = gp.to_problem_tsv()?;
             let gtsv_name = format!("goal_{i:05}.problem.tsv");
             std::fs::write(goals_dir.join(&gtsv_name), gtsv)?;
+            current_goal_outputs.insert(gtsv_name.clone());
             if syntax == Syntax::Ladr {
+                let symbols_name = format!("goal_{i:05}.symbols.tsv");
                 std::fs::write(
-                    goals_dir.join(format!("goal_{i:05}.symbols.tsv")),
+                    goals_dir.join(&symbols_name),
                     ladr::table_tsv(&ladr::SymbolTable::build(&gp)?),
                 )?;
+                current_goal_outputs.insert(symbols_name);
             }
             manifest.push(serde_json::json!({
                 "file": name,
@@ -4678,6 +4683,11 @@ pub fn export(
                 "not_asked": not_asked,
             }))?,
         )?;
+    } else {
+        remove_if_exists(&dir.join("goals.json"))?;
+    }
+    if goals_dir.exists() {
+        remove_stale_goal_outputs(&goals_dir, &current_goal_outputs)?;
     }
 
     let report = serde_json::json!({
@@ -4757,4 +4767,46 @@ pub fn export(
                           does not adjudicate it",
     });
     Ok(report.to_string())
+}
+
+/// Remove only goal artifacts this exporter owns but the current manifest no
+/// longer names. Reusing an output directory for a shorter goal list must not
+/// leave old problems beside the new manifest; unrelated user files survive.
+fn remove_stale_goal_outputs(
+    goals_dir: &std::path::Path,
+    current: &std::collections::BTreeSet<String>,
+) -> anyhow::Result<()> {
+    for entry in std::fs::read_dir(goals_dir)? {
+        let entry = entry?;
+        if !entry.file_type()?.is_file() {
+            continue;
+        }
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        let Some((index, suffix)) = name.strip_prefix("goal_").and_then(|s| s.split_once('.'))
+        else {
+            continue;
+        };
+        if index.is_empty()
+            || !index.chars().all(|c| c.is_ascii_digit())
+            || !matches!(
+                suffix,
+                "p" | "clif" | "cgif" | "smt2" | "in" | "problem.tsv" | "symbols.tsv"
+            )
+            || current.contains(&name)
+        {
+            continue;
+        }
+        std::fs::remove_file(entry.path())?;
+    }
+    Ok(())
+}
+
+fn remove_if_exists(path: &std::path::Path) -> anyhow::Result<()> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.into()),
+    }
 }

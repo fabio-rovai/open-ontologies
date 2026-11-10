@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **First-order goal exports no longer leave stale solver and checker files when an output directory is reused.** The current manifest and goal set stay aligned, while unrelated files in `goals/` are preserved.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
