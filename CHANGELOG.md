@@ -6,6 +6,20 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **`serve-http` can accept Host names other than localhost on `/mcp`.**
+  rmcp's Host check, which blocks DNS rebinding, has refused every `Host`
+  header except `localhost`, `127.0.0.1` and `::1` with 403 since rmcp 1.4.
+  So a server bound to `0.0.0.0` and reached by its LAN address, a container
+  name, or a public name behind the reverse proxy SECURITY.md recommends
+  could not serve MCP at all, and there was no setting to change that.
+  `[http] allowed_hosts`, `OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS`
+  (comma-separated) and `--allowed-host` (repeatable) add names to the
+  loopback three rather than replacing them, so the Studio and local probes
+  keep working. A bare name matches any port, `host:port` one port, and
+  `"*"` turns the check off. At startup `serve-http` prints the list it
+  enforces, and warns when it binds a non-loopback address with no extra
+  name set. `/api` and `/health` never had the check and still do not.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is
@@ -172,10 +186,35 @@ All notable changes to Open Ontologies are documented here.
   Streamable HTTP clients before 3.9.0 buffer response bodies with no size
   limit. The flaw is in rmcp's client features, which this crate never
   enables; it runs rmcp as a server only. `.cargo/audit.toml` ignores the
-  advisory and records that evidence, until rmcp moves to 3.9. That move is
-  still owed: GHSA-9pj6-vhgr-3mwh, which RustSec does not list, lets an
-  unauthenticated client grow the Streamable HTTP server's session table
-  one entry per request before rmcp 2.0.0, and `serve-http` is exposed to it.
+  advisory and records that evidence, until rmcp moves to 3.9. The next
+  entry makes that move, and the ignore is gone again.
+
+- **rmcp moves from 1.4 to 3.9** (GHSA-9pj6-vhgr-3mwh, CVE-2026-63128, rated
+  high; RUSTSEC-2026-0462). Before rmcp 2.0.0 the Streamable HTTP server
+  added a session-table entry for every unauthenticated non-initialize POST
+  and never removed it, so any client that could reach `serve-http` could
+  grow its memory without limit. RustSec does not list that advisory, so
+  `cargo audit` never reported it; Dependabot did. Moving to 3.9 also clears
+  RUSTSEC-2026-0462, so `.cargo/audit.toml` no longer ignores it. Three
+  behaviours change for `serve-http`:
+  - `/mcp` refuses a POST body over 4 MiB with 413, where rmcp 1.4 had no
+    limit. Inline Turtle to `onto_load`, `onto_validate` or `onto_align`
+    counts. `[http] max_request_body_bytes` or
+    `OPEN_ONTOLOGIES_HTTP_MAX_REQUEST_BODY_BYTES` raises it; `/api` keeps
+    axum's 2 MB default.
+  - The server advertises protocol revisions up to 2025-11-25 and refuses
+    2026-07-28 with -32022 and the supported list, so a client falls back to
+    `initialize`. 2026-07-28 has no sessions, and rmcp would build a new
+    server for every request, losing the active ontology and the lineage
+    session each time (see `supported_protocol_versions` in
+    `src/server.rs`). rmcp 1.4 knew no revision past 2025-06-18, so no
+    client loses anything it had.
+  - `server/discover`, which rmcp 3.9 knows as that revision's probe, now
+    passes the stdio handshake guard to rmcp, which answers it and stays
+    open for `initialize`. A probe without the 2026-07-28 `_meta` fields
+    gets -32602 before or after `initialize`, where it got -32601.
+  `[http] stateful_mode` keeps its name and sets rmcp's renamed
+  `legacy_session_mode`.
 
 - **zip moves from 9.0.4 to 9.0.5** (GHSA-m665-v7pm-7grj, CVE-2026-115905,
   rated critical). zip 9.0.4 and earlier read a different file name from the
