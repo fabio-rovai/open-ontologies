@@ -4,6 +4,11 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **OFN conversion refuses named RDF graphs rather than silently flattening
+  them into one ontology graph.**
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**

@@ -243,6 +243,11 @@ pub fn is_ofn_format(name: &str) -> bool {
 /// because it is the shorter path, not because a store would now be wrong.
 pub fn convert_file(path: &str) -> anyhow::Result<OfnOutput> {
     let (quads, prefixes) = crate::graph::GraphStore::read_file_with_prefixes(path)?;
+    if quads.iter().any(|q| q.graph_name != GraphName::DefaultGraph) {
+        anyhow::bail!(
+            "OFN conversion cannot preserve named graphs; convert a single RDF graph instead"
+        );
+    }
     let triples: Vec<Triple> = quads.into_iter().map(Triple::from).collect();
     Ok(write_ofn(&triples, &prefixes)?)
 }
