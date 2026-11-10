@@ -151,6 +151,19 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Persist all captured RDFS/OWL-RL supports in the existing materialisation
+  transaction. Assertion withdrawal now retracts unsupported consequences,
+  retains alternative proofs, and removes cycles with no surviving evidence.
+  Repeated reasoning no longer treats managed default-graph inferences as
+  assertions. Dataset backups retain the support ledger; provenance reports
+  expose evidence, rule versions and withdrawal history, with proof forests
+  exportable to the existing independent `oo-cert` checker.
+
+- **`reason --profile owl-dl` no longer reports `consistent: true` when the
+  tableau omits an axiom** (#356). When the graph uses an unmodelled construct
+  and no clash was proved, the headline is `null`; a proved clash remains
+  `false`.
+
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
   Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`
