@@ -9,7 +9,7 @@ use rmcp::{
     handler::server::{tool::ToolRouter, router::prompt::PromptRouter, wrapper::Parameters},
     model::{
         ServerCapabilities, ServerConfig, Tool,
-        PromptMessage, Role, GetPromptResult,
+        PromptMessage, Role, GetPromptResult, ProtocolVersion,
     },
 };
 use crate::config::expand_tilde;
@@ -3608,6 +3608,25 @@ impl OpenOntologiesServer {
 #[tool_handler(router = self.tool_router)]
 #[prompt_handler(router = self.prompt_router)]
 impl ServerHandler for OpenOntologiesServer {
+    /// Every protocol revision up to 2025-11-25, the last with an
+    /// `initialize` handshake, and not 2026-07-28.
+    ///
+    /// 2026-07-28 removes sessions, and rmcp serves it over HTTP by calling
+    /// `serve-http`'s factory for every request. This struct holds per-session
+    /// state: the registry's active-ontology slot (in memory only), the
+    /// lineage `session_id`, and the embedding store, which construction
+    /// reloads from SQLite. Built per request, every tool call would start
+    /// with no active ontology, log as a session of its own, and reload every
+    /// stored vector. Leaving the revision out keeps every client on a
+    /// session. A client asking for 2026-07-28 is given the supported list
+    /// and falls back to `initialize`. Adding it needs that state moved out
+    /// of the struct first.
+    fn supported_protocol_versions(&self) -> std::borrow::Cow<'static, [ProtocolVersion]> {
+        std::borrow::Cow::Borrowed(ProtocolVersion::known_up_to(
+            &ProtocolVersion::LATEST_WITH_INITIALIZE,
+        ))
+    }
+
     /// The instructions string states the count it MEASURES.
     ///
     /// It used to state two, 114 and 112, neither of which was the number the

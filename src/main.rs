@@ -122,6 +122,9 @@ data_dir = "~/.open-ontologies"
 # port = 8080
 # token = ""             # empty disables auth
 # stateful_mode = true   # rmcp StreamableHttpServer per-session state
+# allowed_hosts = []     # extra Host names /mcp accepts besides localhost,
+#                        # 127.0.0.1 and ::1; "*" turns the check off
+# max_request_body_bytes = 0   # 0 = rmcp default (4 MiB)
 # request_timeout_secs = 0   # 0 = rmcp default
 # keep_alive_secs = 0        # 0 = rmcp default
 
@@ -290,6 +293,13 @@ enum Commands {
         /// env > `[http] token` in config.
         #[arg(long, env = "OPEN_ONTOLOGIES_TOKEN")]
         token: Option<String>,
+        /// A `Host` header value `/mcp` accepts besides `localhost`,
+        /// `127.0.0.1` and `::1`: the LAN address, container name or public
+        /// name clients use. Repeat the flag or separate with commas; `*`
+        /// turns the check off. CLI > `OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS` env
+        /// > `[http] allowed_hosts` in config.
+        #[arg(long = "allowed-host", value_name = "HOST", value_delimiter = ',')]
+        allowed_hosts: Vec<String>,
         /// Optional governance webhook URL (fires on every lineage event)
         #[arg(long, env = "GOVERNANCE_WEBHOOK")]
         governance_webhook: Option<String>,
@@ -2329,6 +2339,7 @@ async fn async_main() -> anyhow::Result<()> {
             host,
             port,
             token,
+            allowed_hosts,
             governance_webhook,
             watch,
             watch_interval,
@@ -2371,6 +2382,15 @@ async fn async_main() -> anyhow::Result<()> {
             // value already encompasses CLI + env. Fall back to config when
             // neither is set.
             let token = token.or_else(|| open_ontologies::config::resolve_http_token(&cfg.http));
+            let extra_hosts = {
+                let from_cli =
+                    open_ontologies::config::split_hosts(allowed_hosts.iter().map(String::as_str));
+                if from_cli.is_empty() {
+                    open_ontologies::config::resolve_http_allowed_hosts(&cfg.http)
+                } else {
+                    from_cli
+                }
+            };
 
             // `--data-dir` used to be dropped here, so `--data-dir /custom daemon
             // start` wrote daemon.json into /custom while the daemon it started
@@ -2443,12 +2463,31 @@ async fn async_main() -> anyhow::Result<()> {
             // rmcp >=1.4 marks StreamableHttpServerConfig #[non_exhaustive], so it
             // can no longer be built with a struct literal from this crate. Start
             // from Default and set the public fields we care about.
+            //
+            // rmcp's Host check (DNS rebinding protection, there since 1.4)
+            // accepts only localhost, 127.0.0.1 and ::1 by default. The
+            // operator's extra names are added to that list, not swapped in for
+            // it, so the Studio and local probes keep working.
             #[allow(clippy::field_reassign_with_default)]
             let http_config = {
                 let mut c = StreamableHttpServerConfig::default();
                 c.legacy_session_mode = cfg.http.stateful_mode;
                 c.cancellation_token = ct.clone();
+                c.allowed_hosts = open_ontologies::config::merge_allowed_hosts(
+                    std::mem::take(&mut c.allowed_hosts),
+                    &extra_hosts,
+                );
+                if let Some(n) =
+                    open_ontologies::config::resolve_http_max_request_body_bytes(&cfg.http)
+                {
+                    c.max_request_body_bytes = n;
+                }
                 c
+            };
+            let host_check = if http_config.allowed_hosts.is_empty() {
+                "off (allowed_hosts contains \"*\")".to_string()
+            } else {
+                http_config.allowed_hosts.join(", ")
             };
 
             let shared_graph_for_service = shared_graph.clone();
@@ -2696,6 +2735,15 @@ async fn async_main() -> anyhow::Result<()> {
             eprintln!("Open Ontologies MCP server listening on http://{addr}/mcp");
             if token.is_some() {
                 eprintln!("  Authentication: bearer token required");
+            }
+            eprintln!("  /mcp accepts Host: {host_check}");
+            if !open_ontologies::config::is_loopback_bind(&host) && extra_hosts.is_empty() {
+                eprintln!(
+                    "warning: bound to {host}, but /mcp answers 403 to any Host other than \
+                     localhost, 127.0.0.1 or ::1. Clients reaching this server by another \
+                     address or name need it in --allowed-host, \
+                     OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS or [http] allowed_hosts."
+                );
             }
 
             axum::serve(listener, router)

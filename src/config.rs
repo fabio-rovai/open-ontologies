@@ -456,8 +456,25 @@ pub struct HttpConfig {
     /// CLI `--token` and `OPEN_ONTOLOGIES_TOKEN` env var take precedence.
     pub token: String,
     /// Whether the rmcp `StreamableHttpServer` keeps per-session state.
-    /// Default `true` (matches existing behaviour).
+    /// Default `true` (matches existing behaviour). rmcp 3.9 calls this
+    /// `legacy_session_mode`; the key keeps its old name so existing configs
+    /// still parse.
     pub stateful_mode: bool,
+    /// Extra `Host` header values `/mcp` accepts, on top of `localhost`,
+    /// `127.0.0.1` and `::1`, which it always accepts. rmcp refuses any other
+    /// Host with 403 to block DNS rebinding, so a server reached by a LAN
+    /// address, a container name or a public name behind a reverse proxy
+    /// needs that name here. Entries are hostnames or `host:port`; a bare
+    /// hostname matches any port. `"*"` turns the check off. Empty by default.
+    /// `--allowed-host` and `OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS`
+    /// (comma-separated) take precedence. `/api` and `/health` are not
+    /// affected; only rmcp checks the Host header.
+    pub allowed_hosts: Vec<String>,
+    /// Largest POST body `/mcp` accepts, in bytes; anything larger gets 413.
+    /// `0` means rmcp's default, 4 MiB. Inline Turtle sent to `onto_load`,
+    /// `onto_validate` or `onto_align` counts against it. Override with
+    /// `OPEN_ONTOLOGIES_HTTP_MAX_REQUEST_BODY_BYTES`.
+    pub max_request_body_bytes: u64,
     /// Per-request HTTP timeout in seconds. `0` ⇒ no explicit cap (rmcp
     /// default). Override with `OPEN_ONTOLOGIES_HTTP_REQUEST_TIMEOUT_SECS`.
     pub request_timeout_secs: u64,
@@ -471,6 +488,8 @@ impl Default for HttpConfig {
             port: 8080,
             token: String::new(),
             stateful_mode: true,
+            allowed_hosts: Vec::new(),
+            max_request_body_bytes: 0,
             request_timeout_secs: 0,
             keep_alive_secs: 0,
         }
@@ -704,6 +723,67 @@ pub fn resolve_http_token(cfg: &HttpConfig) -> Option<String> {
         .or_else(|| Some(cfg.token.clone()).filter(|v| !v.trim().is_empty()))
 }
 
+/// Resolve the extra hosts `/mcp` accepts. Precedence:
+/// `OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS` (comma-separated) > config. Blank
+/// entries are dropped. The CLI flag sits above both and is applied by the
+/// caller.
+pub fn resolve_http_allowed_hosts(cfg: &HttpConfig) -> Vec<String> {
+    let from_env = std::env::var("OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS")
+        .ok()
+        .filter(|v| !v.trim().is_empty());
+    match from_env {
+        Some(v) => split_hosts(v.split(',')),
+        None => split_hosts(cfg.allowed_hosts.iter().map(String::as_str)),
+    }
+}
+
+/// Trim and drop blank entries, so `"a, b,"` and `["a", " b", ""]` both give
+/// `["a", "b"]`.
+pub fn split_hosts<'a>(items: impl IntoIterator<Item = &'a str>) -> Vec<String> {
+    items
+        .into_iter()
+        .map(str::trim)
+        .filter(|h| !h.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+/// The list handed to rmcp's `allowed_hosts`: rmcp's own loopback defaults
+/// plus the operator's extras, without duplicates. A `"*"` entry returns an
+/// empty list, which rmcp reads as "accept any Host".
+pub fn merge_allowed_hosts(defaults: Vec<String>, extra: &[String]) -> Vec<String> {
+    if extra.iter().any(|h| h == "*") {
+        return Vec::new();
+    }
+    let mut out = defaults;
+    for h in extra {
+        if !out.iter().any(|d| d.eq_ignore_ascii_case(h)) {
+            out.push(h.clone());
+        }
+    }
+    out
+}
+
+/// True when `host` is a loopback bind address (`127.0.0.0/8`, `::1`,
+/// `localhost`). Anything else, `0.0.0.0` included, can be reached under a
+/// name rmcp's loopback-only Host check refuses.
+pub fn is_loopback_bind(host: &str) -> bool {
+    let h = host.trim().trim_start_matches('[').trim_end_matches(']');
+    if h.eq_ignore_ascii_case("localhost") {
+        return true;
+    }
+    h.parse::<std::net::IpAddr>().is_ok_and(|ip| ip.is_loopback())
+}
+
+/// Resolve the `/mcp` body cap. Precedence:
+/// `OPEN_ONTOLOGIES_HTTP_MAX_REQUEST_BODY_BYTES` > config. `0` means rmcp's
+/// default and is returned as `None`.
+pub fn resolve_http_max_request_body_bytes(cfg: &HttpConfig) -> Option<usize> {
+    let n = parse_env_u64("OPEN_ONTOLOGIES_HTTP_MAX_REQUEST_BODY_BYTES")
+        .unwrap_or(cfg.max_request_body_bytes);
+    (n > 0).then(|| usize::try_from(n).unwrap_or(usize::MAX))
+}
+
 /// Resolve the logging directives. Precedence: `RUST_LOG` > config > default.
 pub fn resolve_logging_level(cfg: &LoggingConfig) -> String {
     std::env::var("RUST_LOG")
@@ -829,6 +909,8 @@ mod tests {
             host = "0.0.0.0"
             port = 9000
             stateful_mode = false
+            allowed_hosts = ["ontology.example.com", "10.0.0.5:8080"]
+            max_request_body_bytes = 16777216
 
             [monitor]
             enabled = true
@@ -865,6 +947,11 @@ mod tests {
         assert_eq!(cfg.http.host, "0.0.0.0");
         assert_eq!(cfg.http.port, 9000);
         assert!(!cfg.http.stateful_mode);
+        assert_eq!(
+            cfg.http.allowed_hosts,
+            vec!["ontology.example.com", "10.0.0.5:8080"]
+        );
+        assert_eq!(cfg.http.max_request_body_bytes, 16_777_216);
         assert!(cfg.monitor.enabled);
         assert_eq!(cfg.monitor.interval_secs, 15);
         assert_eq!(cfg.reasoner.tableaux_max_depth, 200);
@@ -890,6 +977,8 @@ mod tests {
         assert_eq!(cfg.http.host, "127.0.0.1");
         assert_eq!(cfg.http.port, 8080);
         assert!(cfg.http.stateful_mode);
+        assert!(cfg.http.allowed_hosts.is_empty());
+        assert_eq!(cfg.http.max_request_body_bytes, 0);
         assert!(!cfg.monitor.enabled);
         assert_eq!(cfg.monitor.interval_secs, 30);
         assert_eq!(cfg.reasoner.tableaux_max_depth, 100);
@@ -962,5 +1051,60 @@ mod tests {
             follow_remote: true,
         };
         assert_eq!(resolve_imports_timeout_secs(&imports), 0);
+    }
+
+    fn loopback() -> Vec<String> {
+        vec!["localhost".into(), "127.0.0.1".into(), "::1".into()]
+    }
+
+    #[test]
+    fn allowed_hosts_extend_the_loopback_defaults_and_never_replace_them() {
+        // Replacing the defaults would make a server configured for its public
+        // name start refusing the local health checks and the Studio, which
+        // both connect as 127.0.0.1.
+        let extra = vec!["ontology.example.com".to_string(), "LOCALHOST".to_string()];
+        assert_eq!(
+            merge_allowed_hosts(loopback(), &extra),
+            vec!["localhost", "127.0.0.1", "::1", "ontology.example.com"]
+        );
+        assert_eq!(merge_allowed_hosts(loopback(), &[]), loopback());
+    }
+
+    #[test]
+    fn a_star_entry_turns_the_host_check_off() {
+        // rmcp reads an empty allowed_hosts list as "accept any Host".
+        let extra = vec!["a.example".to_string(), "*".to_string()];
+        assert!(merge_allowed_hosts(loopback(), &extra).is_empty());
+    }
+
+    #[test]
+    fn split_hosts_trims_and_drops_blanks() {
+        assert_eq!(split_hosts("a.example, b.example:9000,,".split(',')), vec![
+            "a.example",
+            "b.example:9000"
+        ]);
+        assert!(split_hosts(["", "  "]).is_empty());
+    }
+
+    #[test]
+    fn loopback_bind_addresses_are_recognised() {
+        for h in ["127.0.0.1", "127.1.2.3", "::1", "[::1]", "localhost", "LocalHost"] {
+            assert!(is_loopback_bind(h), "{h} is loopback");
+        }
+        for h in ["0.0.0.0", "::", "192.168.1.10", "ontology.example.com"] {
+            assert!(!is_loopback_bind(h), "{h} is not loopback");
+        }
+    }
+
+    #[test]
+    fn max_request_body_zero_means_the_rmcp_default() {
+        if std::env::var("OPEN_ONTOLOGIES_HTTP_MAX_REQUEST_BODY_BYTES").is_ok() {
+            eprintln!("skipping: env override is set");
+            return;
+        }
+        let mut http = HttpConfig::default();
+        assert_eq!(resolve_http_max_request_body_bytes(&http), None);
+        http.max_request_body_bytes = 16 * 1024 * 1024;
+        assert_eq!(resolve_http_max_request_body_bytes(&http), Some(16 * 1024 * 1024));
     }
 }

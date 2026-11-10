@@ -4,8 +4,9 @@
 //! Issue #260: a request arriving before `initialize` must not end the process.
 //!
 //! The original report concerned a `server/discover` probe on rmcp 1.4.
-//! rmcp 3.9 recognizes discovery and supports inline negotiation, so exercise
-//! both the legacy error replies and the new lifecycle over the real transport.
+//! rmcp 3.9 recognizes discovery, but this server keeps session-based protocol
+//! revisions. Exercise legacy replies, discovery validation and initialization
+//! fallback over the real transport.
 //!
 //! These tests drive the real handler over a `tokio::io::duplex` pipe, so no
 //! MCP client is involved. Every line is written before `serve` is called,
@@ -22,9 +23,16 @@ use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 const INITIALIZE: &str = r#"{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"issue-260","version":"0"}}}"#;
-/// The reporter's line, verbatim. Discovery is now an MCP method, but requires
-/// inline request metadata when used before initialize.
+/// The reporter's line, verbatim. On rmcp 1.4 "server/discover" was no MCP
+/// method. On rmcp 3.9 it is the 2026-07-28 protocol's probe, which must carry
+/// a protocol version and client capabilities in `_meta`; this line carries
+/// neither.
 const DISCOVER: &str = r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}"#;
+/// A well-formed 2026-07-28 probe, as a client that speaks that revision sends
+/// it before anything else.
+const DISCOVER_2026: &str = r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}"#;
+/// rmcp's code for a request whose `_meta` lacks the 2026-07-28 fields.
+const INVALID_PARAMS: i64 = -32602;
 const UNKNOWN: &str = r#"{"jsonrpc":"2.0","id":1,"method":"unknown/probe","params":{}}"#;
 
 /// Feed `lines` to a guarded server over a pipe and collect `want` replies.
@@ -110,7 +118,7 @@ async fn unknown_request_before_initialize_does_not_end_the_handshake() {
     assert_eq!(out[0]["id"], 1, "the probe is answered first: {:?}", out[0]);
     assert_eq!(
         out[0]["error"]["code"], -32601,
-        "an unknown method gets the code rmcp gives it after the handshake: {:?}",
+        "an unknown probe keeps its method-not-found reply: {:?}",
         out[0]
     );
     assert_eq!(out[1]["id"], 2, "then the initialize reply: {:?}", out[1]);
@@ -138,7 +146,7 @@ async fn known_request_before_initialize_is_answered_invalid_request() {
 
 /// Passes before and after the change, so it is a regression guard and not
 /// evidence of the bug. It measures that the wrapper does not intercept live
-/// traffic: this -32601 comes from rmcp's own `on_custom_request`.
+/// traffic: the unknown-method error comes from the SDK's live handler.
 #[tokio::test]
 async fn guard_is_transparent_after_initialize() {
     const INITIALIZED: &str = r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#;
@@ -151,11 +159,42 @@ async fn guard_is_transparent_after_initialize() {
     assert_eq!(out[1]["error"]["code"], -32601);
 }
 
+/// A 2026-07-28 client probes first and is told which revisions this server
+/// speaks. `supported_protocol_versions` stops at 2025-11-25, because that
+/// revision is the last with sessions and the server keeps per-session state
+/// (src/server.rs). The client then falls back to `initialize`, which must
+/// still be answered, and negotiates a session revision.
+#[tokio::test]
+async fn a_2026_07_28_probe_is_told_the_session_revisions_and_initialize_still_works() {
+    let out = handshake_replies(&[DISCOVER_2026, INITIALIZE], 2)
+        .await
+        .expect("the handshake must survive a 2026-07-28 probe");
+    assert_eq!(out[0]["id"], 1, "the probe is answered first: {:?}", out[0]);
+    assert_eq!(
+        out[0]["error"]["code"], -32022,
+        "2026-07-28 is refused as an unsupported version: {:?}",
+        out[0]
+    );
+    let supported: Vec<&str> = out[0]["error"]["data"]["supported"]
+        .as_array()
+        .expect("the refusal lists the supported revisions")
+        .iter()
+        .map(|v| v.as_str().unwrap())
+        .collect();
+    assert_eq!(
+        supported,
+        ["2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"],
+        "every revision with an initialize handshake, and not 2026-07-28"
+    );
+    assert_eq!(out[1]["id"], 2, "then the initialize reply: {:?}", out[1]);
+    assert_eq!(out[1]["result"]["protocolVersion"], "2025-06-18");
+}
+
 #[tokio::test]
 async fn discovery_without_inline_metadata_does_not_end_the_handshake() {
     let out = handshake_replies(&[DISCOVER, INITIALIZE], 2).await.unwrap();
     assert_eq!(out[0]["id"], 1);
-    assert_eq!(out[0]["error"]["code"], -32600);
+    assert_eq!(out[0]["error"]["code"], INVALID_PARAMS);
     assert!(out[1]["result"]["protocolVersion"].is_string());
 }
 
@@ -172,8 +211,8 @@ async fn inline_metadata_is_validated_by_the_sdk_before_dispatch() {
         .await
         .unwrap();
     assert_eq!(out[0]["id"], 1);
-    assert!(
-        out[0]["error"].is_object(),
+    assert_eq!(
+        out[0]["error"]["code"], INVALID_PARAMS,
         "client capabilities are missing: {:?}",
         out[0]
     );
@@ -182,50 +221,45 @@ async fn inline_metadata_is_validated_by_the_sdk_before_dispatch() {
 }
 
 #[tokio::test]
-async fn inline_discovery_and_tool_listing_reach_the_sdk_without_initialize() {
-    let metadata = serde_json::json!({
-        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-        "io.modelcontextprotocol/clientCapabilities": {}
-    });
-    let discover = serde_json::json!({
-        "jsonrpc": "2.0", "id": 1, "method": "server/discover",
-        "params": {"_meta": metadata}
-    })
-    .to_string();
-    let tools = serde_json::json!({
-        "jsonrpc": "2.0", "id": 2, "method": "tools/list",
-        "params": {"_meta": metadata}
-    })
-    .to_string();
-    let out = handshake_replies(&[&discover, &tools], 2).await.unwrap();
+async fn discovery_does_not_bypass_initialization_for_legacy_tools() {
+    const TOOLS_LIST: &str = r#"{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}"#;
+    let out = handshake_replies(&[DISCOVER_2026, TOOLS_LIST, INITIALIZE], 3)
+        .await
+        .unwrap();
     assert_eq!(out[0]["id"], 1);
-    assert!(
-        out[0]["result"]["supportedVersions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|version| version == "2026-07-28")
-    );
-    assert_eq!(out[1]["id"], 2);
-    assert!(!out[1]["result"]["tools"].as_array().unwrap().is_empty());
+    assert_eq!(out[0]["error"]["code"], -32022);
+    assert_eq!(out[1]["id"], 3);
+    assert_eq!(out[1]["error"]["code"], -32600);
+    assert!(out[1].get("result").is_none());
+    assert_eq!(out[2]["id"], 2);
+    assert_eq!(out[2]["result"]["protocolVersion"], "2025-06-18");
 }
 
 #[tokio::test]
-async fn inline_negotiation_preserves_subsequent_notifications() {
+async fn discovery_metadata_is_validated_after_initialize() {
+    const INITIALIZED: &str = r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#;
+    let out = handshake_replies(&[INITIALIZE, INITIALIZED, DISCOVER], 2)
+        .await
+        .unwrap();
+    assert_eq!(out[0]["id"], 2);
+    assert_eq!(out[1]["id"], 1);
+    assert_eq!(out[1]["error"]["code"], INVALID_PARAMS);
+}
+
+#[tokio::test]
+async fn initialize_preserves_subsequent_notifications() {
     use rmcp::model::ClientJsonRpcMessage;
     use rmcp::transport::Transport;
 
     let (mut client, pipe) = tokio::io::duplex(4096);
-    client
-        .write_all(concat!(
-            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{\"_meta\":{",
-            "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",",
-            "\"io.modelcontextprotocol/clientCapabilities\":{}}}}\n",
-            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/cancelled\",\"params\":{\"requestId\":1}}\n",
-            "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"ping\"}\n"
-        ).as_bytes())
-        .await
-        .unwrap();
+    for line in [
+        INITIALIZE,
+        r#"{"jsonrpc":"2.0","method":"notifications/cancelled","params":{"requestId":1}}"#,
+        r#"{"jsonrpc":"2.0","id":3,"method":"ping"}"#,
+    ] {
+        client.write_all(line.as_bytes()).await.unwrap();
+        client.write_all(b"\n").await.unwrap();
+    }
     let mut guarded = open_ontologies::mcp_handshake::guard(pipe);
     assert!(matches!(
         guarded.receive().await,
@@ -233,7 +267,7 @@ async fn inline_negotiation_preserves_subsequent_notifications() {
     ));
     let next = tokio::time::timeout(std::time::Duration::from_secs(2), guarded.receive())
         .await
-        .expect("the notification must reach the SDK without waiting for initialize");
+        .expect("the notification must reach the SDK after initialize");
     assert!(
         matches!(next, Some(ClientJsonRpcMessage::Notification(_))),
         "{next:?}"

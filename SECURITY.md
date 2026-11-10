@@ -28,6 +28,14 @@ Running it on `0.0.0.0` without a token gives anyone who can reach the port full
 read and write access to the loaded graphs, and that is the configuration most
 likely to hurt someone.
 
+`/mcp` also checks the `Host` header against DNS rebinding and accepts only
+`localhost`, `127.0.0.1` and `::1` unless told otherwise. A server reached by
+another name (a LAN address, a container name, the reverse proxy's public
+name) needs it in `[http] allowed_hosts`, `OPEN_ONTOLOGIES_HTTP_ALLOWED_HOSTS`
+or `--allowed-host`. `"*"` turns the check off, which is only reasonable
+behind a proxy that sets `Host` itself. `/mcp` refuses request bodies over
+4 MiB unless `[http] max_request_body_bytes` raises the cap.
+
 The `plugins` feature runs community WASM modules in-process on wasmi with fuel
 metering. Fuel bounds runtime, it does not sandbox intent. Treat a plugin as
 code you are choosing to run.

@@ -1,35 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Fabio Rovai
 // SPDX-License-Identifier: MIT
 
-//! A guard over the MCP server transport for the window before `initialize`.
+//! A guard over the MCP server transport before `initialize`.
 //!
-//! In rmcp 1.4, the handshake answered `ping` but rejected every other request
-//! before `initialize`, returning `ExpectedInitializeRequest`. Issue #260 was
-//! a client's `server/discover` probe ending the process before initialization.
-//! This wrapper preserves the JSON-RPC error replies introduced for that bug.
+//! rmcp 1.4 ended the handshake when a client sent a non-ping request before
+//! `initialize`. This wrapper answers out-of-order legacy requests instead of
+//! closing stdio: unknown methods get -32601 and known methods get -32600.
 //!
-//! rmcp 3.9 also supports discovery and inline protocol negotiation without
-//! `initialize`. Requests carrying protocol-version metadata reach the SDK
-//! unchanged so it can validate and negotiate them, then owns the rest of the
-//! lifecycle. Legacy clients still receive the guard's established error replies.
+//! rmcp 3.9 recognizes `server/discover` as a bootstrap probe. Pass it to the
+//! SDK for metadata validation and protocol negotiation, while keeping the
+//! guard active until `initialize`. Discovery must not let a subsequent tool
+//! request bypass initialization. The server advertises session-based protocol
+//! revisions so HTTP requests retain their active ontology and lineage state.
 //!
-//! Answering instead of exiting is a deliberate protocol choice. JSON-RPC 2.0
-//! requires a reply to every request that carries an id, and the MCP lifecycle
-//! says a client SHOULD NOT send non-ping requests before the initialize
-//! response, not MUST NOT. Exiting without a reply is the less conformant of
-//! the two behaviours, so this wrapper replies. It changes nothing after the
-//! handshake: once `initialize` or inline negotiation has passed through, every
-//! message reaches rmcp untouched, which is what
-//! `guard_is_transparent_after_initialize` in
-//! `tests/mcp_handshake_guard_test.rs` measures.
-//!
+//! After `initialize`, every message, including notifications, reaches the SDK
+//! unchanged. `tests/mcp_handshake_guard_test.rs` checks the legacy replies,
+//! discovery failures, supported-version fallback and notification forwarding.
+
 use rmcp::RoleServer;
-use rmcp::model::{ClientJsonRpcMessage, ClientRequest, ErrorCode, ErrorData, GetMeta};
+use rmcp::model::{ClientJsonRpcMessage, ClientRequest, ErrorCode, ErrorData};
 use rmcp::service::{RxJsonRpcMessage, TxJsonRpcMessage};
 use rmcp::transport::{IntoTransport, Transport};
 
-/// Wrap a transport so that a request arriving before `initialize` is answered
-/// with a JSON-RPC error instead of ending the process.
+/// Answer out-of-order legacy requests without ending the stdio handshake,
+/// while delegating discovery probes to the SDK.
 pub fn guard<E, A>(
     transport: impl IntoTransport<RoleServer, E, A>,
 ) -> impl Transport<RoleServer, Error = E> + 'static
@@ -38,16 +32,15 @@ where
 {
     HandshakeGuard {
         inner: transport.into_transport(),
-        sdk_lifecycle_seen: false,
+        initialize_seen: false,
     }
 }
 
 struct HandshakeGuard<T> {
     inner: T,
-    /// Set when initialize or inline negotiation has been handed to rmcp.
-    /// From that point on the SDK owns validation of every message, including
-    /// notifications and retries after incomplete inline metadata.
-    sdk_lifecycle_seen: bool,
+    /// Set when the `initialize` request has been handed up to rmcp. From that
+    /// point on this wrapper forwards every message without inspecting it.
+    initialize_seen: bool,
 }
 
 impl<T> Transport<RoleServer> for HandshakeGuard<T>
@@ -66,26 +59,26 @@ where
     async fn receive(&mut self) -> Option<RxJsonRpcMessage<RoleServer>> {
         loop {
             let msg = self.inner.receive().await?;
-            if self.sdk_lifecycle_seen {
+            if self.initialize_seen {
                 return Some(msg);
             }
             match &msg {
                 ClientJsonRpcMessage::Request(req) => match &req.request {
                     ClientRequest::InitializeRequest(_) => {
-                        self.sdk_lifecycle_seen = true;
+                        self.initialize_seen = true;
                         return Some(msg);
                     }
-                    // rmcp answers a pre-initialize ping itself, in the
-                    // same loop that rejects everything else, so this one
-                    // still goes up.
+                    // The SDK permits ping during its handshake.
                     ClientRequest::PingRequest(_) => return Some(msg),
-                    // The SDK validates inline metadata and supports discovery
-                    // before initialize. Do not mistake that lifecycle for an
-                    // out-of-order request from a legacy client.
-                    other if other.get_meta().protocol_version().is_some() => {
-                        self.sdk_lifecycle_seen = true;
-                        return Some(msg);
-                    }
+                    // Since rmcp 3.9, `server/discover` is the 2026-07-28
+                    // protocol's bootstrap probe, which a client sends before
+                    // `initialize` by design. rmcp answers it in its own
+                    // handshake loop and stays open for `initialize` after:
+                    // with the version list when the probe names a revision
+                    // this server supports, otherwise with an error naming
+                    // what is missing or supported. Intercepting it here
+                    // would hide that answer behind an ordering fault.
+                    ClientRequest::DiscoverRequest(_) => return Some(msg),
                     other => {
                         let method = other.method().to_string();
                         let id = req.id.clone();
