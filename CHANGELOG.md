@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **JSON ingestion rejects unsupported scalar and mixed-array shapes instead of silently reporting empty or partial input.**
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
