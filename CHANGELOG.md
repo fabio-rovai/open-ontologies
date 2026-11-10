@@ -165,6 +165,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **CSV ingestion rejects duplicate headers instead of silently discarding earlier columns.**
+
 - **`reason --profile owl-dl` no longer reports `consistent: true` when the
   tableau omits an axiom** (#356). When the graph uses an unmodelled construct
   and no clash was proved, the headline is `null`; a proved clash remains
