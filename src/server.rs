@@ -4,15 +4,13 @@
 use std::sync::Arc;
 
 use rmcp::{
-    ServerHandler, RoleServer, tool, tool_handler, tool_router,
+    ServerHandler, tool, tool_handler, tool_router,
     prompt, prompt_handler, prompt_router,
     handler::server::{tool::ToolRouter, router::prompt::PromptRouter, wrapper::Parameters},
     model::{
-        ServerCapabilities, ServerInfo, Tool,
-        PromptMessage, PromptMessageRole, GetPromptResult,
-        GetPromptRequestParams, PaginatedRequestParams, ListPromptsResult,
+        ServerCapabilities, ServerConfig, Tool,
+        PromptMessage, Role, GetPromptResult,
     },
-    service::RequestContext,
 };
 use crate::config::expand_tilde;
 use crate::graph::GraphStore;
@@ -3495,7 +3493,7 @@ impl OpenOntologiesServer {
             input.domain
         );
         Ok(GetPromptResult::new(vec![
-            PromptMessage::new_text(PromptMessageRole::User, msg),
+            PromptMessage::new_text(Role::User, msg),
         ]).with_description("Build an ontology from a domain description"))
     }
 
@@ -3513,7 +3511,7 @@ impl OpenOntologiesServer {
             input.path
         );
         Ok(GetPromptResult::new(vec![
-            PromptMessage::new_text(PromptMessageRole::User, msg),
+            PromptMessage::new_text(Role::User, msg),
         ]).with_description("Validate and lint an ontology file"))
     }
 
@@ -3531,7 +3529,7 @@ impl OpenOntologiesServer {
             input.old_path, input.new_path
         );
         Ok(GetPromptResult::new(vec![
-            PromptMessage::new_text(PromptMessageRole::User, msg),
+            PromptMessage::new_text(Role::User, msg),
         ]).with_description("Compare two ontology versions"))
     }
 
@@ -3551,7 +3549,7 @@ impl OpenOntologiesServer {
             input.data_path
         );
         Ok(GetPromptResult::new(vec![
-            PromptMessage::new_text(PromptMessageRole::User, msg),
+            PromptMessage::new_text(Role::User, msg),
         ]).with_description("Ingest external data into a loaded ontology"))
     }
 
@@ -3584,7 +3582,7 @@ impl OpenOntologiesServer {
             input.source_path, input.target_path
         );
         Ok(GetPromptResult::new(vec![
-            PromptMessage::new_text(PromptMessageRole::User, msg),
+            PromptMessage::new_text(Role::User, msg),
         ]).with_description("Align two ontologies using hybrid neuro-symbolic matching (structural + LLM adjudication)"))
     }
 
@@ -3593,7 +3591,7 @@ impl OpenOntologiesServer {
     fn explore_ontology(&self) -> Result<GetPromptResult, rmcp::ErrorData> {
         Ok(GetPromptResult::new(vec![
             PromptMessage::new_text(
-                PromptMessageRole::User,
+                Role::User,
                 "Explore the currently loaded ontology:\n\n\
                 1. Call onto_stats to show overview counts\n\
                 2. Call onto_query to list all classes with labels\n\
@@ -3618,7 +3616,7 @@ impl ServerHandler for OpenOntologiesServer {
     /// it". They are not advertised any more, so the sentence is now about
     /// what is missing and why, and both numbers are read off the router the
     /// client is about to call.
-    fn get_info(&self) -> ServerInfo {
+    fn get_info(&self) -> ServerConfig {
         let advertised = self.tool_router.list_all().len();
         let withheld = crate::toolfilter::unavailable_in_this_build();
         let tail = if withheld.is_empty() {
@@ -3650,7 +3648,7 @@ impl ServerHandler for OpenOntologiesServer {
         } else {
             String::new()
         };
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().enable_prompts().build())
             .with_instructions(format!(
                 "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
                  {advertised} tools and 6 workflow prompts for ontology engineering, validation, \

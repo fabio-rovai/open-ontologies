@@ -3,13 +3,9 @@
 
 //! Issue #260: a request arriving before `initialize` must not end the process.
 //!
-//! The report was a fresh 2.0 install whose client sent
-//! `{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}` as its
-//! first line. rmcp's handshake loop (rmcp-1.4.0/src/service/server.rs:170-203)
-//! answers a pre-initialize `ping` and rejects everything else, so `serve`
-//! returned `ExpectedInitializeRequest`, `main` propagated it, and the client's
-//! `initialize` hit EOF. Measured on rmcp 1.4.0 and on 1.8.0: the same two
-//! lines reject it in both, so this is not a version bump away.
+//! The original report concerned a `server/discover` probe on rmcp 1.4.
+//! rmcp 3.9 recognizes discovery and supports inline negotiation, so exercise
+//! both the legacy error replies and the new lifecycle over the real transport.
 //!
 //! These tests drive the real handler over a `tokio::io::duplex` pipe, so no
 //! MCP client is involved. Every line is written before `serve` is called,
@@ -26,9 +22,10 @@ use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 const INITIALIZE: &str = r#"{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"issue-260","version":"0"}}}"#;
-/// The reporter's line, verbatim. "server/discover" is not an MCP method and
-/// appears nowhere in this repository, so it is the client's own probe.
+/// The reporter's line, verbatim. Discovery is now an MCP method, but requires
+/// inline request metadata when used before initialize.
 const DISCOVER: &str = r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}"#;
+const UNKNOWN: &str = r#"{"jsonrpc":"2.0","id":1,"method":"unknown/probe","params":{}}"#;
 
 /// Feed `lines` to a guarded server over a pipe and collect `want` replies.
 ///
@@ -40,7 +37,12 @@ async fn handshake_replies(lines: &[&str], want: usize) -> Result<Vec<serde_json
     let tmp = tempfile::tempdir().unwrap();
     let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
     let embeddings = EmbeddingsConfig {
-        model_path: Some(tmp.path().join("absent.onnx").to_string_lossy().into_owned()),
+        model_path: Some(
+            tmp.path()
+                .join("absent.onnx")
+                .to_string_lossy()
+                .into_owned(),
+        ),
         tokenizer_path: Some(
             tmp.path()
                 .join("absent-tokenizer.json")
@@ -99,11 +101,10 @@ async fn handshake_replies(lines: &[&str], want: usize) -> Result<Vec<serde_json
     Ok(out)
 }
 
-/// FAILS without the guard: the handshake ends with
-/// `ServerInitializeError::ExpectedInitializeRequest` and no reply is written.
+/// Unknown legacy probes keep the guard's method-not-found reply.
 #[tokio::test]
 async fn unknown_request_before_initialize_does_not_end_the_handshake() {
-    let out = handshake_replies(&[DISCOVER, INITIALIZE], 2)
+    let out = handshake_replies(&[UNKNOWN, INITIALIZE], 2)
         .await
         .expect("the handshake must survive a request sent before initialize");
     assert_eq!(out[0]["id"], 1, "the probe is answered first: {:?}", out[0]);
@@ -120,8 +121,7 @@ async fn unknown_request_before_initialize_does_not_end_the_handshake() {
     );
 }
 
-/// FAILS without the guard for the same reason: rmcp's pre-initialize loop
-/// turns away every request that is not `ping`, a known MCP method included.
+/// Known legacy requests sent early keep the guard's invalid-request reply.
 #[tokio::test]
 async fn known_request_before_initialize_is_answered_invalid_request() {
     const TOOLS_LIST: &str = r#"{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}"#;
@@ -142,11 +142,100 @@ async fn known_request_before_initialize_is_answered_invalid_request() {
 #[tokio::test]
 async fn guard_is_transparent_after_initialize() {
     const INITIALIZED: &str = r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#;
-    let out = handshake_replies(&[INITIALIZE, INITIALIZED, DISCOVER], 2)
+    let out = handshake_replies(&[INITIALIZE, INITIALIZED, UNKNOWN], 2)
         .await
         .expect("handshake");
     assert_eq!(out[0]["id"], 2);
     assert!(out[0]["result"]["protocolVersion"].is_string());
     assert_eq!(out[1]["id"], 1);
     assert_eq!(out[1]["error"]["code"], -32601);
+}
+
+#[tokio::test]
+async fn discovery_without_inline_metadata_does_not_end_the_handshake() {
+    let out = handshake_replies(&[DISCOVER, INITIALIZE], 2).await.unwrap();
+    assert_eq!(out[0]["id"], 1);
+    assert_eq!(out[0]["error"]["code"], -32600);
+    assert!(out[1]["result"]["protocolVersion"].is_string());
+}
+
+#[tokio::test]
+async fn inline_metadata_is_validated_by_the_sdk_before_dispatch() {
+    let discover = serde_json::json!({
+        "jsonrpc": "2.0", "id": 1, "method": "server/discover",
+        "params": {"_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28"
+        }}
+    })
+    .to_string();
+    let out = handshake_replies(&[&discover, INITIALIZE], 2)
+        .await
+        .unwrap();
+    assert_eq!(out[0]["id"], 1);
+    assert!(
+        out[0]["error"].is_object(),
+        "client capabilities are missing: {:?}",
+        out[0]
+    );
+    assert!(out[0].get("result").is_none());
+    assert!(out[1]["result"]["protocolVersion"].is_string());
+}
+
+#[tokio::test]
+async fn inline_discovery_and_tool_listing_reach_the_sdk_without_initialize() {
+    let metadata = serde_json::json!({
+        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+        "io.modelcontextprotocol/clientCapabilities": {}
+    });
+    let discover = serde_json::json!({
+        "jsonrpc": "2.0", "id": 1, "method": "server/discover",
+        "params": {"_meta": metadata}
+    })
+    .to_string();
+    let tools = serde_json::json!({
+        "jsonrpc": "2.0", "id": 2, "method": "tools/list",
+        "params": {"_meta": metadata}
+    })
+    .to_string();
+    let out = handshake_replies(&[&discover, &tools], 2).await.unwrap();
+    assert_eq!(out[0]["id"], 1);
+    assert!(
+        out[0]["result"]["supportedVersions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|version| version == "2026-07-28")
+    );
+    assert_eq!(out[1]["id"], 2);
+    assert!(!out[1]["result"]["tools"].as_array().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn inline_negotiation_preserves_subsequent_notifications() {
+    use rmcp::model::ClientJsonRpcMessage;
+    use rmcp::transport::Transport;
+
+    let (mut client, pipe) = tokio::io::duplex(4096);
+    client
+        .write_all(concat!(
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{\"_meta\":{",
+            "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",",
+            "\"io.modelcontextprotocol/clientCapabilities\":{}}}}\n",
+            "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/cancelled\",\"params\":{\"requestId\":1}}\n",
+            "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"ping\"}\n"
+        ).as_bytes())
+        .await
+        .unwrap();
+    let mut guarded = open_ontologies::mcp_handshake::guard(pipe);
+    assert!(matches!(
+        guarded.receive().await,
+        Some(ClientJsonRpcMessage::Request(_))
+    ));
+    let next = tokio::time::timeout(std::time::Duration::from_secs(2), guarded.receive())
+        .await
+        .expect("the notification must reach the SDK without waiting for initialize");
+    assert!(
+        matches!(next, Some(ClientJsonRpcMessage::Notification(_))),
+        "{next:?}"
+    );
 }

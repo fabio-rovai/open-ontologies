@@ -2,13 +2,12 @@
 name = "open-ontologies"
 version = "2.1.0"
 edition = "2024"
-# The oldest Rust the locked dependencies build with, measured on 2 Nov 2026:
-# 1.87 stops at darling 0.23, which requires 1.88, and 1.88 checks the default
-# features and the release set `embeddings,plugins`. ci.yml's `msrv` job keeps
-# measuring it. The optional `turbovec` feature needs 1.89, which turbovec 1.0
-# requires. With the floor declared, an older cargo refuses this crate by name,
-# and `cargo update` prefers dependency versions that still build on it.
-rust-version = "1.88"
+# rusqlite 0.41 requires Rust 1.89 and bundles the SQLite release that fixes
+# RUSTSEC-2026-0459. ci.yml's `msrv` job checks the default features and the
+# release set `embeddings,plugins` on this floor. With the floor declared, an
+# older cargo refuses this crate by name, and `cargo update` prefers
+# dependency versions that still build on it.
+rust-version = "1.89"
 description = "AI-native ontology engine: an MCP server and CLI for building, validating, querying and reasoning over RDF and OWL, with a native SHIQ tableaux reasoner, SHACL validation and SPARQL. Single binary, no JVM."
 license = "MIT"
 repository = "https://github.com/fabio-rovai/open-ontologies"
@@ -41,13 +40,13 @@ path = "src/main.rs"
 # `is_daemon_alive` runs on every proxy-able invocation; a bare kill(pid, 0)
 # avoids forking /bin/kill on the daemon's own hot path.
 libc = "0.2"
-rmcp = { version = "1.4", features = ["server", "transport-io", "transport-streamable-http-server"] }
+rmcp = { version = "3.9", features = ["server", "transport-io", "transport-streamable-http-server"] }
 axum = "0.8"
 tower-http = { version = "0.6", features = ["cors"] }
 tokio-util = "0.7"
 tokio = { version = "1", features = ["full"] }
 oxigraph = "0.5"
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.41.1", features = ["bundled"] }
 reqwest = { version = "0.12", features = ["json"] }
 schemars = "1"
 serde = { version = "1", features = ["derive"] }

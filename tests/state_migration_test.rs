@@ -23,6 +23,17 @@ use open_ontologies::state::{StateDb, SCHEMA_VERSION};
 use rusqlite::Connection;
 use tempfile::TempDir;
 
+#[test]
+fn linked_sqlite_includes_the_wal_memory_disclosure_fix() {
+    // RUSTSEC-2026-0459 is fixed in SQLite 3.54.0. Check the linked C runtime,
+    // not just Cargo.lock: a system-library override can select another SQLite.
+    assert!(
+        rusqlite::version_number() >= 3_054_000,
+        "SQLite {} predates the WAL memory disclosure fix",
+        rusqlite::version()
+    );
+}
+
 fn fixture(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/state")

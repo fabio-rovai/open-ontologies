@@ -3,40 +3,28 @@
 
 //! A guard over the MCP server transport for the window before `initialize`.
 //!
-//! rmcp's server handshake reads messages itself until it sees `initialize`
-//! (rmcp-1.4.0/src/service/server.rs:170-203). It answers a pre-initialize
-//! `ping` in that loop and it accepts nothing else: any other request falls
-//! through `ClientJsonRpcMessage::Request(req) => break (req.request, req.id)`
-//! at line 191 into the `else` at line 200, and `serve` returns
-//! `ServerInitializeError::ExpectedInitializeRequest`. `main` propagates that
-//! with `?` at main.rs:1867, the process exits, and the client sees EOF.
+//! In rmcp 1.4, the handshake answered `ping` but rejected every other request
+//! before `initialize`, returning `ExpectedInitializeRequest`. Issue #260 was
+//! a client's `server/discover` probe ending the process before initialization.
+//! This wrapper preserves the JSON-RPC error replies introduced for that bug.
 //!
-//! Issue #260 is that failure caused by one line. A client sent
-//! `{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}` as its
-//! first message and 2.0 died before answering the handshake at all. The same
-//! request one message later, after `initialize`, is answered -32601 by rmcp's
-//! default `on_custom_request` (rmcp-1.4.0/src/handler/server.rs:282-294) and
-//! costs nothing. Arrival order was the only difference between a reply and a
-//! dead process.
+//! rmcp 3.9 also supports discovery and inline protocol negotiation without
+//! `initialize`. Requests carrying protocol-version metadata reach the SDK
+//! unchanged so it can validate and negotiate them, then owns the rest of the
+//! lifecycle. Legacy clients still receive the guard's established error replies.
 //!
 //! Answering instead of exiting is a deliberate protocol choice. JSON-RPC 2.0
 //! requires a reply to every request that carries an id, and the MCP lifecycle
 //! says a client SHOULD NOT send non-ping requests before the initialize
 //! response, not MUST NOT. Exiting without a reply is the less conformant of
 //! the two behaviours, so this wrapper replies. It changes nothing after the
-//! handshake: once the `initialize` request has passed through, every message
-//! reaches rmcp untouched, which is what
+//! handshake: once `initialize` or inline negotiation has passed through, every
+//! message reaches rmcp untouched, which is what
 //! `guard_is_transparent_after_initialize` in
 //! `tests/mcp_handshake_guard_test.rs` measures.
 //!
-//! rmcp's own authors reason the same way one screen further down. The comment
-//! at rmcp-1.4.0/src/service/server.rs:250-256 says the spec uses SHOULD NOT
-//! rather than MUST NOT for pre-`initialized` messages and that a request
-//! arriving before the `initialized` notification is therefore processed
-//! normally. This wrapper applies their stated rule one message earlier.
-
 use rmcp::RoleServer;
-use rmcp::model::{ClientJsonRpcMessage, ClientRequest, ErrorCode, ErrorData};
+use rmcp::model::{ClientJsonRpcMessage, ClientRequest, ErrorCode, ErrorData, GetMeta};
 use rmcp::service::{RxJsonRpcMessage, TxJsonRpcMessage};
 use rmcp::transport::{IntoTransport, Transport};
 
@@ -50,15 +38,16 @@ where
 {
     HandshakeGuard {
         inner: transport.into_transport(),
-        initialize_seen: false,
+        sdk_lifecycle_seen: false,
     }
 }
 
 struct HandshakeGuard<T> {
     inner: T,
-    /// Set when the `initialize` request has been handed up to rmcp. From that
-    /// point on this wrapper forwards every message without inspecting it.
-    initialize_seen: bool,
+    /// Set when initialize or inline negotiation has been handed to rmcp.
+    /// From that point on the SDK owns validation of every message, including
+    /// notifications and retries after incomplete inline metadata.
+    sdk_lifecycle_seen: bool,
 }
 
 impl<T> Transport<RoleServer> for HandshakeGuard<T>
@@ -77,19 +66,26 @@ where
     async fn receive(&mut self) -> Option<RxJsonRpcMessage<RoleServer>> {
         loop {
             let msg = self.inner.receive().await?;
-            if self.initialize_seen {
+            if self.sdk_lifecycle_seen {
                 return Some(msg);
             }
             match &msg {
                 ClientJsonRpcMessage::Request(req) => match &req.request {
                     ClientRequest::InitializeRequest(_) => {
-                        self.initialize_seen = true;
+                        self.sdk_lifecycle_seen = true;
                         return Some(msg);
                     }
                     // rmcp answers a pre-initialize ping itself, in the
                     // same loop that rejects everything else, so this one
                     // still goes up.
                     ClientRequest::PingRequest(_) => return Some(msg),
+                    // The SDK validates inline metadata and supports discovery
+                    // before initialize. Do not mistake that lifecycle for an
+                    // out-of-order request from a legacy client.
+                    other if other.get_meta().protocol_version().is_some() => {
+                        self.sdk_lifecycle_seen = true;
+                        return Some(msg);
+                    }
                     other => {
                         let method = other.method().to_string();
                         let id = req.id.clone();
@@ -113,7 +109,7 @@ where
                         );
                         if let Err(e) = self
                             .inner
-                            .send(TxJsonRpcMessage::<RoleServer>::error(error, id))
+                            .send(TxJsonRpcMessage::<RoleServer>::error(error, Some(id)))
                             .await
                         {
                             tracing::warn!("could not answer a pre-initialize request: {e}");
@@ -122,8 +118,7 @@ where
                 },
                 // Nothing without an id is owed a reply, so a stray
                 // pre-initialize notification or response is dropped rather
-                // than ending the handshake the way rmcp's `other =>` arm
-                // at server.rs:192-196 does.
+                // than ending the SDK's legacy handshake.
                 _ => {
                     tracing::debug!("dropping a message received before initialize: {msg:?}");
                 }

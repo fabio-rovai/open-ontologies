@@ -2446,7 +2446,7 @@ async fn async_main() -> anyhow::Result<()> {
             #[allow(clippy::field_reassign_with_default)]
             let http_config = {
                 let mut c = StreamableHttpServerConfig::default();
-                c.stateful_mode = cfg.http.stateful_mode;
+                c.legacy_session_mode = cfg.http.stateful_mode;
                 c.cancellation_token = ct.clone();
                 c
             };

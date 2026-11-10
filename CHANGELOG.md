@@ -151,6 +151,15 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- Upgrade `rusqlite` to 0.41.1 with bundled SQLite to address
+  RUSTSEC-2026-0459, and `rmcp` to 3.9 to address RUSTSEC-2026-0462
+  (unbounded Streamable HTTP client response buffering). Raise the minimum
+  Rust version to 1.89 as required by `rusqlite`, and update the MSRV CI job.
+  Preserve the public `stateful_mode` setting with the SDK's legacy session
+  configuration, migrate prompt and error response types, and let the SDK
+  validate inline negotiation through the stdio handshake guard without
+  dropping subsequent notifications.
+
 - Persist all captured RDFS/OWL-RL supports in the existing materialisation
   transaction. Assertion withdrawal now retracts unsupported consequences,
   retains alternative proofs, and removes cycles with no surviving evidence.
