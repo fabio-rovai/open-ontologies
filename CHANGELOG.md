@@ -6,6 +6,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **Solver discovery recognizes Windows executables on `PATH`.** The probe
+  honors native `.EXE` and `.COM` entries in `PATHEXT`, so tools such as Z3
+  and `oo-folmodel.exe` are detected without changing their names.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is

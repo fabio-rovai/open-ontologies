@@ -210,9 +210,50 @@ impl Solver {
 
 fn which(bin: &str) -> Option<PathBuf> {
     let path = std::env::var_os("PATH")?;
-    std::env::split_paths(&path)
-        .map(|d| d.join(bin))
-        .find(|p| p.is_file())
+    #[cfg(windows)]
+    let pathext = std::env::var_os("PATHEXT")
+        .unwrap_or_else(|| std::ffi::OsString::from(".COM;.EXE"));
+    #[cfg(not(windows))]
+    let pathext = std::ffi::OsString::new();
+    which_with_extensions(bin, &path, &pathext)
+}
+
+fn which_with_extensions(
+    bin: &str,
+    path: &std::ffi::OsStr,
+    pathext: &std::ffi::OsStr,
+) -> Option<PathBuf> {
+    let has_extension = std::path::Path::new(bin).extension().is_some();
+    let extensions: Vec<String> = pathext
+        .to_string_lossy()
+        .split(';')
+        .filter_map(|extension| {
+            match extension.to_ascii_lowercase().as_str() {
+                // `Command` can launch native executables directly. Batch-file
+                // associations require a shell and must not be reported as a
+                // runnable solver by this probe.
+                ".exe" | ".com" => Some(extension.to_string()),
+                _ => None,
+            }
+        })
+        .collect();
+
+    for directory in std::env::split_paths(path) {
+        let candidate = directory.join(bin);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+        if has_extension {
+            continue;
+        }
+        for extension in &extensions {
+            let candidate = directory.join(format!("{bin}{extension}"));
+            if candidate.is_file() {
+                return Some(candidate);
+            }
+        }
+    }
+    None
 }
 
 /// How to run the pipeline.
@@ -991,4 +1032,23 @@ pub fn solve_export(
                               must never be shortened to `not entailed`",
     })
     .to_string())
+}
+
+#[cfg(test)]
+mod path_lookup_tests {
+    use super::which_with_extensions;
+    use std::ffi::OsStr;
+
+    #[test]
+    fn path_lookup_appends_native_extensions_from_pathext() {
+        let dir = tempfile::tempdir().unwrap();
+        let executable = dir.path().join("z3.exe");
+        std::fs::write(&executable, b"test executable placeholder").unwrap();
+        let path = std::env::join_paths([dir.path()]).unwrap();
+
+        assert_eq!(
+            which_with_extensions("z3", &path, OsStr::new(".com;.exe;.cmd")),
+            Some(executable)
+        );
+    }
 }
