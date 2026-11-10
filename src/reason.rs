@@ -787,12 +787,12 @@ pub fn certificate_binds_to_store(
     let actual = format!("{:x}", h.finalize());
     let matches = recorded == actual;
 
-    // A boolean is not enough, and the first end-to-end run showed why: `reason`
-    // MATERIALISES its inferences into the store by default, so re-reading the
-    // same store afterwards yields the assertions plus the derivations, and a
-    // bare "no" would send a reader looking for a wrong graph they do not have.
-    // So the two selections are compared as sets, and the report says which way
-    // they differ.
+    // Managed materialisations are excluded from the asserted selection above.
+    // Legacy stores and copies without dependency metadata can still yield
+    // assertions plus derivations. A bare "no" would send a reader looking for
+    // a wrong graph they may not have. Compare the selections as sets to explain
+    // such mismatches; the conclusion check below identifies a possible cause,
+    // not proof that the extra triples were materialised rather than asserted.
     let in_store: std::collections::BTreeSet<String> = String::from_utf8_lossy(&bytes)
         .lines()
         .map(|l| l.to_string())

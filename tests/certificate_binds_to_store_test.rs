@@ -19,7 +19,9 @@
 use std::sync::Arc;
 
 use open_ontologies::graph::GraphStore;
-use open_ontologies::reason::{asserted_bytes, asserted_digest, certificate_binds_to_store, Reasoner};
+use open_ontologies::reason::{
+    Reasoner, asserted_bytes, asserted_digest, certificate_binds_to_store,
+};
 use open_ontologies::temporal::ScopeRequest;
 
 const TTL: &str = r#"
@@ -60,7 +62,11 @@ fn a_certificate_matches_the_store_it_came_from_and_not_another() {
     let recorded = report["certificate"]["asserted_sha256"]
         .as_str()
         .expect("the run records the digest of what it asserted");
-    assert_eq!(recorded.len(), 64, "a sha256 is 64 hex characters: {recorded}");
+    assert_eq!(
+        recorded.len(),
+        64,
+        "a sha256 is 64 hex characters: {recorded}"
+    );
     assert!(
         dir.join("asserted.sha256").exists(),
         "the digest is written beside the files, so a reader who has only the directory has it"
@@ -74,9 +80,8 @@ fn a_certificate_matches_the_store_it_came_from_and_not_another() {
 
     // A store with one more triple is a different graph, and the check says so.
     // The extra triple must be one this run does NOT derive: `myCup a Drink` is
-    // a conclusion of rdfs9 here, so a store carrying it is indistinguishable
-    // from the same store after materialisation, and calling that a different
-    // graph would be a guess.
+    // a conclusion of rdfs9 here, so an untracked copy carrying it could be a
+    // legacy materialisation. Calling that a different graph would be a guess.
     let other = store(&format!("{TTL}\nex:Tea a ex:Herbal .\n"));
     let differs =
         certificate_binds_to_store(&other, &dir, &ScopeRequest::Unscoped).expect("check runs");
@@ -86,7 +91,10 @@ fn a_certificate_matches_the_store_it_came_from_and_not_another() {
     );
     assert_eq!(differs["likely_cause"], "different_graph", "{differs}");
     assert!(
-        differs["means"].as_str().unwrap().contains("DIFFERENT GRAPH"),
+        differs["means"]
+            .as_str()
+            .unwrap()
+            .contains("DIFFERENT GRAPH"),
         "the report has to say which way it failed: {differs}"
     );
     assert_ne!(differs["recorded"], differs["recomputed"]);
@@ -123,15 +131,9 @@ fn the_writer_and_the_reader_build_the_same_bytes() {
     assert_eq!(recorded.trim(), digest);
 }
 
-/// Materialisation is not a wrong graph, and the report must tell them apart.
-///
-/// `reason` writes its inferences into the store by default. Re-reading that
-/// store afterwards yields the assertions PLUS the derivations, so the digest
-/// differs. A bare "no" would send a reader looking for a wrong graph they do
-/// not have, so the check compares the two selections as sets and names the
-/// cause. This is the case the first end-to-end run produced.
+/// Managed materialisation preserves the assertions the certificate describes.
 #[test]
-fn a_materialised_store_is_named_as_such_and_not_called_a_different_graph() {
+fn a_managed_materialisation_still_binds_to_the_original_assertions() {
     let dir = scratch("materialised");
     let g = store(TTL);
     Reasoner::run_full(
@@ -142,15 +144,78 @@ fn a_materialised_store_is_named_as_such_and_not_called_a_different_graph() {
         Some(dir.as_path()),
     )
     .expect("reason");
+    assert!(
+        g.all_triples().unwrap().contains(&(
+            "<http://example.org/myCup>".into(),
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".into(),
+            "<http://example.org/Drink>".into(),
+        )),
+        "the transitive inference must actually be materialised"
+    );
     let r = certificate_binds_to_store(&g, &dir, &ScopeRequest::Unscoped).expect("check runs");
-    assert_eq!(r["matches"], false, "the store did change: {r}");
+    assert_eq!(
+        r["matches"], true,
+        "managed inferences are not assertions: {r}"
+    );
+    assert_eq!(r["recorded"], r["recomputed"], "{r}");
+    assert_eq!(r["asserted_in_certificate"], 3, "{r}");
+    assert_eq!(r["asserted_in_store"], 3, "{r}");
+    assert!(r["likely_cause"].is_null(), "{r}");
+    assert_eq!(r["in_store_only"], 0, "{r}");
+    assert_eq!(r["in_certificate_only"], 0, "{r}");
+}
+
+/// Without dependency metadata, derived triples can still enter the asserted
+/// selection. Preserve the diagnostic for legacy stores and plain RDF copies.
+#[test]
+fn an_untracked_materialisation_is_named_as_such_and_not_called_a_different_graph() {
+    let dir = scratch("untracked-materialised");
+    let g = store(TTL);
+    Reasoner::run_full(
+        &g,
+        "rdfs",
+        true,
+        open_ontologies::reason::InferenceTarget::DefaultGraph,
+        Some(dir.as_path()),
+    )
+    .expect("reason");
+    let copy = store(
+        &g.serialize("turtle")
+            .expect("plain RDF without dependency metadata"),
+    );
+    assert!(
+        copy.ledger().unwrap().is_none(),
+        "the copy must have no managed derivations"
+    );
+    let mut original = g.all_triples().unwrap();
+    let mut copied = copy.all_triples().unwrap();
+    original.sort_unstable();
+    copied.sort_unstable();
+    assert_eq!(
+        copied, original,
+        "the copy retains every assertion and inference"
+    );
+    let r = certificate_binds_to_store(&copy, &dir, &ScopeRequest::Unscoped).expect("check runs");
+    assert_eq!(
+        r["matches"], false,
+        "the untracked copy includes derived triples: {r}"
+    );
+    assert_ne!(r["recorded"], r["recomputed"], "{r}");
     assert_eq!(
         r["likely_cause"], "materialised_inferences",
         "a materialised store must not be reported as a different graph: {r}"
     );
     assert!(r["in_store_only"].as_u64().unwrap() > 0, "{r}");
-    assert_eq!(r["in_certificate_only"], 0, "nothing the certificate lists is missing: {r}");
-    assert!(r["means"].as_str().unwrap().contains("materialised its inferences"));
+    assert_eq!(
+        r["in_certificate_only"], 0,
+        "nothing the certificate lists is missing: {r}"
+    );
+    assert!(
+        r["means"]
+            .as_str()
+            .unwrap()
+            .contains("materialised its inferences")
+    );
 }
 
 /// A certificate with no digest cannot be bound after the fact, and the error
@@ -201,7 +266,10 @@ fn a_recorded_scope_is_applied_and_a_forged_one_is_caught() {
     assert!(manifest.contains("oo-scope/1"));
     std::fs::write(
         dir.join("scope.tsv"),
-        manifest.replace("graph\t*", "default_graph\tfalse\ngraph\thttp://example.org/never-read"),
+        manifest.replace(
+            "graph\t*",
+            "default_graph\tfalse\ngraph\thttp://example.org/never-read",
+        ),
     )
     .unwrap();
     let forged = certificate_binds_to_store(&g, &dir, &ScopeRequest::Unscoped).expect("check");
@@ -210,7 +278,10 @@ fn a_recorded_scope_is_applied_and_a_forged_one_is_caught() {
         "a scope naming a graph the run never read reproduced the digest: {forged}"
     );
     assert_eq!(forged["scope_source"], "certificate");
-    assert_eq!(forged["asserted_in_store"], 0, "the forged scope selects nothing: {forged}");
+    assert_eq!(
+        forged["asserted_in_store"], 0,
+        "the forged scope selects nothing: {forged}"
+    );
 }
 
 /// The parser reads what the writer wrote, including the whole-store form.
@@ -224,7 +295,10 @@ fn the_scope_parser_round_trips_the_manifest_the_writer_produces() {
     ));
     let named = "oo-scope/1\ndefault_graph\tfalse\ngraph\thttp://example.org/g1\ngraph\thttp://example.org/g2\n";
     match scope_from_manifest(named) {
-        Some(open_ontologies::graph::ReadScope::Graphs { default_graph, named }) => {
+        Some(open_ontologies::graph::ReadScope::Graphs {
+            default_graph,
+            named,
+        }) => {
             assert!(!default_graph);
             assert_eq!(named.len(), 2);
         }
