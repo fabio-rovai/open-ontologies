@@ -43,7 +43,7 @@ path = "src/main.rs"
 # `is_daemon_alive` runs on every proxy-able invocation; a bare kill(pid, 0)
 # avoids forking /bin/kill on the daemon's own hot path.
 libc = "0.2"
-rmcp = { version = "1.4", features = ["server", "transport-io", "transport-streamable-http-server"] }
+rmcp = { version = "3.9", features = ["server", "transport-io", "transport-streamable-http-server"] }
 axum = "0.8"
 tower-http = { version = "0.6", features = ["cors"] }
 tokio-util = "0.7"

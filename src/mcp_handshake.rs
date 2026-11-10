@@ -29,6 +29,10 @@
 //! `guard_is_transparent_after_initialize` in
 //! `tests/mcp_handshake_guard_test.rs` measures.
 //!
+//! Since rmcp 3.9, `server/discover` is a real MCP method, the 2026-07-28
+//! protocol's probe, and rmcp's handshake loop answers it before `initialize`
+//! itself. The guard passes it through, as it does `ping`.
+//!
 //! rmcp's own authors reason the same way one screen further down. The comment
 //! at rmcp-1.4.0/src/service/server.rs:250-256 says the spec uses SHOULD NOT
 //! rather than MUST NOT for pre-`initialized` messages and that a request
@@ -90,6 +94,15 @@ where
                     // same loop that rejects everything else, so this one
                     // still goes up.
                     ClientRequest::PingRequest(_) => return Some(msg),
+                    // Since rmcp 3.9, `server/discover` is the 2026-07-28
+                    // protocol's bootstrap probe, which a client sends before
+                    // `initialize` by design. rmcp answers it in its own
+                    // handshake loop and stays open for `initialize` after:
+                    // with the version list when the probe names a revision
+                    // this server supports, otherwise with an error naming
+                    // what is missing or supported. Intercepting it here
+                    // would hide that answer behind an ordering fault.
+                    ClientRequest::DiscoverRequest(_) => return Some(msg),
                     other => {
                         let method = other.method().to_string();
                         let id = req.id.clone();
@@ -113,7 +126,7 @@ where
                         );
                         if let Err(e) = self
                             .inner
-                            .send(TxJsonRpcMessage::<RoleServer>::error(error, id))
+                            .send(TxJsonRpcMessage::<RoleServer>::error(error, Some(id)))
                             .await
                         {
                             tracing::warn!("could not answer a pre-initialize request: {e}");
