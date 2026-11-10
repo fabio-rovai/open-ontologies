@@ -162,7 +162,7 @@ impl SchemaIntrospector {
 
                 // NOT NULL → cardinality restriction
                 if !col.is_nullable {
-                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class));
+                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class_local));
                     ttl.push_str("    a owl:Restriction ;\n");
                     ttl.push_str(&format!("    owl:onProperty db:{} ;\n", prop_name));
                     ttl.push_str("    owl:minCardinality 1\n");
