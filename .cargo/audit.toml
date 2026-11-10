@@ -31,4 +31,26 @@ ignore = [
     # release whose crates do, and the direct dependency moves with them.
     "RUSTSEC-2026-0194",
     "RUSTSEC-2026-0195",
+    # rmcp before 3.9.0: its Streamable HTTP clients read JSON and error
+    # response bodies with no size limit (published 5 Nov 2026). The affected
+    # code sits behind rmcp's client features,
+    # `transport-streamable-http-client-reqwest` and
+    # `transport-streamable-http-client-unix-socket`. Cargo.toml asks for
+    # `server`, `transport-io` and `transport-streamable-http-server`, and
+    # `cargo tree -e features -i rmcp --all-features` lists no client feature,
+    # so the vulnerable code is not compiled into any build. This crate is an
+    # MCP server only: src/ and tests/ never name RoleClient, ClientHandler or
+    # StreamableHttpClient, and the CLI's daemon proxy (src/connect.rs) talks
+    # to its own daemon with reqwest, not with rmcp. The patched rmcp is two
+    # major versions ahead of the 1.4 this crate builds against.
+    # This ignore covers RUSTSEC-2026-0462 only. rmcp 1.4 also carries
+    # GHSA-9pj6-vhgr-3mwh (CVE-2026-63128), which the RustSec database does not
+    # list, so cargo audit cannot report it: before 2.0.0 the Streamable HTTP
+    # server leaks one session-table entry per unauthenticated non-initialize
+    # POST. That one IS reachable whenever `serve-http` runs. Its fix is the
+    # move to rmcp 3.9, which also changes the HTTP server's session and Host
+    # validation behaviour, and is a separate change.
+    # Remove this entry when rmcp moves to 3.9.0 or later, or before enabling
+    # any rmcp client feature.
+    "RUSTSEC-2026-0462",
 ]
