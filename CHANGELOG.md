@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Automatically generated mapping IDs remain distinct for records created in the same clock tick.**
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**

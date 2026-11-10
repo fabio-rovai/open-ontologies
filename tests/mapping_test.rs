@@ -104,6 +104,34 @@ fn test_mapping_rows_to_ntriples() {
 }
 
 #[test]
+fn rows_without_identifiers_receive_distinct_subjects() {
+    let config = MappingConfig {
+        base_iri: "http://example.org/data/".to_string(),
+        id_field: "id".to_string(),
+        class: "http://example.org/ont#Item".to_string(),
+        mappings: vec![],
+    };
+    let rows: Vec<std::collections::HashMap<String, String>> = vec![
+        [("id".into(), String::new())].into(),
+        [("id".into(), String::new())].into(),
+    ];
+
+    let subjects: Vec<_> = config
+        .rows_to_ntriples(&rows)
+        .lines()
+        .map(|triple| {
+            triple
+                .split_whitespace()
+                .next()
+                .unwrap()
+                .to_string()
+        })
+        .collect();
+    assert_eq!(subjects.len(), 2);
+    assert_ne!(subjects[0], subjects[1]);
+}
+
+#[test]
 fn test_mapping_lookup_field_produces_iri() {
     let config = MappingConfig {
         base_iri: "http://example.org/data/".to_string(),
