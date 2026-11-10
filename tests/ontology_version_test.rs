@@ -53,3 +53,27 @@ fn test_rollback_version() {
     assert!(query_result.contains("Alice"));
     assert!(!query_result.contains("Bob"));
 }
+
+#[test]
+fn failed_rollback_preserves_the_active_graph() {
+    let db = test_db();
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            "<http://example.org/Current> a <http://example.org/Thing> .",
+            None,
+        )
+        .unwrap();
+    db.conn()
+        .execute(
+            "INSERT INTO ontology_versions (label, triple_count, content, format) VALUES (?1, ?2, ?3, ?4)",
+            rusqlite::params!["broken", 1, "not valid n-quads", "nquads"],
+        )
+        .unwrap();
+
+    assert!(OntologyService::rollback_version(&db, &store, "broken").is_err());
+    let query = store
+        .sparql_select("SELECT ?s WHERE { ?s a <http://example.org/Thing> }")
+        .unwrap();
+    assert!(query.contains("Current"));
+}

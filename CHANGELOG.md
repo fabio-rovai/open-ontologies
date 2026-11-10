@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A failed ontology version rollback preserves the active graph.** Invalid saved RDF is parsed before the graph is atomically replaced.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**

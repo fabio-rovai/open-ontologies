@@ -285,6 +285,16 @@ impl GraphStore {
         self.load_content_with_base(content, format, None)
     }
 
+    /// Replace the active dataset with RDF content after parsing the entire input.
+    /// A parse failure leaves the current dataset untouched.
+    pub(crate) fn replace_content(
+        &self,
+        content: &str,
+        format: RdfFormat,
+    ) -> anyhow::Result<usize> {
+        self.load_content_with_base_mode(content, format, None, true)
+    }
+
     /// Load RDF content with an optional base IRI for resolving relative IRIs.
     pub fn load_content_with_base(
         &self,
