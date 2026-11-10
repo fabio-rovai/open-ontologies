@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **Negating a maximum cardinality at the largest internal threshold no longer overflows.** The SHIQ tableaux preserves the large minimum constraint and reports an incomplete result instead of panicking or wrapping the count.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is

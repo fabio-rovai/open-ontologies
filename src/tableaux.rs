@@ -160,7 +160,14 @@ impl Concept {
                 }
             }
             // ¬(≤n R.C) = ≥(n+1) R.C
-            Concept::MaxCard(r, n, c) => Concept::MinCard(*r, n + 1, c.clone()),
+            // The complement of <=u32::MAX requires one more than this
+            // representation can hold. Saturate so the bounded tableau treats
+            // it as an unachievable-large minimum (and returns Unknown at its
+            // node cap) instead of panicking in debug or wrapping to >=0 in
+            // release builds.
+            Concept::MaxCard(r, n, c) => {
+                Concept::MinCard(*r, n.saturating_add(1), c.clone())
+            }
         }
     }
 }
