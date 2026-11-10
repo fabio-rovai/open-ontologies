@@ -156,6 +156,34 @@ All notable changes to Open Ontologies are documented here.
   and no clash was proved, the headline is `null`; a proved clash remains
   `false`.
 
+- **The bundled SQLite is 3.54.1, and the minimum Rust is 1.89**
+  (RUSTSEC-2026-0459, CVE-2026-119375, published 30 Oct 2026). SQLite before
+  3.54.0 can return uninitialised page-cache memory when it opens a database
+  together with a `-wal` file whose page size differs from the database's.
+  The binary bundled SQLite 3.46.0 through rusqlite 0.32 and libsqlite3-sys
+  0.30.1. rusqlite moves to 0.41.1, the first release whose libsqlite3-sys
+  (0.39.1) bundles a patched SQLite. rusqlite 0.41 requires Rust 1.89, so
+  `rust-version`, the `msrv` CI job, the README and CONTRIBUTING move from
+  1.88 to 1.89. The only SQLite file this crate opens is its own state
+  database in the data directory (`src/state.rs`).
+
+- **`cargo audit` passes again on main.** Besides RUSTSEC-2026-0459 above,
+  the scheduled audit of 9 Nov 2026 failed on RUSTSEC-2026-0462: rmcp's
+  Streamable HTTP clients before 3.9.0 buffer response bodies with no size
+  limit. The flaw is in rmcp's client features, which this crate never
+  enables; it runs rmcp as a server only. `.cargo/audit.toml` ignores the
+  advisory and records that evidence, until rmcp moves to 3.9. That move is
+  still owed: GHSA-9pj6-vhgr-3mwh, which RustSec does not list, lets an
+  unauthenticated client grow the Streamable HTTP server's session table
+  one entry per request before rmcp 2.0.0, and `serve-http` is exposed to it.
+
+- **zip moves from 9.0.4 to 9.0.5** (GHSA-m665-v7pm-7grj, CVE-2026-115905,
+  rated critical). zip 9.0.4 and earlier read a different file name from the
+  central directory than from the local header, so a crafted archive can
+  extract to a path its listing does not show. zip reaches this crate only
+  through calamine for XLSX ingest, which reads entries through `ZipArchive`
+  and never extracts to disk. The change is to Cargo.lock alone.
+
 - **Parquet ingest no longer runs through thrift 0.17** (RUSTSEC-2026-0435,
   unbounded allocation in thrift's binary protocol `read_bytes`, published 2
   Nov 2026). `ingest` and the clinical tools read user-supplied `.parquet`
