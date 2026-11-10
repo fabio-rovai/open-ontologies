@@ -21,6 +21,18 @@ fn test_parse_json_array() {
 }
 
 #[test]
+fn parse_json_rejects_non_object_root_values() {
+    let error = DataIngester::parse_json("42").unwrap_err();
+    assert!(error.to_string().contains("object or an array of objects"));
+}
+
+#[test]
+fn parse_json_rejects_non_object_array_items_instead_of_dropping_them() {
+    let error = DataIngester::parse_json(r#"[{"id":"kept"}, 42]"#).unwrap_err();
+    assert!(error.to_string().contains("index 1"));
+}
+
+#[test]
 fn test_parse_ndjson() {
     let ndjson = "{\"id\":\"b1\",\"name\":\"Tower Bridge\"}\n{\"id\":\"b2\",\"name\":\"Big Ben\"}\n";
     let rows = DataIngester::parse_ndjson(ndjson).unwrap();
