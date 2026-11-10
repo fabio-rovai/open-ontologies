@@ -2148,9 +2148,7 @@ async fn async_main() -> anyhow::Result<()> {
                 let models_dir = data_path.join("models");
 
                 // CLI flags > config.toml > defaults
-                let cfg = open_ontologies::config::Config::load(&config_path)
-                    .map(|c| c.embeddings)
-                    .unwrap_or_default();
+                let cfg = open_ontologies::config::Config::load(&config_path)?.embeddings;
 
                 let provider = open_ontologies::config::resolve_embeddings_provider(&cfg);
                 if provider == "openai"

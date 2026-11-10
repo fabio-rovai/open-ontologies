@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **`init` reports an invalid existing config instead of silently replacing its embedding settings with defaults.** This prevents an accidental local model download when the config is malformed.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is
