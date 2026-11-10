@@ -169,14 +169,24 @@ fn escape_ntriples(s: &str) -> String {
         .collect()
 }
 
-/// Generate a simple random ID based on the current time's sub-second nanos.
+/// Generate a unique fallback ID using process, wall-clock, and atomic sequence components.
 fn rand_id() -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::SystemTime;
+    static NEXT_ID: AtomicU64 = AtomicU64::new(0);
     let nanos = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default()
-        .subsec_nanos();
-    format!("_auto_{}", nanos)
+        .as_nanos();
+    auto_id(
+        std::process::id(),
+        nanos,
+        NEXT_ID.fetch_add(1, Ordering::Relaxed),
+    )
+}
+
+fn auto_id(process_id: u32, timestamp_nanos: u128, sequence: u64) -> String {
+    format!("_auto_{process_id}_{timestamp_nanos}_{sequence}")
 }
 
 #[cfg(test)]
@@ -201,5 +211,12 @@ mod tests {
     fn test_rand_id_format() {
         let id = rand_id();
         assert!(id.starts_with("_auto_"));
+    }
+
+    #[test]
+    fn automatic_ids_are_distinct_even_for_the_same_timestamp() {
+        let first = auto_id(7, 123, 0);
+        let second = auto_id(7, 123, 1);
+        assert_ne!(first, second);
     }
 }
