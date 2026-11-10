@@ -26,9 +26,16 @@ use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 const INITIALIZE: &str = r#"{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"issue-260","version":"0"}}}"#;
-/// The reporter's line, verbatim. "server/discover" is not an MCP method and
-/// appears nowhere in this repository, so it is the client's own probe.
+/// The reporter's line, verbatim. On rmcp 1.4 "server/discover" was no MCP
+/// method. On rmcp 3.9 it is the 2026-07-28 protocol's probe, which must carry
+/// a protocol version and client capabilities in `_meta`; this line carries
+/// neither.
 const DISCOVER: &str = r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{}}"#;
+/// A well-formed 2026-07-28 probe, as a client that speaks that revision sends
+/// it before anything else.
+const DISCOVER_2026: &str = r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}"#;
+/// rmcp's code for a request whose `_meta` lacks the 2026-07-28 fields.
+const INVALID_PARAMS: i64 = -32602;
 
 /// Feed `lines` to a guarded server over a pipe and collect `want` replies.
 ///
@@ -108,8 +115,9 @@ async fn unknown_request_before_initialize_does_not_end_the_handshake() {
         .expect("the handshake must survive a request sent before initialize");
     assert_eq!(out[0]["id"], 1, "the probe is answered first: {:?}", out[0]);
     assert_eq!(
-        out[0]["error"]["code"], -32601,
-        "an unknown method gets the code rmcp gives it after the handshake: {:?}",
+        out[0]["error"]["code"], INVALID_PARAMS,
+        "the probe gets the code rmcp gives it after the handshake \
+         (guard_is_transparent_after_initialize): {:?}",
         out[0]
     );
     assert_eq!(out[1]["id"], 2, "then the initialize reply: {:?}", out[1]);
@@ -138,7 +146,8 @@ async fn known_request_before_initialize_is_answered_invalid_request() {
 
 /// Passes before and after the change, so it is a regression guard and not
 /// evidence of the bug. It measures that the wrapper does not intercept live
-/// traffic: this -32601 comes from rmcp's own `on_custom_request`.
+/// traffic: this error comes from rmcp itself (-32601 from
+/// `on_custom_request` on rmcp 1.4, -32602 for the missing `_meta` on 3.9).
 #[tokio::test]
 async fn guard_is_transparent_after_initialize() {
     const INITIALIZED: &str = r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#;
@@ -148,5 +157,36 @@ async fn guard_is_transparent_after_initialize() {
     assert_eq!(out[0]["id"], 2);
     assert!(out[0]["result"]["protocolVersion"].is_string());
     assert_eq!(out[1]["id"], 1);
-    assert_eq!(out[1]["error"]["code"], -32601);
+    assert_eq!(out[1]["error"]["code"], INVALID_PARAMS);
+}
+
+/// A 2026-07-28 client probes first and is told which revisions this server
+/// speaks. `supported_protocol_versions` stops at 2025-11-25, because that
+/// revision is the last with sessions and the server keeps per-session state
+/// (src/server.rs). The client then falls back to `initialize`, which must
+/// still be answered, and negotiates a session revision.
+#[tokio::test]
+async fn a_2026_07_28_probe_is_told_the_session_revisions_and_initialize_still_works() {
+    let out = handshake_replies(&[DISCOVER_2026, INITIALIZE], 2)
+        .await
+        .expect("the handshake must survive a 2026-07-28 probe");
+    assert_eq!(out[0]["id"], 1, "the probe is answered first: {:?}", out[0]);
+    assert_eq!(
+        out[0]["error"]["code"], -32022,
+        "2026-07-28 is refused as an unsupported version: {:?}",
+        out[0]
+    );
+    let supported: Vec<&str> = out[0]["error"]["data"]["supported"]
+        .as_array()
+        .expect("the refusal lists the supported revisions")
+        .iter()
+        .map(|v| v.as_str().unwrap())
+        .collect();
+    assert_eq!(
+        supported,
+        ["2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"],
+        "every revision with an initialize handshake, and not 2026-07-28"
+    );
+    assert_eq!(out[1]["id"], 2, "then the initialize reply: {:?}", out[1]);
+    assert_eq!(out[1]["result"]["protocolVersion"], "2025-06-18");
 }
