@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **OWL-DL no longer treats a data-qualified cardinality as unqualified.** A restriction using `owl:onDataRange` stays opaque because datatype ranges are outside the SHIQ tableau; the result continues to mark datatype restrictions as unmodelled instead of reporting false class clashes.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is

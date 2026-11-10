@@ -107,6 +107,7 @@ const OWL_EXACT_QCARD: &str = "<http://www.w3.org/2002/07/owl#qualifiedCardinali
 const OWL_MIN_QCARD: &str = "<http://www.w3.org/2002/07/owl#minQualifiedCardinality>";
 const OWL_MAX_QCARD: &str = "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>";
 const OWL_ON_CLASS: &str = "<http://www.w3.org/2002/07/owl#onClass>";
+const OWL_ON_DATA_RANGE: &str = "<http://www.w3.org/2002/07/owl#onDataRange>";
 
 // Tableaux safety limits live in `crate::runtime` (initialised from
 // `[reasoner] tableaux_max_depth` / `tableaux_max_nodes` in config.toml).
@@ -1233,6 +1234,16 @@ impl OwlParser {
         if let Some(value) = self.index.object(node, OWL_HAS_VALUE) {
             let val_id = self.interner.intern(&value);
             return RawConcept::Exists(prop, Box::new(RawConcept::Named(val_id)));
+        }
+
+        // A data-qualified cardinality is not an unqualified object-role
+        // cardinality. This reasoner does not model data ranges, so keep the
+        // whole restriction opaque instead of silently replacing its filler
+        // with Top. The report separately marks datatype-property restrictions
+        // as unmodelled; the opaque atom prevents that dropped range from
+        // creating a false clash with another restriction on the same property.
+        if self.index.object(node, OWL_ON_DATA_RANGE).is_some() {
+            return self.opaque_restriction(node);
         }
 
         // Qualified cardinality restrictions
