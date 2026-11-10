@@ -4346,9 +4346,12 @@ impl DlReasoner {
             Verdict::Unsatisfiable => Some(false),
             Verdict::Unknown => None,
         };
+        let unmodelled = DlReasoner::unmodelled_constructs(graph);
+        // A finished search over a weaker axiom set cannot prove whole-graph
+        // consistency: an unmodelled construct may carry the missed clash.
         let consistent: Option<bool> = if tbox_verdict.is_unsat() || !abox_result.consistent {
             Some(false)
-        } else if tbox_verdict.is_unknown() || abox_result.undecided {
+        } else if tbox_verdict.is_unknown() || abox_result.undecided || !unmodelled.is_empty() {
             None
         } else {
             Some(true)
@@ -4390,7 +4393,6 @@ impl DlReasoner {
         // no way to tell. Measured on ORE 2015 `ore_ont_5107`: seven
         // `ObjectOneOf`, every phase decided, `complete: true`, and none of the
         // six subsumptions HermiT infers.
-        let unmodelled = DlReasoner::unmodelled_constructs(graph);
         let search_finished = !tbox_verdict.is_unknown()
             && undetermined_names.is_empty()
             && !result.subsumption_cut_short
