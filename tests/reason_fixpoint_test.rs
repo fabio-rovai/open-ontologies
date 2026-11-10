@@ -61,18 +61,30 @@ fn a_derived_domain_axiom_is_used_in_the_same_run() {
 }
 
 #[test]
-fn a_second_run_derives_nothing_new() {
+fn a_second_run_preserves_the_fixpoint_without_promoting_inferences_to_assertions() {
     let store = Arc::new(GraphStore::new());
     store.load_turtle(&format!("{PREFIXES}{DERIVED_DOMAIN}"), None).unwrap();
     let first: serde_json::Value =
         serde_json::from_str(&Reasoner::run(&store, "rdfs", true).unwrap()).unwrap();
+    let mut first_triples = store.all_triples().unwrap();
     let second: serde_json::Value =
         serde_json::from_str(&Reasoner::run(&store, "rdfs", true).unwrap()).unwrap();
+    let mut second_triples = store.all_triples().unwrap();
     assert!(first["inferred_count"].as_u64().unwrap() > 0, "the first run must do work: {first}");
+    assert_eq!(first["fixpoint_reached"], true, "{first}");
+    assert_eq!(second["fixpoint_reached"], true, "{second}");
     assert_eq!(
-        second["inferred_count"], 0,
-        "the first run must reach the fixpoint, so the second has nothing to add: {second}"
+        second["initial_triples"], first["initial_triples"],
+        "previous inferences must not become source assertions: {second}"
     );
+    assert_eq!(second["final_triples"], first["final_triples"], "{second}");
+    assert_eq!(
+        second["inferred_count"], first["inferred_count"],
+        "rebuilding the same derivations must preserve the closure: {second}"
+    );
+    first_triples.sort_unstable();
+    second_triples.sort_unstable();
+    assert_eq!(second_triples, first_triples, "the second run must add no new facts");
 }
 
 #[test]
