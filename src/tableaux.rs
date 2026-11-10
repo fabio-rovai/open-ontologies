@@ -4086,20 +4086,20 @@ impl DlReasoner {
                             return false;
                         }
                         // nominal: the filler names the object itself
-                        // class filler: the object is typed by it
-                        o == target || {
-                            let mut object_types =
-                                self.individual_types.get(&o).cloned().unwrap_or_default();
-                            object_types.extend(
-                                self.asserted_concepts(o)
-                                    .into_iter()
-                                    .filter_map(|c| match c {
-                                        Concept::Atom(a) => Some(a),
-                                        _ => None,
-                                    }),
-                            );
-                            self.has_type(&object_types, target)
-                        }
+                        // class filler: the object is typed by it, by a named
+                        // type or by a named conjunct of an anonymous one.
+                        // `has_type` holds for a set when it holds for one
+                        // member, so the two sources are checked separately and
+                        // the object's type set is never copied per edge.
+                        o == target
+                            || self
+                                .individual_types
+                                .get(&o)
+                                .is_some_and(|ot| self.has_type(ot, target))
+                            || self.asserted_concepts(o).iter().any(|c| match c {
+                                Concept::Atom(a) => self.entails_type(*a, target),
+                                _ => false,
+                            })
                     })
                 })
             }
@@ -4108,12 +4108,16 @@ impl DlReasoner {
     }
 
     fn has_type(&self, types: &HashSet<u32>, target: u32) -> bool {
-        types.contains(&target)
-            || types.iter().any(|t| {
-                self.subclass_closure
-                    .get(t)
-                    .is_some_and(|sups| sups.contains(&target))
-            })
+        types.contains(&target) || types.iter().any(|&t| self.entails_type(t, target))
+    }
+
+    /// True when a named type `t` is `target` or told-below it.
+    fn entails_type(&self, t: u32, target: u32) -> bool {
+        t == target
+            || self
+                .subclass_closure
+                .get(&t)
+                .is_some_and(|sups| sups.contains(&target))
     }
 
     fn role_matches(&self, asserted: u32, required: u32) -> bool {
