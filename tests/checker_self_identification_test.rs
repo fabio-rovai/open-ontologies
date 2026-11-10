@@ -48,6 +48,10 @@ fn bin_dir() -> PathBuf {
     repo().join("lean").join(".lake").join("build").join("bin")
 }
 
+fn checker_path(name: &str) -> PathBuf {
+    bin_dir().join(format!("{name}{}", std::env::consts::EXE_SUFFIX))
+}
+
 /// The executables the lakefile declares, read from it rather than typed.
 ///
 /// A tenth checker added to `lakefile.toml` without a `--version` turns this
@@ -83,7 +87,7 @@ fn checkers_in_the_lakefile() -> BTreeSet<String> {
 fn skip() -> bool {
     // Any one of them standing in for "the Lean build has been run here".
     common::skip_unless(
-        bin_dir().join("oo-cert").exists(),
+        checker_path("oo-cert").exists(),
         "the Lean checkers",
         "run `lake build` in lean/",
     )
@@ -92,7 +96,7 @@ fn skip() -> bool {
 fn version_block(exe: &str) -> serde_json::Value {
     let out = {
         let _gate = common::exec_gate();
-        Command::new(bin_dir().join(exe)).arg("--version").output()
+        Command::new(checker_path(exe)).arg("--version").output()
     }
     .unwrap_or_else(|e| panic!("run {exe} --version: {e}"));
     assert_eq!(out.status.code(), Some(0), "{exe} --version must exit 0");
@@ -116,12 +120,16 @@ fn every_checker_the_lakefile_declares_answers_version() {
         return;
     }
     for exe in checkers_in_the_lakefile() {
-        let p = bin_dir().join(&exe);
+        let p = checker_path(&exe);
         if !p.exists() {
             continue; // a target this build did not produce; the digest test covers the rest
         }
         let b = version_block(&exe);
-        assert_eq!(b["name"], exe.as_str(), "the block must name the binary: {b}");
+        assert_eq!(
+            b["name"],
+            p.file_name().unwrap().to_str().unwrap(),
+            "the block must name the binary: {b}"
+        );
         assert!(
             b["toolchain"].as_str().is_some_and(|t| !t.is_empty()),
             "and the Lean toolchain that built it: {b}"
@@ -137,7 +145,7 @@ fn every_checker_reports_the_digest_of_its_own_file() {
     }
     let mut checked = 0usize;
     for exe in checkers_in_the_lakefile() {
-        let p = bin_dir().join(&exe);
+        let p = checker_path(&exe);
         if !p.exists() {
             continue;
         }
@@ -171,7 +179,7 @@ fn the_verdict_carries_the_same_block_as_version() {
 
     let out = {
         let _gate = common::exec_gate();
-        Command::new(bin_dir().join("oo-cert")).arg(&a).arg(&der).output()
+        Command::new(checker_path("oo-cert")).arg(&a).arg(&der).output()
     }
     .expect("run oo-cert");
     let text = String::from_utf8_lossy(&out.stdout).to_string();
@@ -204,7 +212,7 @@ fn the_rust_side_reads_the_block_and_invents_nothing() {
     std::fs::write(&a, "<a>\t<b>\t<c>\n").unwrap();
     std::fs::write(&der, "").unwrap();
 
-    let bin = bin_dir().join("oo-cert");
+    let bin = checker_path("oo-cert");
     let mut cmd = Command::new(&bin);
     cmd.arg(&a).arg(&der);
     // Gated, and naming the files it is about (#164): the same two the command
