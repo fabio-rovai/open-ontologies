@@ -219,3 +219,25 @@ fn an_individual_typed_only_by_an_anonymous_class_is_realized() {
         types_of(&v, "/wraith")
     );
 }
+
+#[test]
+fn some_values_from_sees_anonymous_intersection_types_on_the_object() {
+    let ttl = r#"
+@prefix : <http://ex.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+:Target a owl:Class .
+:connectsTo a owl:ObjectProperty .
+:Connected a owl:Class ; owl:equivalentClass [
+    a owl:Restriction ; owl:onProperty :connectsTo ; owl:someValuesFrom :Target
+] .
+:source :connectsTo :object .
+:object a [ a owl:Class ; owl:intersectionOf ( :Target ) ] .
+"#;
+    let v = realized(ttl);
+    assert!(
+        types_of(&v, "/source").contains(&"Connected".to_string()),
+        "the anonymous type on the role target entails :Target; got {:?} from {v}",
+        types_of(&v, "/source")
+    );
+}

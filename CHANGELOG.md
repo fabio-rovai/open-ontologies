@@ -6,6 +6,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **OWL-DL realization follows anonymous intersection types across role edges.** A
+  `someValuesFrom` class filler now recognizes named classes asserted inside an
+  object's anonymous `rdf:type` intersection, so equivalent-class definitions
+  can realize the role's subject.
+
 - **An exception to a disjointness can be declared and compiled away, so
   every tool reads one classical ontology** (#347). `exc:exceptFor E` on the
   reified `owl:disjointWith` axiom (`exc:` is
