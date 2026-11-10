@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **OWL-DL model reports now identify negative property assertions as unmodelled**, so a certificate over a weaker axiom set is disclosed as such.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**

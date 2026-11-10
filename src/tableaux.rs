@@ -6060,9 +6060,13 @@ impl DlReasoner {
         // so an ontology leaning on asymmetry got a clean verdict with no sign
         // that a constraint had been dropped. That is the one outcome this list
         // exists to prevent.
-        const NOT_MODELLED: [(&str, &str); 13] = [
+        const NOT_MODELLED: [(&str, &str); 14] = [
             ("owl:sameAs", "http://www.w3.org/2002/07/owl#sameAs"),
             ("owl:differentFrom", "http://www.w3.org/2002/07/owl#differentFrom"),
+            (
+                "owl:NegativePropertyAssertion",
+                "http://www.w3.org/2002/07/owl#NegativePropertyAssertion",
+            ),
             ("owl:oneOf", "http://www.w3.org/2002/07/owl#oneOf"),
             ("owl:hasValue", "http://www.w3.org/2002/07/owl#hasValue"),
             // Read as an opaque atom, which is sound and says nothing about
