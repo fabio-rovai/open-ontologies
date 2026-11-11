@@ -165,26 +165,45 @@ pub fn list_states(db: &StateDb) -> anyhow::Result<Vec<SyncState>> {
 }
 
 /// Extract the maximum value of `column` from a list of row maps. Returns
-/// `None` if no row contains the column or if all values are empty. String
-/// ordering is used (works for ISO-8601 timestamps and monotonic
-/// integer IDs alike).
+/// `None` if no row contains the column or if all values are empty. When every
+/// non-empty value is RFC 3339, compare timestamps by instant so differing
+/// UTC offsets remain correctly ordered; other watermark formats keep string
+/// ordering (use sortable forms such as zero-padded integer IDs).
 pub fn extract_max_watermark(
     rows: &[std::collections::HashMap<String, String>],
     column: &str,
 ) -> Option<String> {
-    let mut max: Option<&str> = None;
-    for row in rows {
-        if let Some(v) = row.get(column).map(|s| s.as_str())
-            && !v.is_empty()
-        {
-            match max {
-                None => max = Some(v),
-                Some(cur) if v > cur => max = Some(v),
-                _ => {}
-            }
-        }
+    let values: Vec<&str> = rows
+        .iter()
+        .filter_map(|row| row.get(column).map(String::as_str))
+        .filter(|value| !value.is_empty())
+        .collect();
+    if values.is_empty() {
+        return None;
     }
-    max.map(|s| s.to_string())
+
+    let timestamps = values
+        .iter()
+        .map(|value| chrono::DateTime::parse_from_rfc3339(value).ok())
+        .collect::<Option<Vec<_>>>();
+    let max_index = if let Some(timestamps) = timestamps {
+        (1..values.len()).fold(0, |current, candidate| {
+            if timestamps[candidate] > timestamps[current] {
+                candidate
+            } else {
+                current
+            }
+        })
+    } else {
+        (1..values.len()).fold(0, |current, candidate| {
+            if values[candidate] > values[current] {
+                candidate
+            } else {
+                current
+            }
+        })
+    };
+    Some(values[max_index].to_string())
 }
 
 #[cfg(test)]

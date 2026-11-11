@@ -165,6 +165,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **CDC watermark selection compares RFC 3339 timestamps by instant.**
+  Timestamps with differing UTC offsets, including daylight-saving fall-back
+  values, no longer select an earlier watermark by lexical order. Other
+  watermark formats retain string ordering.
+
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels
   unescaped, so a quoted identifier such as `"customer archive"` made the
