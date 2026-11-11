@@ -206,7 +206,8 @@ fn incremental_reasoning_over_temporal_data_with_no_snapshot_is_refused() {
     let delta = parse_ntriples(
         "<https://example.org/HEK293> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
          <https://example.org/AdherentCellLine> .",
-    );
+    )
+    .unwrap();
     let store = store(TWO_VERSIONS);
     let e = IncrementalReasoner::run(&store, &delta, true)
         .expect_err("the incremental path must not be a way around the gate");

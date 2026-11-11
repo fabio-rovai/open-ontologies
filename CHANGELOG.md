@@ -165,6 +165,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Incremental reasoning parses the complete N-Triples delta.** Valid
+  end-of-line comments are no longer appended to the object term, and malformed
+  delta input now returns a parse error instead of being silently skipped.
+
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels
   unescaped, so a quoted identifier such as `"customer archive"` made the
