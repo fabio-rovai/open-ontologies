@@ -120,6 +120,25 @@ fn resolve_load_target_ambiguous_returns_error() {
 }
 
 #[test]
+fn overlapping_repo_roots_do_not_duplicate_a_load_target() {
+    let tmp = tempfile::tempdir().unwrap();
+    let outer = tmp.path().join("ontologies");
+    let inner = outer.join("nested");
+    std::fs::create_dir_all(&inner).unwrap();
+    let file = inner.join("nested.ttl");
+    std::fs::write(&file, SAMPLE_TTL).unwrap();
+
+    let entries = repo::list_all(&[outer.clone(), inner.clone()], true);
+    assert_eq!(entries.len(), 1, "the same file should be listed once");
+
+    let resolved = repo::resolve_load_target("nested", &[outer, inner]).unwrap();
+    assert_eq!(
+        std::fs::canonicalize(resolved).unwrap(),
+        std::fs::canonicalize(file).unwrap()
+    );
+}
+
+#[test]
 fn resolve_within_repos_rejects_traversal() {
     let (_tmp, repo, _) = setup_repo();
     let err = repo::resolve_within_repos("/etc", std::slice::from_ref(&repo))

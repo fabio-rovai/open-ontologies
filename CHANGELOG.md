@@ -165,6 +165,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Overlapping ontology repository roots no longer duplicate the same file**.
+  When a configured directory contains another configured directory, recursive
+  listing now reports the physical ontology once, so loading it by bare stem
+  does not fail with a false ambiguity.
+
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels
   unescaped, so a quoted identifier such as `"customer archive"` made the
