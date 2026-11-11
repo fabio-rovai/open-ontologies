@@ -4,6 +4,12 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Ossie `requires` comparisons now accept only decimal numeral syntax for
+  generated `xsd:decimal` facets; IEEE infinity and NaN tokens remain disclosed
+  as unexpressible instead of becoming ill-typed bounds.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
