@@ -240,6 +240,33 @@ fn unload_named_active_with_delete_removes_db_row_and_file() {
     assert_eq!(list[0]["name"], "a");
 }
 
+#[test]
+fn unload_named_preserves_entry_when_cache_file_cannot_be_removed() {
+    let h = setup();
+    populate_two(&h);
+    let cache_path = h
+        .registry
+        .list_cached()
+        .unwrap()
+        .into_iter()
+        .find(|entry| entry["name"] == "a")
+        .unwrap()["cache_path"]
+        .as_str()
+        .unwrap()
+        .to_string();
+
+    // Replace the cache file with a directory. `remove_file` must fail, while
+    // still exercising the real cache-entry and filesystem paths.
+    std::fs::remove_file(&cache_path).unwrap();
+    std::fs::create_dir(&cache_path).unwrap();
+
+    let err = h.registry.unload_named("a", true).unwrap_err();
+    assert!(err.to_string().contains("cache") || err.to_string().contains("directory"));
+    assert!(std::path::Path::new(&cache_path).is_dir());
+    let list = h.registry.list_cached().unwrap();
+    assert!(list.iter().any(|entry| entry["name"] == "a"));
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // recompile_named
 // ────────────────────────────────────────────────────────────────────────────

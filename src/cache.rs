@@ -422,7 +422,18 @@ impl CacheManager {
     pub fn remove(&self, name: &str) -> Result<()> {
         let entry = self.get(name)?;
         if let Some(e) = &entry {
-            let _ = fs::remove_file(&e.cache_path);
+            match fs::remove_file(&e.cache_path) {
+                Ok(()) => {}
+                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+                Err(err) => {
+                    return Err(err).with_context(|| {
+                        format!(
+                            "failed to remove ontology cache file {}",
+                            Path::new(&e.cache_path).display()
+                        )
+                    });
+                }
+            }
         }
         let conn = self.db.conn();
         conn.execute("DELETE FROM ontology_cache WHERE name = ?1", params![name])?;
