@@ -165,6 +165,11 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`onto_repo_list` reports cache and active status for the matching file.**
+  Multiple repository directories can contain the same filename stem; status
+  flags now match the cached and active source paths instead of marking every
+  same-stem entry as cached or active.
+
 - **`reason --profile owl-dl` no longer reports `consistent: true` when the
   tableau omits an axiom** (#356). When the graph uses an unmodelled construct
   and no clash was proved, the headline is `null`; a proved clash remains

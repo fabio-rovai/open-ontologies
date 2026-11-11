@@ -443,22 +443,23 @@ impl OpenOntologiesServer {
             .collect();
         let total = filtered.len();
 
-        // Snapshot cached names + currently active name for is_cached / is_active.
-        let cached_names: std::collections::HashSet<String> = self
+        // Snapshot cached source paths + the active source path for per-file
+        // status. Basename-only names are not unique across repository dirs.
+        let cached_paths: std::collections::HashSet<std::path::PathBuf> = self
             .registry
             .cache()
             .list()
             .unwrap_or_default()
             .into_iter()
-            .map(|e| e.name)
+            .map(|e| crate::repo::canonical_path(std::path::Path::new(&e.source_path)))
             .collect();
-        let active_name = self
+        let active_path = self
             .registry
             .status()
             .get("active")
-            .and_then(|a| a.get("name"))
+            .and_then(|a| a.get("source_path"))
             .and_then(|n| n.as_str())
-            .map(|s| s.to_string());
+            .map(|s| crate::repo::canonical_path(std::path::Path::new(s)));
 
         let items: Vec<serde_json::Value> = filtered
             .into_iter()
@@ -472,8 +473,9 @@ impl OpenOntologiesServer {
                     "name": e.name,
                     "size": e.size,
                     "mtime": e.mtime_secs,
-                    "is_cached": cached_names.contains(&e.name),
-                    "is_active": active_name.as_deref() == Some(e.name.as_str()),
+                    "is_cached": cached_paths.contains(&crate::repo::canonical_path(&e.path)),
+                    "is_active": active_path.as_ref()
+                        == Some(&crate::repo::canonical_path(&e.path)),
                 })
             })
             .collect();
@@ -3640,5 +3642,80 @@ impl ServerHandler for OpenOntologiesServer {
                  {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
                  comparison, alignment, data ingestion, and exploration.{tail}{profile_tail}"
             ))
+    }
+}
+
+#[cfg(test)]
+mod repo_list_tests {
+    use super::*;
+
+    #[test]
+    fn repo_list_status_flags_match_source_path_not_file_stem() {
+        let tmp = tempfile::tempdir().unwrap();
+        let first_dir = tmp.path().join("first");
+        let second_dir = tmp.path().join("second");
+        std::fs::create_dir_all(&first_dir).unwrap();
+        std::fs::create_dir_all(&second_dir).unwrap();
+        let first = first_dir.join("catalog.ttl");
+        let second = second_dir.join("catalog.ttl");
+        let ttl = "<urn:subject> <urn:predicate> \"value\" .";
+        std::fs::write(&first, ttl).unwrap();
+        std::fs::write(&second, ttl).unwrap();
+
+        let mut cache_config = crate::config::CacheConfig::default();
+        cache_config.dir = tmp.path().join("cache").to_string_lossy().into_owned();
+        let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
+        let server = OpenOntologiesServer::new_with_repo_options(
+            db,
+            Arc::new(GraphStore::new()),
+            None,
+            Default::default(),
+            cache_config,
+            crate::toolfilter::ToolFilter::default(),
+            vec![tmp.path().to_path_buf()],
+        );
+        server
+            .registry
+            .load_file(&first.to_string_lossy(), Default::default())
+            .unwrap();
+
+        let output = server.onto_repo_list(Parameters(OntoRepoListInput {
+            dir: None,
+            recursive: Some(true),
+            glob: Some("catalog.ttl".to_string()),
+            limit: None,
+            offset: None,
+        }));
+        let output: serde_json::Value = serde_json::from_str(&output).unwrap();
+        let items = output["items"].as_array().unwrap();
+        assert_eq!(items.len(), 2);
+        let first_item = items
+            .iter()
+            .find(|item| {
+                item["path"]
+                    .as_str()
+                    .map(|path| {
+                        crate::repo::canonical_path(std::path::Path::new(path))
+                            == crate::repo::canonical_path(&first)
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap();
+        let second_item = items
+            .iter()
+            .find(|item| {
+                item["path"]
+                    .as_str()
+                    .map(|path| {
+                        crate::repo::canonical_path(std::path::Path::new(path))
+                            == crate::repo::canonical_path(&second)
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap();
+        assert!(first_item["is_cached"].as_bool().unwrap());
+        assert!(first_item["is_active"].as_bool().unwrap());
+        assert!(!second_item["is_cached"].as_bool().unwrap());
+        assert!(!second_item["is_active"].as_bool().unwrap());
     }
 }
