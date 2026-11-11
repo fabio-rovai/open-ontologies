@@ -13,6 +13,19 @@ fn test_parse_csv() {
 }
 
 #[test]
+fn test_parse_csv_rejects_duplicate_headers_instead_of_dropping_a_column() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("duplicate-headers.csv");
+    std::fs::write(&path, "id,amount,amount\nrow-1,10,25\n").unwrap();
+
+    let error = DataIngester::parse_file(path.to_str().unwrap()).unwrap_err();
+    assert!(
+        error.to_string().contains("Duplicate CSV header \"amount\""),
+        "{error}"
+    );
+}
+
+#[test]
 fn test_parse_json_array() {
     let json = r#"[{"id":"b1","name":"Tower Bridge"},{"id":"b2","name":"Big Ben"}]"#;
     let rows = DataIngester::parse_json(json).unwrap();

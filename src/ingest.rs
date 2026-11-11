@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use anyhow::{Context, Result};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 
 /// Data ingester that parses structured data files into rows of key-value pairs.
@@ -50,6 +50,16 @@ impl DataIngester {
             .iter()
             .map(|h| h.to_string())
             .collect();
+
+        let mut unique_headers = HashSet::with_capacity(headers.len());
+        for (index, header) in headers.iter().enumerate() {
+            if !unique_headers.insert(header) {
+                anyhow::bail!(
+                    "Duplicate CSV header {header:?} at column {}; CSV columns must be unique",
+                    index + 1
+                );
+            }
+        }
 
         let mut rows = Vec::new();
         for result in reader.records() {
