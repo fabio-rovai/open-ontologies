@@ -165,6 +165,19 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`import-schema` writes valid Turtle for SQL identifiers with spaces or
+  quotes** (#384). Table and column names went into prefixed names and labels
+  unescaped, so a quoted identifier such as `"customer archive"` made the
+  generated Turtle unparseable. Characters a Turtle local name cannot hold are
+  now percent-encoded as UTF-8 bytes, and labels are escaped string literals.
+  Names that were already valid local names, including non-ASCII letters and
+  a leading digit, keep the IRIs they had.
+
+- **CSV ingestion rejects a repeated header instead of dropping a column**
+  (#382). Each row became a map keyed by header, so a later column with the
+  same header overwrote the earlier one. The error names the header and its
+  column number.
+
 - **OWL-DL reports name `owl:NegativePropertyAssertion` as unmodelled**
   (#376). The tableau never read negative property assertions, so a
   certificate or a clean verdict over a graph that has them was over a
