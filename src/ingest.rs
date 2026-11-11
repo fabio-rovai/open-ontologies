@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 use anyhow::{Context, Result};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 
 /// Data ingester that parses structured data files into rows of key-value pairs.
@@ -51,6 +51,16 @@ impl DataIngester {
             .map(|h| h.to_string())
             .collect();
 
+        let mut unique_headers = HashSet::with_capacity(headers.len());
+        for (index, header) in headers.iter().enumerate() {
+            if !unique_headers.insert(header) {
+                anyhow::bail!(
+                    "Duplicate CSV header {header:?} at column {}; CSV columns must be unique",
+                    index + 1
+                );
+            }
+        }
+
         let mut rows = Vec::new();
         for result in reader.records() {
             let record = result.context("Failed to read CSV record")?;
@@ -72,14 +82,15 @@ impl DataIngester {
         match value {
             serde_json::Value::Array(arr) => {
                 let mut rows = Vec::new();
-                for item in &arr {
-                    if let serde_json::Value::Object(map) = item {
-                        let row: HashMap<String, String> = map
-                            .iter()
-                            .map(|(k, v)| (k.clone(), json_value_to_string(v)))
-                            .collect();
-                        rows.push(row);
-                    }
+                for (index, item) in arr.iter().enumerate() {
+                    let serde_json::Value::Object(map) = item else {
+                        anyhow::bail!("JSON array item at index {index} is not an object");
+                    };
+                    let row: HashMap<String, String> = map
+                        .iter()
+                        .map(|(k, v)| (k.clone(), json_value_to_string(v)))
+                        .collect();
+                    rows.push(row);
                 }
                 Ok(rows)
             }
@@ -90,7 +101,7 @@ impl DataIngester {
                     .collect();
                 Ok(vec![row])
             }
-            _ => Ok(Vec::new()),
+            _ => anyhow::bail!("JSON data must be an object or an array of objects"),
         }
     }
 

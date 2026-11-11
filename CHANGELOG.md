@@ -173,10 +173,78 @@ All notable changes to Open Ontologies are documented here.
   expose evidence, rule versions and withdrawal history, with proof forests
   exportable to the existing independent `oo-cert` checker.
 
+- **`import-schema` writes valid Turtle for SQL identifiers with spaces or
+  quotes** (#384). Table and column names went into prefixed names and labels
+  unescaped, so a quoted identifier such as `"customer archive"` made the
+  generated Turtle unparseable. Characters a Turtle local name cannot hold are
+  now percent-encoded as UTF-8 bytes, and labels are escaped string literals.
+  Names that were already valid local names, including non-ASCII letters and
+  a leading digit, keep the IRIs they had.
+
+- **CSV ingestion rejects a repeated header instead of dropping a column**
+  (#382). Each row became a map keyed by header, so a later column with the
+  same header overwrote the earlier one. The error names the header and its
+  column number.
+
+- **OWL-DL reports name `owl:NegativePropertyAssertion` as unmodelled**
+  (#376). The tableau never read negative property assertions, so a
+  certificate or a clean verdict over a graph that has them was over a
+  weaker axiom set without saying so. They are now listed in
+  `constructs_not_modelled`, and with no clash proved the headline is `null`.
+
+- **OWL-DL no longer reads a data-qualified cardinality as an unqualified
+  one** (#373). A restriction with `owl:onDataRange` had its range replaced by
+  `Top`, so `min 1 xsd:string` and `max 0 xsd:integer` on one data property
+  made the class unsatisfiable. The restriction now stays opaque, and the
+  report still lists datatype restrictions as unmodelled.
+
+- **Negating `owl:maxCardinality 4294967295` no longer overflows** (#374).
+  `n + 1` panicked in debug builds and wrapped to `>= 0` in release builds.
+  It now saturates, so the tableau keeps the large minimum and reports an
+  incomplete result at its node cap.
+
+- **OWL-DL realization reads an object's anonymous intersection types across
+  a role edge** (#370). A `someValuesFrom` filler is now satisfied by a named
+  class asserted inside the object's anonymous `rdf:type` intersection, so an
+  equivalent-class definition realizes the role's subject.
+
+- **A failed version rollback leaves the active graph in place** (#377). The
+  store was cleared before the saved snapshot was parsed, so a corrupt
+  snapshot left it empty. The snapshot is now parsed in full first and then
+  replaces the dataset in one step.
+
+- **`init` reports a malformed `config.toml` instead of falling back to the
+  default embedding settings** (#375). With the `embeddings` feature, the
+  fallback could start a download of the local ONNX model.
+
+- **JSON ingestion rejects shapes it cannot map** (#378). A scalar root used
+  to give zero rows, and non-object items in an array were dropped without a
+  word. Both are now errors, and an array error names the item's index.
+
+- **Rows without an ID get distinct generated subjects** (#379). The fallback
+  ID used only the sub-second nanoseconds, so two rows mapped in the same
+  clock tick shared one subject. It now joins the process ID, the full
+  timestamp and an atomic counter.
+
+- **Reusing an `onto_fol_export` directory removes the previous run's goal
+  files** (#380). A shorter goals list left the old per-goal problems beside
+  the new manifest, and an export with no goals left `goals.json` behind.
+  Only files the exporter writes are removed; anything else in `goals/`
+  stays.
+
+- **OFN conversion refuses named graphs instead of flattening them** (#381).
+  OFN holds one graph, and TriG or N-Quads input with named graphs lost each
+  quad's graph name. TriG with only a default graph still converts.
+
+- **Solver discovery finds Windows executables on `PATH`** (#372). The probe
+  tries the `.EXE` and `.COM` entries of `PATHEXT`, so `z3` finds `z3.exe`.
+  Batch-file extensions are skipped because the solver is launched directly.
+
 - **`reason --profile owl-dl` no longer reports `consistent: true` when the
   tableau omits an axiom** (#356). When the graph uses an unmodelled construct
   and no clash was proved, the headline is `null`; a proved clash remains
-  `false`.
+  `false`. docs/reasoning.md now says to read `consistent` together with
+  `complete` and `constructs_not_modelled` (#368).
 
 - **The bundled SQLite is 3.54.1, and the minimum Rust is 1.89**
   (RUSTSEC-2026-0459, CVE-2026-119375, published 30 Oct 2026). SQLite before

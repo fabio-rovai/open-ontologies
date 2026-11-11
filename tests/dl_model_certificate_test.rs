@@ -640,6 +640,11 @@ fn a_certificate_over_a_weaker_axiom_set_says_so() {
         :Person a owl:Class .
         :alice a :Person .
         :alice owl:sameAs :alicia .
+        :alice :knows :bob .
+        [] a owl:NegativePropertyAssertion ;
+           owl:sourceIndividual :alice ;
+           owl:assertionProperty :knows ;
+           owl:targetIndividual :bob .
         :grandparentOf owl:propertyChainAxiom ( :parentOf :parentOf ) .
     "#;
     let store = std::sync::Arc::new(open_ontologies::graph::GraphStore::new());
@@ -648,8 +653,10 @@ fn a_certificate_over_a_weaker_axiom_set_says_so() {
     let dropped = open_ontologies::tableaux::DlReasoner::unmodelled_constructs(&store);
     let names: Vec<&str> = dropped.iter().map(|(k, _)| k.as_str()).collect();
     assert!(
-        names.contains(&"owl:sameAs") && names.contains(&"owl:propertyChainAxiom"),
-        "both unmodelled constructs must be named, got {names:?}"
+        names.contains(&"owl:sameAs")
+            && names.contains(&"owl:NegativePropertyAssertion")
+            && names.contains(&"owl:propertyChainAxiom"),
+        "all unmodelled constructs must be named, got {names:?}"
     );
 
     // And the other direction, so the disclosure cannot be a constant.

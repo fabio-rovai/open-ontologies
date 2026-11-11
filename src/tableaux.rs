@@ -107,6 +107,7 @@ const OWL_EXACT_QCARD: &str = "<http://www.w3.org/2002/07/owl#qualifiedCardinali
 const OWL_MIN_QCARD: &str = "<http://www.w3.org/2002/07/owl#minQualifiedCardinality>";
 const OWL_MAX_QCARD: &str = "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>";
 const OWL_ON_CLASS: &str = "<http://www.w3.org/2002/07/owl#onClass>";
+const OWL_ON_DATA_RANGE: &str = "<http://www.w3.org/2002/07/owl#onDataRange>";
 
 // Tableaux safety limits live in `crate::runtime` (initialised from
 // `[reasoner] tableaux_max_depth` / `tableaux_max_nodes` in config.toml).
@@ -160,7 +161,14 @@ impl Concept {
                 }
             }
             // ¬(≤n R.C) = ≥(n+1) R.C
-            Concept::MaxCard(r, n, c) => Concept::MinCard(*r, n + 1, c.clone()),
+            // The complement of <=u32::MAX requires one more than this
+            // representation can hold. Saturate so the bounded tableau treats
+            // it as an unachievable-large minimum (and returns Unknown at its
+            // node cap) instead of panicking in debug or wrapping to >=0 in
+            // release builds.
+            Concept::MaxCard(r, n, c) => {
+                Concept::MinCard(*r, n.saturating_add(1), c.clone())
+            }
         }
     }
 }
@@ -1233,6 +1241,16 @@ impl OwlParser {
         if let Some(value) = self.index.object(node, OWL_HAS_VALUE) {
             let val_id = self.interner.intern(&value);
             return RawConcept::Exists(prop, Box::new(RawConcept::Named(val_id)));
+        }
+
+        // A data-qualified cardinality is not an unqualified object-role
+        // cardinality. This reasoner does not model data ranges, so keep the
+        // whole restriction opaque instead of silently replacing its filler
+        // with Top. The report separately marks datatype-property restrictions
+        // as unmodelled; the opaque atom prevents that dropped range from
+        // creating a false clash with another restriction on the same property.
+        if self.index.object(node, OWL_ON_DATA_RANGE).is_some() {
+            return self.opaque_restriction(node);
         }
 
         // Qualified cardinality restrictions
@@ -4068,12 +4086,20 @@ impl DlReasoner {
                             return false;
                         }
                         // nominal: the filler names the object itself
-                        // class filler: the object is typed by it
+                        // class filler: the object is typed by it, by a named
+                        // type or by a named conjunct of an anonymous one.
+                        // `has_type` holds for a set when it holds for one
+                        // member, so the two sources are checked separately and
+                        // the object's type set is never copied per edge.
                         o == target
                             || self
                                 .individual_types
                                 .get(&o)
                                 .is_some_and(|ot| self.has_type(ot, target))
+                            || self.asserted_concepts(o).iter().any(|c| match c {
+                                Concept::Atom(a) => self.entails_type(*a, target),
+                                _ => false,
+                            })
                     })
                 })
             }
@@ -4082,12 +4108,16 @@ impl DlReasoner {
     }
 
     fn has_type(&self, types: &HashSet<u32>, target: u32) -> bool {
-        types.contains(&target)
-            || types.iter().any(|t| {
-                self.subclass_closure
-                    .get(t)
-                    .is_some_and(|sups| sups.contains(&target))
-            })
+        types.contains(&target) || types.iter().any(|&t| self.entails_type(t, target))
+    }
+
+    /// True when a named type `t` is `target` or told-below it.
+    fn entails_type(&self, t: u32, target: u32) -> bool {
+        t == target
+            || self
+                .subclass_closure
+                .get(&t)
+                .is_some_and(|sups| sups.contains(&target))
     }
 
     fn role_matches(&self, asserted: u32, required: u32) -> bool {
@@ -6060,9 +6090,13 @@ impl DlReasoner {
         // so an ontology leaning on asymmetry got a clean verdict with no sign
         // that a constraint had been dropped. That is the one outcome this list
         // exists to prevent.
-        const NOT_MODELLED: [(&str, &str); 13] = [
+        const NOT_MODELLED: [(&str, &str); 14] = [
             ("owl:sameAs", "http://www.w3.org/2002/07/owl#sameAs"),
             ("owl:differentFrom", "http://www.w3.org/2002/07/owl#differentFrom"),
+            (
+                "owl:NegativePropertyAssertion",
+                "http://www.w3.org/2002/07/owl#NegativePropertyAssertion",
+            ),
             ("owl:oneOf", "http://www.w3.org/2002/07/owl#oneOf"),
             ("owl:hasValue", "http://www.w3.org/2002/07/owl#hasValue"),
             // Read as an opaque atom, which is sound and says nothing about

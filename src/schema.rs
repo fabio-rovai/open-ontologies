@@ -79,6 +79,52 @@ impl SchemaIntrospector {
             .collect()
     }
 
+    /// Percent-encode the SQL identifier characters a Turtle prefixed-name
+    /// local part cannot hold, as UTF-8 bytes. Every character Turtle accepts
+    /// is kept as it is, so an identifier that was already a valid local name
+    /// (`größe`, `2024Sales`) keeps the IRI it had before this escaping existed.
+    fn turtle_local_name(value: &str) -> String {
+        const HEX: &[u8; 16] = b"0123456789ABCDEF";
+
+        let mut local = String::new();
+        for (index, ch) in value.char_indices() {
+            if Self::pn_local_char(ch, index == 0) {
+                local.push(ch);
+            } else {
+                let mut utf8 = [0; 4];
+                for &byte in ch.encode_utf8(&mut utf8).as_bytes() {
+                    local.push('%');
+                    local.push(char::from(HEX[(byte >> 4) as usize]));
+                    local.push(char::from(HEX[(byte & 0x0f) as usize]));
+                }
+            }
+        }
+        local
+    }
+
+    /// True for a character Turtle 1.1 allows unescaped at this position of a
+    /// prefixed-name local part: `PN_CHARS_U` or a digit anywhere, and the
+    /// rest of `PN_CHARS` after the first character. `.` and `:` are legal in
+    /// places but are encoded anyway, which keeps the rule positional only.
+    fn pn_local_char(ch: char, first: bool) -> bool {
+        let pn_chars_base = matches!(ch,
+            'A'..='Z' | 'a'..='z'
+            | '\u{C0}'..='\u{D6}' | '\u{D8}'..='\u{F6}' | '\u{F8}'..='\u{2FF}'
+            | '\u{370}'..='\u{37D}' | '\u{37F}'..='\u{1FFF}' | '\u{200C}'..='\u{200D}'
+            | '\u{2070}'..='\u{218F}' | '\u{2C00}'..='\u{2FEF}' | '\u{3001}'..='\u{D7FF}'
+            | '\u{F900}'..='\u{FDCF}' | '\u{FDF0}'..='\u{FFFD}' | '\u{10000}'..='\u{EFFFF}');
+        pn_chars_base
+            || ch == '_'
+            || ch.is_ascii_digit()
+            || (!first
+                && matches!(ch, '-' | '\u{B7}' | '\u{300}'..='\u{36F}' | '\u{203F}'..='\u{2040}'))
+    }
+
+    /// Escape a label as a Turtle double-quoted string literal.
+    fn turtle_string(value: &str) -> String {
+        serde_json::to_string(value).expect("serializing a string cannot fail")
+    }
+
     /// Generate OWL Turtle from introspected schema.
     pub fn generate_turtle(tables: &[TableInfo], base_iri: &str) -> String {
         let mut ttl = String::new();
@@ -94,18 +140,27 @@ impl SchemaIntrospector {
 
         for table in tables {
             let class = Self::table_to_class(&table.name);
-            ttl.push_str(&format!("db:{} a owl:Class ;\n    rdfs:label \"{}\" .\n\n", class, class));
+            let class_local = Self::turtle_local_name(&class);
+            let class_label = Self::turtle_string(&class);
+            ttl.push_str(&format!(
+                "db:{} a owl:Class ;\n    rdfs:label {} .\n\n",
+                class_local, class_label
+            ));
 
             for col in &table.columns {
-                let prop_name = format!("{}_{}", table.name, col.name);
+                let prop_name = Self::turtle_local_name(&format!("{}_{}", table.name, col.name));
+                let column_label = Self::turtle_string(&col.name);
 
                 if let Some(fk) = fk_map.get(&(table.name.clone(), col.name.clone())) {
                     // Foreign key → ObjectProperty
                     let parent_class = Self::table_to_class(&fk.parent_table);
                     ttl.push_str(&format!("db:{} a owl:ObjectProperty ;\n", prop_name));
-                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class));
-                    ttl.push_str(&format!("    rdfs:range db:{} ;\n", parent_class));
-                    ttl.push_str(&format!("    rdfs:label \"{}\" .\n\n", col.name));
+                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class_local));
+                    ttl.push_str(&format!(
+                        "    rdfs:range db:{} ;\n",
+                        Self::turtle_local_name(&parent_class)
+                    ));
+                    ttl.push_str(&format!("    rdfs:label {} .\n\n", column_label));
                 } else {
                     // Regular column → DatatypeProperty
                     let xsd = Self::sql_to_xsd(&col.data_type);
@@ -114,14 +169,14 @@ impl SchemaIntrospector {
                     } else {
                         ttl.push_str(&format!("db:{} a owl:DatatypeProperty ;\n", prop_name));
                     }
-                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class));
+                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class_local));
                     ttl.push_str(&format!("    rdfs:range {} ;\n", xsd));
-                    ttl.push_str(&format!("    rdfs:label \"{}\" .\n\n", col.name));
+                    ttl.push_str(&format!("    rdfs:label {} .\n\n", column_label));
                 }
 
                 // NOT NULL → cardinality restriction
                 if !col.is_nullable {
-                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class));
+                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class_local));
                     ttl.push_str("    a owl:Restriction ;\n");
                     ttl.push_str(&format!("    owl:onProperty db:{} ;\n", prop_name));
                     ttl.push_str("    owl:minCardinality 1\n");
