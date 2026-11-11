@@ -79,20 +79,16 @@ impl SchemaIntrospector {
             .collect()
     }
 
-    /// Percent-encode SQL identifier characters that are not safe in a Turtle
-    /// prefixed-name local part. Encoding UTF-8 bytes also keeps IRI identity
-    /// stable for quoted or non-ASCII database identifiers.
+    /// Percent-encode the SQL identifier characters a Turtle prefixed-name
+    /// local part cannot hold, as UTF-8 bytes. Every character Turtle accepts
+    /// is kept as it is, so an identifier that was already a valid local name
+    /// (`größe`, `2024Sales`) keeps the IRI it had before this escaping existed.
     fn turtle_local_name(value: &str) -> String {
         const HEX: &[u8; 16] = b"0123456789ABCDEF";
 
         let mut local = String::new();
         for (index, ch) in value.char_indices() {
-            let safe = if index == 0 {
-                ch.is_ascii_alphabetic() || ch == '_'
-            } else {
-                ch.is_ascii_alphanumeric() || ch == '_' || ch == '-'
-            };
-            if safe {
+            if Self::pn_local_char(ch, index == 0) {
                 local.push(ch);
             } else {
                 let mut utf8 = [0; 4];
@@ -104,6 +100,24 @@ impl SchemaIntrospector {
             }
         }
         local
+    }
+
+    /// True for a character Turtle 1.1 allows unescaped at this position of a
+    /// prefixed-name local part: `PN_CHARS_U` or a digit anywhere, and the
+    /// rest of `PN_CHARS` after the first character. `.` and `:` are legal in
+    /// places but are encoded anyway, which keeps the rule positional only.
+    fn pn_local_char(ch: char, first: bool) -> bool {
+        let pn_chars_base = matches!(ch,
+            'A'..='Z' | 'a'..='z'
+            | '\u{C0}'..='\u{D6}' | '\u{D8}'..='\u{F6}' | '\u{F8}'..='\u{2FF}'
+            | '\u{370}'..='\u{37D}' | '\u{37F}'..='\u{1FFF}' | '\u{200C}'..='\u{200D}'
+            | '\u{2070}'..='\u{218F}' | '\u{2C00}'..='\u{2FEF}' | '\u{3001}'..='\u{D7FF}'
+            | '\u{F900}'..='\u{FDCF}' | '\u{FDF0}'..='\u{FFFD}' | '\u{10000}'..='\u{EFFFF}');
+        pn_chars_base
+            || ch == '_'
+            || ch.is_ascii_digit()
+            || (!first
+                && matches!(ch, '-' | '\u{B7}' | '\u{300}'..='\u{36F}' | '\u{203F}'..='\u{2040}'))
     }
 
     /// Escape a label as a Turtle double-quoted string literal.
