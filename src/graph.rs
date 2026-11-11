@@ -893,7 +893,7 @@ impl GraphStore {
                 && !STRSTARTS(STR(?p), \"http://www.w3.org/2000/01/rdf-schema#\")
                 && !STRSTARTS(STR(?p), \"http://www.w3.org/2002/07/owl#\"))
         }";
-        let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE { ?i a ?c . FILTER(?c != <http://www.w3.org/2002/07/owl#Class> && ?c != <http://www.w3.org/2000/01/rdf-schema#Class> && ?c != <http://www.w3.org/2002/07/owl#ObjectProperty> && ?c != <http://www.w3.org/2002/07/owl#DatatypeProperty> && ?c != <http://www.w3.org/2002/07/owl#Ontology>) }";
+        let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE { ?i a ?c . FILTER(?c != <http://www.w3.org/2002/07/owl#Class> && ?c != <http://www.w3.org/2000/01/rdf-schema#Class> && ?c != <http://www.w3.org/2002/07/owl#ObjectProperty> && ?c != <http://www.w3.org/2002/07/owl#DatatypeProperty> && ?c != <http://www.w3.org/2002/07/owl#Ontology> && ?c != <http://www.w3.org/2002/07/owl#Restriction>) }";
 
         let count_from_query = |q: &str| -> usize {
             let Ok(prepared) = SparqlEvaluator::new().parse_query(q) else { return 0 };
