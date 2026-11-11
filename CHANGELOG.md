@@ -165,6 +165,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **OWL-DL discloses data restrictions marked with `owl:onDataRange`.** A
+  restriction remains reported as unmodelled even if its data property has no
+  explicit `owl:DatatypeProperty` declaration.
+
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels
   unescaped, so a quoted identifier such as `"customer archive"` made the
