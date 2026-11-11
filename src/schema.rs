@@ -79,6 +79,38 @@ impl SchemaIntrospector {
             .collect()
     }
 
+    /// Percent-encode SQL identifier characters that are not safe in a Turtle
+    /// prefixed-name local part. Encoding UTF-8 bytes also keeps IRI identity
+    /// stable for quoted or non-ASCII database identifiers.
+    fn turtle_local_name(value: &str) -> String {
+        const HEX: &[u8; 16] = b"0123456789ABCDEF";
+
+        let mut local = String::new();
+        for (index, ch) in value.char_indices() {
+            let safe = if index == 0 {
+                ch.is_ascii_alphabetic() || ch == '_'
+            } else {
+                ch.is_ascii_alphanumeric() || ch == '_' || ch == '-'
+            };
+            if safe {
+                local.push(ch);
+            } else {
+                let mut utf8 = [0; 4];
+                for &byte in ch.encode_utf8(&mut utf8).as_bytes() {
+                    local.push('%');
+                    local.push(char::from(HEX[(byte >> 4) as usize]));
+                    local.push(char::from(HEX[(byte & 0x0f) as usize]));
+                }
+            }
+        }
+        local
+    }
+
+    /// Escape a label as a Turtle double-quoted string literal.
+    fn turtle_string(value: &str) -> String {
+        serde_json::to_string(value).expect("serializing a string cannot fail")
+    }
+
     /// Generate OWL Turtle from introspected schema.
     pub fn generate_turtle(tables: &[TableInfo], base_iri: &str) -> String {
         let mut ttl = String::new();
@@ -94,18 +126,27 @@ impl SchemaIntrospector {
 
         for table in tables {
             let class = Self::table_to_class(&table.name);
-            ttl.push_str(&format!("db:{} a owl:Class ;\n    rdfs:label \"{}\" .\n\n", class, class));
+            let class_local = Self::turtle_local_name(&class);
+            let class_label = Self::turtle_string(&class);
+            ttl.push_str(&format!(
+                "db:{} a owl:Class ;\n    rdfs:label {} .\n\n",
+                class_local, class_label
+            ));
 
             for col in &table.columns {
-                let prop_name = format!("{}_{}", table.name, col.name);
+                let prop_name = Self::turtle_local_name(&format!("{}_{}", table.name, col.name));
+                let column_label = Self::turtle_string(&col.name);
 
                 if let Some(fk) = fk_map.get(&(table.name.clone(), col.name.clone())) {
                     // Foreign key → ObjectProperty
                     let parent_class = Self::table_to_class(&fk.parent_table);
                     ttl.push_str(&format!("db:{} a owl:ObjectProperty ;\n", prop_name));
-                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class));
-                    ttl.push_str(&format!("    rdfs:range db:{} ;\n", parent_class));
-                    ttl.push_str(&format!("    rdfs:label \"{}\" .\n\n", col.name));
+                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class_local));
+                    ttl.push_str(&format!(
+                        "    rdfs:range db:{} ;\n",
+                        Self::turtle_local_name(&parent_class)
+                    ));
+                    ttl.push_str(&format!("    rdfs:label {} .\n\n", column_label));
                 } else {
                     // Regular column → DatatypeProperty
                     let xsd = Self::sql_to_xsd(&col.data_type);
@@ -114,14 +155,14 @@ impl SchemaIntrospector {
                     } else {
                         ttl.push_str(&format!("db:{} a owl:DatatypeProperty ;\n", prop_name));
                     }
-                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class));
+                    ttl.push_str(&format!("    rdfs:domain db:{} ;\n", class_local));
                     ttl.push_str(&format!("    rdfs:range {} ;\n", xsd));
-                    ttl.push_str(&format!("    rdfs:label \"{}\" .\n\n", col.name));
+                    ttl.push_str(&format!("    rdfs:label {} .\n\n", column_label));
                 }
 
                 // NOT NULL → cardinality restriction
                 if !col.is_nullable {
-                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class));
+                    ttl.push_str(&format!("db:{} rdfs:subClassOf [\n", class_local));
                     ttl.push_str("    a owl:Restriction ;\n");
                     ttl.push_str(&format!("    owl:onProperty db:{} ;\n", prop_name));
                     ttl.push_str("    owl:minCardinality 1\n");
