@@ -4,6 +4,7 @@
 use std::collections::BTreeSet;
 use std::io::Cursor;
 use std::path::Path;
+use std::sync::Mutex;
 
 use oxigraph::io::{JsonLdProfileSet, RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::*;
@@ -21,6 +22,50 @@ pub type ParsedDocument = (Vec<Quad>, Vec<(String, String)>);
 enum SourceFormat {
     Rdf(RdfFormat),
     OwlFunctional,
+}
+
+#[cfg(test)]
+mod publication_tests {
+    use super::*;
+    use crate::reason::{InferenceTarget, Reasoner};
+    use std::sync::Arc;
+
+    #[test]
+    fn stale_reasoning_cannot_publish_after_a_source_write() {
+        let g = Arc::new(GraphStore::new());
+        g.load_turtle("<http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> . <http://e/x> a <http://e/A> .", None).unwrap();
+        let token = g.reasoning_token().unwrap();
+        let sources = g.reasoning_sources().unwrap();
+        let dag = Reasoner::derivation_graph(&g, "rdfs").unwrap();
+        g.load_turtle("<http://e/new> <http://e/p> <http://e/o> .", None)
+            .unwrap();
+        let before = g.snapshot("nquads").unwrap();
+        assert!(
+            g.commit_reasoning(&dag, InferenceTarget::DefaultGraph, token, &sources)
+                .is_err()
+        );
+        assert_eq!(g.snapshot("nquads").unwrap(), before);
+        assert!(
+            g.commit_materialization(
+                &dag.closure.iter().cloned().collect::<Vec<_>>(),
+                InferenceTarget::DefaultGraph,
+                token
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn a_failed_write_does_not_advance_the_publication_guard() {
+        let g = GraphStore::new();
+        let token = g.reasoning_token().unwrap();
+        assert!(
+            g.sparql_update("INSERT DATA { <http://e/s> <http://e/p> <http://e/o> }; INVALID")
+                .is_err()
+        );
+        assert_eq!(g.reasoning_token().unwrap(), token);
+        assert_eq!(g.triple_count(), 0);
+    }
 }
 
 /// What a parse produced. `statements` counts parser events; `triples` counts
@@ -180,14 +225,13 @@ pub type AssertedTriples = (Vec<(String, String, String)>, Vec<String>);
 
 /// In-memory RDF graph store backed by Oxigraph.
 ///
-/// The store is held directly rather than behind a `Mutex`. Oxigraph's `Store`
-/// is already `Send + Sync` and synchronises internally, so the mutex added
-/// nothing but serialisation: every SPARQL read across all the tools queued
-/// behind one lock even though the reads do not conflict. It also meant
-/// fourteen `lock().unwrap()` sites, each of which turned a panic anywhere in
-/// the process into a poisoned lock and a second panic in every later request.
+/// Oxigraph synchronises its own reads and transactions. A writer-only lock
+/// advances a generation after each commit, so stale reasoning cannot publish.
+/// Snapshot readers never acquire that lock.
 pub struct GraphStore {
     store: Store,
+    // Serialises writers only; snapshot readers never take this lock.
+    revision: Mutex<u64>,
 }
 
 /// Why [`GraphStore::canonicalize_pair`] compared only ground triples.
@@ -212,96 +256,63 @@ impl Default for GraphStore {
 }
 
 impl GraphStore {
-    /// Read durable derivation metadata from the same snapshot as the data.
+    /// Explicit read/export view. Ordinary writes use indexed ledger records.
     pub fn ledger(&self) -> anyhow::Result<Option<Ledger>> {
-        let graph = NamedNode::new(tms::LEDGER_GRAPH)?;
         let snapshot = self.store.snapshot();
-        snapshot
-            .quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
-            .next()
-            .transpose()?
-            .map(|q| Ledger::decode(&q))
-            .transpose()
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        tms::storage::decode(
+            snapshot
+                .quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
     }
 
     fn transaction_ledger(
         txn: &oxigraph::store::Transaction<'_>,
     ) -> anyhow::Result<Option<Ledger>> {
-        let graph = NamedNode::new(tms::LEDGER_GRAPH)?;
-        txn.quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
-            .next()
-            .transpose()?
-            .map(|q| Ledger::decode(&q))
-            .transpose()
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        tms::storage::decode(
+            txn.quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
     }
 
-    fn publish_ledger(
-        txn: &mut oxigraph::store::Transaction<'_>,
-        ledger: &Ledger,
-    ) -> anyhow::Result<()> {
-        let (insert, remove) = ledger.projection()?;
-        for quad in remove {
-            txn.remove(&quad);
-        }
-        for quad in insert {
-            txn.insert(&quad);
-        }
-        let graph = NamedNode::new(tms::LEDGER_GRAPH)?;
-        let previous = txn
-            .quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
-            .collect::<Result<Vec<_>, _>>()?;
-        for quad in previous {
-            txn.remove(&quad);
-        }
-        txn.insert(&ledger.as_quad()?);
-        Ok(())
+    /// Constant-size optimistic guard. Every public writer advances it only
+    /// after committing; a failed transaction does not invalidate a snapshot.
+    pub(crate) fn reasoning_token(&self) -> anyhow::Result<u64> {
+        Ok(*self.revision.lock().unwrap_or_else(|e| e.into_inner()))
     }
 
-    fn reconcile_transaction(
-        txn: &mut oxigraph::store::Transaction<'_>,
-        ledger: &mut Ledger,
-        explicit: &[Quad],
-        operation: &str,
-    ) -> anyhow::Result<tms::Change> {
-        let before = ledger.grounded();
-        let current = txn
-            .quads_for_pattern(None, None, None, None)
-            .collect::<Result<Vec<_>, _>>()?;
-        let withdrawn = ledger.sync_sources(&current, explicit);
-        let event = ledger.finish_change(operation, withdrawn, &before);
-        Self::publish_ledger(txn, ledger)?;
-        Ok(event)
+    /// Capture graph locations in the read phase of an explicitly tracked run.
+    pub(crate) fn reasoning_sources(&self) -> anyhow::Result<Vec<Quad>> {
+        self.store
+            .snapshot()
+            .iter()
+            .filter_map(|q| match q {
+                Ok(q) if tms::is_internal(&q) => None,
+                other => Some(other),
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
     }
 
-    /// Commit the current reasoner's entire dependency graph and materialised
-    /// results atomically. A concurrent source change rejects the stale run
-    /// before it can publish either its conclusions or its support metadata.
     pub(crate) fn commit_reasoning(
         &self,
         dag: &crate::reason::DerivationGraph,
         target: crate::reason::InferenceTarget,
-        source_token: &str,
+        source_token: u64,
+        sources: &[Quad],
     ) -> anyhow::Result<serde_json::Value> {
-        let mut txn = self.store.start_transaction()?;
-        let mut ledger = Self::transaction_ledger(&txn)?.unwrap_or_default();
-        let current = txn
-            .quads_for_pattern(None, None, None, None)
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
         anyhow::ensure!(
-            Self::source_token(&current, &ledger) == source_token,
+            *revision == source_token,
             "source dataset changed during reasoning; retry against the current snapshot"
         );
-        let actual: BTreeSet<_> = current.iter().filter(|q| {
-            !tms::is_internal(q) && !ledger.derived_only(q)
-                && !matches!(&q.graph_name, GraphName::NamedNode(n) if n.as_str() == crate::reason::INFERRED_GRAPH)
-        }).map(|q| SourceQuad::from_quad(q).triple).collect();
-        let expected: BTreeSet<_> = dag.asserted.iter().cloned().collect();
-        anyhow::ensure!(
-            actual == expected,
-            "source assertions changed during reasoning; retry against the current snapshot"
-        );
-        let before = ledger.grounded();
-        let withdrawn = ledger.sync_sources(&current, &[]);
+        let mut txn = self.store.start_transaction()?;
+        let before = Self::transaction_ledger(&txn)?.unwrap_or_default();
+        let mut ledger = before.clone();
+        let known = ledger.grounded();
+        let withdrawn = ledger.sync_sources(sources, &[]);
         let target = if target == crate::reason::InferenceTarget::Inferred {
             format!("<{}>", crate::reason::INFERRED_GRAPH)
         } else {
@@ -313,92 +324,103 @@ impl GraphStore {
             dag.closure.iter().all(|fact| grounded.contains(fact)),
             "reasoning used facts without durable assertion support; run full reasoning from the source assertions"
         );
-        let event = ledger.finish_change("reason", withdrawn, &before);
-        Self::publish_ledger(&mut txn, &ledger)?;
+        let event = ledger.finish_change("reason", withdrawn, &known);
+        // Old single-literal backups are migrated only on explicit restore or
+        // tracked reasoning, never on an ordinary one-triple write.
+        if tms::storage::header(&txn)?.is_none() && !before.evidence.is_empty() {
+            txn.clear_graph(&NamedNode::new_unchecked(tms::LEDGER_GRAPH))?;
+            tms::storage::publish(&mut txn, &Ledger::default(), &ledger)?;
+        } else {
+            tms::storage::publish(&mut txn, &before, &ledger)?;
+        }
+        tms::storage::project(&mut txn, &ledger)?;
         txn.commit()?;
+        *revision += 1;
         Ok(serde_json::json!({
-            "supported": true,
-            "revision": event.revision, "evidence": ledger.evidence.len(),
-            "derivations": ledger.derivations.len(), "fixpoint_reached": dag.fixpoint_reached,
-            "rule_pack_sha256": tms::builtin_rule_pack_hash(),
-            "withdrawn_facts": event.withdrawn_facts,
+            "supported": true, "revision": event.revision,
+            "evidence": ledger.evidence.len(), "derivations": ledger.derivations.len(),
+            "fixpoint_reached": dag.fixpoint_reached,
+            "rule_pack_sha256": tms::builtin_rule_pack_hash(), "withdrawn_facts": event.withdrawn_facts,
         }))
     }
 
-    fn source_token(quads: &[Quad], ledger: &Ledger) -> String {
-        let sources: BTreeSet<_> = quads
+    /// Legacy materialisation adds RDF without claiming durable provenance.
+    pub(crate) fn commit_materialization(
+        &self,
+        triples: &[crate::reason::Spelled],
+        target: crate::reason::InferenceTarget,
+        token: u64,
+    ) -> anyhow::Result<()> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        anyhow::ensure!(
+            *revision == token,
+            "source dataset changed during reasoning; retry against the current snapshot"
+        );
+        let mut txn = self.store.start_transaction()?;
+        let graph = if target == crate::reason::InferenceTarget::Inferred {
+            format!("<{}>", crate::reason::INFERRED_GRAPH)
+        } else {
+            String::new()
+        };
+        let text = triples
             .iter()
-            .filter(|q| !tms::is_internal(q) && !ledger.derived_only(q))
-            .map(SourceQuad::from_quad)
-            .collect();
-        tms::bytes_hash(
-            &serde_json::to_vec(&(ledger.revision, sources))
-                .expect("source identities are serializable"),
-        )
+            .map(|(s, p, o)| format!("{s} {p} {o} {graph} .\n"))
+            .collect::<String>();
+        for q in RdfParser::from_format(RdfFormat::NQuads).for_reader(text.as_bytes()) {
+            txn.insert(&q?);
+        }
+        if !triples.is_empty() {
+            tms::storage::mark_incomplete(&mut txn)?;
+        }
+        txn.commit()?;
+        *revision += 1;
+        Ok(())
     }
 
-    /// Optimistic publication guard, taken before any reasoning reads. It
-    /// includes graph locations and ledger revision, not just logical triples.
-    pub(crate) fn reasoning_token(&self) -> anyhow::Result<String> {
-        let snapshot = self.store.snapshot();
-        let quads = snapshot.iter().collect::<Result<Vec<_>, _>>()?;
-        let ledger = quads
-            .iter()
-            .find(|q| tms::is_internal(q))
-            .map(Ledger::decode)
-            .transpose()?
-            .unwrap_or_default();
-        Ok(Self::source_token(&quads, &ledger))
-    }
-
-    /// Withdraw assertions through the same write path as SPARQL DELETE. The
-    /// dependency closure and RDF projection are committed in that transaction.
+    /// Explicit assertion withdrawal opts into dependency-based retraction.
     pub fn retract_assertions(
         &self,
         triples: &[crate::reason::Spelled],
     ) -> anyhow::Result<serde_json::Value> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
         let mut txn = self.store.start_transaction()?;
-        let mut ledger = Self::transaction_ledger(&txn)?;
-        let wanted: BTreeSet<_> = triples.iter().cloned().collect();
-        let current = txn
-            .quads_for_pattern(None, None, None, None)
-            .collect::<Result<Vec<_>, _>>()?;
-        let mut removed = 0usize;
-        for q in current {
-            if !tms::is_internal(&q)
-                && wanted.contains(&SourceQuad::from_quad(&q).triple)
-                && !ledger.as_ref().is_some_and(|l| l.derived_only(&q))
-            {
-                txn.remove(&q);
-                removed += 1;
+        let ledger = tms::storage::component(&txn, triples)?;
+        let mut deleted = Vec::new();
+        for triple in triples.iter().collect::<BTreeSet<_>>() {
+            let q = SourceQuad {
+                triple: triple.clone(),
+                graph: String::new(),
+            }
+            .to_quad()?;
+            for q in txn.quads_for_pattern(
+                Some(q.subject.as_ref()),
+                Some(q.predicate.as_ref()),
+                Some(q.object.as_ref()),
+                None,
+            ) {
+                let q = q?;
+                if !tms::is_internal(&q) && !ledger.as_ref().is_some_and(|l| l.derived_only(&q)) {
+                    deleted.push(q);
+                }
             }
         }
-        let event = ledger
-            .as_mut()
-            .map(|l| Self::reconcile_transaction(&mut txn, l, &[], "retract_assertions"))
-            .transpose()?;
+        for q in &deleted {
+            txn.remove(q);
+        }
+        let (event, _) =
+            tms::storage::apply_delta(&mut txn, &[], &deleted, true, "retract_assertions")?;
         txn.commit()?;
-        Ok(serde_json::json!({"removed_assertions": removed, "invalidation": event}))
+        *revision += 1;
+        Ok(serde_json::json!({"removed_assertions": deleted.len(), "invalidation": event}))
     }
 
-    /// Retire a recorded rule version without rebuilding or replacing the
-    /// reasoner. Conclusions with independent surviving evidence remain visible.
+    /// Explicit rule retirement shares the same transaction and projection.
     pub fn invalidate_rule(&self, rule: &str, pack_hash: &str) -> anyhow::Result<tms::Change> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
         let mut txn = self.store.start_transaction()?;
-        let mut ledger = Self::transaction_ledger(&txn)?
-            .ok_or_else(|| anyhow::anyhow!("no durable derivations recorded"))?;
-        let before = ledger.grounded();
-        for d in ledger
-            .derivations
-            .values_mut()
-            .filter(|d| d.rule == rule && d.rule_pack_sha256 == pack_hash)
-        {
-            d.enabled = false;
-        }
-        ledger.fixpoint_reached = false;
-        let event = ledger.finish_change("invalidate_rule", Vec::new(), &before);
-        Self::publish_ledger(&mut txn, &ledger)?;
+        let event = tms::storage::invalidate(&mut txn, rule, pack_hash)?;
         txn.commit()?;
+        *revision += 1;
         Ok(event)
     }
 
@@ -414,12 +436,31 @@ impl GraphStore {
             }
         }
         dataset.set_default_graph(names);
+        self.hide_ledger(dataset)
+    }
+
+    fn hide_ledger(
+        &self,
+        dataset: &mut oxigraph::sparql::QueryDatasetSpecification,
+    ) -> anyhow::Result<()> {
+        let names = if let Some(names) = dataset.available_named_graphs() {
+            names.to_vec()
+        } else {
+            self.store.named_graphs().collect::<Result<Vec<_>, _>>()?
+        };
+        dataset.set_available_named_graphs(names.into_iter().filter(|n|
+            !matches!(n, NamedOrBlankNode::NamedNode(n) if n.as_str() == tms::LEDGER_GRAPH)).collect());
+        if let Some(names) = dataset.default_graph_graphs() {
+            dataset.set_default_graph(names.iter().filter(|n|
+                !matches!(n, GraphName::NamedNode(n) if n.as_str() == tms::LEDGER_GRAPH)).cloned().collect());
+        }
         Ok(())
     }
 
     pub fn new() -> Self {
         Self {
             store: Store::new().expect("Failed to create Oxigraph store"),
+            revision: Mutex::new(0),
         }
     }
 
@@ -442,17 +483,57 @@ impl GraphStore {
                 path.display()
             )
         })?;
-        Ok(Self { store })
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        let legacy = NamedNode::new_unchecked("https://open-ontologies.org/provenance#ledger");
+        let mut txn = store.start_transaction()?;
+        let old = txn
+            .quads_for_pattern(
+                None,
+                Some(legacy.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            )
+            .next()
+            .transpose()?;
+        if let Some(old) = old {
+            let mut ledger = Ledger::decode(&old)?;
+            txn.clear_graph(&graph)?;
+            if ledger.history.is_empty() {
+                ledger.finish_change("migrate", Vec::new(), &BTreeSet::new());
+            }
+            tms::storage::publish(&mut txn, &Ledger::default(), &ledger)?;
+        }
+        txn.commit()?;
+        Ok(Self {
+            store,
+            revision: Mutex::new(0),
+        })
     }
 
     pub fn triple_count(&self) -> usize {
-        let store = &self.store;
-        let internal = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
-        let snapshot = store.snapshot();
-        let hidden = snapshot
-            .quads_for_pattern(None, None, None, Some(internal.as_ref().into()))
-            .count();
-        store.len().unwrap_or(0).saturating_sub(hidden)
+        let snapshot = self.store.snapshot();
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        let header = NamedNode::new_unchecked("https://open-ontologies.org/provenance#header");
+        let legacy = NamedNode::new_unchecked("https://open-ontologies.org/provenance#ledger");
+        let records = snapshot
+            .quads_for_pattern(
+                None,
+                Some(header.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            )
+            .chain(snapshot.quads_for_pattern(
+                None,
+                Some(legacy.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            ))
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap_or_default();
+        snapshot
+            .len()
+            .unwrap_or(0)
+            .saturating_sub(tms::storage::hidden_count(records).unwrap_or(0))
     }
 
     pub fn load_turtle(&self, ttl: &str, base_iri: Option<&str>) -> anyhow::Result<usize> {
@@ -541,13 +622,6 @@ impl GraphStore {
         self.load_content_with_base_mode(content, RdfFormat::NQuads, None, true)
     }
 
-    pub(crate) fn replace_content(
-        &self,
-        content: &str,
-        format: RdfFormat,
-    ) -> anyhow::Result<usize> {
-        self.load_content_with_base_mode(content, format, None, true)
-    }
 
     fn load_file_mode(&self, path: &str, replace: bool) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
@@ -637,35 +711,49 @@ impl GraphStore {
     }
 
     fn store_parsed_quads(&self, quads: &[Quad], replace: bool) -> anyhow::Result<usize> {
-        let before = if replace { 0 } else { self.triple_count() };
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        let mut delta = 0isize;
         let mut txn = self.store.start_transaction()?;
-        let mut prior = Self::transaction_ledger(&txn)?;
-        let imported: Vec<_> = quads.iter().filter(|q| tms::is_internal(q)).collect();
-        anyhow::ensure!(
-            imported.len() <= 1,
-            "a dataset may contain only one derivation ledger"
-        );
-        if let Some(quad) = imported.first() {
-            Ledger::decode(quad)?;
+        let imported: Vec<_> = quads
+            .iter()
+            .filter(|q| tms::is_internal(q))
+            .cloned()
+            .collect();
+        if !imported.is_empty() {
             anyhow::ensure!(
-                replace || (prior.is_none() && txn.iter().next().is_none()),
-                "cannot merge a derivation ledger into a managed dataset; restore a complete dataset instead"
+                replace || txn.is_empty()?,
+                "cannot merge a derivation ledger into a dataset; restore a complete dataset instead"
             );
-            prior = None;
+            tms::storage::decode(imported.clone())?
+                .ok_or_else(|| anyhow::anyhow!("missing derivation ledger header"))?;
         }
         if replace {
-            // Clear and insert share one transaction: failed parsing never clears
-            // the old graph, and readers cannot observe an empty intermediate graph.
             txn.clear()?;
         }
         for quad in quads {
-            txn.insert(quad);
+            if !txn.contains(quad)? {
+                txn.insert(quad);
+                if !tms::is_internal(quad) {
+                    delta += 1;
+                }
+            }
         }
-        if let Some(mut ledger) = prior {
-            Self::reconcile_transaction(&mut txn, &mut ledger, quads, "load")?;
+        if imported.is_empty() {
+            let (_, projection_delta) =
+                tms::storage::apply_delta(&mut txn, quads, &[], true, "load")?;
+            delta += projection_delta;
+        } else if tms::storage::header(&txn)?.is_none() {
+            let mut ledger = tms::storage::decode(imported)?.expect("validated ledger");
+            txn.clear_graph(&NamedNode::new_unchecked(tms::LEDGER_GRAPH))?;
+            let before = Ledger::default();
+            if ledger.history.is_empty() {
+                ledger.finish_change("restore", Vec::new(), &BTreeSet::new());
+            }
+            tms::storage::publish(&mut txn, &before, &ledger)?;
         }
         txn.commit()?;
-        Ok(self.triple_count().saturating_sub(before))
+        *revision += 1;
+        Ok(delta.max(0) as usize)
     }
 
     pub fn save_file(&self, path: &str, format: &str) -> anyhow::Result<()> {
@@ -897,6 +985,7 @@ impl GraphStore {
         if union_default_graph {
             self.union_without_ledger(prepared.dataset_mut())?;
         }
+        self.hide_ledger(prepared.dataset_mut())?;
         Self::render(prepared.on_store(store).execute()?)
     }
 
@@ -942,39 +1031,22 @@ impl GraphStore {
     /// Run a SPARQL UPDATE (INSERT/DELETE) against the store.
     /// Returns the number of new triples (delta).
     pub fn sparql_update(&self, update: &str) -> anyhow::Result<usize> {
-        let before = self.triple_count();
+        self.sparql_update_with_retraction(update, false)
+    }
+
+    /// Opt in to dependency-based retraction. The default SPARQL interface
+    /// retains its historical DELETE behaviour and leaves inferred RDF in place.
+    pub fn sparql_update_with_retraction(
+        &self,
+        update: &str,
+        retract: bool,
+    ) -> anyhow::Result<usize> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
         let mut txn = self.store.start_transaction()?;
-        let prior = Self::transaction_ledger(&txn)?;
-        let previous: BTreeSet<_> = if prior.is_some() {
-            txn.iter()
-                .map(|q| q.map(|q| SourceQuad::from_quad(&q)))
-                .collect::<Result<_, _>>()?
-        } else {
-            BTreeSet::new()
-        };
-        txn.update(update)?;
-        let after = Self::transaction_ledger(&txn)?;
-        if let Some(after) = &after {
-            anyhow::ensure!(
-                prior.as_ref().is_some_and(|before| {
-                    serde_json::to_vec(before).ok() == serde_json::to_vec(after).ok()
-                }),
-                "the derivation ledger is reserved; use dataset restore to replace it"
-            );
-        }
-        if let Some(mut ledger) = prior {
-            // A previously withdrawn materialisation may be inserted again as
-            // an assertion. Its tombstone must not swallow this new evidence.
-            let inserted = txn
-                .iter()
-                .collect::<Result<Vec<_>, _>>()?
-                .into_iter()
-                .filter(|q| !previous.contains(&SourceQuad::from_quad(q)))
-                .collect::<Vec<_>>();
-            Self::reconcile_transaction(&mut txn, &mut ledger, &inserted, "sparql_update")?;
-        }
+        let delta = tms::update::execute(&mut txn, update, retract)?;
         txn.commit()?;
-        Ok(self.triple_count().saturating_sub(before))
+        *revision += 1;
+        Ok(delta.max(0) as usize)
     }
 
     /// Canonicalise the store's blank nodes via RDFC 1.0 (W3C Recommendation,
@@ -1205,8 +1277,9 @@ impl GraphStore {
     }
 
     pub fn clear(&self) -> anyhow::Result<()> {
-        let store = &self.store;
-        store.clear()?;
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        self.store.clear()?;
+        *revision += 1;
         Ok(())
     }
 
@@ -1384,7 +1457,8 @@ impl GraphStore {
         self.read_one_state(|txn| {
         let ledger_node = NamedNode::new(tms::LEDGER_GRAPH)?;
         let ledger = txn.quads_for_pattern(None, None, None, Some(ledger_node.as_ref().into()))
-            .next().transpose()?.map(|q| Ledger::decode(&q)).transpose()?;
+            .collect::<Result<Vec<_>, _>>()?;
+        let ledger = tms::storage::decode(ledger)?;
         let mut triples = Vec::new();
         // The names actually read, in the order read, so a certificate records
         // what it was built from rather than what was asked for. The two differ
@@ -1437,6 +1511,7 @@ impl GraphStore {
             ReadScope::Graphs { .. } => {
                 let mut prepared = SparqlEvaluator::new().parse_query(query)?;
                 scope.apply(prepared.dataset_mut())?;
+                self.hide_ledger(prepared.dataset_mut())?;
                 Self::render(prepared.on_store(&self.store).execute()?)
             }
         }
@@ -1454,6 +1529,7 @@ impl GraphStore {
         let store = &self.store;
         let mut prepared = SparqlEvaluator::new().parse_query(query)?;
         scope.apply(prepared.dataset_mut())?;
+        self.hide_ledger(prepared.dataset_mut())?;
         let variable = Variable::new(var)?;
         let mut out = Vec::with_capacity(terms.len());
         for term in terms {
@@ -1547,7 +1623,8 @@ impl GraphStore {
         self.read_one_state(|txn| {
         let ledger_node = NamedNode::new(tms::LEDGER_GRAPH)?;
         let ledger = txn.quads_for_pattern(None, None, None, Some(ledger_node.as_ref().into()))
-            .next().transpose()?.map(|q| Ledger::decode(&q)).transpose()?;
+            .collect::<Result<Vec<_>, _>>()?;
+        let ledger = tms::storage::decode(ledger)?;
         let mut triples = Vec::new();
         let mut read: BTreeSet<String> = BTreeSet::new();
         for quad in txn.iter() {

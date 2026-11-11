@@ -1258,11 +1258,12 @@ impl OpenOntologiesServer {
         if delta.is_empty() {
             return r#"{"error":"delta parsed to no triples: expected N-Triples"}"#.to_string();
         }
-        match IncrementalReasoner::run_scoped(
+        match IncrementalReasoner::run_scoped_with_tracking(
             &self.graph,
             &delta,
             input.materialize.unwrap_or(true),
             input.all_versions.unwrap_or(false),
+            input.track_derivations.unwrap_or(false),
         ) {
             Ok(json) => json,
             Err(e) => Self::err_json(e),
@@ -2328,7 +2329,10 @@ impl OpenOntologiesServer {
                 })
                 .to_string();
             };
-            if input.materialize == Some(true) || input.inference_graph == Some(true) {
+            if input.materialize == Some(true)
+                || input.inference_graph == Some(true)
+                || input.track_derivations == Some(true)
+            {
                 return serde_json::json!({
                     "error": "rules_file does not materialise. A conclusion drawn under a rule \
                               table nobody has checked holds only in models that satisfy that \
@@ -2353,8 +2357,16 @@ impl OpenOntologiesServer {
             crate::reason::InferenceTarget::DefaultGraph
         };
         let dir = input.certificate_dir.as_deref().map(std::path::Path::new);
-        Reasoner::run_scoped(&self.graph, profile, materialize, target, dir, &request)
-            .unwrap_or_else(Self::err_json)
+        Reasoner::run_scoped_with_tracking(
+            &self.graph,
+            profile,
+            materialize,
+            target,
+            dir,
+            &request,
+            input.track_derivations.unwrap_or(false),
+        )
+        .unwrap_or_else(Self::err_json)
     }
 
     #[tool(name = "onto_justify", description = "AXIOM PINPOINTING: which ASSERTED triples are responsible for a conclusion, or for a contradiction. Returns the MINIMAL sets (justifications, MinAs), not a support set: a set that is not minimal blames axioms that had nothing to do with the conclusion, and an engineer who deletes one and watches the conclusion survive learns to distrust the tool. Pass `triple` for a conclusion or `inconsistency: true` for the clash, never both. Pass `candidate` to CHECK a set someone else produced instead of searching: it comes back `minimal_justification`, `not_a_justification_not_minimal` with the removable triples named, or `not_a_justification_target_not_reached`. THREE DIFFERENT THINGS ARE CLAIMED HERE AND THEY CARRY THREE DIFFERENT WORDS. Sufficiency is re-run and CAN be machine-checked: every justification was produced by running the engine over exactly that subset, and with `certificate_dir` the run is repeated with a certificate so `lake exe oo-cert` verifies under OOCert.certificate_sound that the subset really does entail the conclusion. Minimality is re-run and is NOT machine-checked: for every element of every justification the engine is run again without it and the conclusion must be gone, which is a property of this engine verified by execution and no theorem. Completeness of the LIST is an algorithm's claim: all justifications are enumerated by Reiter's hitting-set tree over the same oracle, bounded by max_justifications (default 16) and max_oracle_calls (default 400), and `truncated` says when a bound fired and which one. Reiter's construction is complete for a MONOTONE oracle and this engine has one non-monotone corner: a restriction node or list node carrying two values for a functional position contributes one, chosen by hash order, so where that occurs a justification can be MISSED. No justification returned can be wrong, because each was re-run. The first justification costs no re-run at all, because the derivation DAG already carries it; everything after that is one full fixpoint per node, which is the entire cost of this tool on a large ontology. For `inconsistency` the verdict explained is `clash_found_by_this_engine` and NEVER the Lean checker's `unsatisfiable_under_disjointness`: ten of the seventeen OWL 2 RL rules that conclude false are looked for, so no clash found is not a consistency result. A justification is a statement about THIS engine's rule table, 29 of OWL 2 RL's 78 rules. `owl-dl` is refused rather than answered emptily.")]

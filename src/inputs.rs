@@ -334,6 +334,8 @@ pub struct OntoRulesImportInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonInput {
+    /// Opt in to durable evidence and derivation capture. Default false.
+    pub track_derivations: Option<bool>,
     /// Reasoning profile: rdfs (default), owl-rl
     pub profile: Option<String>,
     /// If true (default), add inferred triples to the store. If false, dry-run only.
@@ -1705,6 +1707,8 @@ pub struct OntoSupportReportInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonIncrementalInput {
+    /// Opt in to durable evidence and derivation capture. Default false.
+    pub track_derivations: Option<bool>,
     /// Assertions to withdraw, as N-Triples. Dependency invalidation and RDF
     /// removal commit together. May be used with an empty delta.
     pub removed: Option<String>,

@@ -73,7 +73,7 @@ pub struct IncrementalReasoner;
 /// against. Transitive closures are precomputed, so propagating a new type
 /// through a hierarchy is a lookup rather than a search.
 struct Schema {
-    derivations: crate::reason::DerivationGraph,
+    derivations: Option<crate::reason::DerivationGraph>,
     superclasses: HashMap<String, HashSet<String>>,
     superproperties: HashMap<String, HashSet<String>>,
     domains: HashMap<String, Vec<String>>,
@@ -119,7 +119,7 @@ impl Schema {
     /// delta actually implies. Schema axioms are a few thousand triples at
     /// most, so they are fetched directly and everything else is joined on
     /// demand.
-    fn read(graph: &Arc<GraphStore>) -> anyhow::Result<Self> {
+    fn read(graph: &Arc<GraphStore>, track_derivations: bool) -> anyhow::Result<Self> {
         // Any scan that returns exactly SCAN_LIMIT rows may have been cut. Record
         // it so the caller can report an incomplete closure instead of a wrong one
         // presented as complete.
@@ -151,10 +151,12 @@ impl Schema {
             if rows.len() >= SCAN_LIMIT {
                 truncated.set(true);
             }
-            schema_triples.borrow_mut().extend(
-                rows.iter()
-                    .map(|(s, o)| (s.clone(), pred.to_string(), o.clone())),
-            );
+            if track_derivations {
+                schema_triples.borrow_mut().extend(
+                    rows.iter()
+                        .map(|(s, o)| (s.clone(), pred.to_string(), o.clone())),
+                );
+            }
             Ok(rows)
         };
         let typed = |cls: &str| -> anyhow::Result<HashSet<String>> {
@@ -174,10 +176,12 @@ impl Schema {
             if rows.len() >= SCAN_LIMIT {
                 truncated.set(true);
             }
-            schema_triples.borrow_mut().extend(
-                rows.iter()
-                    .map(|s| (s.clone(), RDF_TYPE.to_string(), cls.to_string())),
-            );
+            if track_derivations {
+                schema_triples.borrow_mut().extend(
+                    rows.iter()
+                        .map(|s| (s.clone(), RDF_TYPE.to_string(), cls.to_string())),
+                );
+            }
             Ok(rows)
         };
 
@@ -218,14 +222,21 @@ impl Schema {
         // Schema closure is small and records the actual chains behind a
         // precomputed superclass lookup. A synthetic A subClassOf C premise
         // with no recorded A -> B -> C derivation would defeat retraction.
-        let schema_store = Arc::new(GraphStore::new());
-        let text = schema_triples
-            .borrow()
-            .iter()
-            .map(|(s, p, o)| format!("{s} {p} {o} .\n"))
-            .collect::<String>();
-        schema_store.load_ntriples(&text)?;
-        let derivations = crate::reason::Reasoner::derivation_graph(&schema_store, "owl-rl")?;
+        let derivations = if track_derivations {
+            let schema_store = Arc::new(GraphStore::new());
+            let text = schema_triples
+                .borrow()
+                .iter()
+                .map(|(s, p, o)| format!("{s} {p} {o} .\n"))
+                .collect::<String>();
+            schema_store.load_ntriples(&text)?;
+            Some(crate::reason::Reasoner::derivation_graph(
+                &schema_store,
+                "owl-rl",
+            )?)
+        } else {
+            None
+        };
         Ok(Schema {
             derivations,
             superclasses: close(&sub_class),
@@ -293,6 +304,22 @@ impl IncrementalReasoner {
         materialize: bool,
         all_versions: bool,
     ) -> anyhow::Result<String> {
+        Self::run_scoped_with_tracking(graph, delta, materialize, all_versions, false)
+    }
+
+    /// Opt in to recording the same semi-naive rule instances durably.
+    pub fn run_scoped_with_tracking(
+        graph: &Arc<GraphStore>,
+        delta: &[Triple],
+        materialize: bool,
+        all_versions: bool,
+        track_derivations: bool,
+    ) -> anyhow::Result<String> {
+        anyhow::ensure!(
+            !track_derivations || materialize,
+            "track_derivations requires materialize=true"
+        );
+
         let request = if all_versions {
             crate::temporal::ScopeRequest::AllVersions
         } else {
@@ -333,7 +360,12 @@ impl IncrementalReasoner {
         } else {
             None
         };
-        let asserted = if materialize {
+        let sources = if track_derivations {
+            graph.reasoning_sources()?
+        } else {
+            Vec::new()
+        };
+        let asserted = if track_derivations {
             Some(
                 graph
                     .triples_in_scope(&crate::graph::ReadScope::AllGraphs)?
@@ -342,7 +374,7 @@ impl IncrementalReasoner {
         } else {
             None
         };
-        let schema = Schema::read(graph)?;
+        let schema = Schema::read(graph, track_derivations)?;
 
         // Targeted join: the objects an edge leads on to, and the subjects
         // that lead into it. Only asked for transitive properties, and only
@@ -376,7 +408,11 @@ impl IncrementalReasoner {
         let mut derived: HashSet<Triple> = HashSet::new();
         let mut frontier: Vec<Triple> = delta.to_vec();
         let mut rounds = 0usize;
-        let mut instances = schema.derivations.instances.clone();
+        let mut instances = schema
+            .derivations
+            .as_ref()
+            .map(|d| d.instances.clone())
+            .unwrap_or_default();
 
         // Semi-naive: each round derives only from what the previous round
         // produced. Re-deriving something the store already holds is harmless
@@ -389,11 +425,13 @@ impl IncrementalReasoner {
                                 rule: &'static str,
                                 premises: Vec<Triple>,
                                 next: &mut Vec<Triple>| {
-                    instances.push(crate::reason::RuleInstance {
-                        rule,
-                        conclusion: t.clone(),
-                        premises,
-                    });
+                    if track_derivations {
+                        instances.push(crate::reason::RuleInstance {
+                            rule,
+                            conclusion: t.clone(),
+                            premises,
+                        });
+                    }
                     if derived.insert(t.clone()) {
                         next.push(t);
                     }
@@ -406,10 +444,14 @@ impl IncrementalReasoner {
                                 emit(
                                     (s.clone(), p.clone(), sup.clone()),
                                     "rdfs9",
-                                    vec![
-                                        (s.clone(), p.clone(), o.clone()),
-                                        (o.clone(), RDFS_SUBCLASS.into(), sup.clone()),
-                                    ],
+                                    if track_derivations {
+                                        vec![
+                                            (s.clone(), p.clone(), o.clone()),
+                                            (o.clone(), RDFS_SUBCLASS.into(), sup.clone()),
+                                        ]
+                                    } else {
+                                        Vec::new()
+                                    },
                                     &mut next,
                                 );
                             }
@@ -422,10 +464,14 @@ impl IncrementalReasoner {
                             emit(
                                 (s.clone(), sup.clone(), o.clone()),
                                 "rdfs7",
-                                vec![
-                                    (s.clone(), p.clone(), o.clone()),
-                                    (p.clone(), RDFS_SUBPROP.into(), sup.clone()),
-                                ],
+                                if track_derivations {
+                                    vec![
+                                        (s.clone(), p.clone(), o.clone()),
+                                        (p.clone(), RDFS_SUBPROP.into(), sup.clone()),
+                                    ]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
@@ -434,10 +480,14 @@ impl IncrementalReasoner {
                         emit(
                             (s.clone(), RDF_TYPE.to_string(), d.clone()),
                             "rdfs2",
-                            vec![
-                                (s.clone(), p.clone(), o.clone()),
-                                (p.clone(), RDFS_DOMAIN.into(), d.clone()),
-                            ],
+                            if track_derivations {
+                                vec![
+                                    (s.clone(), p.clone(), o.clone()),
+                                    (p.clone(), RDFS_DOMAIN.into(), d.clone()),
+                                ]
+                            } else {
+                                Vec::new()
+                            },
                             &mut next,
                         );
                     }
@@ -446,10 +496,14 @@ impl IncrementalReasoner {
                             emit(
                                 (o.clone(), RDF_TYPE.to_string(), r.clone()),
                                 "rdfs3",
-                                vec![
-                                    (s.clone(), p.clone(), o.clone()),
-                                    (p.clone(), RDFS_RANGE.into(), r.clone()),
-                                ],
+                                if track_derivations {
+                                    vec![
+                                        (s.clone(), p.clone(), o.clone()),
+                                        (p.clone(), RDFS_RANGE.into(), r.clone()),
+                                    ]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
@@ -457,19 +511,22 @@ impl IncrementalReasoner {
                             emit(
                                 (o.clone(), p.clone(), s.clone()),
                                 "prp-symp",
-                                vec![
-                                    (p.clone(), RDF_TYPE.into(), OWL_SYMMETRIC.into()),
-                                    (s.clone(), p.clone(), o.clone()),
-                                ],
+                                if track_derivations {
+                                    vec![
+                                        (p.clone(), RDF_TYPE.into(), OWL_SYMMETRIC.into()),
+                                        (s.clone(), p.clone(), o.clone()),
+                                    ]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
                         for inv in schema.inverses.get(p).into_iter().flatten() {
-                            let forward = schema.derivations.closure.contains(&(
-                                p.clone(),
-                                OWL_INVERSE.into(),
-                                inv.clone(),
-                            ));
+                            let forward = schema.derivations.as_ref().is_some_and(|d| {
+                                d.closure
+                                    .contains(&(p.clone(), OWL_INVERSE.into(), inv.clone()))
+                            });
                             let (rule, axiom) = if forward {
                                 ("prp-inv1", (p.clone(), OWL_INVERSE.into(), inv.clone()))
                             } else {
@@ -478,7 +535,11 @@ impl IncrementalReasoner {
                             emit(
                                 (o.clone(), inv.clone(), s.clone()),
                                 rule,
-                                vec![axiom, (s.clone(), p.clone(), o.clone())],
+                                if track_derivations {
+                                    vec![axiom, (s.clone(), p.clone(), o.clone())]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
@@ -488,11 +549,15 @@ impl IncrementalReasoner {
                             emit(
                                 (s.clone(), p.clone(), far.clone()),
                                 "prp-trp",
-                                vec![
-                                    (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
-                                    (s.clone(), p.clone(), o.clone()),
-                                    (o.clone(), p.clone(), far),
-                                ],
+                                if track_derivations {
+                                    vec![
+                                        (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
+                                        (s.clone(), p.clone(), o.clone()),
+                                        (o.clone(), p.clone(), far),
+                                    ]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
@@ -500,11 +565,15 @@ impl IncrementalReasoner {
                             emit(
                                 (near.clone(), p.clone(), o.clone()),
                                 "prp-trp",
-                                vec![
-                                    (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
-                                    (near, p.clone(), s.clone()),
-                                    (s.clone(), p.clone(), o.clone()),
-                                ],
+                                if track_derivations {
+                                    vec![
+                                        (p.clone(), RDF_TYPE.into(), OWL_TRANSITIVE.into()),
+                                        (near, p.clone(), s.clone()),
+                                        (s.clone(), p.clone(), o.clone()),
+                                    ]
+                                } else {
+                                    Vec::new()
+                                },
                                 &mut next,
                             );
                         }
@@ -536,7 +605,15 @@ impl IncrementalReasoner {
                 "incremental materialisation requires delta facts to be loaded as assertions first"
             );
             closure.extend(derived.iter().cloned());
-            closure.extend(schema.derivations.closure.iter().cloned());
+            closure.extend(
+                schema
+                    .derivations
+                    .as_ref()
+                    .expect("tracked schema")
+                    .closure
+                    .iter()
+                    .cloned(),
+            );
             let dag = crate::reason::DerivationGraph {
                 profile_used: "owl-rl-incremental".into(),
                 asserted,
@@ -549,16 +626,20 @@ impl IncrementalReasoner {
                 clashes: Vec::new(),
                 refused_unserialisable: 0,
             };
-            Some(
-                graph.commit_reasoning(
-                    &dag,
-                    crate::reason::InferenceTarget::DefaultGraph,
-                    source_token
-                        .as_deref()
-                        .expect("materialisation captured a source token"),
-                )?,
-            )
+            Some(graph.commit_reasoning(
+                &dag,
+                crate::reason::InferenceTarget::DefaultGraph,
+                source_token.expect("materialisation captured a source token"),
+                &sources,
+            )?)
         } else {
+            if materialize {
+                graph.commit_materialization(
+                    &derived.iter().cloned().collect::<Vec<_>>(),
+                    crate::reason::InferenceTarget::DefaultGraph,
+                    source_token.expect("materialisation captured a source token"),
+                )?;
+            }
             None
         };
 

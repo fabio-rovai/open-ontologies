@@ -18,6 +18,9 @@ use sha2::{Digest, Sha256};
 
 use crate::reason::{DerivationGraph, Spelled};
 
+pub(crate) mod storage;
+pub(crate) mod update;
+
 /// Reserved graph holding the durable ledger. It is excluded from ontology
 /// scans and triple-format exports, and retained in dataset backups.
 pub const LEDGER_GRAPH: &str = "https://open-ontologies.org/graph/derivations";
@@ -68,14 +71,14 @@ impl SourceQuad {
 
 /// Evidence refers to an assertion in a graph, not an invented attribution to
 /// a reasoner run. Source authenticity is outside the derivation proof.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Evidence {
     pub id: String,
     pub source: SourceQuad,
     pub active: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct RecordedDerivation {
     pub id: String,
     pub profile: String,
@@ -87,7 +90,7 @@ pub struct RecordedDerivation {
     pub enabled: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Change {
     pub revision: u64,
     pub operation: String,
@@ -95,10 +98,8 @@ pub struct Change {
     pub withdrawn_facts: Vec<Spelled>,
 }
 
-/// The ledger is stored as one RDF literal in a reserved named graph. It uses
-/// existing RocksDB persistence and backup/rollback instead of a second store
-/// with an independent commit boundary.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+/// Read/export view of the per-record RDF ledger in the data transaction.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct Ledger {
     pub format: String,
     pub revision: u64,

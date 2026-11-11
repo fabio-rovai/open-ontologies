@@ -136,12 +136,14 @@ fn the_writer_and_the_reader_build_the_same_bytes() {
 fn a_managed_materialisation_still_binds_to_the_original_assertions() {
     let dir = scratch("materialised");
     let g = store(TTL);
-    Reasoner::run_full(
+    Reasoner::run_scoped_with_tracking(
         &g,
         "rdfs",
-        true, // materialise, which is what the CLI does by default
+        true, // explicit durable materialisation
         open_ontologies::reason::InferenceTarget::DefaultGraph,
         Some(dir.as_path()),
+        &ScopeRequest::Unscoped,
+        true,
     )
     .expect("reason");
     assert!(

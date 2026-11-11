@@ -165,13 +165,24 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
-- Persist all captured RDFS/OWL-RL supports in the existing materialisation
-  transaction. Assertion withdrawal now retracts unsupported consequences,
-  retains alternative proofs, and removes cycles with no surviving evidence.
-  Repeated reasoning no longer treats managed default-graph inferences as
-  assertions. Dataset backups retain the support ledger; provenance reports
-  expose evidence, rule versions and withdrawal history, with proof forests
-  exportable to the existing independent `oo-cert` checker.
+- **Durable RDFS/OWL-RL provenance is opt-in** (#365). CLI and batch
+  `reason --track-derivations`, or MCP `track_derivations: true`, persist
+  evidence and rule instances in the existing materialisation transaction.
+  Incremental reasoning accepts the same MCP option. Ordinary reasoning keeps
+  its previous materialisation behaviour and does not capture derivations.
+  Evidence, derivations, output locations and changes now use separate RDF
+  records with dependency indexes, instead of one growing JSON literal.
+  Loads and updates reconcile the affected dependency component without
+  scanning or copying the dataset to track changes. Returned counts use actual
+  data deltas, and publication uses a constant-size generation guard.
+  Ordinary SPARQL DELETE retains inferred RDF. Explicit assertion withdrawal,
+  the Rust `sparql_update_with_retraction` API, or HTTP `/api/update` with
+  `retract_inferences: true` opt in to support-based retraction. Independent
+  proofs survive withdrawal; unsupported cycles do not. The reserved ledger
+  stays outside query datasets, including `GRAPH ?g`. Dataset backups retain
+  it, and old single-literal backups migrate on restore or persistent open.
+  Provenance reports retain evidence, rule versions and withdrawal history;
+  proof forests remain exportable to the existing independent oo-cert checker.
 
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels

@@ -1079,7 +1079,7 @@ fn tcb_9_a_quad_in_two_graphs_is_two_lines() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// A second certified run must not promote earlier conclusions to assertions.
-/// The durable ledger preserves this distinction for the default graph as well
+/// Explicit durable capture preserves this distinction for the default graph as well
 /// as the named inference graph. Both targets must yield the same original
 /// assertion set on repeated runs while retaining the materialised conclusions.
 #[test]
@@ -1087,11 +1087,24 @@ fn tcb_8_across_runs_neither_materialisation_target_promotes_inferences() {
     let ttl = "<http://e/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://e/A> .\n\
                <http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> .\n";
 
-    // The default graph keeps its durable support metadata across runs.
+    // The default graph keeps explicitly requested support metadata across runs.
     let g = Arc::new(GraphStore::new());
     g.load_ntriples(ttl).unwrap();
     let d1 = scratch("leak1");
-    Reasoner::run_full(&g, "rdfs", true, InferenceTarget::DefaultGraph, Some(&d1)).unwrap();
+    Reasoner::run_scoped_with_tracking(
+        &g,
+        "rdfs",
+        true,
+        InferenceTarget::DefaultGraph,
+        Some(&d1),
+        &open_ontologies::temporal::ScopeRequest::Unscoped,
+        true,
+    )
+    .unwrap();
+    assert!(
+        g.ledger().unwrap().is_some(),
+        "explicit tracking must persist support"
+    );
     let concluded: BTreeSet<String> = std::fs::read_to_string(d1.join("derivations.tsv"))
         .unwrap()
         .lines()
@@ -1101,9 +1114,21 @@ fn tcb_8_across_runs_neither_materialisation_target_promotes_inferences() {
     let asserted1: BTreeSet<String> =
         std::fs::read_to_string(d1.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
     let d2 = scratch("leak2");
-    Reasoner::run_full(&g, "rdfs", true, InferenceTarget::DefaultGraph, Some(&d2)).unwrap();
-    let asserted2: BTreeSet<String> =
-        std::fs::read_to_string(d2.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
+    Reasoner::run_scoped_with_tracking(
+        &g,
+        "rdfs",
+        true,
+        InferenceTarget::DefaultGraph,
+        Some(&d2),
+        &open_ontologies::temporal::ScopeRequest::Unscoped,
+        true,
+    )
+    .unwrap();
+    let asserted2: BTreeSet<String> = std::fs::read_to_string(d2.join("asserted.tsv"))
+        .unwrap()
+        .lines()
+        .map(str::to_string)
+        .collect();
     assert!(
         concluded.is_disjoint(&asserted2),
         "default-graph conclusions must not become assertions in a later certificate"
@@ -1119,6 +1144,10 @@ fn tcb_8_across_runs_neither_materialisation_target_promotes_inferences() {
     h.load_ntriples(ttl).unwrap();
     let d3 = scratch("leak3");
     let r3 = Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d3)).unwrap();
+    assert!(
+        h.ledger().unwrap().is_none(),
+        "certificate export alone must not enable durable capture"
+    );
     let j3: serde_json::Value = serde_json::from_str(&r3).unwrap();
     assert!(j3["inferred_count"].as_u64().unwrap() > 0, "run 1 must infer something");
     let d4 = scratch("leak4");

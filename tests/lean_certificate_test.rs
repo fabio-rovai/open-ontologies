@@ -387,9 +387,21 @@ fn durable_proof_forest_checks_after_withdrawal_and_rejects_tampering() {
     }
     let graph = Arc::new(GraphStore::new());
     graph.load_turtle("@prefix : <http://example.org/> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . :A rdfs:subClassOf :C . :B rdfs:subClassOf :C . :x a :A, :B .", None).unwrap();
-    Reasoner::run(&graph, "rdfs", true).unwrap();
+    Reasoner::run_scoped_with_tracking(
+        &graph,
+        "rdfs",
+        true,
+        open_ontologies::reason::InferenceTarget::DefaultGraph,
+        None,
+        &open_ontologies::temporal::ScopeRequest::Unscoped,
+        true,
+    )
+    .unwrap();
     graph
-        .sparql_update("DELETE DATA { <http://example.org/x> a <http://example.org/A> }")
+        .sparql_update_with_retraction(
+            "DELETE DATA { <http://example.org/x> a <http://example.org/A> }",
+            true,
+        )
         .unwrap();
     let dir = tempfile::tempdir().unwrap();
     graph

@@ -1488,6 +1488,7 @@ impl Reasoner {
             None,
             &ScopeRequest::Unscoped,
             Some(&mut cap),
+            false,
         )?;
         cap.out.ok_or_else(|| {
             anyhow::anyhow!("the reasoner returned without filling the derivation DAG; this is a bug")
@@ -1530,6 +1531,32 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         request: &ScopeRequest,
     ) -> anyhow::Result<String> {
+        Self::run_scoped_with_tracking(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            request,
+            false,
+        )
+    }
+
+    /// Opt in to durable support capture in the existing reasoning engine.
+    #[allow(clippy::too_many_arguments)]
+    pub fn run_scoped_with_tracking(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        request: &ScopeRequest,
+        track_derivations: bool,
+    ) -> anyhow::Result<String> {
+        anyhow::ensure!(
+            !track_derivations || (materialize && profile != "owl-dl"),
+            "track_derivations requires materialising RDFS/OWL-RL reasoning"
+        );
         Self::run_scoped_capturing(
             graph,
             profile,
@@ -1538,6 +1565,7 @@ impl Reasoner {
             certificate_dir,
             request,
             None,
+            track_derivations,
         )
     }
 
@@ -1553,6 +1581,7 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         request: &ScopeRequest,
         capture: Option<&mut Capture>,
+        track_derivations: bool,
     ) -> anyhow::Result<String> {
         let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         if !scope.is_all_graphs() && profile == "owl-dl" {
@@ -1586,6 +1615,7 @@ impl Reasoner {
             &scope,
             &manifest,
             capture,
+            track_derivations,
         )
     }
 
@@ -1599,6 +1629,7 @@ impl Reasoner {
         scope: &crate::graph::ReadScope,
         manifest: &crate::temporal::ScopeManifest,
         capture: Option<&mut Capture>,
+        track_derivations: bool,
     ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
         if profile == "owl-dl" {
@@ -1652,6 +1683,11 @@ impl Reasoner {
             Some(graph.reasoning_token()?)
         } else {
             None
+        };
+        let sources = if track_derivations {
+            graph.reasoning_sources()?
+        } else {
+            Vec::new()
         };
         let (raw_triples, graphs_read) = graph.triples_in_scope(scope)?;
         let mut interner = Interner::new();
@@ -1751,11 +1787,10 @@ impl Reasoner {
         // too: the per-rule premise vectors are built behind that flag, and a
         // DAG whose hyperedges carried no premises would be a set of
         // disconnected nodes wearing the word "derivation".
-        // Every materialising run records the SAME rule instances used by
-        // explanation. Persistence belongs here, below CLI/MCP/batch adapters,
-        // so none can publish anonymous inferences through an older API.
+        // Durable capture is opt-in; ordinary materialisation keeps the
+        // original rule loop and does not allocate provenance instances.
         let mut durable_capture = Capture::default();
-        let mut capture = if materialize && capture.is_none() {
+        let mut capture = if track_derivations && capture.is_none() {
             Some(&mut durable_capture)
         } else {
             capture
@@ -2917,15 +2952,34 @@ impl Reasoner {
                     .collect(),
                 refused_unserialisable: refused.len(),
             });
-            if materialize {
+            if track_derivations {
                 result["truth_maintenance"] = graph.commit_reasoning(
                     cap.out.as_ref().expect("the derivation graph was just captured"),
                     target,
-                    source_token.as_deref().expect("materialisation captured a source token"),
+                    source_token.expect("materialisation captured a source token"),
+                    &sources,
                 )?;
             }
         }
 
+        if materialize && !track_derivations {
+            let inferred: Vec<_> = triple_set
+                .iter()
+                .filter(|t| !original.contains(t))
+                .map(|t| {
+                    (
+                        interner.resolve(t.0).to_string(),
+                        interner.resolve(t.1).to_string(),
+                        interner.resolve(t.2).to_string(),
+                    )
+                })
+                .collect();
+            graph.commit_materialization(
+                &inferred,
+                target,
+                source_token.expect("materialisation captured a source token"),
+            )?;
+        }
         Ok(result.to_string())
     }
 }
