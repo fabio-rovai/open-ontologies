@@ -3665,8 +3665,10 @@ mod repo_list_tests {
         std::fs::write(&first, ttl).unwrap();
         std::fs::write(&second, ttl).unwrap();
 
-        let mut cache_config = crate::config::CacheConfig::default();
-        cache_config.dir = tmp.path().join("cache").to_string_lossy().into_owned();
+        let cache_config = crate::config::CacheConfig {
+            dir: tmp.path().join("cache").to_string_lossy().into_owned(),
+            ..Default::default()
+        };
         let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
         let server = OpenOntologiesServer::new_with_repo_options(
             db,

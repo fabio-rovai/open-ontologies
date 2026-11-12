@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Fabio Rovai
+// SPDX-License-Identifier: MIT
+
 use std::collections::HashMap;
 
 use open_ontologies::sql_sync::extract_max_watermark;

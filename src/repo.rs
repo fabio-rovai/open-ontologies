@@ -297,5 +297,4 @@ mod tests {
         assert!(!glob_match("*.ttl", "foo.nt"));
         assert!(glob_match("FOO*", "foo_bar"));
     }
-
 }
