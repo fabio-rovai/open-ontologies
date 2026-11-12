@@ -6129,8 +6129,12 @@ impl DlReasoner {
                 found.push((label.to_string(), n));
             }
         }
-        let q = "SELECT (COUNT(*) AS ?n) WHERE { ?r <http://www.w3.org/2002/07/owl#onProperty> ?p . \
-                 ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> }";
+        let q = "SELECT (COUNT(DISTINCT ?r) AS ?n) WHERE { \
+                 { ?r <http://www.w3.org/2002/07/owl#onDataRange> ?range } \
+                 UNION { ?r <http://www.w3.org/2002/07/owl#onProperties> ?properties } \
+                 UNION { ?r <http://www.w3.org/2002/07/owl#onProperty> ?p . \
+                        ?p a <http://www.w3.org/2002/07/owl#DatatypeProperty> } \
+                 }";
         if let Ok(raw) = graph.sparql_select_union(q)
             && let Ok(v) = serde_json::from_str::<serde_json::Value>(&raw)
         {
