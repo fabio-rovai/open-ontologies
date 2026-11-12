@@ -183,6 +183,10 @@ pub fn list_all(repos: &[PathBuf], recursive: bool) -> Vec<RepoEntry> {
         walk(&canon, &canon, recursive, &mut out);
     }
     out.sort_by(|a, b| a.repo_dir.cmp(&b.repo_dir).then(a.relative.cmp(&b.relative)));
+    // Configured roots can overlap. A file below both a parent root and a
+    // nested root is one ontology, not two competing bare-name matches.
+    let mut seen = std::collections::HashSet::new();
+    out.retain(|entry| seen.insert(entry.path.clone()));
     out
 }
 
