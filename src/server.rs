@@ -1237,7 +1237,10 @@ impl OpenOntologiesServer {
     #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; the engine joins them against the existing closure (semi-naive evaluation), so the work is proportional to what changed rather than to the size of the store. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those. This path has NO snapshot form: it reads the union of every graph and materialises into the default graph, so over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) it is REFUSED unless `all_versions: true` says the union of every version is what you meant. Use onto_reason with valid_at / as_of for a snapshot.")]
     async fn onto_reason_incremental(&self, Parameters(input): Parameters<OntoReasonIncrementalInput>) -> String {
         use crate::reason_incremental::{parse_ntriples, IncrementalReasoner};
-        let delta = parse_ntriples(&input.delta);
+        let delta = match parse_ntriples(&input.delta) {
+            Ok(delta) => delta,
+            Err(e) => return Self::err_json(e),
+        };
         if delta.is_empty() {
             return r#"{"error":"delta parsed to no triples: expected N-Triples"}"#.to_string();
         }
