@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The MCP initialize handshake identifies the server as Open Ontologies and reports the crate version**, instead of exposing rmcp's SDK name and version.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
