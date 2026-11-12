@@ -267,6 +267,37 @@ fn unload_named_preserves_entry_when_cache_file_cannot_be_removed() {
     assert!(list.iter().any(|entry| entry["name"] == "a"));
 }
 
+#[test]
+fn unload_active_stays_loaded_when_its_cache_file_cannot_be_removed() {
+    let h = setup();
+    populate_two(&h);
+    // B is the active ontology. Make its cache file undeletable the same way.
+    let cache_path = h
+        .registry
+        .list_cached()
+        .unwrap()
+        .into_iter()
+        .find(|entry| entry["name"] == "b")
+        .unwrap()["cache_path"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    std::fs::remove_file(&cache_path).unwrap();
+    std::fs::create_dir(&cache_path).unwrap();
+    let triples_before = h.graph.triple_count();
+    assert!(triples_before > 0);
+
+    h.registry.unload_named("b", true).unwrap_err();
+
+    // An error has to mean nothing happened. Clearing the graph first and
+    // failing on the file afterwards would report a failure for an unload that
+    // had already emptied the store.
+    assert_eq!(h.graph.triple_count(), triples_before);
+    let list = h.registry.list_cached().unwrap();
+    let b = list.iter().find(|entry| entry["name"] == "b").unwrap();
+    assert_eq!(b["is_active"], true);
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // recompile_named
 // ────────────────────────────────────────────────────────────────────────────
