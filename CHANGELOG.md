@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Cache removal now reports filesystem deletion failures and preserves the cache index entry instead of claiming success while leaving the file behind.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
