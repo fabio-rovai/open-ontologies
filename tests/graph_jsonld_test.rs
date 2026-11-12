@@ -117,3 +117,69 @@ fn a_jsonld_body_in_a_misnamed_file_is_still_read_as_jsonld() {
         .expect("a JSON-LD body must be detected from its content");
     assert_eq!(counts.triples, 2);
 }
+
+/// The format list a tool shows a caller is a claim like any other. `onto_save`
+/// and `onto_convert` both write through `serialize`, and `serialize` names
+/// what it accepts in the error for a format it does not know. Every place
+/// that lists formats for those two tools must name the same ones, or a caller
+/// reading the list never learns that JSON-LD is on offer (#394).
+#[test]
+fn save_and_convert_list_every_format_serialize_accepts() {
+    let err = GraphStore::new()
+        .serialize("no-such-format")
+        .unwrap_err()
+        .to_string();
+    let supported: Vec<&str> = err
+        .split("Supported: ")
+        .nth(1)
+        .expect("the error for an unknown format lists the supported ones")
+        .split(',')
+        .map(str::trim)
+        .collect();
+    assert!(supported.contains(&"jsonld"), "got: {supported:?}");
+
+    let field_doc = |schema: schemars::Schema, field: &str| -> String {
+        serde_json::to_value(schema).unwrap()["properties"][field]["description"]
+            .as_str()
+            .expect("the field carries a description")
+            .to_string()
+    };
+    let source_line = |file: &str, marker: &str| -> String {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(file);
+        std::fs::read_to_string(&path)
+            .unwrap()
+            .lines()
+            .find(|line| line.contains(marker))
+            .unwrap_or_else(|| panic!("{file} has no line containing {marker}"))
+            .to_string()
+    };
+    let lists = [
+        (
+            "the onto_save input schema",
+            field_doc(
+                schemars::schema_for!(open_ontologies::inputs::OntoSaveInput),
+                "format",
+            ),
+        ),
+        (
+            "the onto_convert input schema",
+            field_doc(
+                schemars::schema_for!(open_ontologies::inputs::OntoConvertInput),
+                "to",
+            ),
+        ),
+        (
+            "the onto_convert tool description",
+            source_line("src/server.rs", "#[tool(name = \"onto_convert\""),
+        ),
+        (
+            "the onto_convert row of docs/tool-reference.md",
+            source_line("docs/tool-reference.md", "| `onto_convert` |"),
+        ),
+    ];
+    for (place, text) in &lists {
+        for name in &supported {
+            assert!(text.contains(name), "{place} omits {name}: {text}");
+        }
+    }
+}
