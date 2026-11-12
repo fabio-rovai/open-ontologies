@@ -186,6 +186,13 @@ pub fn list_all(repos: &[PathBuf], recursive: bool) -> Vec<RepoEntry> {
     out
 }
 
+/// Normalize an existing path for comparisons between repository entries and
+/// cache metadata. Repository entries are canonicalized while cache metadata
+/// may retain the spelling originally passed to `onto_load`.
+pub fn canonical_path(path: &Path) -> PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
+}
+
 /// Resolve an `onto_repo_load` `name` argument to an absolute path that
 /// lies inside one of the configured repo directories.
 ///
@@ -286,4 +293,5 @@ mod tests {
         assert!(!glob_match("*.ttl", "foo.nt"));
         assert!(glob_match("FOO*", "foo_bar"));
     }
+
 }
