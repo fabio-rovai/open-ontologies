@@ -10,7 +10,7 @@
 //! rather than as a quietly different graph.
 
 use open_ontologies::graph::GraphStore;
-use open_ontologies::ossie::{parse_document, to_owl_shacl};
+use open_ontologies::ossie::{parse_document, parse_requires, to_owl_shacl};
 use std::collections::BTreeMap;
 
 const BASE: &str = "https://example.org/onto#";
@@ -116,4 +116,29 @@ fn shacl_is_optional_but_lossy() {
     assert!(!owl_only.turtle.contains("sh:NodeShape"));
     // The issues are still reported: the constraints are lost, not hidden.
     assert_eq!(owl_only.issues.len(), 16);
+}
+
+#[test]
+fn requires_parser_does_not_treat_nan_as_xsd_decimal() {
+    // Rust's f64 parser accepts IEEE special values, but XSD decimal has no
+    // NaN or infinity lexical forms. Preserve these expressions as unrecognised
+    // Ossie text instead of emitting ill-typed xsd:decimal facets.
+    for expression in [
+        "SocialSecurityNr > -inf",
+        "SocialSecurityNr < +inf",
+        "SocialSecurityNr > -NaN",
+    ] {
+        assert!(parse_requires(expression).is_none(), "{expression}");
+    }
+
+    assert!(parse_requires("SocialSecurityNr > 0.5").is_some());
+    assert!(parse_requires("SocialSecurityNr < 10.").is_some());
+
+    let document = parse_document(
+        "version: 0.2.0.dev0\nname: SpecialBounds\nontology:\n  - concept: SocialSecurityNr\n    type: ValueType\n    extends: [Integer]\n    requires: [\"SocialSecurityNr > -inf\"]\n",
+    )
+    .expect("document parses");
+    let result = to_owl_shacl(&document, Some(BASE), true).expect("conversion succeeds");
+    assert!(!result.turtle.contains("owl:withRestrictions"));
+    assert!(result.issues.iter().any(|issue| issue.kind == "REQUIRES_NOT_EXPRESSIBLE"));
 }
