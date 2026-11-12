@@ -135,7 +135,7 @@ pub struct OntoQueryInput {
 pub struct OntoSaveInput {
     /// Output file path
     pub path: String,
-    /// Format: turtle, ntriples, rdfxml, nquads, trig
+    /// Format: turtle, ntriples, rdfxml, nquads, trig, jsonld
     pub format: Option<String>,
 }
 
