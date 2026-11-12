@@ -4,6 +4,10 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Ontology statistics count individuals by their type vocabulary.** OWL, RDF and RDFS structural nodes such as restrictions, property declarations, datatypes and axiom nodes no longer inflate the individual count.
+
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**

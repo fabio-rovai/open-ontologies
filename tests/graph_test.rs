@@ -101,6 +101,35 @@ fn test_get_stats() {
 }
 
 #[test]
+fn stats_counts_individuals_by_type_vocabulary() {
+    let store = GraphStore::new();
+    let ttl = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+        ex:Person a owl:Class ;
+            rdfs:subClassOf [ a owl:Restriction ;
+                owl:onProperty ex:partOf ;
+                owl:someValuesFrom ex:Org ] .
+        ex:Org a owl:Class .
+        ex:partOf a owl:ObjectProperty, owl:TransitiveProperty .
+        ex:hasId a owl:DatatypeProperty, owl:FunctionalProperty .
+        ex:note a owl:AnnotationProperty .
+        ex:Code a rdfs:Datatype .
+        [] a owl:AllDisjointClasses ; owl:members ( ex:Person ex:Org ) .
+        [] a owl:Axiom ; owl:annotatedSource ex:Person ;
+            owl:annotatedProperty rdfs:subClassOf ;
+            owl:annotatedTarget ex:Org ; rdfs:comment "an annotated axiom" .
+        ex:Alice a owl:NamedIndividual, ex:Person .
+    "#;
+    store.load_turtle(ttl, None).unwrap();
+
+    let stats: serde_json::Value = serde_json::from_str(&store.get_stats().unwrap()).unwrap();
+    assert_eq!(stats["individuals"], 1);
+}
+
+#[test]
 fn test_sparql_update_insert() {
     let store = GraphStore::new();
     let ttl = r#"
