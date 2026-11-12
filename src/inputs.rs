@@ -29,8 +29,8 @@ pub struct OntoConvertInput {
     /// Path to the source file: any format onto_load reads, OWL functional
     /// syntax included
     pub path: String,
-    /// Target format: turtle, ntriples, rdfxml, nquads, trig, or ofn (OWL 2
-    /// functional syntax, returned as JSON with what it could not export)
+    /// Target format: turtle, ntriples, rdfxml, nquads, trig, jsonld, or ofn
+    /// (OWL 2 functional syntax, returned as JSON with what it could not export)
     pub to: String,
     /// Optional output file path (if omitted, returns content)
     pub output: Option<String>,
@@ -135,7 +135,7 @@ pub struct OntoQueryInput {
 pub struct OntoSaveInput {
     /// Output file path
     pub path: String,
-    /// Format: turtle, ntriples, rdfxml, nquads, trig
+    /// Format: turtle, ntriples, rdfxml, nquads, trig, jsonld
     pub format: Option<String>,
 }
 

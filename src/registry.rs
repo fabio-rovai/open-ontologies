@@ -330,12 +330,18 @@ impl OntologyRegistry {
     /// The cache file is preserved unless `delete_cache` is true.
     pub fn unload(&self, delete_cache: bool) -> Result<Option<String>> {
         let mut active = self.active.lock().unwrap();
-        let Some(entry) = active.take() else { return Ok(None) };
-        self.graph.clear()?;
+        let Some(name) = active.as_ref().map(|entry| entry.name.clone()) else {
+            return Ok(None);
+        };
+        // The cache goes first. Removing it can fail (#389), and an error has
+        // to mean the ontology is still loaded, not that the store was emptied
+        // and the file left behind.
         if delete_cache {
-            self.cache.remove(&entry.name)?;
+            self.cache.remove(&name)?;
         }
-        Ok(Some(entry.name))
+        self.graph.clear()?;
+        active.take();
+        Ok(Some(name))
     }
 
     /// Unload a specific named ontology.
