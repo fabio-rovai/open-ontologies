@@ -165,6 +165,18 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`stats` counts individuals by their type vocabulary, in both engines**
+  (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
+  `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
+  Restrictions, property characteristics such as `owl:TransitiveProperty`,
+  annotation properties, datatypes, `owl:AllDisjointClasses` and `owl:Axiom`
+  nodes no longer inflate the count. The Rust engine and
+  `open-ontologies-lite` apply the same rule.
+
+- **The MCP `initialize` reply names the server** (#400, #398). `serverInfo`
+  reported rmcp's crate name and version (`rmcp`, `3.9.0`); it now reports
+  `open-ontologies` and the release version.
+
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;
   status flags now match the cached and active source paths instead of marking
