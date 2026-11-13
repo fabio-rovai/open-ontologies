@@ -6,6 +6,8 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **XLSX ingestion rejects duplicate headers instead of silently overwriting earlier columns.**
+
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
   rmcp's Host check, which blocks DNS rebinding, has refused every `Host`
   header except `localhost`, `127.0.0.1` and `::1` with 403 since rmcp 1.4.
