@@ -8,7 +8,7 @@ use rmcp::{
     prompt, prompt_handler, prompt_router,
     handler::server::{tool::ToolRouter, router::prompt::PromptRouter, wrapper::Parameters},
     model::{
-        ServerCapabilities, ServerConfig, Tool,
+        Implementation, ServerCapabilities, ServerConfig, Tool,
         PromptMessage, Role, GetPromptResult, ProtocolVersion,
     },
 };
@@ -3644,6 +3644,10 @@ impl ServerHandler for OpenOntologiesServer {
                 "Open Ontologies: AI-native ontology engine, an RDF/OWL/SPARQL MCP server with \
                  {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
                  comparison, alignment, data ingestion, and exploration.{tail}{profile_tail}"
+            ))
+            .with_server_info(Implementation::new(
+                "open-ontologies",
+                env!("CARGO_PKG_VERSION"),
             ))
     }
 }
