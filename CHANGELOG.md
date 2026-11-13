@@ -4,10 +4,6 @@ All notable changes to Open Ontologies are documented here.
 
 ## [Unreleased]
 
-### Fixed
-
-- **Ontology statistics count individuals by their type vocabulary.** OWL, RDF and RDFS structural nodes such as restrictions, property declarations, datatypes and axiom nodes no longer inflate the individual count.
-
 ### Added
 
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
@@ -168,6 +164,18 @@ All notable changes to Open Ontologies are documented here.
   the graph the daemon holds. In memory mode, that local store is empty.
 
 ### Fixed
+
+- **`stats` counts individuals by their type vocabulary, in both engines**
+  (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
+  `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
+  Restrictions, property characteristics such as `owl:TransitiveProperty`,
+  annotation properties, datatypes, `owl:AllDisjointClasses` and `owl:Axiom`
+  nodes no longer inflate the count. The Rust engine and
+  `open-ontologies-lite` apply the same rule.
+
+- **The MCP `initialize` reply names the server** (#400, #398). `serverInfo`
+  reported rmcp's crate name and version (`rmcp`, `3.9.0`); it now reports
+  `open-ontologies` and the release version.
 
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;
