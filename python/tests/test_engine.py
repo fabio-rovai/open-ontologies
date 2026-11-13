@@ -35,6 +35,34 @@ def test_load_and_stats():
     assert s["individuals"] == 1      # rex
 
 
+def test_stats_counts_individuals_by_type_vocabulary():
+    # The Rust engine's regression for #395, same file. Property
+    # characteristics, annotation properties, datatypes, restrictions and
+    # axiom nodes are vocabulary, not individuals: only ex:Alice counts.
+    e = OntologyEngine()
+    e.load("""
+        @prefix ex: <https://example.org/> .
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+        ex:Person a owl:Class ;
+            rdfs:subClassOf [ a owl:Restriction ;
+                owl:onProperty ex:partOf ;
+                owl:someValuesFrom ex:Org ] .
+        ex:Org a owl:Class .
+        ex:partOf a owl:ObjectProperty, owl:TransitiveProperty .
+        ex:hasId a owl:DatatypeProperty, owl:FunctionalProperty .
+        ex:note a owl:AnnotationProperty .
+        ex:Code a rdfs:Datatype .
+        [] a owl:AllDisjointClasses ; owl:members ( ex:Person ex:Org ) .
+        [] a owl:Axiom ; owl:annotatedSource ex:Person ;
+            owl:annotatedProperty rdfs:subClassOf ;
+            owl:annotatedTarget ex:Org ; rdfs:comment "an annotated axiom" .
+        ex:Alice a owl:NamedIndividual, ex:Person .
+    """)
+    assert e.stats()["individuals"] == 1
+
+
 def test_query_select():
     e = OntologyEngine()
     e.load(ONT)
