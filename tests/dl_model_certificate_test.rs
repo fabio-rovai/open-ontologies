@@ -669,3 +669,29 @@ fn a_certificate_over_a_weaker_axiom_set_says_so() {
         "an ontology using nothing unmodelled must report nothing dropped"
     );
 }
+
+#[test]
+fn data_cardinality_is_disclosed_without_datatype_property_declaration() {
+    let ttl = r#"
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+
+        ex:Person a owl:Class ;
+            rdfs:subClassOf [
+                a owl:Restriction ;
+                owl:onProperty ex:age ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:integer
+            ] .
+    "#;
+    let store = std::sync::Arc::new(open_ontologies::graph::GraphStore::new());
+    store.load_turtle(ttl, None).unwrap();
+
+    let dropped = open_ontologies::tableaux::DlReasoner::unmodelled_constructs(&store);
+    assert!(
+        dropped.contains(&("datatype restriction".to_string(), 1)),
+        "a data cardinality must be disclosed even when its property has no explicit type; got {dropped:?}"
+    );
+}

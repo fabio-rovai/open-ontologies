@@ -25,7 +25,9 @@
 //! rather than pretending, and the caller runs a full pass.
 
 use crate::graph::GraphStore;
+use oxigraph::io::{RdfFormat, RdfParser};
 use std::collections::{HashMap, HashSet};
+use std::io::Cursor;
 use std::sync::Arc;
 
 const RDF_TYPE: &str = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
@@ -680,25 +682,18 @@ impl IncrementalReasoner {
 
 /// Parse N-Triples into the (subject, predicate, object) shape used above,
 /// keeping the angle brackets and quotes so terms round-trip unchanged.
-pub fn parse_ntriples(text: &str) -> Vec<Triple> {
-    let mut out = Vec::new();
-    for line in text.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let line = line.strip_suffix('.').unwrap_or(line).trim();
-        // Object may contain spaces inside a literal, so split only twice.
-        let mut parts = line.splitn(3, char::is_whitespace);
-        if let (Some(s), Some(p), Some(o)) = (parts.next(), parts.next(), parts.next()) {
-            out.push((
-                s.trim().to_string(),
-                p.trim().to_string(),
-                o.trim().to_string(),
-            ));
-        }
-    }
-    out
+pub fn parse_ntriples(text: &str) -> anyhow::Result<Vec<Triple>> {
+    RdfParser::from_format(RdfFormat::NTriples)
+        .for_reader(Cursor::new(text.as_bytes()))
+        .map(|quad| {
+            let quad = quad?;
+            Ok((
+                quad.subject.to_string(),
+                quad.predicate.to_string(),
+                quad.object.to_string(),
+            ))
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -738,5 +733,28 @@ mod tests {
         // A normal individual typing is exactly what incremental reasoning is for.
         assert!(IncrementalReasoner::applies_to(&[t("<a>", RDF_TYPE, "<C>")]).is_ok());
         assert!(IncrementalReasoner::applies_to(&[t("<a>", "<http://ex/knows>", "<b>")]).is_ok());
+    }
+
+    #[test]
+    fn parse_ntriples_accepts_inline_comments() {
+        let parsed = parse_ntriples(
+            "<urn:alice> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:Person> . # valid N-Triples comment\n",
+        )
+        .unwrap();
+
+        assert_eq!(
+            parsed,
+            vec![t(
+                "<urn:alice>",
+                RDF_TYPE,
+                "<urn:Person>"
+            )]
+        );
+    }
+
+    #[test]
+    fn parse_ntriples_rejects_malformed_lines_instead_of_silently_dropping_them() {
+        let err = parse_ntriples("<urn:alice> <urn:knows> <urn:bob> .\nnot a triple").unwrap_err();
+        assert!(!err.to_string().is_empty());
     }
 }

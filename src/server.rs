@@ -333,7 +333,7 @@ impl OpenOntologiesServer {
         }
     }
 
-    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads, trig or ofn (OWL 2 functional syntax). Reads every format onto_load reads, OFN included, so this also turns an OFN document into RDF and back. `to: \"ofn\"` writes the inverse of the reader's W3C mapping, one axiom per line, in a byte-identical order on every run, and returns JSON: `content` (or `path` when `output` is given) plus `constructs_not_exported`, which names and counts every triple that maps back to no OWL 2 axiom (an unrecognised blank-node structure, a malformed rdf:List, a reserved-vocabulary triple outside any axiom) instead of dropping it, and `constructs_not_round_trippable` for what was written but will not read back as the same graph.")]
+    #[tool(name = "onto_convert", description = "Convert an ontology file to turtle, ntriples, rdfxml, nquads, trig, jsonld or ofn (OWL 2 functional syntax). Reads every format onto_load reads, OFN included, so this also turns an OFN document into RDF and back. `to: \"ofn\"` writes the inverse of the reader's W3C mapping, one axiom per line, in a byte-identical order on every run, and returns JSON: `content` (or `path` when `output` is given) plus `constructs_not_exported`, which names and counts every triple that maps back to no OWL 2 axiom (an unrecognised blank-node structure, a malformed rdf:List, a reserved-vocabulary triple outside any axiom) instead of dropping it, and `constructs_not_round_trippable` for what was written but will not read back as the same graph.")]
     async fn onto_convert(&self, Parameters(input): Parameters<OntoConvertInput>) -> String {
         if crate::ofn_writer::is_ofn_format(&input.to) {
             return match crate::ofn_writer::convert_file(&input.path) {
@@ -443,22 +443,23 @@ impl OpenOntologiesServer {
             .collect();
         let total = filtered.len();
 
-        // Snapshot cached names + currently active name for is_cached / is_active.
-        let cached_names: std::collections::HashSet<String> = self
+        // Snapshot cached source paths + the active source path for per-file
+        // status. Basename-only names are not unique across repository dirs.
+        let cached_paths: std::collections::HashSet<std::path::PathBuf> = self
             .registry
             .cache()
             .list()
             .unwrap_or_default()
             .into_iter()
-            .map(|e| e.name)
+            .map(|e| crate::repo::canonical_path(std::path::Path::new(&e.source_path)))
             .collect();
-        let active_name = self
+        let active_path = self
             .registry
             .status()
             .get("active")
-            .and_then(|a| a.get("name"))
+            .and_then(|a| a.get("source_path"))
             .and_then(|n| n.as_str())
-            .map(|s| s.to_string());
+            .map(|s| crate::repo::canonical_path(std::path::Path::new(s)));
 
         let items: Vec<serde_json::Value> = filtered
             .into_iter()
@@ -472,8 +473,9 @@ impl OpenOntologiesServer {
                     "name": e.name,
                     "size": e.size,
                     "mtime": e.mtime_secs,
-                    "is_cached": cached_names.contains(&e.name),
-                    "is_active": active_name.as_deref() == Some(e.name.as_str()),
+                    "is_cached": cached_paths.contains(&crate::repo::canonical_path(&e.path)),
+                    "is_active": active_path.as_ref()
+                        == Some(&crate::repo::canonical_path(&e.path)),
                 })
             })
             .collect();
@@ -1234,12 +1236,12 @@ impl OpenOntologiesServer {
 
     #[tool(name = "onto_reason_incremental", description = "Derive the consequences of newly added triples WITHOUT recomputing the whole closure. Pass the added triples as N-Triples in `delta`; or pass `removed` with an empty delta to withdraw assertions and unsupported consequences atomically. Materialisation persists all captured support in the existing store. The inference loop joins them against the existing closure (semi-naive evaluation), while durable support reconciliation currently scans the dataset and ledger. Use after adding facts to an already-materialised graph. Adding SCHEMA axioms (subClassOf, domain, range, inverseOf, equivalentClass) changes what the whole store entails and is refused with an explanation: run onto_reason for those. This path has NO snapshot form: it reads the union of every graph and materialises into the default graph, so over a store that describes its named graphs with the temporal vocabulary (https://open-ontologies.org/temporal#) it is REFUSED unless `all_versions: true` says the union of every version is what you meant. Use onto_reason with valid_at / as_of for a snapshot.")]
     async fn onto_reason_incremental(&self, Parameters(input): Parameters<OntoReasonIncrementalInput>) -> String {
-        use crate::reason_incremental::IncrementalReasoner;
+        use crate::reason_incremental::{parse_ntriples, IncrementalReasoner};
         if let Some(removed) = input.removed.as_deref() {
             if input.materialize == Some(false) {
                 return Self::err_json("removed requires materialize=true; no retraction was performed");
             }
-            let removed = match crate::graph::GraphStore::parse_triples_ordered(removed, "ntriples") {
+            let removed = match parse_ntriples(removed) {
                 Ok(t) => t,
                 Err(e) => return Self::err_json(e),
             };
@@ -1251,7 +1253,7 @@ impl OpenOntologiesServer {
             return self.graph.retract_assertions(&removed)
                 .map(|r| r.to_string()).unwrap_or_else(Self::err_json);
         }
-        let delta = match crate::graph::GraphStore::parse_triples_ordered(&input.delta, "ntriples") {
+        let delta = match parse_ntriples(&input.delta) {
             Ok(delta) => delta,
             Err(e) => return Self::err_json(e),
         };
@@ -3685,5 +3687,82 @@ impl ServerHandler for OpenOntologiesServer {
                  {advertised} tools and 6 workflow prompts for ontology engineering, validation, \
                  comparison, alignment, data ingestion, and exploration.{tail}{profile_tail}"
             ))
+    }
+}
+
+#[cfg(test)]
+mod repo_list_tests {
+    use super::*;
+
+    #[test]
+    fn repo_list_status_flags_match_source_path_not_file_stem() {
+        let tmp = tempfile::tempdir().unwrap();
+        let first_dir = tmp.path().join("first");
+        let second_dir = tmp.path().join("second");
+        std::fs::create_dir_all(&first_dir).unwrap();
+        std::fs::create_dir_all(&second_dir).unwrap();
+        let first = first_dir.join("catalog.ttl");
+        let second = second_dir.join("catalog.ttl");
+        let ttl = "<urn:subject> <urn:predicate> \"value\" .";
+        std::fs::write(&first, ttl).unwrap();
+        std::fs::write(&second, ttl).unwrap();
+
+        let cache_config = crate::config::CacheConfig {
+            dir: tmp.path().join("cache").to_string_lossy().into_owned(),
+            ..Default::default()
+        };
+        let db = StateDb::open(&tmp.path().join("state.db")).unwrap();
+        let server = OpenOntologiesServer::new_with_repo_options(
+            db,
+            Arc::new(GraphStore::new()),
+            None,
+            Default::default(),
+            cache_config,
+            crate::toolfilter::ToolFilter::default(),
+            vec![tmp.path().to_path_buf()],
+        );
+        server
+            .registry
+            .load_file(&first.to_string_lossy(), Default::default())
+            .unwrap();
+
+        let output = server.onto_repo_list(Parameters(OntoRepoListInput {
+            dir: None,
+            recursive: Some(true),
+            glob: Some("catalog.ttl".to_string()),
+            limit: None,
+            offset: None,
+        }));
+        let output: serde_json::Value = serde_json::from_str(&output).unwrap();
+        let items = output["items"].as_array().unwrap();
+        assert_eq!(items.len(), 2);
+        let first_item = items
+            .iter()
+            .find(|item| {
+                item["path"]
+                    .as_str()
+                    .map(|path| {
+                        crate::repo::canonical_path(std::path::Path::new(path))
+                            == crate::repo::canonical_path(&first)
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap();
+        let second_item = items
+            .iter()
+            .find(|item| {
+                item["path"]
+                    .as_str()
+                    .map(|path| {
+                        crate::repo::canonical_path(std::path::Path::new(path))
+                            == crate::repo::canonical_path(&second)
+                    })
+                    .unwrap_or(false)
+            })
+            .unwrap();
+        assert!(first_item["is_cached"].as_bool().unwrap());
+        assert!(first_item["is_active"].as_bool().unwrap());
+        assert!(!second_item["is_cached"].as_bool().unwrap());
+        assert!(!second_item["is_active"].as_bool().unwrap());
     }
 }

@@ -183,7 +183,18 @@ pub fn list_all(repos: &[PathBuf], recursive: bool) -> Vec<RepoEntry> {
         walk(&canon, &canon, recursive, &mut out);
     }
     out.sort_by(|a, b| a.repo_dir.cmp(&b.repo_dir).then(a.relative.cmp(&b.relative)));
+    // Configured roots can overlap. A file below both a parent root and a
+    // nested root is one ontology, not two competing bare-name matches.
+    let mut seen = std::collections::HashSet::new();
+    out.retain(|entry| seen.insert(entry.path.clone()));
     out
+}
+
+/// Normalize an existing path for comparisons between repository entries and
+/// cache metadata. Repository entries are canonicalized while cache metadata
+/// may retain the spelling originally passed to `onto_load`.
+pub fn canonical_path(path: &Path) -> PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
 /// Resolve an `onto_repo_load` `name` argument to an absolute path that

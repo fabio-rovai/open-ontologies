@@ -197,7 +197,19 @@ fn numeric_literal(text: &str) -> Option<String> {
             "\"{candidate}\"^^<http://www.w3.org/2001/XMLSchema#integer>"
         ));
     }
-    if candidate.parse::<f64>().is_ok() && !candidate.contains(['e', 'E']) {
+    // XSD decimal has an explicit decimal-numeral lexical grammar. Parsing as
+    // f64 also accepts IEEE special values such as -inf, which are not decimal
+    // literals and would produce an ill-typed facet.
+    let unsigned = candidate
+        .strip_prefix('+')
+        .or_else(|| candidate.strip_prefix('-'))
+        .unwrap_or(candidate);
+    let (whole, fractional) = unsigned.split_once('.').unwrap_or((unsigned, ""));
+    let has_digits = !whole.is_empty() || !fractional.is_empty();
+    if has_digits
+        && whole.bytes().all(|byte| byte.is_ascii_digit())
+        && fractional.bytes().all(|byte| byte.is_ascii_digit())
+    {
         return Some(format!(
             "\"{candidate}\"^^<http://www.w3.org/2001/XMLSchema#decimal>"
         ));

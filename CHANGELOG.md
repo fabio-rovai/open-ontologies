@@ -184,6 +184,50 @@ All notable changes to Open Ontologies are documented here.
   Provenance reports retain evidence, rule versions and withdrawal history;
   proof forests remain exportable to the existing independent oo-cert checker.
 
+- **`onto_repo_list` reports cache and active status for the matching file**
+  (#386). Multiple repository directories can contain the same filename stem;
+  status flags now match the cached and active source paths instead of marking
+  every same-stem entry as cached or active.
+
+- **Overlapping ontology repository roots no longer duplicate the same file**
+  (#387). When a configured directory contains another configured directory,
+  recursive listing now reports the physical ontology once, so loading it by
+  bare stem does not fail with a false ambiguity.
+
+- **OWL-DL discloses data restrictions marked with `owl:onDataRange`** (#388).
+  A restriction remains reported as unmodelled even if its data property has
+  no explicit `owl:DatatypeProperty` declaration.
+
+- **Cache removal reports a cache file it could not delete** (#389). It now
+  reports filesystem deletion failures and preserves the cache index entry
+  instead of claiming success while leaving the file behind. Unloading the
+  active ontology with `delete_cache` removes the cache before it clears the
+  store, so that error leaves the ontology loaded.
+
+- **Ossie `requires` keeps `inf` and `NaN` out of `xsd:decimal` bounds**
+  (#390). Comparisons now accept only decimal numeral syntax for generated
+  `xsd:decimal` facets; IEEE infinity and NaN tokens remain disclosed as
+  unexpressible instead of becoming ill-typed bounds.
+
+- **Incremental reasoning parses the complete N-Triples delta** (#391). Valid
+  end-of-line comments are no longer appended to the object term, and
+  malformed delta input now returns a parse error instead of being silently
+  skipped.
+
+- **`onto_stats` excludes anonymous OWL restrictions from the individual
+  count** (#392). A restriction node is part of a class expression, not an
+  ontology individual; it no longer inflates the count when it is typed
+  `owl:Restriction`.
+
+- **CDC watermark selection compares RFC 3339 timestamps by instant** (#393).
+  Timestamps with differing UTC offsets, including daylight-saving fall-back
+  values, no longer select an earlier watermark by lexical order. Other
+  watermark formats retain string ordering.
+
+- **`onto_save` and `onto_convert` list JSON-LD among their formats** (#394).
+  Both already wrote JSON-LD (`jsonld`), but the format lists shown to callers
+  left it out.
+
 - **`import-schema` writes valid Turtle for SQL identifiers with spaces or
   quotes** (#384). Table and column names went into prefixed names and labels
   unescaped, so a quoted identifier such as `"customer archive"` made the
