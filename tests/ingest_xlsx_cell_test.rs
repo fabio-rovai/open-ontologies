@@ -286,3 +286,13 @@ fn east_asian_and_quoted_literal_date_formats_read_as_dates() {
         ]
     );
 }
+
+#[test]
+fn duplicate_headers_are_rejected_instead_of_overwriting_cells() {
+    let dir = tempfile::tempdir().unwrap();
+    let rows = r#"<row r="1"><c r="A1" t="inlineStr"><is><t>name</t></is></c><c r="B1" t="inlineStr"><is><t>name</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>Alice</t></is></c><c r="B2" t="inlineStr"><is><t>Bob</t></is></c></row>"#;
+    let path = workbook(&dir, rows, &[], &[0], &[]);
+
+    let error = DataIngester::parse_xlsx_file(&path).unwrap_err().to_string();
+    assert!(error.contains("Duplicate XLSX header \"name\" at column 2"), "{error}");
+}
