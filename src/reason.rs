@@ -787,12 +787,12 @@ pub fn certificate_binds_to_store(
     let actual = format!("{:x}", h.finalize());
     let matches = recorded == actual;
 
-    // A boolean is not enough, and the first end-to-end run showed why: `reason`
-    // MATERIALISES its inferences into the store by default, so re-reading the
-    // same store afterwards yields the assertions plus the derivations, and a
-    // bare "no" would send a reader looking for a wrong graph they do not have.
-    // So the two selections are compared as sets, and the report says which way
-    // they differ.
+    // Managed materialisations are excluded from the asserted selection above.
+    // Legacy stores and copies without dependency metadata can still yield
+    // assertions plus derivations. A bare "no" would send a reader looking for
+    // a wrong graph they may not have. Compare the selections as sets to explain
+    // such mismatches; the conclusion check below identifies a possible cause,
+    // not proof that the extra triples were materialised rather than asserted.
     let in_store: std::collections::BTreeSet<String> = String::from_utf8_lossy(&bytes)
         .lines()
         .map(|l| l.to_string())
@@ -1488,6 +1488,7 @@ impl Reasoner {
             None,
             &ScopeRequest::Unscoped,
             Some(&mut cap),
+            false,
         )?;
         cap.out.ok_or_else(|| {
             anyhow::anyhow!("the reasoner returned without filling the derivation DAG; this is a bug")
@@ -1530,6 +1531,32 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         request: &ScopeRequest,
     ) -> anyhow::Result<String> {
+        Self::run_scoped_with_tracking(
+            graph,
+            profile,
+            materialize,
+            target,
+            certificate_dir,
+            request,
+            false,
+        )
+    }
+
+    /// Opt in to durable support capture in the existing reasoning engine.
+    #[allow(clippy::too_many_arguments)]
+    pub fn run_scoped_with_tracking(
+        graph: &Arc<GraphStore>,
+        profile: &str,
+        materialize: bool,
+        target: InferenceTarget,
+        certificate_dir: Option<&std::path::Path>,
+        request: &ScopeRequest,
+        track_derivations: bool,
+    ) -> anyhow::Result<String> {
+        anyhow::ensure!(
+            !track_derivations || (materialize && profile != "owl-dl"),
+            "track_derivations requires materialising RDFS/OWL-RL reasoning"
+        );
         Self::run_scoped_capturing(
             graph,
             profile,
@@ -1538,6 +1565,7 @@ impl Reasoner {
             certificate_dir,
             request,
             None,
+            track_derivations,
         )
     }
 
@@ -1553,6 +1581,7 @@ impl Reasoner {
         certificate_dir: Option<&std::path::Path>,
         request: &ScopeRequest,
         capture: Option<&mut Capture>,
+        track_derivations: bool,
     ) -> anyhow::Result<String> {
         let (scope, manifest) = crate::temporal::resolve(graph, request)?;
         if !scope.is_all_graphs() && profile == "owl-dl" {
@@ -1586,6 +1615,7 @@ impl Reasoner {
             &scope,
             &manifest,
             capture,
+            track_derivations,
         )
     }
 
@@ -1599,6 +1629,7 @@ impl Reasoner {
         scope: &crate::graph::ReadScope,
         manifest: &crate::temporal::ScopeManifest,
         capture: Option<&mut Capture>,
+        track_derivations: bool,
     ) -> anyhow::Result<String> {
         // Delegate OWL-DL to tableaux reasoner
         if profile == "owl-dl" {
@@ -1625,6 +1656,10 @@ impl Reasoner {
             let mut parsed: serde_json::Value = serde_json::from_str(&raw)?;
             if parsed.is_object() {
                 parsed["scope"] = manifest.to_json();
+                parsed["truth_maintenance"] = serde_json::json!({
+                    "supported": false,
+                    "reason": "The tableaux path does not capture ground rule instances; its materialisations have no durable dependency guarantee."
+                });
                 return Ok(parsed.to_string());
             }
             return Ok(raw);
@@ -1644,6 +1679,16 @@ impl Reasoner {
         // named graphs, and `asserted.tsv` below is written from exactly this
         // list, so the certificate is about the graph the scope selected and
         // `scope.tsv` says which one that was.
+        let source_token = if materialize {
+            Some(graph.reasoning_token()?)
+        } else {
+            None
+        };
+        let sources = if track_derivations {
+            graph.reasoning_sources()?
+        } else {
+            Vec::new()
+        };
         let (raw_triples, graphs_read) = graph.triples_in_scope(scope)?;
         let mut interner = Interner::new();
         let mut facts: Vec<(u32, u32, u32)> = Vec::with_capacity(raw_triples.len());
@@ -1742,7 +1787,14 @@ impl Reasoner {
         // too: the per-rule premise vectors are built behind that flag, and a
         // DAG whose hyperedges carried no premises would be a set of
         // disconnected nodes wearing the word "derivation".
-        let mut capture = capture;
+        // Durable capture is opt-in; ordinary materialisation keeps the
+        // original rule loop and does not allocate provenance instances.
+        let mut durable_capture = Capture::default();
+        let mut capture = if track_derivations && capture.is_none() {
+            Some(&mut durable_capture)
+        } else {
+            capture
+        };
         let certify = certificate_dir.is_some() || capture.is_some();
         let mut derivations: Vec<Derivation> = Vec::new();
         let mut recorded: HashSet<Fact> = HashSet::new();
@@ -2502,30 +2554,8 @@ impl Reasoner {
 
         let inferred_count = triple_set.len() - initial_size;
 
-        // Materialize inferred triples
-        if materialize && inferred_count > 0 {
-            let original: HashSet<Fact> = facts.iter().copied().collect();
-            let mut lines = String::new();
-            for &(s, p, o) in &triple_set {
-                if !original.contains(&(s, p, o)) {
-                    lines.push_str(interner.resolve(s));
-                    lines.push(' ');
-                    lines.push_str(interner.resolve(p));
-                    lines.push(' ');
-                    lines.push_str(interner.resolve(o));
-                    if target == InferenceTarget::Inferred {
-                        lines.push_str(" <");
-                        lines.push_str(INFERRED_GRAPH);
-                        lines.push('>');
-                    }
-                    lines.push_str(" .\n");
-                }
-            }
-            match target {
-                InferenceTarget::DefaultGraph => graph.load_ntriples(&lines)?,
-                InferenceTarget::Inferred => graph.load_nquads(&lines)?,
-            };
-        }
+        // Materialisation is committed below, together with the complete
+        // derivation graph. No inferred triple is visible without its support.
 
         // Sample
         let original: HashSet<Fact> = facts.iter().copied().collect();
@@ -2922,8 +2952,34 @@ impl Reasoner {
                     .collect(),
                 refused_unserialisable: refused.len(),
             });
+            if track_derivations {
+                result["truth_maintenance"] = graph.commit_reasoning(
+                    cap.out.as_ref().expect("the derivation graph was just captured"),
+                    target,
+                    source_token.expect("materialisation captured a source token"),
+                    &sources,
+                )?;
+            }
         }
 
+        if materialize && !track_derivations {
+            let inferred: Vec<_> = triple_set
+                .iter()
+                .filter(|t| !original.contains(t))
+                .map(|t| {
+                    (
+                        interner.resolve(t.0).to_string(),
+                        interner.resolve(t.1).to_string(),
+                        interner.resolve(t.2).to_string(),
+                    )
+                })
+                .collect();
+            graph.commit_materialization(
+                &inferred,
+                target,
+                source_token.expect("materialisation captured a source token"),
+            )?;
+        }
         Ok(result.to_string())
     }
 }

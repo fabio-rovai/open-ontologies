@@ -148,6 +148,22 @@ def case_files(name):
     return [str(f) for f in files]
 
 
+def test_relative_iris_resolve_from_an_escaped_file_uri(tmp_path):
+    import pyoxigraph as ox
+
+    folder = tmp_path / "folder with # and %"
+    folder.mkdir()
+    source = folder / "source.ttl"
+    source.write_text("<> <http://example.org/linksTo> <target.ttl> .", encoding="utf-8")
+    store = ox.Store()
+    store.load(
+        path=str(source), format=ox.RdfFormat.TURTLE, base_iri=tool().base_iri_for(source)
+    )
+    (quad,) = store
+    assert quad.subject.value == source.as_uri()
+    assert quad.object.value == (folder / "target.ttl").as_uri()
+
+
 def run(module, name, patch=None):
     """One case through all three implementations, optionally with the Python engine
     sabotaged. The patch is applied to the module attribute rather than to the import in
@@ -223,7 +239,8 @@ def test_a_silently_dropped_derivation_is_caught():
             result = real(store, **kwargs)
             horn = Path(kwargs["certificate_dir"]) / "horn.tsv"
             lines = [line for line in horn.read_text("utf-8").split("\n") if line]
-            horn.write_text("\n".join(lines[:-1]) + "\n", "utf-8")
+            # Remove only the final step; preserve LF bytes on Windows too.
+            horn.write_text("\n".join(lines[:-1]) + "\n", encoding="utf-8", newline="\n")
             return result
 
         return dropping
@@ -249,7 +266,7 @@ def test_a_forged_conclusion_is_a_rejected_certificate_and_not_a_disagreement():
             at = 2 + 2 * int(fields[1])
             fields[at + 2] = "<http://example.org/FORGED>"
             lines[0] = "\t".join(fields)
-            horn.write_text("\n".join(lines) + "\n", "utf-8")
+            horn.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
             return result
 
         return forging
@@ -269,7 +286,8 @@ def test_a_different_asserted_graph_stops_before_the_conclusions_are_compared():
             asserted.write_text(
                 asserted.read_text("utf-8")
                 + "<http://example.org/ghost>\t<http://example.org/p>\t<http://example.org/o>\n",
-                "utf-8",
+                encoding="utf-8",
+                newline="\n",
             )
             return result
 

@@ -4,11 +4,14 @@
 use std::collections::BTreeSet;
 use std::io::Cursor;
 use std::path::Path;
+use std::sync::Mutex;
 
 use oxigraph::io::{JsonLdProfileSet, RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::*;
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
+
+use crate::truth_maintenance::{self as tms, Ledger, SourceQuad};
 
 /// A document's quads and the namespace prefixes it declared, in order.
 pub type ParsedDocument = (Vec<Quad>, Vec<(String, String)>);
@@ -19,6 +22,50 @@ pub type ParsedDocument = (Vec<Quad>, Vec<(String, String)>);
 enum SourceFormat {
     Rdf(RdfFormat),
     OwlFunctional,
+}
+
+#[cfg(test)]
+mod publication_tests {
+    use super::*;
+    use crate::reason::{InferenceTarget, Reasoner};
+    use std::sync::Arc;
+
+    #[test]
+    fn stale_reasoning_cannot_publish_after_a_source_write() {
+        let g = Arc::new(GraphStore::new());
+        g.load_turtle("<http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> . <http://e/x> a <http://e/A> .", None).unwrap();
+        let token = g.reasoning_token().unwrap();
+        let sources = g.reasoning_sources().unwrap();
+        let dag = Reasoner::derivation_graph(&g, "rdfs").unwrap();
+        g.load_turtle("<http://e/new> <http://e/p> <http://e/o> .", None)
+            .unwrap();
+        let before = g.snapshot("nquads").unwrap();
+        assert!(
+            g.commit_reasoning(&dag, InferenceTarget::DefaultGraph, token, &sources)
+                .is_err()
+        );
+        assert_eq!(g.snapshot("nquads").unwrap(), before);
+        assert!(
+            g.commit_materialization(
+                &dag.closure.iter().cloned().collect::<Vec<_>>(),
+                InferenceTarget::DefaultGraph,
+                token
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn a_failed_write_does_not_advance_the_publication_guard() {
+        let g = GraphStore::new();
+        let token = g.reasoning_token().unwrap();
+        assert!(
+            g.sparql_update("INSERT DATA { <http://e/s> <http://e/p> <http://e/o> }; INVALID")
+                .is_err()
+        );
+        assert_eq!(g.reasoning_token().unwrap(), token);
+        assert_eq!(g.triple_count(), 0);
+    }
 }
 
 /// What a parse produced. `statements` counts parser events; `triples` counts
@@ -178,14 +225,13 @@ pub type AssertedTriples = (Vec<(String, String, String)>, Vec<String>);
 
 /// In-memory RDF graph store backed by Oxigraph.
 ///
-/// The store is held directly rather than behind a `Mutex`. Oxigraph's `Store`
-/// is already `Send + Sync` and synchronises internally, so the mutex added
-/// nothing but serialisation: every SPARQL read across all the tools queued
-/// behind one lock even though the reads do not conflict. It also meant
-/// fourteen `lock().unwrap()` sites, each of which turned a panic anywhere in
-/// the process into a poisoned lock and a second panic in every later request.
+/// Oxigraph synchronises its own reads and transactions. A writer-only lock
+/// advances a generation after each commit, so stale reasoning cannot publish.
+/// Snapshot readers never acquire that lock.
 pub struct GraphStore {
     store: Store,
+    // Serialises writers only; snapshot readers never take this lock.
+    revision: Mutex<u64>,
 }
 
 /// Why [`GraphStore::canonicalize_pair`] compared only ground triples.
@@ -210,9 +256,211 @@ impl Default for GraphStore {
 }
 
 impl GraphStore {
+    /// Explicit read/export view. Ordinary writes use indexed ledger records.
+    pub fn ledger(&self) -> anyhow::Result<Option<Ledger>> {
+        let snapshot = self.store.snapshot();
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        tms::storage::decode(
+            snapshot
+                .quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    }
+
+    fn transaction_ledger(
+        txn: &oxigraph::store::Transaction<'_>,
+    ) -> anyhow::Result<Option<Ledger>> {
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        tms::storage::decode(
+            txn.quads_for_pattern(None, None, None, Some(graph.as_ref().into()))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    }
+
+    /// Constant-size optimistic guard. Every public writer advances it only
+    /// after committing; a failed transaction does not invalidate a snapshot.
+    pub(crate) fn reasoning_token(&self) -> anyhow::Result<u64> {
+        Ok(*self.revision.lock().unwrap_or_else(|e| e.into_inner()))
+    }
+
+    /// Capture graph locations in the read phase of an explicitly tracked run.
+    pub(crate) fn reasoning_sources(&self) -> anyhow::Result<Vec<Quad>> {
+        self.store
+            .snapshot()
+            .iter()
+            .filter_map(|q| match q {
+                Ok(q) if tms::is_internal(&q) => None,
+                other => Some(other),
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
+    }
+
+    pub(crate) fn commit_reasoning(
+        &self,
+        dag: &crate::reason::DerivationGraph,
+        target: crate::reason::InferenceTarget,
+        source_token: u64,
+        sources: &[Quad],
+    ) -> anyhow::Result<serde_json::Value> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        anyhow::ensure!(
+            *revision == source_token,
+            "source dataset changed during reasoning; retry against the current snapshot"
+        );
+        let mut txn = self.store.start_transaction()?;
+        let before = Self::transaction_ledger(&txn)?.unwrap_or_default();
+        let mut ledger = before.clone();
+        let known = ledger.grounded();
+        let withdrawn = ledger.sync_sources(sources, &[]);
+        let target = if target == crate::reason::InferenceTarget::Inferred {
+            format!("<{}>", crate::reason::INFERRED_GRAPH)
+        } else {
+            String::new()
+        };
+        ledger.record(dag, &target);
+        let grounded = ledger.grounded();
+        anyhow::ensure!(
+            dag.closure.iter().all(|fact| grounded.contains(fact)),
+            "reasoning used facts without durable assertion support; run full reasoning from the source assertions"
+        );
+        let event = ledger.finish_change("reason", withdrawn, &known);
+        // Old single-literal backups are migrated only on explicit restore or
+        // tracked reasoning, never on an ordinary one-triple write.
+        if tms::storage::header(&txn)?.is_none() && !before.evidence.is_empty() {
+            txn.clear_graph(&NamedNode::new_unchecked(tms::LEDGER_GRAPH))?;
+            tms::storage::publish(&mut txn, &Ledger::default(), &ledger)?;
+        } else {
+            tms::storage::publish(&mut txn, &before, &ledger)?;
+        }
+        tms::storage::project(&mut txn, &ledger)?;
+        txn.commit()?;
+        *revision += 1;
+        Ok(serde_json::json!({
+            "supported": true, "revision": event.revision,
+            "evidence": ledger.evidence.len(), "derivations": ledger.derivations.len(),
+            "fixpoint_reached": dag.fixpoint_reached,
+            "rule_pack_sha256": tms::builtin_rule_pack_hash(), "withdrawn_facts": event.withdrawn_facts,
+        }))
+    }
+
+    /// Legacy materialisation adds RDF without claiming durable provenance.
+    pub(crate) fn commit_materialization(
+        &self,
+        triples: &[crate::reason::Spelled],
+        target: crate::reason::InferenceTarget,
+        token: u64,
+    ) -> anyhow::Result<()> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        anyhow::ensure!(
+            *revision == token,
+            "source dataset changed during reasoning; retry against the current snapshot"
+        );
+        let mut txn = self.store.start_transaction()?;
+        let graph = if target == crate::reason::InferenceTarget::Inferred {
+            format!("<{}>", crate::reason::INFERRED_GRAPH)
+        } else {
+            String::new()
+        };
+        let text = triples
+            .iter()
+            .map(|(s, p, o)| format!("{s} {p} {o} {graph} .\n"))
+            .collect::<String>();
+        for q in RdfParser::from_format(RdfFormat::NQuads).for_reader(text.as_bytes()) {
+            txn.insert(&q?);
+        }
+        if !triples.is_empty() {
+            tms::storage::mark_incomplete(&mut txn)?;
+        }
+        txn.commit()?;
+        *revision += 1;
+        Ok(())
+    }
+
+    /// Explicit assertion withdrawal opts into dependency-based retraction.
+    pub fn retract_assertions(
+        &self,
+        triples: &[crate::reason::Spelled],
+    ) -> anyhow::Result<serde_json::Value> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        let mut txn = self.store.start_transaction()?;
+        let ledger = tms::storage::component(&txn, triples)?;
+        let mut deleted = Vec::new();
+        for triple in triples.iter().collect::<BTreeSet<_>>() {
+            let q = SourceQuad {
+                triple: triple.clone(),
+                graph: String::new(),
+            }
+            .to_quad()?;
+            for q in txn.quads_for_pattern(
+                Some(q.subject.as_ref()),
+                Some(q.predicate.as_ref()),
+                Some(q.object.as_ref()),
+                None,
+            ) {
+                let q = q?;
+                if !tms::is_internal(&q) && !ledger.as_ref().is_some_and(|l| l.derived_only(&q)) {
+                    deleted.push(q);
+                }
+            }
+        }
+        for q in &deleted {
+            txn.remove(q);
+        }
+        let (event, _) =
+            tms::storage::apply_delta(&mut txn, &[], &deleted, true, "retract_assertions")?;
+        txn.commit()?;
+        *revision += 1;
+        Ok(serde_json::json!({"removed_assertions": deleted.len(), "invalidation": event}))
+    }
+
+    /// Explicit rule retirement shares the same transaction and projection.
+    pub fn invalidate_rule(&self, rule: &str, pack_hash: &str) -> anyhow::Result<tms::Change> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        let mut txn = self.store.start_transaction()?;
+        let event = tms::storage::invalidate(&mut txn, rule, pack_hash)?;
+        txn.commit()?;
+        *revision += 1;
+        Ok(event)
+    }
+
+    fn union_without_ledger(
+        &self,
+        dataset: &mut oxigraph::sparql::QueryDatasetSpecification,
+    ) -> anyhow::Result<()> {
+        let mut names = vec![GraphName::DefaultGraph];
+        for name in self.store.named_graphs() {
+            let name = name?;
+            if !matches!(&name, NamedOrBlankNode::NamedNode(n) if n.as_str() == tms::LEDGER_GRAPH) {
+                names.push(name.into());
+            }
+        }
+        dataset.set_default_graph(names);
+        self.hide_ledger(dataset)
+    }
+
+    fn hide_ledger(
+        &self,
+        dataset: &mut oxigraph::sparql::QueryDatasetSpecification,
+    ) -> anyhow::Result<()> {
+        let names = if let Some(names) = dataset.available_named_graphs() {
+            names.to_vec()
+        } else {
+            self.store.named_graphs().collect::<Result<Vec<_>, _>>()?
+        };
+        dataset.set_available_named_graphs(names.into_iter().filter(|n|
+            !matches!(n, NamedOrBlankNode::NamedNode(n) if n.as_str() == tms::LEDGER_GRAPH)).collect());
+        if let Some(names) = dataset.default_graph_graphs() {
+            dataset.set_default_graph(names.iter().filter(|n|
+                !matches!(n, GraphName::NamedNode(n) if n.as_str() == tms::LEDGER_GRAPH)).cloned().collect());
+        }
+        Ok(())
+    }
+
     pub fn new() -> Self {
         Self {
             store: Store::new().expect("Failed to create Oxigraph store"),
+            revision: Mutex::new(0),
         }
     }
 
@@ -235,16 +483,60 @@ impl GraphStore {
                 path.display()
             )
         })?;
-        Ok(Self { store })
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        let legacy = NamedNode::new_unchecked("https://open-ontologies.org/provenance#ledger");
+        let mut txn = store.start_transaction()?;
+        let old = txn
+            .quads_for_pattern(
+                None,
+                Some(legacy.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            )
+            .next()
+            .transpose()?;
+        if let Some(old) = old {
+            let mut ledger = Ledger::decode(&old)?;
+            txn.clear_graph(&graph)?;
+            if ledger.history.is_empty() {
+                ledger.finish_change("migrate", Vec::new(), &BTreeSet::new());
+            }
+            tms::storage::publish(&mut txn, &Ledger::default(), &ledger)?;
+        }
+        txn.commit()?;
+        Ok(Self {
+            store,
+            revision: Mutex::new(0),
+        })
     }
 
     pub fn triple_count(&self) -> usize {
-        let store = &self.store;
-        store.len().unwrap_or(0)
+        let snapshot = self.store.snapshot();
+        let graph = NamedNode::new_unchecked(tms::LEDGER_GRAPH);
+        let header = NamedNode::new_unchecked("https://open-ontologies.org/provenance#header");
+        let legacy = NamedNode::new_unchecked("https://open-ontologies.org/provenance#ledger");
+        let records = snapshot
+            .quads_for_pattern(
+                None,
+                Some(header.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            )
+            .chain(snapshot.quads_for_pattern(
+                None,
+                Some(legacy.as_ref()),
+                None,
+                Some(graph.as_ref().into()),
+            ))
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap_or_default();
+        snapshot
+            .len()
+            .unwrap_or(0)
+            .saturating_sub(tms::storage::hidden_count(records).unwrap_or(0))
     }
 
     pub fn load_turtle(&self, ttl: &str, base_iri: Option<&str>) -> anyhow::Result<usize> {
-        let store = &self.store;
         let reader = Cursor::new(ttl.as_bytes());
         let mut parser = RdfParser::from_format(RdfFormat::Turtle);
         if let Some(base) = base_iri {
@@ -260,7 +552,6 @@ impl GraphStore {
         // Report triples actually added, not parse events. The store is a set, so
         // re-inserting a statement it already holds changes nothing and must not be
         // counted as a load.
-        let before = store.len().unwrap_or(0);
         // One transaction for the whole document, so a concurrent reader
         // sees the store before this load or after it and never part way
         // through. Parsing already happened above, which made a load
@@ -272,12 +563,7 @@ impl GraphStore {
         // tests/store_atomicity_test.rs. serve-http and daemon share one
         // Arc<GraphStore> across every session, so the second party is not
         // hypothetical.
-        let mut txn = store.start_transaction()?;
-        for quad in &quads {
-            txn.insert(quad);
-        }
-        txn.commit()?;
-        Ok(store.len().unwrap_or(before).saturating_sub(before))
+        self.store_parsed_quads(&quads, false)
     }
 
     /// Load RDF content in a specified format (Turtle, RDF/XML, etc.)
@@ -335,6 +621,7 @@ impl GraphStore {
     pub(crate) fn replace_nquads(&self, content: &str) -> anyhow::Result<usize> {
         self.load_content_with_base_mode(content, RdfFormat::NQuads, None, true)
     }
+
 
     fn load_file_mode(&self, path: &str, replace: bool) -> anyhow::Result<usize> {
         let content = std::fs::read_to_string(path)?;
@@ -424,23 +711,51 @@ impl GraphStore {
     }
 
     fn store_parsed_quads(&self, quads: &[Quad], replace: bool) -> anyhow::Result<usize> {
-        let before = if replace {
-            0
-        } else {
-            self.store.len().unwrap_or(0)
-        };
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        let mut delta = 0isize;
         let mut txn = self.store.start_transaction()?;
+        let imported: Vec<_> = quads
+            .iter()
+            .filter(|q| tms::is_internal(q))
+            .cloned()
+            .collect();
+        if !imported.is_empty() {
+            anyhow::ensure!(
+                replace || txn.is_empty()?,
+                "cannot merge a derivation ledger into a dataset; restore a complete dataset instead"
+            );
+            tms::storage::decode(imported.clone())?
+                .ok_or_else(|| anyhow::anyhow!("missing derivation ledger header"))?;
+        }
         if replace {
-            // Clear and insert share one transaction: failed parsing never clears
-            // the old graph, and readers cannot observe an empty intermediate graph.
             txn.clear()?;
         }
         for quad in quads {
-            txn.insert(quad);
+            if !txn.contains(quad)? {
+                txn.insert(quad);
+                if !tms::is_internal(quad) {
+                    delta += 1;
+                }
+            }
+        }
+        if imported.is_empty() {
+            let (_, projection_delta) =
+                tms::storage::apply_delta(&mut txn, quads, &[], true, "load")?;
+            delta += projection_delta;
+        } else if tms::storage::header(&txn)?.is_none() {
+            let mut ledger = tms::storage::decode(imported)?.expect("validated ledger");
+            txn.clear_graph(&NamedNode::new_unchecked(tms::LEDGER_GRAPH))?;
+            let before = Ledger::default();
+            if ledger.history.is_empty() {
+                ledger.finish_change("restore", Vec::new(), &BTreeSet::new());
+            }
+            tms::storage::publish(&mut txn, &before, &ledger)?;
         }
         txn.commit()?;
-        Ok(self.store.len().unwrap_or(before).saturating_sub(before))
+        *revision += 1;
+        Ok(delta.max(0) as usize)
     }
+
     pub fn save_file(&self, path: &str, format: &str) -> anyhow::Result<()> {
         let content = self.serialize(format)?;
         std::fs::write(path, content)?;
@@ -627,7 +942,7 @@ impl GraphStore {
     ) -> anyhow::Result<Vec<Vec<std::collections::HashMap<String, String>>>> {
         let store = &self.store;
         let mut prepared = SparqlEvaluator::new().parse_query(query)?;
-        prepared.dataset_mut().set_default_graph_as_union();
+        self.union_without_ledger(prepared.dataset_mut())?;
         let variable = Variable::new(var)?;
         let mut out = Vec::with_capacity(terms.len());
         for term in terms {
@@ -668,8 +983,9 @@ impl GraphStore {
         let store = &self.store;
         let mut prepared = SparqlEvaluator::new().parse_query(query)?;
         if union_default_graph {
-            prepared.dataset_mut().set_default_graph_as_union();
+            self.union_without_ledger(prepared.dataset_mut())?;
         }
+        self.hide_ledger(prepared.dataset_mut())?;
         Self::render(prepared.on_store(store).execute()?)
     }
 
@@ -715,11 +1031,22 @@ impl GraphStore {
     /// Run a SPARQL UPDATE (INSERT/DELETE) against the store.
     /// Returns the number of new triples (delta).
     pub fn sparql_update(&self, update: &str) -> anyhow::Result<usize> {
-        let store = &self.store;
-        let before = store.len()?;
-        store.update(update)?;
-        let after = store.len()?;
-        Ok(after.saturating_sub(before))
+        self.sparql_update_with_retraction(update, false)
+    }
+
+    /// Opt in to dependency-based retraction. The default SPARQL interface
+    /// retains its historical DELETE behaviour and leaves inferred RDF in place.
+    pub fn sparql_update_with_retraction(
+        &self,
+        update: &str,
+        retract: bool,
+    ) -> anyhow::Result<usize> {
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        let mut txn = self.store.start_transaction()?;
+        let delta = tms::update::execute(&mut txn, update, retract)?;
+        txn.commit()?;
+        *revision += 1;
+        Ok(delta.max(0) as usize)
     }
 
     /// Canonicalise the store's blank nodes via RDFC 1.0 (W3C Recommendation,
@@ -750,7 +1077,8 @@ impl GraphStore {
     /// gated on the W3C suite in `tests/w3c-rdfc10/` label map included, so the
     /// labels an ordinary graph receives do not change.
     pub fn canonicalize_blank_nodes(&self) -> anyhow::Result<GraphStore> {
-        let quads = self.store.iter().collect::<Result<Vec<Quad>, _>>()?;
+        let quads = self.store.iter().collect::<Result<Vec<Quad>, _>>()?
+            .into_iter().filter(|q| !tms::is_internal(q)).collect::<Vec<_>>();
         let canonical = crate::canon::canonical_quads(
             &quads,
             crate::canon::DEFAULT_CALL_BUDGET,
@@ -802,6 +1130,7 @@ impl GraphStore {
         let mut omitted = 0;
         for quad in self.store.iter() {
             let quad = quad?;
+            if tms::is_internal(&quad) { continue; }
             let mentions_blank = quad.subject.is_blank_node()
                 || quad.object.is_blank_node()
                 || quad.graph_name.is_blank_node();
@@ -840,6 +1169,9 @@ impl GraphStore {
         let mut serializer = RdfSerializer::from_format(rdf_format).for_writer(&mut buf);
         for quad in store.iter() {
             let quad = quad?;
+            if !carries_graph_name && tms::is_internal(&quad) {
+                continue;
+            }
             if carries_graph_name {
                 serializer.serialize_quad(quad.as_ref())?;
             } else {
@@ -859,7 +1191,7 @@ impl GraphStore {
 
     pub fn get_stats(&self) -> anyhow::Result<String> {
         let store = &self.store;
-        let total = store.len()?;
+        let total = self.triple_count();
 
         // Count classes: explicit type declarations + implicit (subClassOf subjects/objects,
         // domain/range targets, equivalentClass). Filters out blank nodes and OWL/RDF builtins.
@@ -945,8 +1277,9 @@ impl GraphStore {
     }
 
     pub fn clear(&self) -> anyhow::Result<()> {
-        let store = &self.store;
-        store.clear()?;
+        let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
+        self.store.clear()?;
+        *revision += 1;
         Ok(())
     }
 
@@ -965,14 +1298,11 @@ impl GraphStore {
     }
 
     fn load_lines(&self, content: &str, format: RdfFormat) -> anyhow::Result<usize> {
-        let store = &self.store;
         let reader = Cursor::new(content.as_bytes());
         let parser = RdfParser::from_format(format).for_reader(reader);
-        let mut count = 0;
-        for quad in parser {
-            store.insert(&quad?)?;
-            count += 1;
-        }
+        let quads = parser.collect::<Result<Vec<_>, _>>()?;
+        let count = quads.len();
+        self.store_parsed_quads(&quads, false)?;
         Ok(count)
     }
 
@@ -1080,6 +1410,7 @@ impl GraphStore {
         let mut triples = Vec::new();
         for quad in store.iter() {
             let quad = quad?;
+            if tms::is_internal(&quad) { continue; }
             let s = quad.subject.to_string();
             let p = quad.predicate.to_string();
             let o = quad.object.to_string();
@@ -1124,6 +1455,10 @@ impl GraphStore {
         // existed at no instant, which is the defect this closes arriving one
         // level down.
         self.read_one_state(|txn| {
+        let ledger_node = NamedNode::new(tms::LEDGER_GRAPH)?;
+        let ledger = txn.quads_for_pattern(None, None, None, Some(ledger_node.as_ref().into()))
+            .collect::<Result<Vec<_>, _>>()?;
+        let ledger = tms::storage::decode(ledger)?;
         let mut triples = Vec::new();
         // The names actually read, in the order read, so a certificate records
         // what it was built from rather than what was asked for. The two differ
@@ -1136,6 +1471,7 @@ impl GraphStore {
             let mut n = 0usize;
             for quad in txn.quads_for_pattern(None, None, None, Some(g)) {
                 let q = quad?;
+                if tms::is_internal(&q) || ledger.as_ref().is_some_and(|l| l.derived_only(&q)) { continue; }
                 triples.push((
                     q.subject.to_string(),
                     q.predicate.to_string(),
@@ -1175,6 +1511,7 @@ impl GraphStore {
             ReadScope::Graphs { .. } => {
                 let mut prepared = SparqlEvaluator::new().parse_query(query)?;
                 scope.apply(prepared.dataset_mut())?;
+                self.hide_ledger(prepared.dataset_mut())?;
                 Self::render(prepared.on_store(&self.store).execute()?)
             }
         }
@@ -1192,6 +1529,7 @@ impl GraphStore {
         let store = &self.store;
         let mut prepared = SparqlEvaluator::new().parse_query(query)?;
         scope.apply(prepared.dataset_mut())?;
+        self.hide_ledger(prepared.dataset_mut())?;
         let variable = Variable::new(var)?;
         let mut out = Vec::with_capacity(terms.len());
         for term in terms {
@@ -1283,10 +1621,15 @@ impl GraphStore {
     /// not. `<default>` is the unnamed graph.
     pub fn triples_outside(&self, excluded: &[&str]) -> anyhow::Result<AssertedTriples> {
         self.read_one_state(|txn| {
+        let ledger_node = NamedNode::new(tms::LEDGER_GRAPH)?;
+        let ledger = txn.quads_for_pattern(None, None, None, Some(ledger_node.as_ref().into()))
+            .collect::<Result<Vec<_>, _>>()?;
+        let ledger = tms::storage::decode(ledger)?;
         let mut triples = Vec::new();
         let mut read: BTreeSet<String> = BTreeSet::new();
         for quad in txn.iter() {
             let quad = quad?;
+            if tms::is_internal(&quad) || ledger.as_ref().is_some_and(|l| l.derived_only(&quad)) { continue; }
             let name = match &quad.graph_name {
                 GraphName::DefaultGraph => "<default>".to_string(),
                 GraphName::NamedNode(n) => n.as_str().to_string(),
@@ -1365,6 +1708,7 @@ impl GraphStore {
         let mut names: BTreeSet<String> = BTreeSet::new();
         for quad in self.store.iter() {
             let q = quad?;
+            if tms::is_internal(&q) { continue; }
             if let GraphName::NamedNode(n) = &q.graph_name {
                 names.insert(n.as_str().to_string());
             }
@@ -1388,6 +1732,7 @@ impl GraphStore {
         let mut out = Vec::new();
         for quad in self.store.iter() {
             let q = quad?;
+            if tms::is_internal(&q) { continue; }
             out.push((
                 q.subject.to_string(),
                 q.predicate.to_string(),

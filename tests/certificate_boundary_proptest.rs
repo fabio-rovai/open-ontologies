@@ -1075,61 +1075,79 @@ fn tcb_9_a_quad_in_two_graphs_is_two_lines() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TCB-8 across runs: what was fixed, and what is irreducible
+// TCB-8 across runs: materialised conclusions remain distinguishable
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// A second certified run does not read the first run's conclusions back as
-/// assertions, when the caller asked for them to be kept apart.
-///
-/// **This test used to assert the DEFECT.** `GraphStore::all_triples` read
-/// every named graph, so the inferences `inference_graph: true` parked in
-/// `https://open-ontologies.org/graph/inferred` came back in the next run's
-/// `asserted.tsv` as axioms, with no column saying they were derived. The
-/// separation protected `save` and not the certificate, and the second half of
-/// this test asserted that it did not work, so that the day it changed the
-/// documentation would be forced to change with it. It changed on 15 September
-/// 2026: the certified paths read `triples_outside(&[INFERRED_GRAPH])` and the
-/// certificate reports the graphs it read. The assertion is now the property.
-///
-/// The FIRST half still asserts the leak, because that half is not a defect and
-/// cannot be fixed here. `InferenceTarget::DefaultGraph` merges conclusions
-/// into the default graph beside the assertions, which is what the caller asked
-/// for, and after that nothing distinguishes them. That is the irreducible
-/// half of TCB-8 and it is why the fix is a fix of the named-graph path.
+/// A second certified run must not promote earlier conclusions to assertions.
+/// Explicit durable capture preserves this distinction for the default graph as well
+/// as the named inference graph. Both targets must yield the same original
+/// assertion set on repeated runs while retaining the materialised conclusions.
 #[test]
-fn tcb_8_across_runs_only_the_default_graph_leaks() {
+fn tcb_8_across_runs_neither_materialisation_target_promotes_inferences() {
     let ttl = "<http://e/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://e/A> .\n\
                <http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> .\n";
 
-    // Default graph: the inference comes back as an assertion, because the
-    // caller asked for it to be merged and the merge is lossy.
+    // The default graph keeps explicitly requested support metadata across runs.
     let g = Arc::new(GraphStore::new());
     g.load_ntriples(ttl).unwrap();
     let d1 = scratch("leak1");
-    Reasoner::run_full(&g, "rdfs", true, InferenceTarget::DefaultGraph, Some(&d1)).unwrap();
+    Reasoner::run_scoped_with_tracking(
+        &g,
+        "rdfs",
+        true,
+        InferenceTarget::DefaultGraph,
+        Some(&d1),
+        &open_ontologies::temporal::ScopeRequest::Unscoped,
+        true,
+    )
+    .unwrap();
+    assert!(
+        g.ledger().unwrap().is_some(),
+        "explicit tracking must persist support"
+    );
     let concluded: BTreeSet<String> = std::fs::read_to_string(d1.join("derivations.tsv"))
         .unwrap()
         .lines()
         .map(|l| fields(l)[1..4].join("\t"))
         .collect();
     assert!(!concluded.is_empty(), "the fixture must infer something");
+    let asserted1: BTreeSet<String> =
+        std::fs::read_to_string(d1.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
     let d2 = scratch("leak2");
-    Reasoner::run_full(&g, "rdfs", true, InferenceTarget::DefaultGraph, Some(&d2)).unwrap();
-    let asserted2: BTreeSet<String> =
-        std::fs::read_to_string(d2.join("asserted.tsv")).unwrap().lines().map(str::to_string).collect();
+    Reasoner::run_scoped_with_tracking(
+        &g,
+        "rdfs",
+        true,
+        InferenceTarget::DefaultGraph,
+        Some(&d2),
+        &open_ontologies::temporal::ScopeRequest::Unscoped,
+        true,
+    )
+    .unwrap();
+    let asserted2: BTreeSet<String> = std::fs::read_to_string(d2.join("asserted.tsv"))
+        .unwrap()
+        .lines()
+        .map(str::to_string)
+        .collect();
     assert!(
-        concluded.iter().any(|c| asserted2.contains(c)),
-        "the default-graph limitation is gone; docs/lean-certificates.md and \
-         docs/trusted-computing-base.md TCB-8 must be corrected"
+        concluded.is_disjoint(&asserted2),
+        "default-graph conclusions must not become assertions in a later certificate"
     );
+    assert_eq!(asserted2, asserted1, "both runs must use the same source assertions");
+    assert_eq!(asserted2.len(), 2, "only the loaded source triples are assertions");
+    assert_eq!(g.triple_count(), 3, "the default graph must retain its materialised conclusion");
 
-    // The named inference graph DOES fix it. Not one conclusion of the first
+    // The named inference graph preserves the same boundary. No conclusion of the first
     // run appears among the second run's assertions, and the certificate says
     // which graphs it read.
     let h = Arc::new(GraphStore::new());
     h.load_ntriples(ttl).unwrap();
     let d3 = scratch("leak3");
     let r3 = Reasoner::run_full(&h, "rdfs", true, InferenceTarget::Inferred, Some(&d3)).unwrap();
+    assert!(
+        h.ledger().unwrap().is_none(),
+        "certificate export alone must not enable durable capture"
+    );
     let j3: serde_json::Value = serde_json::from_str(&r3).unwrap();
     assert!(j3["inferred_count"].as_u64().unwrap() > 0, "run 1 must infer something");
     let d4 = scratch("leak4");
@@ -1144,6 +1162,8 @@ fn tcb_8_across_runs_only_the_default_graph_leaks() {
              TCB-8 has regressed"
         );
     }
+    assert_eq!(asserted4, asserted2, "both materialisation targets use the same assertions");
+    assert_eq!(h.triple_count(), 3, "the named graph must retain its materialised conclusion");
     // The assertions of run 2 are exactly the assertions of run 1: the store
     // grew, the asserted graph did not.
     assert_eq!(

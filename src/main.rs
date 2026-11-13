@@ -576,6 +576,9 @@ enum Commands {
     Reason {
         #[arg(long, default_value = "rdfs")]
         profile: String,
+        /// Persist evidence and derivations for explicit dependency retraction.
+        #[arg(long)]
+        track_derivations: bool,
         /// Write a derivation certificate (asserted.tsv + derivations.tsv)
         /// to this directory. `lean/` holds a checker for it whose soundness
         /// is a machine-checked theorem; see docs/lean-certificates.md.
@@ -1177,6 +1180,7 @@ impl Commands {
                 vec![absolutize(input), "--limit".into(), limit.to_string()],
             ),
             Commands::Reason {
+                track_derivations,
                 profile,
                 certificate,
                 rules,
@@ -1196,6 +1200,9 @@ impl Commands {
                     return None;
                 }
                 let mut a = vec!["--profile".into(), profile.clone()];
+                if *track_derivations {
+                    a.push("--track-derivations".into());
+                }
                 if let Some(c) = certificate {
                     a.push("--certificate".into());
                     a.push(absolutize(c));
@@ -2572,7 +2579,7 @@ async fn async_main() -> anyhow::Result<()> {
                     async move {
                         let query = body.0["query"].as_str().unwrap_or("").to_string();
                         axum::Json(serde_json::from_str::<serde_json::Value>(
-                            &match g.sparql_update(&query) {
+                            &match g.sparql_update_with_retraction(&query, body.0["retract_inferences"].as_bool().unwrap_or(false)) {
                                 Ok(n)  => format!(r#"{{"ok":true,"affected":{}}}"#, n),
                                 Err(e) => format!(r#"{{"error":"{}"}}"#, e),
                             }
@@ -3652,6 +3659,7 @@ async fn async_main() -> anyhow::Result<()> {
             output_result_checked(&result, cli.pretty);
         }
         Commands::Reason {
+            track_derivations,
             profile,
             certificate,
             rules,
@@ -3693,6 +3701,9 @@ async fn async_main() -> anyhow::Result<()> {
             // A run with no such argument keeps the CLI's historical `true`,
             // and on a versioned store it is refused before it can write.
             let materialize = matches!(request, open_ontologies::temporal::ScopeRequest::Unscoped);
+            if track_derivations && rules.is_some() {
+                anyhow::bail!("--track-derivations is unavailable with --rules");
+            }
             let result = match (rules.as_deref(), certificate.as_deref()) {
                 // A supplied table and somewhere to put the certificate.
                 (Some(rules_path), Some(dir)) => Reasoner::run_horn_scoped(
@@ -3712,13 +3723,14 @@ async fn async_main() -> anyhow::Result<()> {
                               and `lake exe oo-horn check` is what pronounces on it"
                 })
                 .to_string(),
-                (None, cert) => Reasoner::run_scoped(
+                (None, cert) => Reasoner::run_scoped_with_tracking(
                     &graph,
                     &profile,
                     materialize,
                     InferenceTarget::DefaultGraph,
                     cert.map(std::path::Path::new),
                     &request,
+                    track_derivations,
                 )
                 .unwrap_or_else(|e| serde_json::json!({"error": e.to_string()}).to_string()),
             };
@@ -4485,6 +4497,7 @@ mod proxy_serialization_tests {
         // budget cannot be honoured there; and a local run would read a
         // different store from the one the caller loaded into the daemon.
         let reason = |phase: Option<usize>, ceiling: Option<usize>| Commands::Reason {
+            track_derivations: false,
             profile: "owl-dl".into(),
             certificate: None,
             rules: None,
@@ -4520,11 +4533,11 @@ mod proxy_serialization_tests {
             Commands::Stats,
             Commands::Query { query: "SELECT ?s WHERE { ?s ?p ?o }".into() },
             Commands::Lint { input: "x.ttl".into() },
-            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: None, as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
+            Commands::Reason { track_derivations: false, profile: "rdfs".into(), certificate: None, rules: None, valid_at: None, as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
             // The scoped form proxies too: a daemon-backed `reason --valid-at`
             // that silently dropped the flag would run over every version and
             // report a snapshot it did not have.
-            Commands::Reason { profile: "rdfs".into(), certificate: None, rules: None, valid_at: Some("2026-01-01".into()), as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
+            Commands::Reason { track_derivations: false, profile: "rdfs".into(), certificate: None, rules: None, valid_at: Some("2026-01-01".into()), as_of: None, all_versions: false, phase_timeout_ms: None, classify_timeout_ms: None },
             Commands::Fol { out: "/tmp/fol".into(), format: "tptp".into(), smt_domain: None, clif_dialect: "iso".into(), clif_comments: "standalone".into(), goals: None, goals_skip_columns: 0 },
             Commands::FolModel { out: "/tmp/folmodel".into(), solver: "z3".into(), max_domain: 16, timeout_secs: 30, unbounded_probe: true, goals: None, goals_skip_columns: 0, checker: None },
             Commands::FolProve { out: Some("/tmp/folprove".into()), prover: "vampire".into(), timeout_secs: 30, goals: None, goals_skip_columns: 0, problem: None, proof: None },

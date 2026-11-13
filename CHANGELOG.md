@@ -165,6 +165,25 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Durable RDFS/OWL-RL provenance is opt-in** (#365). CLI and batch
+  `reason --track-derivations`, or MCP `track_derivations: true`, persist
+  evidence and rule instances in the existing materialisation transaction.
+  Incremental reasoning accepts the same MCP option. Ordinary reasoning keeps
+  its previous materialisation behaviour and does not capture derivations.
+  Evidence, derivations, output locations and changes now use separate RDF
+  records with dependency indexes, instead of one growing JSON literal.
+  Loads and updates reconcile the affected dependency component without
+  scanning or copying the dataset to track changes. Returned counts use actual
+  data deltas, and publication uses a constant-size generation guard.
+  Ordinary SPARQL DELETE retains inferred RDF. Explicit assertion withdrawal,
+  the Rust `sparql_update_with_retraction` API, or HTTP `/api/update` with
+  `retract_inferences: true` opt in to support-based retraction. Independent
+  proofs survive withdrawal; unsupported cycles do not. The reserved ledger
+  stays outside query datasets, including `GRAPH ?g`. Dataset backups retain
+  it, and old single-literal backups migrate on restore or persistent open.
+  Provenance reports retain evidence, rule versions and withdrawal history;
+  proof forests remain exportable to the existing independent oo-cert checker.
+
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;
   status flags now match the cached and active source paths instead of marking

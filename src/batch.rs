@@ -499,6 +499,9 @@ impl BatchRunner {
             .unwrap_or("rdfs".to_string());
         let certificate = Self::flag_value(args, "--certificate");
         let rules = Self::flag_value(args, "--rules");
+        if rules.is_some() && args.iter().any(|a| a == "--track-derivations") {
+            return json!({"error": "--track-derivations is unavailable with --rules"});
+        }
         // #352. These two were never read here, so a batch line carrying them
         // ran at the configured budgets, reported those in its `budget` block,
         // and said nothing about the flags it had dropped. Batch is the one
@@ -563,13 +566,14 @@ impl BatchRunner {
                           `lake exe oo-horn check` is what pronounces on it"
             })
             .to_string(),
-            (None, cert) => Reasoner::run_scoped(
+            (None, cert) => Reasoner::run_scoped_with_tracking(
                 &self.graph,
                 &profile,
                 materialize,
                 InferenceTarget::DefaultGraph,
                 cert.map(std::path::Path::new),
                 &request,
+                args.iter().any(|a| a == "--track-derivations"),
             )
             .unwrap_or_else(|e| json!({"error": e.to_string()}).to_string()),
         };
