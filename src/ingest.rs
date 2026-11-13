@@ -300,6 +300,16 @@ impl DataIngester {
             .map(Self::calamine_cell_to_string)
             .collect();
 
+          let mut unique_headers = HashSet::with_capacity(headers.len());
+          for (index, header) in headers.iter().enumerate() {
+              if !unique_headers.insert(header) {
+                  anyhow::bail!(
+                      "Duplicate XLSX header {header:?} at column {}; XLSX columns must be unique",
+                      index + 1
+                  );
+              }
+          }
+
         let mut rows = Vec::new();
         for data_row in row_iter {
             let mut row = HashMap::new();
