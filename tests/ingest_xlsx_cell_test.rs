@@ -296,3 +296,34 @@ fn duplicate_headers_are_rejected_instead_of_overwriting_cells() {
     let error = DataIngester::parse_xlsx_file(&path).unwrap_err().to_string();
     assert!(error.contains("Duplicate XLSX header \"name\" at column 2"), "{error}");
 }
+
+#[test]
+fn an_empty_column_with_no_header_is_skipped() {
+    // B has no header and no values; it is inside the sheet's range only
+    // because C has data. It names nothing, so the row carries name and age.
+    let dir = tempfile::tempdir().unwrap();
+    let rows = r#"<row r="1"><c r="A1" t="inlineStr"><is><t>name</t></is></c><c r="C1" t="inlineStr"><is><t>age</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>Alice</t></is></c><c r="C2" t="inlineStr"><is><t>30</t></is></c></row>"#;
+    let path = workbook(&dir, rows, &[], &[0], &[]);
+
+    let parsed = DataIngester::parse_xlsx_file(&path).unwrap();
+    assert_eq!(
+        parsed,
+        vec![std::collections::HashMap::from([
+            ("name".to_string(), "Alice".to_string()),
+            ("age".to_string(), "30".to_string()),
+        ])]
+    );
+}
+
+#[test]
+fn values_under_blank_headers_are_rejected_by_column() {
+    // Two unlabelled columns with data. Both blank headers used to map to one
+    // empty key, so x was overwritten by y; neither has a name to go under.
+    let dir = tempfile::tempdir().unwrap();
+    let rows = r#"<row r="1"><c r="A1" t="inlineStr"><is><t>name</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>Alice</t></is></c><c r="B2" t="inlineStr"><is><t>x</t></is></c><c r="C2" t="inlineStr"><is><t>y</t></is></c></row>"#;
+    let path = workbook(&dir, rows, &[], &[0], &[]);
+
+    let error = DataIngester::parse_xlsx_file(&path).unwrap_err().to_string();
+    assert!(error.contains("XLSX column 2 has a value"), "{error}");
+    assert!(error.contains("no header"), "{error}");
+}
