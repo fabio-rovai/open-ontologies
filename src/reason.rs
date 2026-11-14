@@ -1679,7 +1679,7 @@ impl Reasoner {
         // named graphs, and `asserted.tsv` below is written from exactly this
         // list, so the certificate is about the graph the scope selected and
         // `scope.tsv` says which one that was.
-        let source_token = if materialize {
+        let source_token = if track_derivations {
             Some(graph.reasoning_token()?)
         } else {
             None
@@ -2956,7 +2956,7 @@ impl Reasoner {
                 result["truth_maintenance"] = graph.commit_reasoning(
                     cap.out.as_ref().expect("the derivation graph was just captured"),
                     target,
-                    source_token.expect("materialisation captured a source token"),
+                    source_token.expect("tracked reasoning captured a source token"),
                     &sources,
                 )?;
             }
@@ -2974,11 +2974,7 @@ impl Reasoner {
                     )
                 })
                 .collect();
-            graph.commit_materialization(
-                &inferred,
-                target,
-                source_token.expect("materialisation captured a source token"),
-            )?;
+            graph.commit_materialization(&inferred, target)?;
         }
         Ok(result.to_string())
     }

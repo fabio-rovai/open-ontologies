@@ -174,7 +174,10 @@ All notable changes to Open Ontologies are documented here.
   records with dependency indexes, instead of one growing JSON literal.
   Loads and updates reconcile the affected dependency component without
   scanning or copying the dataset to track changes. Returned counts use actual
-  data deltas, and publication uses a constant-size generation guard.
+  data deltas. Stores without a ledger use Oxigraph's native SPARQL UPDATE
+  executor, avoiding provenance journaling for ordinary bulk updates.
+  Tracked publication uses a constant-size generation guard; untracked
+  reasoning retains snapshot materialisation when a concurrent write occurs.
   Ordinary SPARQL DELETE retains inferred RDF. Explicit assertion withdrawal,
   the Rust `sparql_update_with_retraction` API, or HTTP `/api/update` with
   `retract_inferences: true` opt in to support-based retraction. Independent
@@ -183,6 +186,8 @@ All notable changes to Open Ontologies are documented here.
   it, and old single-literal backups migrate on restore or persistent open.
   Provenance reports retain evidence, rule versions and withdrawal history;
   proof forests remain exportable to the existing independent oo-cert checker.
+  The CLI help and reasoning guide disclose tracking's time and storage costs,
+  including the maintainer's LUBM1 measurements.
 
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;

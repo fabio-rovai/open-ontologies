@@ -357,7 +357,7 @@ impl IncrementalReasoner {
             .to_string());
         }
 
-        let source_token = if materialize {
+        let source_token = if track_derivations {
             Some(graph.reasoning_token()?)
         } else {
             None
@@ -631,7 +631,7 @@ impl IncrementalReasoner {
             Some(graph.commit_reasoning(
                 &dag,
                 crate::reason::InferenceTarget::DefaultGraph,
-                source_token.expect("materialisation captured a source token"),
+                source_token.expect("tracked reasoning captured a source token"),
                 &sources,
             )?)
         } else {
@@ -639,7 +639,6 @@ impl IncrementalReasoner {
                 graph.commit_materialization(
                     &derived.iter().cloned().collect::<Vec<_>>(),
                     crate::reason::InferenceTarget::DefaultGraph,
-                    source_token.expect("materialisation captured a source token"),
                 )?;
             }
             None

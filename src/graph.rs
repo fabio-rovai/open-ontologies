@@ -31,7 +31,7 @@ mod publication_tests {
     use std::sync::Arc;
 
     #[test]
-    fn stale_reasoning_cannot_publish_after_a_source_write() {
+    fn stale_tracked_reasoning_cannot_publish_after_a_source_write() {
         let g = Arc::new(GraphStore::new());
         g.load_turtle("<http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> . <http://e/x> a <http://e/A> .", None).unwrap();
         let token = g.reasoning_token().unwrap();
@@ -45,14 +45,71 @@ mod publication_tests {
                 .is_err()
         );
         assert_eq!(g.snapshot("nquads").unwrap(), before);
-        assert!(
-            g.commit_materialization(
-                &dag.closure.iter().cloned().collect::<Vec<_>>(),
-                InferenceTarget::DefaultGraph,
-                token
-            )
-            .is_err()
-        );
+    }
+
+    #[test]
+    fn untracked_materialisation_preserves_a_concurrent_write_for_both_targets() {
+        for target in [InferenceTarget::DefaultGraph, InferenceTarget::Inferred] {
+            let g = Arc::new(GraphStore::new());
+            g.load_turtle("<http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> . <http://e/x> a <http://e/A> .", None).unwrap();
+            let dag = Reasoner::derivation_graph(&g, "rdfs").unwrap();
+            // Schedule a writer after the read phase and before publication,
+            // rather than relying on a sleep to land inside a reasoning run.
+            let writer = Arc::clone(&g);
+            std::thread::spawn(move || {
+                writer
+                    .sparql_update("INSERT DATA { <http://e/new> <http://e/p> <http://e/o> }")
+                    .unwrap();
+            })
+            .join()
+            .unwrap();
+            let inferred = dag
+                .closure
+                .iter()
+                .filter(|t| !dag.asserted.contains(t))
+                .cloned()
+                .collect::<Vec<_>>();
+            g.commit_materialization(&inferred, target).unwrap();
+            let snapshot = g.snapshot("nquads").unwrap();
+            assert!(snapshot.contains("<http://e/new> <http://e/p> <http://e/o>"));
+            let conclusion = Quad::new(
+                NamedNode::new_unchecked("http://e/x"),
+                NamedNode::new_unchecked("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                NamedNode::new_unchecked("http://e/B"),
+                if target == InferenceTarget::Inferred {
+                    NamedNode::new_unchecked(crate::reason::INFERRED_GRAPH).into()
+                } else {
+                    GraphName::DefaultGraph
+                },
+            );
+            assert!(g.store.contains(&conclusion).unwrap());
+            assert!(g.ledger().unwrap().is_none());
+        }
+    }
+
+    #[test]
+    fn untracked_publication_marks_an_existing_ledger_incomplete() {
+        let g = Arc::new(GraphStore::new());
+        g.load_turtle("<http://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://e/B> . <http://e/x> a <http://e/A> .", None).unwrap();
+        let token = g.reasoning_token().unwrap();
+        let sources = g.reasoning_sources().unwrap();
+        let dag = Reasoner::derivation_graph(&g, "rdfs").unwrap();
+        g.commit_reasoning(&dag, InferenceTarget::DefaultGraph, token, &sources)
+            .unwrap();
+        assert!(g.ledger().unwrap().unwrap().fixpoint_reached);
+        let before = g.ledger().unwrap().unwrap();
+        g.commit_materialization(
+            &[(
+                "<http://e/x>".into(),
+                "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".into(),
+                "<http://e/B>".into(),
+            )],
+            InferenceTarget::DefaultGraph,
+        )
+        .unwrap();
+        let after = g.ledger().unwrap().unwrap();
+        assert!(!after.fixpoint_reached);
+        assert_eq!(after.derivations, before.derivations);
     }
 
     #[test]
@@ -345,17 +402,14 @@ impl GraphStore {
     }
 
     /// Legacy materialisation adds RDF without claiming durable provenance.
+    /// Concurrent source writes retain the historical snapshot semantics; only
+    /// tracked publication requires the source generation to remain unchanged.
     pub(crate) fn commit_materialization(
         &self,
         triples: &[crate::reason::Spelled],
         target: crate::reason::InferenceTarget,
-        token: u64,
     ) -> anyhow::Result<()> {
         let mut revision = self.revision.lock().unwrap_or_else(|e| e.into_inner());
-        anyhow::ensure!(
-            *revision == token,
-            "source dataset changed during reasoning; retry against the current snapshot"
-        );
         let mut txn = self.store.start_transaction()?;
         let graph = if target == crate::reason::InferenceTarget::Inferred {
             format!("<{}>", crate::reason::INFERRED_GRAPH)

@@ -577,6 +577,8 @@ enum Commands {
         #[arg(long, default_value = "rdfs")]
         profile: String,
         /// Persist evidence and derivations for explicit dependency retraction.
+        /// Adds reasoning time and storage for rule instances and dependency indexes;
+        /// see docs/reasoning.md for measured costs. Disabled by default.
         #[arg(long)]
         track_derivations: bool,
         /// Write a derivation certificate (asserted.tsv + derivations.tsv)
