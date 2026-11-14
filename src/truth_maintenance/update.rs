@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Fabio Rovai
 // SPDX-License-Identifier: MIT
 
-//! Journal only update template instantiations. The WHERE clause is evaluated
-//! once by Oxigraph, with its normal blank-node and solution semantics.
+//! Stores without a ledger use Oxigraph's native update executor. Tracked
+//! stores journal template instantiations to reconcile affected support.
 
 use super::*;
 use oxigraph::model::{BlankNode, NamedOrBlankNode};
@@ -13,6 +13,20 @@ use spargebra::term::GraphNamePattern;
 use spargebra::{GraphUpdateOperation as Op, SparqlParser, Update};
 
 pub(crate) fn execute(txn: &mut Transaction<'_>, update: &str, cascade: bool) -> Result<isize> {
+    if storage::header(txn)?.is_none() {
+        // Preserve the original executor and its before/after delta count.
+        // No provenance journal or template rewriting is needed without a ledger.
+        let before = txn.len()?;
+        SparqlEvaluator::new()
+            .parse_update(update)?
+            .on_transaction(txn)
+            .execute()?;
+        ensure!(
+            !txn.contains_named_graph(&NamedNode::new_unchecked(LEDGER_GRAPH))?,
+            "the derivation ledger is reserved; use dataset restore to replace it"
+        );
+        return Ok(txn.len()? as isize - before as isize);
+    }
     // Parse all operations before changing either data or metadata.
     let parsed = SparqlParser::new().parse_update(update)?;
     let mut total = 0;

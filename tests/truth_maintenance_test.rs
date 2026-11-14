@@ -354,6 +354,68 @@ fn default_materialisation_and_delete_keep_legacy_semantics() {
 }
 
 #[test]
+fn untracked_bulk_updates_match_the_native_executor_and_net_counts() {
+    use oxigraph::sparql::SparqlEvaluator;
+    use oxigraph::store::Store;
+    use std::collections::BTreeSet;
+
+    // An opt-in withdrawal request on a store without a ledger must also keep
+    // the native update semantics; there are no recorded supports to reconcile.
+    for retract in [false, true] {
+        let g = graph("");
+        let native = Store::new().unwrap();
+        let data = (0..1024)
+            .map(|i| format!("<urn:s:{i}> a <urn:Class> ."))
+            .collect::<String>();
+        for update in [
+            format!("INSERT DATA {{ {data} }}"),
+            "INSERT { ?s <urn:typed> ?c } WHERE { ?s a ?c }".into(),
+            "INSERT { ?s <urn:typed> ?c } WHERE { ?s a ?c }".into(),
+            "DELETE { ?s <urn:typed> ?c } WHERE { ?s <urn:typed> ?c }".into(),
+            "INSERT { ?s <urn:all> ?o } WHERE { ?s ?p ?o }".into(),
+            "DELETE WHERE { ?s <urn:all> ?o }".into(),
+            "INSERT { GRAPH <urn:source> { ?s a ?c } } WHERE { ?s a ?c }".into(),
+            "COPY GRAPH <urn:source> TO GRAPH <urn:copy>; MOVE GRAPH <urn:copy> TO GRAPH <urn:moved>".into(),
+            "WITH <urn:moved> DELETE { ?s a ?c } INSERT { ?s <urn:typed> ?c } WHERE { ?s a ?c }".into(),
+            "CLEAR NAMED".into(),
+            "DELETE { ?s a ?c } INSERT { ?s a ?c } WHERE { ?s a ?c }".into(),
+        ] {
+            let before = native.len().unwrap();
+            SparqlEvaluator::new()
+                .parse_update(&update).unwrap()
+                .on_store(&native).execute().unwrap();
+            let count = g.sparql_update_with_retraction(&update, retract).unwrap();
+            assert_eq!(count, native.len().unwrap().saturating_sub(before), "{update}");
+            let expected: BTreeSet<_> = native.iter()
+                .map(|q| format!("{} .", q.unwrap())).collect();
+            let actual: BTreeSet<_> = g.snapshot("nquads").unwrap()
+                .lines().map(str::to_owned).collect();
+            assert_eq!(actual, expected, "{update}");
+            assert!(g.ledger().unwrap().is_none());
+        }
+    }
+}
+
+#[test]
+fn untracked_native_update_rolls_back_on_an_execution_error() {
+    for retract in [false, true] {
+        let g = graph(":s :p :o .");
+        g.sparql_update("CREATE GRAPH <urn:existing>").unwrap();
+        let before = g.snapshot("nquads").unwrap();
+        assert!(
+            g.sparql_update_with_retraction(
+                "INSERT DATA { <urn:new> <urn:p> <urn:o> }; CREATE GRAPH <urn:existing>",
+                retract,
+            )
+            .is_err()
+        );
+        assert_eq!(g.snapshot("nquads").unwrap(), before);
+        assert!(g.sparql_update("CREATE GRAPH <urn:existing>").is_err());
+        assert!(g.ledger().unwrap().is_none());
+    }
+}
+
+#[test]
 fn default_delete_does_not_cascade_even_in_a_tracked_store() {
     let g = graph(":A rdfs:subClassOf :B . :x a :A .");
     reason(&g);
@@ -468,19 +530,27 @@ fn update_where_journals_the_same_bindings_and_preserves_blank_nodes() {
 
 #[test]
 fn failed_reserved_graph_updates_roll_back_the_entire_operation() {
-    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
-    reason(&g);
-    let before = g.snapshot("nquads").unwrap();
-    for update in [
-        format!(
-            "INSERT DATA {{ <http://example.org/new> <http://example.org/p> <http://example.org/o> }}; CLEAR GRAPH <{LEDGER_GRAPH}>"
-        ),
-        format!(
-            "INSERT {{ GRAPH ?g {{ <http://example.org/s> <http://example.org/p> <http://example.org/o> }} }} WHERE {{ VALUES ?g {{ <{LEDGER_GRAPH}> }} }}"
-        ),
-    ] {
-        assert!(g.sparql_update(&update).is_err());
-        assert_eq!(g.snapshot("nquads").unwrap(), before);
+    for tracked in [false, true] {
+        let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+        if tracked {
+            reason(&g);
+        }
+        let before = g.snapshot("nquads").unwrap();
+        for update in [
+            format!(
+                "INSERT DATA {{ <http://example.org/new> <http://example.org/p> <http://example.org/o> }}; CLEAR GRAPH <{LEDGER_GRAPH}>"
+            ),
+            format!(
+                "INSERT {{ GRAPH ?g {{ <http://example.org/s> <http://example.org/p> <http://example.org/o> }} }} WHERE {{ VALUES ?g {{ <{LEDGER_GRAPH}> }} }}"
+            ),
+            format!(
+                "INSERT DATA {{ GRAPH <{LEDGER_GRAPH}> {{ <https://open-ontologies.org/provenance#state> <https://open-ontologies.org/provenance#header> \"forged\" }} }}"
+            ),
+            format!("CREATE GRAPH <{LEDGER_GRAPH}>"),
+        ] {
+            assert!(g.sparql_update(&update).is_err());
+            assert_eq!(g.snapshot("nquads").unwrap(), before);
+        }
     }
 }
 
