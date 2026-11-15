@@ -3,6 +3,8 @@
 
 use std::sync::Arc;
 
+#[cfg(feature = "embeddings")]
+use oxigraph::model::Term;
 use rmcp::{
     ServerHandler, tool, tool_handler, tool_router,
     prompt, prompt_handler, prompt_router,
@@ -3196,31 +3198,28 @@ impl OpenOntologiesServer {
 
         // Enumerating the store's classes is a question about the whole store,
         // so read the union of all graphs, not the default graph alone.
-        let result = match self.graph.sparql_select_union(classes_query) {
-            Ok(r) => r,
-            Err(e) => return Self::err_json(e),
-        };
-
-        let parsed: serde_json::Value = match serde_json::from_str(&result) {
-            Ok(v) => v,
+        let rows = match self.graph.sparql_select_union_terms(classes_query) {
+            Ok(rows) => rows,
             Err(e) => return Self::err_json(e),
         };
 
         let mut class_labels: std::collections::HashMap<String, String> = std::collections::HashMap::new();
-        if let Some(rows) = parsed["results"].as_array() {
-            for row in rows {
-                if let Some(iri) = row["class"].as_str() {
-                    let iri = iri.trim_matches(|c| c == '<' || c == '>').to_string();
-                    let label = row["label"].as_str()
-                        .map(|s| s.trim_matches('"').to_string())
-                        .unwrap_or_else(|| {
-                            iri.rsplit_once('#').or_else(|| iri.rsplit_once('/'))
-                                .map(|(_, n)| n.to_string())
-                                .unwrap_or_else(|| iri.clone())
-                        });
-                    class_labels.insert(iri, label);
-                }
-            }
+        for row in rows {
+            let Some(Term::NamedNode(class)) = row.get("class") else {
+                continue;
+            };
+            let iri = class.as_str().to_string();
+            let fallback = || {
+                iri.rsplit_once('#').or_else(|| iri.rsplit_once('/'))
+                    .map(|(_, n)| n.to_string())
+                    .unwrap_or_else(|| iri.clone())
+            };
+            let label = match row.get("label") {
+                Some(Term::Literal(label)) => label.value().to_string(),
+                Some(other) => other.to_string(),
+                None => fallback(),
+            };
+            class_labels.insert(iri, label);
         }
 
         let trainer = crate::structembed::StructuralTrainer::new(struct_dim, struct_epochs, 0.01);

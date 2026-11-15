@@ -165,6 +165,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`onto_embed` uses the lexical value of an RDF label** (#404). Language
+  tags and escaped quotes are no longer passed to the embedding model as part
+  of the label text.
+
+- **Loading an ontology and unloading another by name no longer race**
+  (#405). `unload_named` checked which ontology was active, released the
+  lock, then unloaded whatever was active by then, so a load landing in that
+  gap was cleared from the store while still marked active. Loads,
+  recompiles, reloads, eviction and unloads now take one lifecycle lock.
+
 - **`stats` counts individuals by their type vocabulary, in both engines**
   (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
   `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.

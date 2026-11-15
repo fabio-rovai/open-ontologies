@@ -605,6 +605,40 @@ impl GraphStore {
         self.select_with_dataset(query, true)
     }
 
+    /// Run a SELECT over the union dataset and return its RDF terms without
+    /// serialising them to display strings. Callers that consume lexical values
+    /// (for example, labels used as embedding input) must not parse RDF syntax
+    /// back out of `Term::to_string()`.
+    pub fn sparql_select_union_terms(
+        &self,
+        query: &str,
+    ) -> anyhow::Result<Vec<std::collections::HashMap<String, Term>>> {
+        let store = &self.store;
+        let mut prepared = SparqlEvaluator::new().parse_query(query)?;
+        prepared.dataset_mut().set_default_graph_as_union();
+        let QueryResults::Solutions(solutions) = prepared.on_store(store).execute()? else {
+            anyhow::bail!("term selection needs a SELECT query");
+        };
+
+        let vars: Vec<String> = solutions
+            .variables()
+            .iter()
+            .map(|v| v.as_str().to_string())
+            .collect();
+        let mut rows = Vec::new();
+        for solution in solutions {
+            let solution = solution?;
+            let mut row = std::collections::HashMap::new();
+            for var in &vars {
+                if let Some(term) = solution.get(var.as_str()) {
+                    row.insert(var.clone(), term.clone());
+                }
+            }
+            rows.push(row);
+        }
+        Ok(rows)
+    }
+
     /// Run a SELECT once per term, with `var` pre-bound to that term, over the
     /// union dataset. Returns the solutions per term, in the order given.
     ///
