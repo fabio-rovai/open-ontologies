@@ -51,28 +51,62 @@ impl DataIngester {
             .map(|h| h.to_string())
             .collect();
 
-        let mut unique_headers = HashSet::with_capacity(headers.len());
-        for (index, header) in headers.iter().enumerate() {
-            if !unique_headers.insert(header) {
-                anyhow::bail!(
-                    "Duplicate CSV header {header:?} at column {}; CSV columns must be unique",
-                    index + 1
-                );
-            }
-        }
+        Self::check_headers("CSV", &headers)?;
 
         let mut rows = Vec::new();
         for result in reader.records() {
             let record = result.context("Failed to read CSV record")?;
             let mut row = HashMap::new();
             for (i, value) in record.iter().enumerate() {
-                if let Some(key) = headers.get(i) {
-                    row.insert(key.clone(), value.to_string());
-                }
+                Self::put_cell(&mut row, "CSV", &headers, i, value.to_string())?;
             }
             rows.push(row);
         }
         Ok(rows)
+    }
+
+    /// A named column may appear once in a header row (#382, #402). A blank
+    /// header names nothing, so two blank headers are not a duplicate:
+    /// spreadsheet exports end lines with commas for columns that were
+    /// formatted but never filled, and those files have to load.
+    fn check_headers(kind: &str, headers: &[String]) -> Result<()> {
+        let mut unique_headers = HashSet::with_capacity(headers.len());
+        for (index, header) in headers.iter().enumerate() {
+            if header.trim().is_empty() {
+                continue;
+            }
+            if !unique_headers.insert(header) {
+                anyhow::bail!(
+                    "Duplicate {kind} header {header:?} at column {}; {kind} columns must be unique",
+                    index + 1
+                );
+            }
+        }
+        Ok(())
+    }
+
+    /// Put one cell into its row under its column's header. An empty cell
+    /// under a blank header is skipped. A value under a blank header has no
+    /// name to go under, so it is refused by column rather than stored under
+    /// an empty key, where a second unnamed column would overwrite it.
+    fn put_cell(
+        row: &mut HashMap<String, String>,
+        kind: &str,
+        headers: &[String],
+        index: usize,
+        value: String,
+    ) -> Result<()> {
+        match headers.get(index) {
+            Some(header) if !header.trim().is_empty() => {
+                row.insert(header.clone(), value);
+            }
+            Some(_) if !value.trim().is_empty() => anyhow::bail!(
+                "{kind} column {} has a value ({value:?}) but no header; name the column or clear it",
+                index + 1
+            ),
+            _ => {}
+        }
+        Ok(())
     }
 
     /// Parse a JSON string. Accepts a JSON array of objects or a single object.
@@ -300,13 +334,13 @@ impl DataIngester {
             .map(Self::calamine_cell_to_string)
             .collect();
 
+        Self::check_headers("XLSX", &headers)?;
+
         let mut rows = Vec::new();
         for data_row in row_iter {
             let mut row = HashMap::new();
             for (i, cell) in data_row.iter().enumerate() {
-                if let Some(key) = headers.get(i) {
-                    row.insert(key.clone(), Self::calamine_cell_to_string(cell));
-                }
+                Self::put_cell(&mut row, "XLSX", &headers, i, Self::calamine_cell_to_string(cell))?;
             }
             rows.push(row);
         }
@@ -536,6 +570,14 @@ impl DataIngester {
             .ok(),
             _ => None,
         };
+        // A blank header names no column (see check_headers), so it is not a
+        // column here either; mapping generation would make it a property
+        // with an empty name.
+        let ordered = ordered.map(|h| {
+            h.into_iter()
+                .filter(|name| !name.trim().is_empty())
+                .collect::<Vec<_>>()
+        });
         match ordered {
             Some(h) if !h.is_empty() => {
                 // The file's order for the columns it names, then any key a

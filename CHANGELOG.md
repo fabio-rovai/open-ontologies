@@ -229,10 +229,15 @@ All notable changes to Open Ontologies are documented here.
   Names that were already valid local names, including non-ASCII letters and
   a leading digit, keep the IRIs they had.
 
-- **CSV ingestion rejects a repeated header instead of dropping a column**
-  (#382). Each row became a map keyed by header, so a later column with the
-  same header overwrote the earlier one. The error names the header and its
-  column number.
+- **CSV and XLSX ingestion reject a repeated header instead of dropping a
+  column** (#382, #402). Each row became a map keyed by header, so a later
+  column with the same header overwrote the earlier one. The error names the
+  header and its column number. A blank header names no column, so blank
+  headers are not duplicates: a file whose lines end in empty columns, as
+  spreadsheet exports such as `name,,` do, still loads, with the empty
+  columns skipped and left out of the column list that mapping generation
+  reads. A value under a blank header has no name to go under and is refused
+  with its column number.
 
 - **OWL-DL reports name `owl:NegativePropertyAssertion` as unmodelled**
   (#376). The tableau never read negative property assertions, so a
