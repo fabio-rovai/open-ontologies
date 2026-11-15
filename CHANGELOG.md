@@ -165,6 +165,10 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`onto_embed` uses the lexical value of an RDF label.** Language tags and
+  escaped quotes are no longer passed to the embedding model as part of the
+  label text.
+
 - **`stats` counts individuals by their type vocabulary, in both engines**
   (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
   `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
