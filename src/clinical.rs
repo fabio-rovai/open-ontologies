@@ -152,7 +152,10 @@ impl ClinicalCrosswalks {
                 && let Some(results) = parsed["results"].as_array() {
                     for row in results {
                         if let (Some(class_iri), Some(label)) = (row["c"].as_str(), row["l"].as_str()) {
-                            let label_clean = label.trim_matches('"').split("^^").next().unwrap_or("").trim_matches('"');
+                            // The lexical value: a tagged label arrives as
+                            // `"Myocardial infarction"@en` (#406).
+                            let label_clean = crate::language::parse_literal(label).text;
+                            let label_clean = label_clean.as_str();
                             let matches = self.search_label(label_clean);
                             if !matches.is_empty() {
                                 validated.push(serde_json::json!({

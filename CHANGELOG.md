@@ -165,6 +165,35 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Clinical validation and drift detection read a tagged label by its text**
+  (#406). Both stripped quotes from the N-Triples form of the literal, so
+  `"Dog"@en` became `Dog"@en`. Clinical validation searched the crosswalk for
+  that string and reported it, and drift's label similarity scored `"Dog"@en`
+  against an untagged `"Dog"` at 0.87 instead of 1.0. Both now use
+  `language::parse_literal`, which also unescapes the value.
+
+- **`onto_embed` uses the lexical value of an RDF label** (#404). Language
+  tags and escaped quotes are no longer passed to the embedding model as part
+  of the label text.
+
+- **Loading an ontology and unloading another by name no longer race**
+  (#405). `unload_named` checked which ontology was active, released the
+  lock, then unloaded whatever was active by then, so a load landing in that
+  gap was cleared from the store while still marked active. Loads,
+  recompiles, reloads, eviction and unloads now take one lifecycle lock.
+
+- **`stats` counts individuals by their type vocabulary, in both engines**
+  (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
+  `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
+  Restrictions, property characteristics such as `owl:TransitiveProperty`,
+  annotation properties, datatypes, `owl:AllDisjointClasses` and `owl:Axiom`
+  nodes no longer inflate the count. The Rust engine and
+  `open-ontologies-lite` apply the same rule.
+
+- **The MCP `initialize` reply names the server** (#400, #398). `serverInfo`
+  reported rmcp's crate name and version (`rmcp`, `3.9.0`); it now reports
+  `open-ontologies` and the release version.
+
 - **Durable RDFS/OWL-RL provenance is opt-in** (#365). CLI and batch
   `reason --track-derivations`, or MCP `track_derivations: true`, persist
   evidence and rule instances in the existing materialisation transaction.
@@ -188,28 +217,6 @@ All notable changes to Open Ontologies are documented here.
   proof forests remain exportable to the existing independent oo-cert checker.
   The CLI help and reasoning guide disclose tracking's time and storage costs,
   including the maintainer's LUBM1 measurements.
-
-- **`onto_embed` uses the lexical value of an RDF label** (#404). Language
-  tags and escaped quotes are no longer passed to the embedding model as part
-  of the label text.
-
-- **Loading an ontology and unloading another by name no longer race**
-  (#405). `unload_named` checked which ontology was active, released the
-  lock, then unloaded whatever was active by then, so a load landing in that
-  gap was cleared from the store while still marked active. Loads,
-  recompiles, reloads, eviction and unloads now take one lifecycle lock.
-
-- **`stats` counts individuals by their type vocabulary, in both engines**
-  (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
-  `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
-  Restrictions, property characteristics such as `owl:TransitiveProperty`,
-  annotation properties, datatypes, `owl:AllDisjointClasses` and `owl:Axiom`
-  nodes no longer inflate the count. The Rust engine and
-  `open-ontologies-lite` apply the same rule.
-
-- **The MCP `initialize` reply names the server** (#400, #398). `serverInfo`
-  reported rmcp's crate name and version (`rmcp`, `3.9.0`); it now reports
-  `open-ontologies` and the release version.
 
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;
