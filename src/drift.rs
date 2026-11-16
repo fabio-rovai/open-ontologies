@@ -256,9 +256,11 @@ impl DriftDetector {
                     for row in results {
                         if let (Some(s), Some(l)) = (row["s"].as_str(), row["l"].as_str()) {
                             let s = s.trim_matches(|c| c == '<' || c == '>');
-                            let l = l.trim_matches('"').split("^^").next().unwrap_or("").trim_matches('"');
+                            // The lexical value: a tagged label arrives as
+                            // `"Dog"@en` (#406).
+                            let l = crate::language::parse_literal(l).text;
                             if let Some(entry) = vocab.get_mut(s) {
-                                entry.label = Some(l.to_string());
+                                entry.label = Some(l);
                             }
                         }
                     }
