@@ -103,6 +103,8 @@ pub mod plugins;
 pub mod poincare;
 pub mod reason;
 pub mod reason_incremental;
+/// Durable dependencies committed with materialised inferences.
+pub mod truth_maintenance;
 /// Provenance semirings over the derivation DAG: what algebraic expression
 /// over the asserted triples a derived triple carries.
 pub mod provenance;

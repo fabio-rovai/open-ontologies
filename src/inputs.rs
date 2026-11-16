@@ -334,6 +334,8 @@ pub struct OntoRulesImportInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonInput {
+    /// Opt in to durable evidence and derivation capture. Default false.
+    pub track_derivations: Option<bool>,
     /// Reasoning profile: rdfs (default), owl-rl
     pub profile: Option<String>,
     /// If true (default), add inferred triples to the store. If false, dry-run only.
@@ -463,6 +465,9 @@ pub struct ProvenanceWeight {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoProvenanceInput {
+    /// Export the durable support ledger and an existing-format oo-cert proof
+    /// forest here. Hashes bind bytes; only oo-cert checks semantic soundness.
+    pub certificate_dir: Option<String>,
     /// The triple to annotate, as ONE N-Triples triple. Omit to get the shape
     /// of the derivation DAG with nothing annotated.
     pub triple: Option<String>,
@@ -1702,7 +1707,13 @@ pub struct OntoSupportReportInput {
 
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoReasonIncrementalInput {
+    /// Opt in to durable evidence and derivation capture. Default false.
+    pub track_derivations: Option<bool>,
+    /// Assertions to withdraw, as N-Triples. Dependency invalidation and RDF
+    /// removal commit together. May be used with an empty delta.
+    pub removed: Option<String>,
     /// The added triples as N-Triples: what to derive consequences of
+    #[serde(default)]
     pub delta: String,
     /// Write the inferences into the store (default true)
     pub materialize: Option<bool>,

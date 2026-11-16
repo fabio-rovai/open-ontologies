@@ -79,20 +79,21 @@ def test_a_run_the_checker_never_saw_carries_no_verdict(tmp_path):
     assert "entailed" not in json.dumps(report)
 
 
-def test_naming_a_checker_that_is_not_there_is_not_silently_replaced():
+def test_naming_a_checker_that_is_not_there_is_not_silently_replaced(tmp_path):
     """An explicit path does not fall through to a search. A caller who named a
     binary meant that binary, and a report about a different checker found on
     PATH would be a report about something the caller did not run."""
     env = dict(os.environ)
     env["PYTHONPATH"] = str(Path(open_ontologies_lite.__file__).parents[1])
+    missing = tmp_path / "missing-oo-horn"
     report = _run(
-        SCRIPT.format(extra=", checker='/nonexistent/oo-horn'"), env
+        SCRIPT.format(extra=f", checker={str(missing)!r}"), env
     )
     check = report["check"]
     assert check["status"] == "unchecked_no_checker"
     assert check["checked"] is False
     assert check["verdict"] is None
-    assert "/nonexistent/oo-horn" in check["how_to_get_it"]
+    assert str(missing) in check["how_to_get_it"]
     assert "entailed" not in json.dumps(report)
 
 

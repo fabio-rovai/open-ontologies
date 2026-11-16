@@ -271,14 +271,14 @@ def detect_format(path: pathlib.Path, content: str):
 
 
 def base_iri_for(path: pathlib.Path) -> str:
-    """The base the Rust loader uses: `file://` plus the canonical path.
+    """The file URI the Rust loader uses for the canonical path.
 
     `src/graph.rs::load_file` does this because a document's own location is its default
     base per RFC 3986, and without it every W3C SHACL test file, each of which names its
     own ontology with a relative IRI, fails to parse. Python must use the same string or
     the two stacks see different IRIs for the same subject.
     """
-    return "file://" + str(path.resolve())
+    return path.resolve().as_uri()
 
 
 def batch(script: str, data_dir: pathlib.Path, timeout: int):

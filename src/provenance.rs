@@ -907,6 +907,9 @@ pub fn annotate(
         "max_monomials": opts.max_monomials,
         "means": RULE_TABLE_CAVEAT,
     });
+    if let Some(ledger) = graph.ledger()? {
+        out["durable"] = ledger.explain(target_triple.as_ref());
+    }
     if !dg.fixpoint_reached {
         out["fixpoint_warning"] = serde_json::json!(
             "the reasoner stopped at its iteration cap rather than a fixpoint, so the closure is \

@@ -49,6 +49,8 @@ tower-http = { version = "0.6", features = ["cors"] }
 tokio-util = "0.7"
 tokio = { version = "1", features = ["full"] }
 oxigraph = "0.5"
+# Reuse the parser already locked by Oxigraph to journal affected update quads.
+spargebra = { git = "https://github.com/fabio-rovai/oxigraph.git", rev = "37db8e1522585ed2f9aa994be6c5c716859af5c8" }
 rusqlite = { version = "0.41", features = ["bundled"] }
 reqwest = { version = "0.12", features = ["json"] }
 schemars = "1"

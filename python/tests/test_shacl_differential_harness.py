@@ -87,7 +87,13 @@ ex:S a sh:NodeShape ; sh:targetClass ex:Thing ; sh:property [ sh:path ex:p ; sh:
 @pytest.fixture
 def engine(tmp_path):
     exe = tmp_path / "fake-engine"
-    exe.write_text(f"#!{sys.executable}\n" + FAKE_ENGINE)
+    exe.write_text(f"#!{sys.executable}\n" + FAKE_ENGINE, encoding="utf-8")
+    if os.name == "nt":
+        launcher = exe.with_suffix(".cmd")
+        launcher.write_text(
+            f'@echo off\n"{sys.executable}" "{exe}" %*\n', encoding="utf-8"
+        )
+        return launcher
     exe.chmod(0o755)
     return exe
 

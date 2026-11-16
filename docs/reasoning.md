@@ -61,6 +61,28 @@ result as a statement about the whole ontology.
 | `owl-rl-ext` | + someValuesFrom, allValuesFrom, hasValue, intersectionOf, unionOf. All 29 |
 | `owl-dl` | SHIQ tableaux: satisfiability, classification, ABox reasoning. Nominals are not implemented and datatype ranges are skipped |
 
+## Durable derivation tracking
+
+RDFS/OWL-RL materialisation can persist source evidence and rule instances with
+`reason --track-derivations` (CLI or batch), or `track_derivations: true` on the
+MCP reasoning tools. Tracking is disabled by default. Recorded dependencies
+support explicit assertion withdrawal and proof export; ordinary SPARQL DELETE
+does not automatically retract inferred triples.
+
+Tracking has a substantial cost in reasoning time and storage. In the
+maintainer's [PR #365 benchmark](https://github.com/fabio-rovai/open-ontologies/pull/365),
+release builds on LUBM1 (100,866 input triples, RDFS) took 4.4 to 6.7 seconds
+with tracking, compared with 0.41 seconds without it. The tracked store held
+694,543 metadata quads, about 5.5 per data triple after materialisation; its
+N-Quads dataset dump was about 328 MB for 126,760 data triples. These are
+workload-specific measurements, not fixed overhead ratios or performance
+guarantees. Rule applications and alternative supports determine ledger size.
+
+A tracked run rejects publication if a concurrent write changes its source
+generation. Retry against the current dataset in that case. Untracked runs
+retain the original snapshot materialisation behaviour, and updates on stores
+without a ledger use Oxigraph's native SPARQL UPDATE executor.
+
 ## Tools
 
 | Tool | Purpose |
