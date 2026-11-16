@@ -165,6 +165,13 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Clinical validation and drift detection read a tagged label by its text**
+  (#406). Both stripped quotes from the N-Triples form of the literal, so
+  `"Dog"@en` became `Dog"@en`. Clinical validation searched the crosswalk for
+  that string and reported it, and drift's label similarity scored `"Dog"@en`
+  against an untagged `"Dog"` at 0.87 instead of 1.0. Both now use
+  `language::parse_literal`, which also unescapes the value.
+
 - **`onto_embed` uses the lexical value of an RDF label** (#404). Language
   tags and escaped quotes are no longer passed to the embedding model as part
   of the label text.
