@@ -14,7 +14,6 @@ rust-version = "1.89"
 description = "AI-native ontology engine: an MCP server and CLI for building, validating, querying and reasoning over RDF and OWL, with a native SHIQ tableaux reasoner, SHACL validation and SPARQL. Single binary, no JVM."
 license = "MIT"
 repository = "https://github.com/fabio-rovai/open-ontologies"
-homepage = "https://github.com/fabio-rovai/open-ontologies"
 documentation = "https://docs.rs/open-ontologies"
 readme = "README.md"
 keywords = ["ontology", "owl", "rdf", "sparql", "mcp"]
