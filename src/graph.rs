@@ -1621,6 +1621,10 @@ impl GraphStore {
         terms: &[Term],
         scope: &ReadScope,
     ) -> anyhow::Result<Vec<Vec<std::collections::HashMap<String, String>>>> {
+        if scope.is_all_graphs() {
+            // Match the non-prebound path: the union must exclude the ledger.
+            return self.sparql_select_union_prebound(query, var, terms);
+        }
         let store = &self.store;
         let mut prepared = SparqlEvaluator::new().parse_query(query)?;
         scope.apply(prepared.dataset_mut())?;

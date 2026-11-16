@@ -211,7 +211,8 @@ All notable changes to Open Ontologies are documented here.
   the Rust `sparql_update_with_retraction` API, or HTTP `/api/update` with
   `retract_inferences: true` opt in to support-based retraction. Independent
   proofs survive withdrawal; unsupported cycles do not. The reserved ledger
-  stays outside query datasets, including `GRAPH ?g`. Dataset backups retain
+  stays outside query datasets, including `GRAPH ?g` and SHACL-SPARQL
+  constraints evaluated over all graphs. Dataset backups retain
   it, and old single-literal backups migrate on restore or persistent open.
   Provenance reports retain evidence, rule versions and withdrawal history;
   proof forests remain exportable to the existing independent oo-cert checker.
