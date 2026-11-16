@@ -555,6 +555,39 @@ fn failed_reserved_graph_updates_roll_back_the_entire_operation() {
 }
 
 #[test]
+fn union_term_queries_hide_the_ledger_and_preserve_user_named_graphs() {
+    let g = graph(":A rdfs:subClassOf :B . :x a :A .");
+    g.sparql_update(
+        "INSERT DATA { GRAPH <http://example.org/source> { <http://example.org/y> a <http://example.org/A> } }",
+    )
+    .unwrap();
+    reason(&g);
+    assert!(g.ledger().unwrap().is_some());
+
+    let rows = g
+        .sparql_select_union_terms("SELECT ?s ?p ?o WHERE { ?s ?p ?o }")
+        .unwrap();
+    assert_eq!(rows.len(), g.all_triples().unwrap().len());
+    assert!(rows.iter().any(|row| {
+        row["s"].to_string() == "<http://example.org/y>"
+            && row["o"].to_string() == "<http://example.org/A>"
+    }));
+
+    let named = g
+        .sparql_select_union_terms("SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }")
+        .unwrap();
+    assert_eq!(named.len(), 1);
+    assert_eq!(named[0]["g"].to_string(), "<http://example.org/source>");
+    assert!(
+        g.sparql_select_union_terms(&format!(
+            "SELECT ?s WHERE {{ GRAPH <{LEDGER_GRAPH}> {{ ?s ?p ?o }} }}"
+        ))
+        .unwrap()
+        .is_empty()
+    );
+}
+
+#[test]
 fn clear_all_preserves_the_reserved_ledger_and_withdraws_user_sources() {
     let g = graph(":A rdfs:subClassOf :B . :x a :A .");
     reason(&g);

@@ -70,8 +70,8 @@ pub struct OntologyRegistry {
     /// `Mutex<Option<ActiveEntry>>` — at most one entry is "active" at a time
     /// in this minimal model. Multi-slot extension is future work.
     active: Mutex<Option<ActiveEntry>>,
-    /// Per-name reload mutex to prevent thundering-herd reloads.
-    reload_lock: Mutex<()>,
+    /// Serializes graph lifecycle operations with active-slot changes.
+    lifecycle_lock: Mutex<()>,
 }
 
 impl OntologyRegistry {
@@ -83,7 +83,7 @@ impl OntologyRegistry {
             cache,
             config,
             active: Mutex::new(None),
-            reload_lock: Mutex::new(()),
+            lifecycle_lock: Mutex::new(()),
         })
     }
 
@@ -97,6 +97,14 @@ impl OntologyRegistry {
 
     /// Load an RDF file into the graph, using the compile cache when valid.
     pub fn load_file(&self, path: &str, opts: LoadOptions) -> Result<LoadResult> {
+        // Keep graph replacement and the active-slot update atomic with respect
+        // to unload/reload operations. Otherwise an unload can clear the graph
+        // while a concurrent load is still waiting to publish its active slot.
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
+        self.load_file_locked(path, opts)
+    }
+
+    fn load_file_locked(&self, path: &str, opts: LoadOptions) -> Result<LoadResult> {
         let path_obj = Path::new(path);
         if !path_obj.exists() {
             return Err(anyhow!("file not found: {}", path));
@@ -186,8 +194,8 @@ impl OntologyRegistry {
     /// If the store was evicted, reload from cache (or source on refresh).
     /// No-op if no active entry exists.
     pub fn ensure_loaded(&self) -> Result<()> {
-        // Single-flight guard.
-        let _g = self.reload_lock.lock().unwrap();
+        // Serialize graph reloads with loads, unloads and eviction.
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
 
         // Snapshot needed fields (avoid holding the active lock across reload).
         let needs_reload;
@@ -272,6 +280,7 @@ impl OntologyRegistry {
     /// Evict the active entry if idle longer than `idle_ttl_secs`.
     /// Returns `true` when an eviction took place.
     pub fn evictor_tick(&self) -> Result<bool> {
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
         if !self.config.enabled || self.config.idle_ttl_secs == 0 {
             return Ok(false);
         }
@@ -329,6 +338,11 @@ impl OntologyRegistry {
     /// Manually unload the active ontology (clear graph + drop active slot).
     /// The cache file is preserved unless `delete_cache` is true.
     pub fn unload(&self, delete_cache: bool) -> Result<Option<String>> {
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
+        self.unload_active_locked(delete_cache)
+    }
+
+    fn unload_active_locked(&self, delete_cache: bool) -> Result<Option<String>> {
         let mut active = self.active.lock().unwrap();
         let Some(name) = active.as_ref().map(|entry| entry.name.clone()) else {
             return Ok(None);
@@ -352,9 +366,10 @@ impl OntologyRegistry {
     ///
     /// Returns `Ok(true)` if anything was actually changed.
     pub fn unload_named(&self, name: &str, delete_cache: bool) -> Result<bool> {
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
         let active_name = self.active.lock().unwrap().as_ref().map(|e| e.name.clone());
         if active_name.as_deref() == Some(name) {
-            return Ok(self.unload(delete_cache)?.is_some());
+            return Ok(self.unload_active_locked(delete_cache)?.is_some());
         }
         // Not active. The graph isn't holding it, so there's nothing to clear
         // in memory. Touch the cache only if requested.
@@ -375,6 +390,11 @@ impl OntologyRegistry {
 
     /// Force recompile the active ontology from source (used by `onto_recompile`).
     pub fn recompile(&self) -> Result<LoadResult> {
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
+        self.recompile_active_locked()
+    }
+
+    fn recompile_active_locked(&self) -> Result<LoadResult> {
         let (path, name, auto_refresh) = {
             let active = self.active.lock().unwrap();
             let entry = active
@@ -382,7 +402,7 @@ impl OntologyRegistry {
                 .ok_or_else(|| anyhow!("no active ontology to recompile"))?;
             (entry.source_path.clone(), entry.name.clone(), entry.auto_refresh)
         };
-        self.load_file(
+        self.load_file_locked(
             &path,
             LoadOptions {
                 name: Some(name),
@@ -402,9 +422,10 @@ impl OntologyRegistry {
     ///   left completely untouched. This makes it safe to refresh background
     ///   ontologies without disturbing whatever is currently being queried.
     pub fn recompile_named(&self, name: &str) -> Result<LoadResult> {
+        let _lifecycle = self.lifecycle_lock.lock().unwrap();
         let active_name = self.active.lock().unwrap().as_ref().map(|e| e.name.clone());
         if active_name.as_deref() == Some(name) {
-            return self.recompile();
+            return self.recompile_active_locked();
         }
         let entry = self
             .cache

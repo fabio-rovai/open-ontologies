@@ -41,7 +41,18 @@ _PROPERTY_TYPES = (RDF_PROPERTY,) + tuple(
     for name in ("ObjectProperty", "DatatypeProperty", "AnnotationProperty")
 )
 _PROPERTY_VALUES = " ".join(f"<{iri}>" for iri in _PROPERTY_TYPES)
-_SCHEMA_TYPES = (OWL_CLASS, RDFS_CLASS) + _PROPERTY_TYPES
+# An individual has a type outside the RDF, RDFS and OWL vocabularies, or is
+# declared owl:NamedIndividual or owl:Thing. Everything else typed only from
+# those vocabularies (restrictions, property characteristics, datatypes, axiom
+# nodes) is part of the ontology's structure. Same rule as GraphStore::get_stats
+# in the Rust engine (#395).
+_INDIVIDUAL_TYPE_FILTER = (
+    "FILTER(?t IN (<http://www.w3.org/2002/07/owl#NamedIndividual>, "
+    "<http://www.w3.org/2002/07/owl#Thing>) || ("
+    '!STRSTARTS(STR(?t), "http://www.w3.org/1999/02/22-rdf-syntax-ns#") && '
+    '!STRSTARTS(STR(?t), "http://www.w3.org/2000/01/rdf-schema#") && '
+    '!STRSTARTS(STR(?t), "http://www.w3.org/2002/07/owl#")))'
+)
 
 
 def resolve_format(name: str) -> ox.RdfFormat:
@@ -122,7 +133,8 @@ class OntologyEngine:
             ),
             "individuals": self._count(
                 "SELECT (COUNT(DISTINCT ?i) AS ?n) WHERE { ?i a ?t "
-                "FILTER(?t NOT IN (" + ", ".join(f"<{iri}>" for iri in _SCHEMA_TYPES) + ")) }"
+                + _INDIVIDUAL_TYPE_FILTER
+                + " }"
             ),
         }
 

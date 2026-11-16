@@ -189,6 +189,28 @@ All notable changes to Open Ontologies are documented here.
   The CLI help and reasoning guide disclose tracking's time and storage costs,
   including the maintainer's LUBM1 measurements.
 
+- **`onto_embed` uses the lexical value of an RDF label** (#404). Language
+  tags and escaped quotes are no longer passed to the embedding model as part
+  of the label text.
+
+- **Loading an ontology and unloading another by name no longer race**
+  (#405). `unload_named` checked which ontology was active, released the
+  lock, then unloaded whatever was active by then, so a load landing in that
+  gap was cleared from the store while still marked active. Loads,
+  recompiles, reloads, eviction and unloads now take one lifecycle lock.
+
+- **`stats` counts individuals by their type vocabulary, in both engines**
+  (#399, #395). A node counts when it is typed `owl:NamedIndividual` or
+  `owl:Thing`, or has a type outside the RDF, RDFS and OWL vocabularies.
+  Restrictions, property characteristics such as `owl:TransitiveProperty`,
+  annotation properties, datatypes, `owl:AllDisjointClasses` and `owl:Axiom`
+  nodes no longer inflate the count. The Rust engine and
+  `open-ontologies-lite` apply the same rule.
+
+- **The MCP `initialize` reply names the server** (#400, #398). `serverInfo`
+  reported rmcp's crate name and version (`rmcp`, `3.9.0`); it now reports
+  `open-ontologies` and the release version.
+
 - **`onto_repo_list` reports cache and active status for the matching file**
   (#386). Multiple repository directories can contain the same filename stem;
   status flags now match the cached and active source paths instead of marking
@@ -241,10 +263,15 @@ All notable changes to Open Ontologies are documented here.
   Names that were already valid local names, including non-ASCII letters and
   a leading digit, keep the IRIs they had.
 
-- **CSV ingestion rejects a repeated header instead of dropping a column**
-  (#382). Each row became a map keyed by header, so a later column with the
-  same header overwrote the earlier one. The error names the header and its
-  column number.
+- **CSV and XLSX ingestion reject a repeated header instead of dropping a
+  column** (#382, #402). Each row became a map keyed by header, so a later
+  column with the same header overwrote the earlier one. The error names the
+  header and its column number. A blank header names no column, so blank
+  headers are not duplicates: a file whose lines end in empty columns, as
+  spreadsheet exports such as `name,,` do, still loads, with the empty
+  columns skipped and left out of the column list that mapping generation
+  reads. A value under a blank header has no name to go under and is refused
+  with its column number.
 
 - **OWL-DL reports name `owl:NegativePropertyAssertion` as unmodelled**
   (#376). The tableau never read negative property assertions, so a

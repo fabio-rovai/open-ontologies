@@ -974,6 +974,40 @@ impl GraphStore {
         self.select_with_dataset(query, true)
     }
 
+    /// Run a SELECT over the union dataset and return its RDF terms without
+    /// serialising them to display strings. Callers that consume lexical values
+    /// (for example, labels used as embedding input) must not parse RDF syntax
+    /// back out of `Term::to_string()`.
+    pub fn sparql_select_union_terms(
+        &self,
+        query: &str,
+    ) -> anyhow::Result<Vec<std::collections::HashMap<String, Term>>> {
+        let store = &self.store;
+        let mut prepared = SparqlEvaluator::new().parse_query(query)?;
+        self.union_without_ledger(prepared.dataset_mut())?;
+        let QueryResults::Solutions(solutions) = prepared.on_store(store).execute()? else {
+            anyhow::bail!("term selection needs a SELECT query");
+        };
+
+        let vars: Vec<String> = solutions
+            .variables()
+            .iter()
+            .map(|v| v.as_str().to_string())
+            .collect();
+        let mut rows = Vec::new();
+        for solution in solutions {
+            let solution = solution?;
+            let mut row = std::collections::HashMap::new();
+            for var in &vars {
+                if let Some(term) = solution.get(var.as_str()) {
+                    row.insert(var.clone(), term.clone());
+                }
+            }
+            rows.push(row);
+        }
+        Ok(rows)
+    }
+
     /// Run a SELECT once per term, with `var` pre-bound to that term, over the
     /// union dataset. Returns the solutions per term, in the order given.
     ///
@@ -1279,7 +1313,14 @@ impl GraphStore {
                 && !STRSTARTS(STR(?p), \"http://www.w3.org/2000/01/rdf-schema#\")
                 && !STRSTARTS(STR(?p), \"http://www.w3.org/2002/07/owl#\"))
         }";
-        let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE { ?i a ?c . FILTER(?c != <http://www.w3.org/2002/07/owl#Class> && ?c != <http://www.w3.org/2000/01/rdf-schema#Class> && ?c != <http://www.w3.org/2002/07/owl#ObjectProperty> && ?c != <http://www.w3.org/2002/07/owl#DatatypeProperty> && ?c != <http://www.w3.org/2002/07/owl#Ontology> && ?c != <http://www.w3.org/2002/07/owl#Restriction>) }";
+        let individual_query = "SELECT (COUNT(DISTINCT ?i) AS ?count) WHERE {
+            ?i a ?c .
+            FILTER(?c = <http://www.w3.org/2002/07/owl#NamedIndividual>
+                || ?c = <http://www.w3.org/2002/07/owl#Thing>
+                || (!STRSTARTS(STR(?c), \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\")
+                    && !STRSTARTS(STR(?c), \"http://www.w3.org/2000/01/rdf-schema#\")
+                    && !STRSTARTS(STR(?c), \"http://www.w3.org/2002/07/owl#\")))
+        }";
 
         let count_from_query = |q: &str| -> usize {
             let Ok(prepared) = SparqlEvaluator::new().parse_query(q) else { return 0 };

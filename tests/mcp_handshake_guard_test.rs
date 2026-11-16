@@ -190,3 +190,17 @@ async fn a_2026_07_28_probe_is_told_the_session_revisions_and_initialize_still_w
     assert_eq!(out[1]["id"], 2, "then the initialize reply: {:?}", out[1]);
     assert_eq!(out[1]["result"]["protocolVersion"], "2025-06-18");
 }
+
+#[tokio::test]
+async fn initialize_reports_open_ontologies_implementation_identity() {
+    let out = handshake_replies(&[INITIALIZE], 1)
+        .await
+        .expect("the initialize handshake should return a response");
+
+    assert_eq!(out[0]["id"], 2);
+    assert_eq!(out[0]["result"]["serverInfo"]["name"], "open-ontologies");
+    assert_eq!(
+        out[0]["result"]["serverInfo"]["version"],
+        env!("CARGO_PKG_VERSION")
+    );
+}

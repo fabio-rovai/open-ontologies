@@ -11,7 +11,8 @@
 //! currently-active ontology.
 
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, Barrier};
+use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -213,6 +214,65 @@ fn unload_named_active_unloads_and_optionally_deletes() {
     assert_eq!(list.len(), 2, "cache file for B should still exist");
     let b = list.iter().find(|e| e["name"] == "b").unwrap();
     assert_eq!(b["is_active"], false);
+}
+
+#[test]
+fn unload_named_does_not_unload_a_concurrently_loaded_ontology() {
+    let h = setup();
+    let start = Arc::new(Barrier::new(3));
+    let finish = Arc::new(Barrier::new(3));
+
+    let load_registry = h.registry.clone();
+    let load_start = start.clone();
+    let load_finish = finish.clone();
+    let load_path = h.path_b.clone();
+    let load_thread = thread::spawn(move || {
+        for _ in 0..64 {
+            load_start.wait();
+            load_registry
+                .load_file(load_path.to_str().unwrap(), LoadOptions::default())
+                .unwrap();
+            load_finish.wait();
+        }
+    });
+
+    let unload_registry = h.registry.clone();
+    let unload_start = start.clone();
+    let unload_finish = finish.clone();
+    let unload_thread = thread::spawn(move || {
+        for _ in 0..64 {
+            unload_start.wait();
+            unload_registry.unload_named("a", true).unwrap();
+            unload_finish.wait();
+        }
+    });
+
+    let mut failure = None;
+    for iteration in 0..64 {
+        h.registry
+            .load_file(h.path_a.to_str().unwrap(), LoadOptions::default())
+            .unwrap();
+        start.wait();
+        finish.wait();
+
+        let active_name = h
+            .registry
+            .list_cached()
+            .unwrap()
+            .into_iter()
+            .find(|entry| entry["is_active"] == true)
+            .and_then(|entry| entry["name"].as_str().map(str::to_owned));
+        if active_name.as_deref() != Some("b") || h.graph.triple_count() == 0 {
+            failure = Some(format!(
+                "iteration {iteration}: active={active_name:?}, triples={}",
+                h.graph.triple_count()
+            ));
+        }
+    }
+
+    load_thread.join().unwrap();
+    unload_thread.join().unwrap();
+    assert!(failure.is_none(), "{}", failure.unwrap_or_default());
 }
 
 #[test]
