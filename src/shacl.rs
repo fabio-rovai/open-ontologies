@@ -4,7 +4,7 @@
 use crate::graph::{GraphStore, ReadScope};
 use crate::temporal::{ScopeManifest, ScopeRequest};
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{Term, Variable};
+use oxigraph::model::{Literal, Term, Variable};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 use std::collections::{HashMap, HashSet};
@@ -2118,13 +2118,16 @@ impl ShaclValidator {
                                     if message.is_empty() {
                                         "SPARQL constraint violated".to_string()
                                     } else {
-                                        message.clone()
+                                        expand_message_template(&message, &row)
                                     }
                                 });
                                 let rdf = RdfTerms::new(
                                     constraint.get("severity").cloned(),
                                     bound_message.cloned().or_else(|| {
-                                        constraint.get("message").cloned().filter(|_| !message.is_empty())
+                                        constraint
+                                            .get("message")
+                                            .filter(|_| !message.is_empty())
+                                            .map(|raw| message_literal_with_text(raw, &msg))
                                     }),
                                 );
                                 let mut v = serde_json::json!({
@@ -3258,7 +3261,8 @@ fn attribute(
 /// `core/misc/message-001` declares `"Test message"@en`, and the language tag
 /// is gone. SHACL 3.6.2 makes `sh:resultSeverity` the shape's
 /// `sh:severity` and `sh:resultMessage` a copy of its `sh:message`, so the
-/// writer needs the terms as written. They travel inside each violation under
+/// writer needs the terms as written (with SPARQL message templates expanded).
+/// They travel inside each violation under
 /// [`crate::shacl_report::RDF_TERMS_KEY`] and the JSON renderer removes them.
 ///
 /// `message` is `None` whenever the result carries this engine's default text,
@@ -3522,6 +3526,38 @@ fn strip_quotes(s: &str) -> String {
         // out of it still needs the quotes gone.
         Err(_) => unescape_literal(s.trim_matches('"')),
     }
+}
+
+/// SHACL 5.3.2: expand `{?name}` and `{$name}` in a fallback `sh:message`.
+/// Literals use their lexical value; IRIs and blank nodes keep their RDF form.
+/// Unbound names stay as written. Only the template is scanned, so braces in
+/// an inserted value cannot trigger another substitution.
+fn expand_message_template(template: &str, row: &HashMap<String, String>) -> String {
+    let mut expanded = String::with_capacity(template.len());
+    for part in template.split_inclusive('}') {
+        if let Some((prefix, name)) = part.strip_suffix('}').and_then(|s| s.rsplit_once('{'))
+            && let Some(name) = name.strip_prefix('?').or_else(|| name.strip_prefix('$'))
+            && let Some(value) = row.get(name)
+        {
+            expanded.push_str(prefix);
+            expanded.push_str(&strip_quotes(value));
+        } else {
+            expanded.push_str(part);
+        }
+    }
+    expanded
+}
+
+/// Keep the RDF message's language tag or datatype when its text is expanded.
+fn message_literal_with_text(raw: &str, text: &str) -> String {
+    let Ok(Term::Literal(lit)) = raw.parse::<Term>() else {
+        return raw.to_string();
+    };
+    let expanded = match lit.language() {
+        Some(lang) => Literal::new_language_tagged_literal_unchecked(text, lang),
+        None => Literal::new_typed_literal(text, lit.datatype().into_owned()),
+    };
+    expanded.to_string()
 }
 
 /// Read a cardinality bound (`sh:minCount`, `sh:maxCount` and the qualified
