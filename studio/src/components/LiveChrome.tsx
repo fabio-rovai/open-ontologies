@@ -3,6 +3,7 @@ import { useEngine } from '../hooks/useEngine';
 import { useDemoStore } from '../state/demo-store';
 import { TreeView } from './TreeView';
 import { Graph3D } from './Graph3D';
+import { GraphView } from './GraphView';
 import { ChatPanel } from './ChatPanel';
 import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
@@ -25,7 +26,7 @@ import * as mcp from '../lib/mcp-client';
  */
 export function LiveChrome({ children }: { children: React.ReactNode }) {
   const [showChat, setShowChat] = useState(true);
-  const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
+  const [graphMode, setGraphMode] = useState<'2d' | 'graph' | '3d'>('2d');
   const [showInspector, setShowInspector] = useState(false);
   const [showLineage, setShowLineage] = useState(false);
   const [showGovernance, setShowGovernance] = useState(false);
@@ -156,7 +157,7 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
           <div className="w-px mx-1" style={{ background: 'var(--border)' }} />
           <div className="flex items-center rounded text-xs overflow-hidden"
                style={{ border: '1px solid var(--border)' }}>
-            {(['2d', '3d'] as const).map(m => (
+            {(['2d', 'graph', '3d'] as const).map(m => (
               <button key={m} onClick={() => setGraphMode(m)}
                       className="px-2 py-1 uppercase"
                       style={{ background: graphMode === m ? 'var(--accent)' : 'var(--bg-panel)',
@@ -196,7 +197,9 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
         <div className="flex-1 relative">
           {graphMode === '2d'
             ? <TreeView onNodeSelect={setSelectedNode} />
-            : <Graph3D graph={graph} onNodeSelect={setSelectedNode} />}
+            : graphMode === 'graph'
+              ? <GraphView onNodeSelect={setSelectedNode} selected={selectedNode} />
+              : <Graph3D graph={graph} onNodeSelect={setSelectedNode} />}
         </div>
 
         {showInspector && (
