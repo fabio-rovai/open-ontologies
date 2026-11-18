@@ -165,6 +165,15 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Incremental transitivity joins edges derived in the same run** (#416).
+  Subproperty and inverse rules could produce two connected edges without
+  their transitive consequence, while the response reported `complete: true`.
+  Targeted joins now include an in-memory index of the current run's edges
+  alongside the stored closure. Materialisation still happens after inference,
+  and tracked runs retain alternative supports and dependency-based withdrawal.
+  Regression tests cover tracked and untracked runs, multiple rounds, named
+  graphs, dry runs, batching, and withdrawal of alternative or cyclic support.
+
 - **Clinical validation and drift detection read a tagged label by its text**
   (#406). Both stripped quotes from the N-Triples form of the literal, so
   `"Dog"@en` became `Dog"@en`. Clinical validation searched the crosswalk for
