@@ -6,6 +6,26 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **SHACL property paths now translate all seven forms, not only a direct
+  IRI and `sh:inversePath`.** Sequence paths (`rdf:List`), `sh:alternativePath`,
+  `sh:zeroOrMorePath`, `sh:oneOrMorePath` and `sh:zeroOrOnePath` become SPARQL
+  1.1 property paths with the parentheses their precedence needs, instead of
+  being skipped and turning the whole report into `conforms: null`. A path
+  node is resolved by the predicate it carries, so a named IRI carrying
+  `sh:zeroOrMorePath` is read as that path and not as an edge named after the
+  node (#205); a node that is both an `rdf:List` head and carries
+  `sh:inversePath` is read as the sequence the W3C `path-strange` cases
+  expect. Cyclic lists and self-referencing nodes are refused with the reason
+  in `skipped_constraints` rather than followed. The RDF report writes the
+  full path structure (`sh:alternativePath` lists, repetition blank nodes,
+  `sh:inversePath` under a sequence) rather than only the inverse form. On the
+  W3C SHACL suite the gated column rises from PASS 62 / FAIL 15 / UNDETERMINED
+  43 to PASS 73 / FAIL 13 / UNDETERMINED 34, and the full-tuple column from
+  PASS 54 / FAIL 23 / UNDETERMINED 43 to PASS 65 / FAIL 21 / UNDETERMINED 34,
+  of 120; the eleven `core/path` cases all move to PASS. A standalone
+  `sh:PropertyShape` carrying `sh:targetClass` is now discovered as a target
+  as well.
+
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
   rmcp's Host check, which blocks DNS rebinding, has refused every `Host`
   header except `localhost`, `127.0.0.1` and `::1` with 403 since rmcp 1.4.

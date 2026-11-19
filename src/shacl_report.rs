@@ -26,6 +26,9 @@ use oxigraph::model::{BlankNode, Literal, NamedNode, NamedOrBlankNode, Term, Tri
 const SH: &str = "http://www.w3.org/ns/shacl#";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
 /// The namespace of the two non-standard terms an undetermined run carries.
 pub const OO_SHACL: &str = "https://open-ontologies.org/shacl#";
@@ -134,6 +137,78 @@ fn term(s: &str) -> anyhow::Result<Term> {
     }
 }
 
+/// The SHACL path graph for the tree the validator carried in
+/// `_rdf_terms.path_form`.
+///
+/// The JSON `path` is the display form the conformance comparator and messages
+/// read, and it deliberately has no angle brackets; that makes it impossible
+/// to parse back into SHACL's structure without guessing where an IRI ends and
+/// an operator begins. The tree is therefore passed through separately and
+/// written here: a sequence is its `rdf:List` head, an alternative is a blank
+/// node carrying `sh:alternativePath` over such a list, and every other form
+/// is a blank node carrying that one predicate to its operand.
+fn path_from_json(value: &serde_json::Value, out: &mut Vec<Triple>) -> anyhow::Result<Term> {
+    if let Some(iri) = value["predicate"].as_str() {
+        return Ok(NamedNode::new(iri)?.into());
+    }
+    if let Some(inner) = value.get("inverse") {
+        let node: NamedOrBlankNode = BlankNode::default().into();
+        let operand = path_from_json(inner, out)?;
+        out.push(Triple::new(node.clone(), sh("inversePath"), operand));
+        return Ok(node.into());
+    }
+    for (key, predicate) in [
+        ("zeroOrMore", "zeroOrMorePath"),
+        ("oneOrMore", "oneOrMorePath"),
+        ("zeroOrOne", "zeroOrOnePath"),
+    ] {
+        if let Some(inner) = value.get(key) {
+            let node: NamedOrBlankNode = BlankNode::default().into();
+            let operand = path_from_json(inner, out)?;
+            out.push(Triple::new(node.clone(), sh(predicate), operand));
+            return Ok(node.into());
+        }
+    }
+    if let Some(parts) = value["sequence"].as_array() {
+        return path_list(parts, out);
+    }
+    if let Some(parts) = value["alternative"].as_array() {
+        let node: NamedOrBlankNode = BlankNode::default().into();
+        let list = path_list(parts, out)?;
+        out.push(Triple::new(node.clone(), sh("alternativePath"), list));
+        return Ok(node.into());
+    }
+    anyhow::bail!("validator path form {value} names none of SHACL's seven path forms")
+}
+
+/// One `rdf:List` of path terms, returned as its head. The caller has already
+/// refused the empty list, so a head always exists.
+fn path_list(parts: &[serde_json::Value], out: &mut Vec<Triple>) -> anyhow::Result<Term> {
+    let mut head: Option<NamedOrBlankNode> = None;
+    let mut previous: Option<NamedOrBlankNode> = None;
+    for part in parts {
+        let cell: NamedOrBlankNode = BlankNode::default().into();
+        let item = path_from_json(part, out)?;
+        out.push(Triple::new(cell.clone(), NamedNode::new_unchecked(RDF_FIRST), item));
+        match previous.take() {
+            Some(prev) => out.push(Triple::new(prev, NamedNode::new_unchecked(RDF_REST), cell.clone())),
+            None => head = Some(cell.clone()),
+        }
+        previous = Some(cell);
+    }
+    match (head, previous) {
+        (Some(head), Some(last)) => {
+            out.push(Triple::new(
+                last,
+                NamedNode::new_unchecked(RDF_REST),
+                NamedNode::new_unchecked(RDF_NIL),
+            ));
+            Ok(head.into())
+        }
+        _ => anyhow::bail!("an empty SHACL path list has no path form"),
+    }
+}
+
 fn report_triples(report: &serde_json::Value) -> anyhow::Result<Vec<Triple>> {
     let mut out = Vec::new();
     let node: NamedOrBlankNode = BlankNode::default().into();
@@ -164,9 +239,15 @@ fn report_triples(report: &serde_json::Value) -> anyhow::Result<Vec<Triple>> {
         if let Some(f) = v["focus_node"].as_str() {
             out.push(Triple::new(r.clone(), sh("focusNode"), term(f)?));
         }
-        if let Some(p) = v["result_path"].as_str() {
-            // `^p` is how the validator prints `sh:inversePath p`, and SHACL
-            // 2.3.1 writes it as a blank node carrying that one triple.
+        let path_form = &v[RDF_TERMS_KEY]["path_form"];
+        if path_form.is_object() {
+            let path = path_from_json(path_form, &mut out)?;
+            out.push(Triple::new(r.clone(), sh("resultPath"), path));
+        } else if let Some(p) = v["result_path"].as_str() {
+            // `^p` is how a report without the tree prints `sh:inversePath p`,
+            // and SHACL 2.3.1 writes it as a blank node carrying that one
+            // triple. A compound display form has no such fallback and is
+            // refused by `term` rather than written as a pretend IRI.
             match p.strip_prefix('^') {
                 Some(inv) => {
                     let path: NamedOrBlankNode = BlankNode::default().into();

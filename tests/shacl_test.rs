@@ -220,9 +220,9 @@ fn test_shacl_has_value_violation() {
 }
 
 #[test]
-fn test_shacl_unsupported_path_skipped_not_fatal() {
-    // A sequence path is not executable; it must be reported as skipped
-    // while the rest of the shapes still run.
+fn test_shacl_sequence_path_is_executed_without_disabling_others() {
+    // A sequence path is executable now; it must not suppress the report and
+    // must not stop the shape's other property constraints from running.
     let store = make_store_with_data();
     let shapes = r#"
         @prefix sh: <http://www.w3.org/ns/shacl#> .
@@ -245,7 +245,12 @@ fn test_shacl_unsupported_path_skipped_not_fatal() {
     assert!(parsed["violations"].as_array().unwrap().iter().any(|v| {
         v["focus_node"].as_str().unwrap().contains("b2")
     }));
-    assert!(parsed["skipped_constraints"].as_array().unwrap().len() == 1);
+    assert!(
+        parsed["skipped_constraints"]
+            .as_array()
+            .is_none_or(|s| s.is_empty()),
+        "{parsed}"
+    );
 }
 
 // Regression tests for four false-clean defects found while validating the
@@ -1054,4 +1059,480 @@ fn test_shacl_range_flags_incomparable_values_not_silent_pass() {
     // The bug: incomparable values must be flagged, never silently pass.
     assert!(flagged.iter().any(|f| f.ends_with("garbage")), "non-numeric value silently passed: {flagged:?}");
     assert!(flagged.iter().any(|f| f.ends_with("dateval")), "date-vs-integer value silently passed: {flagged:?}");
+}
+
+// --- SHACL 2.3.1 property paths -------------------------------------------
+//
+// Every form is exercised through the validator and through the JSON report,
+// because a path that translates correctly in SPARQL but prints as a bare IRI
+// would still hand a consumer a `sh:resultPath` that names the wrong thing.
+
+fn validate_paths(data: &str, shapes: &str) -> serde_json::Value {
+    let store = Arc::new(GraphStore::new());
+    store.load_turtle(data, None).unwrap();
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    serde_json::from_str(&result).unwrap()
+}
+
+#[test]
+fn test_shacl_path_predicate() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+        ex:c a ex:Thing .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:c ;
+            sh:property [ sh:path ex:p ; sh:hasValue ex:b ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/c");
+    assert_eq!(violations[0]["path"], "http://example.org/p");
+}
+
+#[test]
+fn test_shacl_path_inverse() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:b ;
+            sh:property [ sh:path [ sh:inversePath ex:p ] ; sh:hasValue ex:a ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/a");
+    assert_eq!(violations[0]["path"], "^http://example.org/p");
+}
+
+#[test]
+fn test_shacl_path_sequence() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b . ex:b ex:q ex:c .
+        ex:a ex:q ex:wrong .
+        ex:d ex:p ex:e .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:d ;
+            sh:property [ sh:path ( ex:p ex:q ) ; sh:hasValue ex:c ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/d");
+    assert_eq!(
+        violations[0]["path"],
+        "(http://example.org/p/http://example.org/q)"
+    );
+}
+
+#[test]
+fn test_shacl_path_alternative() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:q ex:b .
+        ex:c a ex:Thing .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:c ;
+            sh:property [ sh:path [ sh:alternativePath ( ex:p ex:q ) ] ; sh:hasValue ex:b ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/c");
+    assert_eq!(
+        violations[0]["path"],
+        "(http://example.org/p|http://example.org/q)"
+    );
+}
+
+#[test]
+fn test_shacl_path_zero_or_more() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b . ex:b ex:p ex:c .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path [ sh:zeroOrMorePath ex:p ] ; sh:hasValue ex:c ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // Zero occurrences would reach only the focus node; the transitive value
+    // proves the translator did not collapse this to a single edge.
+    assert_eq!(parsed["conforms"], true, "{parsed}");
+    assert_eq!(parsed["violation_count"], 0);
+}
+
+#[test]
+fn test_shacl_path_one_or_more() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+        ex:c a ex:Thing .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:c ;
+            sh:property [ sh:path [ sh:oneOrMorePath ex:p ] ; sh:hasValue ex:b ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/c");
+    assert_eq!(violations[0]["path"], "(http://example.org/p)+");
+}
+
+#[test]
+fn test_shacl_path_zero_or_one() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b . ex:b ex:p ex:c .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path [ sh:zeroOrOnePath ex:p ] ; sh:hasValue ex:b ] ;
+            sh:property [ sh:path [ sh:zeroOrOnePath ex:p ] ; sh:hasValue ex:c ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // `?p` reaches b (one step) but not c (two steps).
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#HasValueConstraintComponent"
+    );
+    assert_eq!(violations[0]["path"], "(http://example.org/p)?");
+}
+
+#[test]
+fn test_shacl_path_double_inverse() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a, ex:b ;
+            sh:property [
+                sh:path [ sh:inversePath [ sh:inversePath ex:p ] ] ;
+                sh:hasValue ex:b ;
+            ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // `^^p` is not a SPARQL property path; the correct form is `^(^p)`,
+    // which reaches b from a (double inversion cancels).
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/b");
+    assert_eq!(violations[0]["path"], "^^http://example.org/p");
+}
+
+#[test]
+fn test_shacl_path_compound_qualified_value_shape() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b . ex:b ex:q ex:c .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [
+                sh:path ( ex:p ex:q ) ;
+                sh:qualifiedValueShape [ sh:class ex:C ] ;
+                sh:qualifiedMinCount 1 ;
+            ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // The qualified count must run through the translated path and report a
+    // violation; it used to splice `(p/q)` into `?focus <...> ?val` and fail
+    // the whole validation with an IRI parse error.
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["constraint"], "qualifiedMinCount");
+    assert_eq!(
+        violations[0]["path"],
+        "(http://example.org/p/http://example.org/q)"
+    );
+}
+
+#[test]
+fn test_shacl_path_nested_mixed() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:focus ex:a ex:mid .
+        ex:mid ex:b ex:target .
+        ex:other ex:c ex:focus .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:focus ;
+            sh:property [
+                sh:path [
+                    sh:alternativePath (
+                        ( ex:a ex:b )
+                        [ sh:zeroOrMorePath [ sh:inversePath ex:c ] ]
+                    )
+                ] ;
+                sh:hasValue ex:target ;
+            ] ;
+            sh:property [
+                sh:path [
+                    sh:alternativePath (
+                        ( ex:a ex:b )
+                        [ sh:zeroOrMorePath [ sh:inversePath ex:c ] ]
+                    )
+                ] ;
+                sh:hasValue ex:other ;
+            ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // The first branch reaches target, the second reaches other through ^c
+    // and through the zero-length step; both hasValue constraints must hold.
+    assert_eq!(parsed["conforms"], true, "{parsed}");
+}
+
+#[test]
+fn test_shacl_path_named_node_with_zero_or_more() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b . ex:b ex:p ex:c .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:ancestorPath sh:zeroOrMorePath ex:p .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path ex:ancestorPath ; sh:hasValue ex:c ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // A named path node used to be read as a plain predicate (#205), which
+    // looked for an edge named ex:ancestorPath and found none.
+    assert_eq!(parsed["conforms"], true, "{parsed}");
+    assert!(parsed["skipped_constraints"].as_array().is_none_or(|s| s.is_empty()));
+}
+
+#[test]
+fn test_shacl_path_sequence_wins_over_inverse_strange() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:j ex:p ex:x .
+        ex:x ex:q ex:target .
+        ex:other ex:p ex:j .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:j ;
+            sh:property [
+                sh:path [
+                    rdf:first ex:p ;
+                    rdf:rest ( ex:q ) ;
+                    sh:inversePath ex:p
+                ] ;
+                sh:hasValue ex:target ;
+            ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // A list head carrying sh:inversePath as well is a sequence path: the
+    // inverse alone would reach ex:other and miss ex:target.
+    assert_eq!(parsed["conforms"], true, "{parsed}");
+    assert_eq!(
+        parsed["violations"].as_array().map(Vec::len).unwrap_or(0),
+        0
+    );
+}
+
+#[test]
+fn test_shacl_path_cycle_is_reported_not_followed() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path _:loop ; sh:minCount 1 ] ;
+            sh:property [ sh:path ex:selfPath ; sh:minCount 1 ] .
+        _:loop rdf:first ex:p ; rdf:rest _:loop .
+        ex:selfPath sh:inversePath ex:selfPath .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // Refuse and report: a malformed path must not hang the validator and
+    // must not become a clean pass.
+    assert!(parsed["conforms"].is_null(), "{parsed}");
+    let skipped = parsed["skipped_constraints"].as_array().unwrap();
+    assert!(
+        skipped
+            .iter()
+            .any(|s| s["reason"].as_str().unwrap_or("").contains("cyclic")),
+        "{skipped:?}"
+    );
+    assert!(
+        skipped
+            .iter()
+            .any(|s| s["reason"].as_str().unwrap_or("").contains("refers to itself")),
+        "{skipped:?}"
+    );
+}
+
+#[test]
+fn test_shacl_path_repeated_form_is_refused() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path ex:pathNode ; sh:minCount 1 ] .
+        ex:pathNode sh:inversePath ex:p ;
+                    sh:inversePath ex:q .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // Two operands for one form: choosing either would validate half the
+    // declared path, so the shape is refused rather than guessed.
+    assert!(parsed["conforms"].is_null(), "{parsed}");
+    let skipped = parsed["skipped_constraints"].as_array().unwrap();
+    assert_eq!(skipped.len(), 1, "{skipped:?}");
+    let reason = skipped[0]["reason"].as_str().unwrap();
+    assert!(reason.contains("more than one sh:inversePath"), "{reason}");
+    assert!(reason.contains("http://example.org/p"), "{reason}");
+    assert!(reason.contains("http://example.org/q"), "{reason}");
+}
+
+#[test]
+fn test_shacl_path_formless_blank_node_is_refused() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [
+                sh:path [ rdf:type rdf:Property ] ;
+                sh:minCount 1
+            ] .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // A blank node with no path expression is not a predicate: rendering it
+    // as `<_b0>` would invent a SPARQL IRI that names no edge.
+    assert!(parsed["conforms"].is_null(), "{parsed}");
+    let skipped = parsed["skipped_constraints"].as_array().unwrap();
+    assert_eq!(skipped.len(), 1, "{skipped:?}");
+    let reason = skipped[0]["reason"].as_str().unwrap();
+    assert!(
+        reason.contains("blank node with no path expression"),
+        "{reason}"
+    );
+}
+
+#[test]
+fn test_shacl_path_iri_list_head_is_a_predicate() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path ex:list ; sh:minCount 1 ] .
+        ex:list rdf:first ex:p ; rdf:rest rdf:nil .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // An IRI path is a predicate path (SHACL 2.3.1 4.2.2), so the rdf:first
+    // on ex:list is not a path the shape wrote and ex:p must not be followed.
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/a");
+    assert_eq!(violations[0]["path"], "http://example.org/list");
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#MinCountConstraintComponent"
+    );
+}
+
+#[test]
+fn test_shacl_path_list_head_with_repeated_form_is_refused() {
+    let data = r#"
+        @prefix ex: <http://example.org/> .
+        ex:a ex:p ex:b .
+    "#;
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:a ;
+            sh:property [ sh:path _:list ; sh:minCount 1 ] .
+        _:list rdf:first ex:p ;
+               rdf:rest rdf:nil ;
+               sh:inversePath ex:p ;
+               sh:inversePath ex:q .
+    "#;
+    let parsed = validate_paths(data, shapes);
+    // The duplicate form is malformed even though rdf:first would otherwise
+    // let the list arm win; refuse instead of validating against one operand.
+    assert!(parsed["conforms"].is_null(), "{parsed}");
+    let skipped = parsed["skipped_constraints"].as_array().unwrap();
+    assert_eq!(skipped.len(), 1, "{skipped:?}");
+    let reason = skipped[0]["reason"].as_str().unwrap();
+    assert!(reason.contains("more than one sh:inversePath"), "{reason}");
+    assert!(reason.contains("http://example.org/p"), "{reason}");
+    assert!(reason.contains("http://example.org/q"), "{reason}");
 }
