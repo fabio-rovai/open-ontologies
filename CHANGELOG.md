@@ -192,6 +192,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's graph views keep refreshing after the 2D view is left** (#421).
+  TreeView set `window.__refreshGraph` on mount and deleted it on unmount,
+  and LiveChrome had wrapped that same global to refresh the store the 3D view
+  draws. Switching from 2D to GRAPH or 3D therefore deleted LiveChrome's
+  wrapper, and chat edits and engine reconnects refreshed nothing. Views now
+  subscribe through `onGraphChanged` in `studio/src/lib/graph-refresh.ts`, each
+  removing only its own subscription, and chat, the engine connection and the
+  Property Inspector call `notifyGraphChanged`. Inspector edits refresh the 2D
+  tree again as well as the store.
+
 - **Studio's 3D legend names the ontology live mode has loaded** (#414). The
   legend read "ies-core.ttl · 1,083 triples", and its ASSERTED row "read from
   ies-core.ttl", in both builds. That is true of the replay demo, which is

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import * as mcp from '../lib/mcp-client';
+import { notifyGraphChanged } from '../lib/graph-refresh';
 
 export interface ChatMessage {
   id: string;
@@ -122,10 +123,7 @@ listen<string>('agent-message', (event) => {
       'onto_rollback', 'onto_ingest', 'onto_extend', 'onto_import', 'onto_pull', 'onto_enrich'];
     const isMutation = (tool: string) => MUTATION_TOOLS.some(t => tool === t || tool.endsWith(`__${t}`));
 
-    const triggerGraphRefresh = (delay = 1000) => setTimeout(() => {
-      const refreshGraph = (window as unknown as Record<string, () => void>).__refreshGraph;
-      if (refreshGraph) refreshGraph();
-    }, delay);
+    const triggerGraphRefresh = (delay = 1000) => setTimeout(notifyGraphChanged, delay);
 
     if (data.type === 'tool_call') {
       if (currentAssistantMsg) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import * as mcp from '../lib/mcp-client';
+import { onGraphChanged } from '../lib/graph-refresh';
 import { useEngine } from '../hooks/useEngine';
 
 interface TreeViewProps {
@@ -197,7 +198,7 @@ export function TreeView({ onNodeSelect }: TreeViewProps) {
   const [versionStack, setVersionStack] = useState<string[]>([]);
   const [undoInProgress, setUndoInProgress] = useState(false);
   const [langFilter, setLangFilter] = useState<string>('en');
-  // `loadTree` is published as `window.__refreshGraph` and re-runs after every
+  // `loadTree` is subscribed through `onGraphChanged` and re-runs after every
   // mutation, so it must not close over `langFilter`: with the value captured in
   // its dependency array it would rebuild every label at the mount-time locale
   // while the selected chip stayed highlighted, and the `[langFilter]` relabel
@@ -423,10 +424,8 @@ SELECT ?prop ?propLabel ?target ?targetLabel ?dir WHERE {
   }, [selectedId]);
 
   useEffect(() => { if (status === 'connected') loadTree(); }, [status, loadTree]);
-  useEffect(() => {
-    (window as unknown as Record<string, unknown>).__refreshGraph = loadTree;
-    return () => { delete (window as unknown as Record<string, unknown>).__refreshGraph; };
-  }, [loadTree]);
+  // Its own registration, removed on unmount without touching LiveChrome's (#421).
+  useEffect(() => onGraphChanged(loadTree), [loadTree]);
 
   // Relabel tree when language filter changes, no re-query needed
   useEffect(() => {
