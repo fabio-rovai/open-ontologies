@@ -192,6 +192,30 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`reason --certificate` writes the same `derivations.tsv` on every run over
+  the same store** (#427). The conclusions were always the same set, but the
+  premises a step recorded (which intermediate class justifies a transitive
+  `rdfs11` step) and the order of the lines changed from run to run: the
+  fixpoint walked its closure as a `HashSet` and recorded the first derivation
+  it met, so three runs over `benchmark/reference/ies-core.ttl` wrote three
+  different files. Every rule now walks a sorted copy of the closure, kept
+  sorted by merging each round's new triples into it, which is how `run_horn`
+  already kept `horn.tsv` stable, so the first derivation met is a function of
+  the store. All three profiles had the defect and all three are fixed. The
+  derivation DAG `onto_justify` and `onto_provenance` read, the derivation
+  prefix of a `refutation.tsv` and `sample_inferences` follow the same order.
+  Over the tracked corpus (307 files, three profiles, 921 certificates) the old
+  binary wrote different bytes on two runs for 139 certificates and the fixed
+  one for none, with the same conclusion set and line count as before for all
+  921. It is faster, not slower: on LUBM(10) with a certificate, owl-rl-ext
+  reasons in 6.3 s against 8.4 s, owl-rl in 4.4 s against 5.2 s and rdfs in
+  3.3 s against 3.9 s. A file with anonymous blank nodes is still a new store
+  on each load, because the parser mints fresh labels for them. The
+  `onto_justify` caveat about its one non-monotone corner now says the value
+  read is chosen by the engine's term numbering, not by hash order.
+  `tests/certificate_determinism_test.rs` certifies one store three times in
+  three processes, under each profile, and requires identical bytes.
+
 - **The replay demo's 3D legend is true of the graph under it** (#425). The
   legend reads "ies-core.ttl · 1,083 triples" and names three warrants
   (asserted, certified under `OOCert.certificate_sound`, forged and refused),

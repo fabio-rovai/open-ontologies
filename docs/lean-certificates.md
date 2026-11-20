@@ -951,10 +951,15 @@ Stated rather than discovered later.
   with twenty disjointness clashes gets one `refutation.tsv`. `clash_count` and `by_rule` carry the
   rest; ten are listed in full under `clashes`. Refuting a graph once is enough to invalidate every
   derivation over it, so a second refutation would add nothing.
-- **The refutation's derivation prefix is not byte-stable across runs.** Which of several valid
-  derivations of a premise the fixpoint recorded first depends on the same hash iteration order that
-  already decides the line order of `derivations.tsv`. The contradiction itself IS stable: clashes
-  are sorted on their N-Triples spelling before one is chosen.
+- **A certificate is byte-stable over one store, and a file with anonymous blank nodes is a new
+  store on every load.** Which of several valid derivations of a triple the fixpoint records, and
+  the line order of `derivations.tsv` and of a refutation's derivation prefix, follow the engine's
+  term numbering, which follows store order (#427; it was hash order before). Two runs over one
+  store write the same bytes. Loading a file again is not the same store when the file has anonymous
+  blank nodes (`[ ]`, a `( )` list, an RDF/XML node with neither `rdf:about` nor `rdf:nodeID`),
+  because the parser mints fresh labels for them, so its `asserted.tsv` and everything after it
+  differ. The contradiction a refutation names is sorted on its N-Triples spelling before one is
+  chosen.
 - **A SHACL report double-counts a node selected by two target declarations of one shape.** Both
   `focus_nodes` and `violation_count` are affected. Collapsing identical results is not the fix:
   SHACL emits one result per SPARQL solution, pyshacl does too, and deduplicating breaks an exact

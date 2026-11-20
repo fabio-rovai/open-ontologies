@@ -278,10 +278,10 @@ def main() -> None:
                     "derivations": len(derivations),
                     "by_rule": dict(sorted(by_rule.items())),
                     "asserted_sha256": sha256(b_dir / "asserted.tsv"),
-                    # Not the digest of derivations.tsv itself: the engine
-                    # records a different premise for some rdfs11 steps, in a
-                    # different order, on every run (#427). The conclusions
-                    # are the same set every time, so this digests those.
+                    # The digest of each step's rule and conclusion, sorted,
+                    # not of derivations.tsv itself, so this record does not
+                    # depend on the order the engine writes its lines in or
+                    # on which premises it records for a step.
                     "conclusions_sha256": hashlib.sha256("".join(
                         sorted("\t".join(r[:4]) + "\n" for r in derivations)).encode()).hexdigest(),
                     "oo_cert": {"exit": 0, "ok": True, "theorem": cert["theorem"]},

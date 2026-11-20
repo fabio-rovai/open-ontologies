@@ -48,8 +48,9 @@
 //! assumed away. `owl:onProperty`, `owl:someValuesFrom`, `owl:allValuesFrom`
 //! and `owl:hasValue` are read into maps keyed by the restriction node, and
 //! `rdf:first` / `rdf:rest` likewise, so a node carrying TWO values for one of
-//! them contributes only one, chosen by hash order. Removing a triple can
-//! therefore change which value is read rather than only removing
+//! them contributes only one: the value the engine's term numbering puts last,
+//! which follows store order and no longer hash order (#427). Removing a
+//! triple can therefore change which value is read rather than only removing
 //! consequences. Where that bites, the hitting-set tree may miss a
 //! justification; it cannot report a false one, because every reported set is
 //! verified by re-running the engine over it and over each of its subsets.
@@ -645,9 +646,9 @@ pub fn justify(
                 "the hitting-set tree closed without hitting a bound, so under Reiter's \
                  construction this is EVERY justification, provided the oracle is monotone. This \
                  engine has one non-monotone corner: a restriction node or list node carrying two \
-                 values for a functional position contributes one, chosen by hash order. Where \
-                 that occurs a justification can be missed. No listed justification can be \
-                 wrong, because each was re-run"
+                 values for a functional position contributes one, chosen by the engine's term \
+                 numbering rather than by the ontology. Where that occurs a justification can \
+                 be missed. No listed justification can be wrong, because each was re-run"
             );
         }
     }

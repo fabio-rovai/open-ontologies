@@ -68,9 +68,9 @@ and still minimal, both re-run. It is an incomplete one, and it says so.
 Reiter's construction is complete for a monotone oracle. The rule table is monotone, in that no rule reads
 the ABSENCE of a triple, but two places in `src/reason.rs` are not. `owl:onProperty`,
 `owl:someValuesFrom`, `owl:allValuesFrom`, `owl:hasValue`, `rdf:first` and `rdf:rest` are read into
-maps keyed by the node, so a node carrying TWO values for one of them contributes one, chosen by
-hash order. Removing a triple can therefore change which value is read rather than only removing
-consequences.
+maps keyed by the node, so a node carrying TWO values for one of them contributes one: the value the
+engine's term numbering puts last, which follows store order (it was hash order until #427). Removing
+a triple can therefore change which value is read rather than only removing consequences.
 
 Where that bites, the tree can MISS a justification. It cannot report a false one, because every
 reported set is verified by re-running the engine over it and over each of its subsets.

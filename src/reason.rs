@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Fabio Rovai
 // SPDX-License-Identifier: MIT
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
 use crate::graph::GraphStore;
@@ -352,8 +352,15 @@ fn literal_is_zero(term: &str) -> bool {
 ///
 /// Deterministic: the result is sorted on the N-Triples spelling of the
 /// premises and duplicates are dropped, so two runs over one store produce the
-/// same refutation file byte for byte.
-fn find_clashes(closure: &HashSet<Fact>, interner: &Interner, v: &ClashVocab) -> Vec<Clash> {
+/// same refutation file byte for byte. `sorted` is `closure` in id order, the
+/// fixpoint's own sorted copy, and is what the indices are built from; the set
+/// answers membership.
+fn find_clashes(
+    closure: &HashSet<Fact>,
+    sorted: &[Fact],
+    interner: &Interner,
+    v: &ClashVocab,
+) -> Vec<Clash> {
     // One pass for every index, because the closure is the large thing here.
     let mut by_class: HashMap<u32, Vec<u32>> = HashMap::new();
     let mut disjoint: Vec<Fact> = Vec::new();
@@ -368,7 +375,10 @@ fn find_clashes(closure: &HashSet<Fact>, interner: &Interner, v: &ClashVocab) ->
     let mut npa_prop: HashMap<u32, u32> = HashMap::new();
     let mut npa_target_ind: HashMap<u32, u32> = HashMap::new();
     let mut npa_target_val: HashMap<u32, u32> = HashMap::new();
-    for &(s, p, o) in closure.iter() {
+    // Walked in sorted order, not hash order: the result is sorted below, but a
+    // node carrying two values for one of the single-valued maps here keeps
+    // the later one, and that has to be the same one on every run.
+    for &(s, p, o) in sorted {
         if p == v.rdf_type {
             by_class.entry(o).or_default().push(s);
             if o == v.irreflexive {
@@ -454,7 +464,7 @@ fn find_clashes(closure: &HashSet<Fact>, interner: &Interner, v: &ClashVocab) ->
     // and the scan is skipped entirely when none of their vocabulary is
     // present, which is the case for every ontology this repository ships.
     if !irreflexive.is_empty() || !asymmetric.is_empty() || !prop_disjoint.is_empty() {
-        for &(x, p, y) in closure.iter() {
+        for &(x, p, y) in sorted {
             // prp-irp: p rdf:type owl:IrreflexiveProperty, x p x.
             if x == y && irreflexive.contains(&p) {
                 out.push(Clash {
@@ -487,7 +497,7 @@ fn find_clashes(closure: &HashSet<Fact>, interner: &Interner, v: &ClashVocab) ->
     // none of it.
     if !max_zero.is_empty() {
         let mut values: HashMap<(u32, u32), Vec<u32>> = HashMap::new();
-        for &(s, p, o) in closure.iter() {
+        for &(s, p, o) in sorted {
             values.entry((s, p)).or_default().push(o);
         }
         for &(r, zero) in &max_zero {
@@ -1320,6 +1330,32 @@ impl Interner {
     }
 }
 
+/// Merge a round's new facts into the sorted closure, in place.
+///
+/// `all` is sorted and `added` holds facts `all` does not, so this is one merge
+/// from the back rather than a sort of the whole closure: a round costs time
+/// linear in the closure here, and nothing is reallocated beyond the growth.
+fn merge_sorted(all: &mut Vec<Fact>, mut added: Vec<Fact>) {
+    if added.is_empty() {
+        return;
+    }
+    added.sort_unstable();
+    let mut i = all.len();
+    let mut j = added.len();
+    all.extend_from_slice(&added);
+    let mut k = all.len();
+    while j > 0 {
+        k -= 1;
+        if i > 0 && all[i - 1] > added[j - 1] {
+            all[k] = all[i - 1];
+            i -= 1;
+        } else {
+            all[k] = added[j - 1];
+            j -= 1;
+        }
+    }
+}
+
 /// OWL2-RL reasoner using interned u32 triples and fixpoint iteration.
 ///
 /// Profiles:
@@ -1768,6 +1804,18 @@ impl Reasoner {
         // ── Fixpoint iteration ──────────────────────────────────────
         let mut triple_set: HashSet<Fact> = facts.iter().copied().collect();
         let initial_size = triple_set.len();
+        // The same closure, SORTED, and it is what every rule below walks
+        // (#427). Which derivation of a triple the certificate records is the
+        // first one a rule meets, and the lines are written in the order they
+        // are met, so walking `triple_set` made both of them the hash seed's
+        // choice: the same store gave the same conclusions on every run, with
+        // different premises (which intermediate class justifies an rdfs11
+        // step) and in a different order. Interned ids are numbered in store
+        // order, so an order on the ids is a function of the store alone, and
+        // `run_horn` gets a deterministic `horn.tsv` the same way. The set
+        // stays, for membership, which is all a hash set is good for here.
+        let mut all: Vec<Fact> = triple_set.iter().copied().collect();
+        all.sort_unstable();
         let mut iterations = 0;
         // Which of the two break conditions ended the loop. A run that stopped
         // at the cap has a closure that is a LOWER BOUND, and every consumer
@@ -1829,32 +1877,40 @@ impl Reasoner {
             // in one run is what makes a single certificate the whole story.
             //
             // The cost is a constant factor on a scan the loop already does.
-            let domain_map: Vec<(u32, u32)> = triple_set.iter()
+            //
+            // Every index is a filter of `all`, so each comes out sorted and
+            // every rule that walks one meets its candidates in id order.
+            let domain_map: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == rdfs_domain)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let range_map: Vec<(u32, u32)> = triple_set.iter()
+            let range_map: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == rdfs_range)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let transitive_set: HashSet<u32> = triple_set.iter()
+            let transitive_set: Vec<u32> = all.iter()
                 .filter(|&&(_, p, o)| p == rdf_type && o == owl_transitive)
                 .map(|&(s, _, _)| s).collect();
-            let symmetric_set: HashSet<u32> = triple_set.iter()
+            let symmetric_set: Vec<u32> = all.iter()
                 .filter(|&&(_, p, o)| p == rdf_type && o == owl_symmetric)
                 .map(|&(s, _, _)| s).collect();
-            let inverse_pairs: Vec<(u32, u32)> = triple_set.iter()
+            let inverse_pairs: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == owl_inverse)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let equiv_class: Vec<(u32, u32)> = triple_set.iter()
+            let equiv_class: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == owl_equiv_class)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let equiv_prop: Vec<(u32, u32)> = triple_set.iter()
+            let equiv_prop: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == owl_equiv_prop)
                 .map(|&(s, _, o)| (s, o)).collect();
 
             // OWL restriction structures and RDF lists (owl-rl-ext only).
+            //
+            // The three maps the rule lists are read OUT of are ordered maps,
+            // so the lists come out in restriction order. A restriction with
+            // two values for one of these properties is malformed and the
+            // later one in `all` wins, which is now the same one on every run.
             let mut restr_prop: HashMap<u32, u32> = HashMap::new();
-            let mut restr_svf: HashMap<u32, u32> = HashMap::new();
-            let mut restr_hv: HashMap<u32, u32> = HashMap::new();
+            let mut restr_svf: BTreeMap<u32, u32> = BTreeMap::new();
+            let mut restr_hv: BTreeMap<u32, u32> = BTreeMap::new();
             let mut intersection_classes: Vec<(u32, u32, Vec<Fact>, Vec<u32>)> = Vec::new();
             let mut union_classes: Vec<(u32, u32, Vec<Fact>, Vec<u32>)> = Vec::new();
             let mut oneof_classes: Vec<(u32, u32, Vec<Fact>, Vec<u32>)> = Vec::new();
@@ -1862,8 +1918,8 @@ impl Reasoner {
             let mut hv_rules: Vec<(u32, u32, u32)> = Vec::new();
             let mut avf_rules: Vec<(u32, u32, u32)> = Vec::new();
             if include_ext {
-                let mut restr_avf: HashMap<u32, u32> = HashMap::new();
-                for &(s, p, o) in triple_set.iter() {
+                let mut restr_avf: BTreeMap<u32, u32> = BTreeMap::new();
+                for &(s, p, o) in all.iter() {
                     if p == owl_on_property { restr_prop.insert(s, o); }
                     if p == owl_some_values { restr_svf.insert(s, o); }
                     if p == owl_all_values { restr_avf.insert(s, o); }
@@ -1887,10 +1943,10 @@ impl Reasoner {
                 // no longer derives from one either; deriving less from
                 // malformed input is the sound direction. Each entry keeps the
                 // head node and the chain triples so a certificate can cite them.
-                let first_map: HashMap<u32, u32> = triple_set.iter()
+                let first_map: HashMap<u32, u32> = all.iter()
                     .filter(|&&(_, p, _)| p == rdf_first)
                     .map(|&(s, _, o)| (s, o)).collect();
-                let rest_map: HashMap<u32, u32> = triple_set.iter()
+                let rest_map: HashMap<u32, u32> = all.iter()
                     .filter(|&&(_, p, _)| p == rdf_rest)
                     .map(|&(s, _, o)| (s, o)).collect();
                 let walk_list = |head: u32| -> Option<(Vec<Fact>, Vec<u32>)> {
@@ -1911,7 +1967,7 @@ impl Reasoner {
                     }
                     None
                 };
-                for &(s, p, o) in triple_set.iter() {
+                for &(s, p, o) in all.iter() {
                     if p == owl_intersection
                         && let Some((chain, items)) = walk_list(o)
                         && !items.is_empty()
@@ -1934,13 +1990,13 @@ impl Reasoner {
             }
 
             // Build per-iteration indices
-            let type_idx: Vec<(u32, u32)> = triple_set.iter()
+            let type_idx: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == rdf_type)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let subclass_idx: Vec<(u32, u32)> = triple_set.iter()
+            let subclass_idx: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == rdfs_subclass)
                 .map(|&(s, _, o)| (s, o)).collect();
-            let subprop_idx: Vec<(u32, u32)> = triple_set.iter()
+            let subprop_idx: Vec<(u32, u32)> = all.iter()
                 .filter(|&&(_, p, _)| p == rdfs_subprop)
                 .map(|&(s, _, o)| (s, o)).collect();
 
@@ -2070,7 +2126,7 @@ impl Reasoner {
 
             // rdfs2: s p o, p domain class → s type class
             for &(prop, cls) in &domain_map {
-                for &(s, p, o) in triple_set.iter() {
+                for &(s, p, o) in all.iter() {
                     if p == prop {
                         emit(Fired::Bound(Rl::Rdfs2, &[s, p, o, cls]));
                     }
@@ -2079,7 +2135,7 @@ impl Reasoner {
 
             // rdfs3: s p o, p range class → o type class (IRI only)
             for &(prop, cls) in &range_map {
-                for &(s, p, o) in triple_set.iter() {
+                for &(s, p, o) in all.iter() {
                     // The guard has to exclude LITERALS, which cannot be the
                     // subject of the conclusion, and nothing else. Requiring an
                     // IRI also dropped every range inference onto a blank node,
@@ -2110,7 +2166,7 @@ impl Reasoner {
             // rdfs7: s sub o, sub subPropertyOf super → s super o
             for &(sub, sup) in &subprop_idx {
                 if sub != sup {
-                    for &(s, p, o) in triple_set.iter() {
+                    for &(s, p, o) in all.iter() {
                         if p == sub {
                             emit(Fired::Bound(Rl::Rdfs7, &[s, sub, o, sup]));
                         }
@@ -2133,7 +2189,7 @@ impl Reasoner {
             if include_owl {
                 // prp-trp: x P y, y P z → x P z
                 for &tp in &transitive_set {
-                    let pairs: Vec<(u32, u32)> = triple_set.iter()
+                    let pairs: Vec<(u32, u32)> = all.iter()
                         .filter(|&&(_, p, _)| p == tp)
                         .map(|&(s, _, o)| (s, o)).collect();
                     let mut by_subj: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -2153,7 +2209,7 @@ impl Reasoner {
 
                 // prp-symp: s P o → o P s
                 for &sp in &symmetric_set {
-                    for &(s, p, o) in triple_set.iter() {
+                    for &(s, p, o) in all.iter() {
                         if p == sp && !is_literal(o) {
                             emit(Fired::Bound(Rl::PrpSymp, &[sp, s, o]));
                         }
@@ -2162,7 +2218,7 @@ impl Reasoner {
 
                 // prp-inv1, prp-inv2: s P o, P inverseOf Q → o Q s (both directions)
                 for &(p, q) in &inverse_pairs {
-                    for &(s, pred, o) in triple_set.iter() {
+                    for &(s, pred, o) in all.iter() {
                         if is_literal(o) {
                             continue;
                         }
@@ -2176,7 +2232,7 @@ impl Reasoner {
                 }
 
                 // eq-sym: sameAs symmetry
-                for &(s, p, o) in triple_set.iter() {
+                for &(s, p, o) in all.iter() {
                     if p == owl_sameas && !is_literal(o) {
                         emit(Fired::Bound(Rl::EqSym, &[s, o]));
                     }
@@ -2272,12 +2328,6 @@ impl Reasoner {
 
             // ── OWL-RL extended (someValuesFrom, hasValue, intersection, union)
             if include_ext {
-                // Build type lookup: instance → set of classes
-                let mut inst_types: HashMap<u32, HashSet<u32>> = HashMap::new();
-                for &(x, cls) in &type_idx {
-                    inst_types.entry(x).or_default().insert(cls);
-                }
-
                 // cls-svf1: x P y, y type filler, restriction(P, svf=filler)
                 //           → x type restriction
                 //
@@ -2294,7 +2344,7 @@ impl Reasoner {
                 //     object position is a resource, not an instance of
                 //     itself.
                 for &(prop, filler, restr) in &svf_rules {
-                    let prop_pairs: Vec<(u32, u32)> = triple_set.iter()
+                    let prop_pairs: Vec<(u32, u32)> = all.iter()
                         .filter(|&&(_, p, _)| p == prop)
                         .map(|&(s, _, o)| (s, o)).collect();
 
@@ -2325,7 +2375,7 @@ impl Reasoner {
                     if in_restr.is_empty() {
                         continue;
                     }
-                    for &(x, p, y) in triple_set.iter() {
+                    for &(x, p, y) in all.iter() {
                         if p == prop && in_restr.contains(&x) {
                             emit(Fired::Bound(Rl::ClsAvf, &[restr, prop, filler, x, y]));
                         }
@@ -2352,7 +2402,7 @@ impl Reasoner {
                             emit(Fired::Bound(Rl::ClsHv1, &[restr, prop, val, x]));
                         }
                     }
-                    for &(s, p, o) in triple_set.iter() {
+                    for &(s, p, o) in all.iter() {
                         if p == prop && o == val {
                             emit(Fired::Bound(Rl::ClsHv2, &[restr, prop, val, s]));
                         }
@@ -2457,9 +2507,20 @@ impl Reasoner {
                 }
 
                 // cls-int1: x type ALL members → x type intersection class
+                //
+                // An instance's classes are one run of `type_idx`, which is a
+                // filter of `all` and so sorted on (instance, class): the runs
+                // come in instance order and each is sorted on the class, which
+                // is what the membership test binary-searches. This used to be
+                // a hash map of hash sets, rebuilt every round and walked in
+                // hash order.
                 for (cls, head, chain, members) in &intersection_classes {
-                    for (&x, x_types) in &inst_types {
-                        if members.iter().all(|m| x_types.contains(m)) {
+                    for x_types in type_idx.chunk_by(|a, b| a.0 == b.0) {
+                        let x = x_types[0].0;
+                        if members
+                            .iter()
+                            .all(|m| x_types.binary_search_by_key(m, |&(_, c)| c).is_ok())
+                        {
                             let premises: Vec<Fact> = if certify {
                                 let mut v = vec![(*cls, owl_intersection, *head)];
                                 v.extend(chain.iter().copied());
@@ -2539,14 +2600,18 @@ impl Reasoner {
             }
 
             // Insert new triples (dedup against existing)
+            let mut added: Vec<Fact> = Vec::new();
             for t in new {
-                triple_set.insert(t);
+                if triple_set.insert(t) {
+                    added.push(t);
+                }
             }
 
             if triple_set.len() == before {
                 fixpoint_reached = true;
                 break;
             }
+            merge_sorted(&mut all, added);
             if iterations >= crate::runtime::reasoner_max_iterations() {
                 break;
             }
@@ -2559,7 +2624,7 @@ impl Reasoner {
 
         // Sample
         let original: HashSet<Fact> = facts.iter().copied().collect();
-        let sample: Vec<String> = triple_set.iter()
+        let sample: Vec<String> = all.iter()
             .filter(|t| !original.contains(t))
             .filter(|&&(_, p, _)| p == rdf_type)
             .take(10)
@@ -2722,7 +2787,7 @@ impl Reasoner {
         // The clash rules, looked for over the closure the fixpoint reached.
         // The key appears only when something was found, so a run over a graph
         // with no clash is byte for byte the run it always was.
-        let clashes = find_clashes(&triple_set, &interner, &clash_vocab);
+        let clashes = find_clashes(&triple_set, &all, &interner, &clash_vocab);
         if !clashes.is_empty() {
             let show = |t: &Fact| {
                 serde_json::json!([
@@ -4016,6 +4081,27 @@ mod boundary_tests {
         ) {
             let p = if is_var { Pat::Var(name) } else { Pat::Const(c) };
             prop_assert_eq!(pat_of(&p.render()), Some(p));
+        }
+    }
+
+    proptest! {
+        /// The fixpoint keeps its sorted closure by merging each round in
+        /// (#427), and every rule walks that closure, so a merge that lost,
+        /// duplicated or misplaced a fact would change what is derived and in
+        /// what order. It must equal sorting the union.
+        #[test]
+        fn merging_a_round_in_equals_sorting_the_union(
+            facts in proptest::collection::btree_set((0u32..6, 0u32..4, 0u32..6), 0..60),
+            split in any::<u64>(),
+        ) {
+            let facts: Vec<Fact> = facts.into_iter().collect();
+            let (mut all, mut added) = (Vec::new(), Vec::new());
+            for (i, &f) in facts.iter().enumerate() {
+                if (split >> (i % 64)) & 1 == 0 { all.push(f) } else { added.push(f) }
+            }
+            added.reverse();
+            merge_sorted(&mut all, added);
+            prop_assert_eq!(all, facts);
         }
     }
 }
