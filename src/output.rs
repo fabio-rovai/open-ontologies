@@ -21,6 +21,19 @@
 
 use serde_json::Value;
 
+/// `{"error": "<message>"}` as JSON text, with the message escaped.
+///
+/// Call sites used to write `format!(r#"{{"error":"{}"}}"#, e)`, which is
+/// invalid JSON whenever the message carries a double quote, a backslash or a
+/// newline: a parse error quoting the offending character, a format name the
+/// caller supplied, any Windows path. The REST routes then parsed their own
+/// output, failed and answered `null`; the CLI printed the broken text and,
+/// where the exit code is read from the `error` key, exited 0; batch kept it
+/// only as `{"raw": ...}` (#420).
+pub fn error_json(message: impl std::fmt::Display) -> String {
+    serde_json::json!({ "error": message.to_string() }).to_string()
+}
+
 /// The whole human-readable text for one command's result.
 pub type Renderer = fn(&Value) -> String;
 

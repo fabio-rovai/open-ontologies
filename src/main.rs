@@ -2563,7 +2563,7 @@ async fn async_main() -> anyhow::Result<()> {
                     let g = sg_stats.clone();
                     async move {
                         axum::Json(serde_json::from_str::<serde_json::Value>(
-                            &g.get_stats().unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+                            &g.get_stats().unwrap_or_else(open_ontologies::output::error_json)
                         ).unwrap_or_default())
                     }
                 }))
@@ -2572,7 +2572,7 @@ async fn async_main() -> anyhow::Result<()> {
                     async move {
                         let query = body.0["query"].as_str().unwrap_or("").to_string();
                         axum::Json(serde_json::from_str::<serde_json::Value>(
-                            &g.sparql_select(&query).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+                            &g.sparql_select(&query).unwrap_or_else(open_ontologies::output::error_json)
                         ).unwrap_or_default())
                     }
                 }))
@@ -2583,7 +2583,7 @@ async fn async_main() -> anyhow::Result<()> {
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.sparql_update_with_retraction(&query, body.0["retract_inferences"].as_bool().unwrap_or(false)) {
                                 Ok(n)  => format!(r#"{{"ok":true,"affected":{}}}"#, n),
-                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                                Err(e) => open_ontologies::output::error_json(e),
                             }
                         ).unwrap_or_default())
                     }
@@ -2596,7 +2596,7 @@ async fn async_main() -> anyhow::Result<()> {
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.load_file(&path) {
                                 Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
-                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                                Err(e) => open_ontologies::output::error_json(e),
                             }
                         ).unwrap_or_default())
                     }
@@ -2609,7 +2609,7 @@ async fn async_main() -> anyhow::Result<()> {
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.load_turtle(&turtle, base.as_deref()) {
                                 Ok(n)  => format!(r#"{{"ok":true,"triples_loaded":{}}}"#, n),
-                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                                Err(e) => open_ontologies::output::error_json(e),
                             }
                         ).unwrap_or_default())
                     }
@@ -2622,8 +2622,8 @@ async fn async_main() -> anyhow::Result<()> {
                         let path = open_ontologies::config::expand_tilde(&path);
                         axum::Json(serde_json::from_str::<serde_json::Value>(
                             &match g.save_file(&path, &format) {
-                                Ok(_)  => format!(r#"{{"ok":true,"path":"{}"}}"#, path),
-                                Err(e) => format!(r#"{{"error":"{}"}}"#, e),
+                                Ok(_)  => serde_json::json!({ "ok": true, "path": path }).to_string(),
+                                Err(e) => open_ontologies::output::error_json(e),
                             }
                         ).unwrap_or_default())
                     }
@@ -2989,7 +2989,7 @@ async fn async_main() -> anyhow::Result<()> {
             let (_db, graph) = setup(&cli.data_dir)?;
             let stats_json = graph
                 .get_stats()
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&stats_json, cli.pretty);
         }
         Commands::Query { query } => {
@@ -3003,7 +3003,7 @@ async fn async_main() -> anyhow::Result<()> {
             };
             let result = graph
                 .sparql_select(&query_str)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::Diff { old_path, new_path } => {
@@ -3025,7 +3025,7 @@ async fn async_main() -> anyhow::Result<()> {
             let old = read(&old_path);
             let new = read(&new_path);
             let result = OntologyService::diff(&old, &new)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_checked(&result, cli.pretty);
         }
         Commands::Defects { input, limit } => {
@@ -3069,7 +3069,7 @@ async fn async_main() -> anyhow::Result<()> {
                 std::process::exit(1);
             }
             let result = Defects::check_with_limit(&graph, limit)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_checked(&result, cli.pretty);
         }
         Commands::CompileExceptions { input, out } => {
@@ -3193,7 +3193,7 @@ async fn async_main() -> anyhow::Result<()> {
                 }
             };
             let result = OntologyService::lint_with_feedback(&content, Some(&db))
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_checked(&result, cli.pretty);
         }
         Commands::Convert { path, to, output } if open_ontologies::ofn_writer::is_ofn_format(&to) => {
@@ -3446,21 +3446,21 @@ async fn async_main() -> anyhow::Result<()> {
             use open_ontologies::ontology::OntologyService;
             let (db, graph) = setup(&cli.data_dir)?;
             let result = OntologyService::save_version(&db, &graph, &label)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::History => {
             use open_ontologies::ontology::OntologyService;
             let (db, _graph) = setup(&cli.data_dir)?;
             let result = OntologyService::list_versions(&db)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::Rollback { label } => {
             use open_ontologies::ontology::OntologyService;
             let (db, graph) = setup(&cli.data_dir)?;
             let result = OntologyService::rollback_version(&db, &graph, &label)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
 
@@ -3657,7 +3657,7 @@ async fn async_main() -> anyhow::Result<()> {
             let (_db, graph) = setup(&cli.data_dir)?;
             let data_content = std::fs::read_to_string(&data)?;
             let result = open_ontologies::vocab_check::check_data_vocab(&graph, &data_content, &[])
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_checked(&result, cli.pretty);
         }
         Commands::Reason {
@@ -3932,7 +3932,7 @@ async fn async_main() -> anyhow::Result<()> {
                 let shapes_content = std::fs::read_to_string(shapes_path)?;
                 Some(
                     ShaclValidator::validate(&graph, &shapes_content)
-                        .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e)),
+                        .unwrap_or_else(open_ontologies::output::error_json),
                 )
             } else {
                 None
@@ -3941,7 +3941,7 @@ async fn async_main() -> anyhow::Result<()> {
             // 3. Reason (optional)
             let reason_result = profile.as_ref().map(|prof| {
                 Reasoner::run(&graph, prof, true)
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e))
+                    .unwrap_or_else(open_ontologies::output::error_json)
             });
 
             output_json(
@@ -3980,7 +3980,7 @@ async fn async_main() -> anyhow::Result<()> {
             };
             let result = planner
                 .plan_with(&turtle, checks)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             // Exit 1 on an error only, as before. A plan is a report, and a
             // `high` risk_score has always exited 0 when it came from removals;
             // one that comes from the logic check does the same, so a pipeline
@@ -3992,7 +3992,7 @@ async fn async_main() -> anyhow::Result<()> {
             let planner = open_ontologies::plan::Planner::new(db, graph);
             let result = planner
                 .apply_plan(plan_id.as_deref(), &mode)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::Lock { iris, reason } => {
@@ -4018,7 +4018,7 @@ async fn async_main() -> anyhow::Result<()> {
             let detector = open_ontologies::drift::DriftDetector::new(db);
             let result = detector
                 .detect(&v1, &v2)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_checked(&result, cli.pretty);
         }
         Commands::Enforce { pack } => {
@@ -4026,7 +4026,7 @@ async fn async_main() -> anyhow::Result<()> {
             let enforcer = open_ontologies::enforce::Enforcer::new(db.clone(), graph);
             let result = enforcer
                 .enforce_with_feedback(&pack, Some(&db))
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_gated(&result, cli.pretty, Gate::Enforce);
         }
         Commands::Unpack {
@@ -4047,7 +4047,7 @@ async fn async_main() -> anyhow::Result<()> {
             };
             let result = open_ontologies::pack::Packer::new(graph)
                 .unpack(&path, &opts)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{e}"}}"#));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_gated(&result, cli.pretty, Gate::Unpack);
         }
         Commands::Monitor => {
@@ -4055,7 +4055,7 @@ async fn async_main() -> anyhow::Result<()> {
             let monitor = open_ontologies::monitor::Monitor::new(db, graph);
             let result = monitor.run_watchers();
             let json = serde_json::to_string(&result)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result_gated(&json, cli.pretty, Gate::Monitor);
         }
         Commands::MonitorClear => {
@@ -4349,7 +4349,7 @@ async fn async_main() -> anyhow::Result<()> {
             let accepted = accept || !reject;
             let result = engine
                 .record_feedback(&source, &target, "user_feedback", accepted, None)
-                .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::LintFeedback {
@@ -4363,7 +4363,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = open_ontologies::feedback::record_tool_feedback(
                 &db, "lint", &rule_id, &entity, accepted,
             )
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
         Commands::EnforceFeedback {
@@ -4377,7 +4377,7 @@ async fn async_main() -> anyhow::Result<()> {
             let result = open_ontologies::feedback::record_tool_feedback(
                 &db, "enforce", &rule_id, &entity, accepted,
             )
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(open_ontologies::output::error_json);
             output_result(&result, cli.pretty);
         }
     }

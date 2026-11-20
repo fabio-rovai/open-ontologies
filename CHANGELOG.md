@@ -192,6 +192,18 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **An error is valid JSON whatever its message contains** (#420). The
+  `serve-http` REST routes, several CLI commands and `batch` wrote
+  `{"error": ...}` by string formatting, so a message carrying a double quote,
+  a backslash or a newline (a SPARQL or Turtle parse error quoting the
+  offending character, a format name the caller supplied, any Windows path)
+  was invalid JSON. `/api/query`, `/api/save` and the other `/api` routes
+  then answered `null` with HTTP 200; `lint`, `diff`, `defects`, `drift` and
+  `vocab-check` printed the broken text and exited 0; `batch` kept it only
+  under `raw`. `/api/save` also answered `null` on success when the saved path
+  needed escaping, which is every Windows path. All 36 sites now build the
+  object with `serde_json`.
+
 - **Studio's 3D legend names the ontology live mode has loaded** (#414). The
   legend read "ies-core.ttl · 1,083 triples", and its ASSERTED row "read from
   ies-core.ttl", in both builds. That is true of the replay demo, which is
