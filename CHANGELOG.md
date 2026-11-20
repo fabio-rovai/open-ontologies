@@ -192,6 +192,54 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`reason --certificate` writes the same `derivations.tsv` on every run over
+  the same store** (#427). The conclusions were always the same set, but the
+  premises a step recorded (which intermediate class justifies a transitive
+  `rdfs11` step) and the order of the lines changed from run to run: the
+  fixpoint walked its closure as a `HashSet` and recorded the first derivation
+  it met, so three runs over `benchmark/reference/ies-core.ttl` wrote three
+  different files. Every rule now walks a sorted copy of the closure, kept
+  sorted by merging each round's new triples into it, which is how `run_horn`
+  already kept `horn.tsv` stable, so the first derivation met is a function of
+  the store. All three profiles had the defect and all three are fixed. The
+  derivation DAG `onto_justify` and `onto_provenance` read, the derivation
+  prefix of a `refutation.tsv` and `sample_inferences` follow the same order.
+  Over the tracked corpus (307 files, three profiles, 921 certificates) the old
+  binary wrote different bytes on two runs for 139 certificates and the fixed
+  one for none, with the same conclusion set and line count as before for all
+  921. It is faster, not slower: on LUBM(10) with a certificate, owl-rl-ext
+  reasons in 6.3 s against 8.4 s, owl-rl in 4.4 s against 5.2 s and rdfs in
+  3.3 s against 3.9 s. A file with anonymous blank nodes is still a new store
+  on each load, because the parser mints fresh labels for them. The
+  `onto_justify` caveat about its one non-monotone corner now says the value
+  read is chosen by the engine's term numbering, not by hash order.
+  `tests/certificate_determinism_test.rs` certifies one store three times in
+  three processes, under each profile, and requires identical bytes.
+
+- **The README figure's red edge is a forged claim, and the refusal it
+  reports is a real run of `oo-cert`** (#428). `docs/assets/knowledge-graph.py`
+  took one of the derived subClassOf edges, every one of which `oo-cert`
+  accepts, chose it by where it landed in the layout and drew it as the
+  forgery, so the figure painted a certified entailment red and stated a
+  refusal no checker had made. It now forges a new claim `s subClassOf X`, X a
+  class the closure does not reach from s, as `demo/build_certified_graph.py`
+  does: a derived line of s is copied with its conclusion changed to X,
+  appended to a copy of the certificate, and `oo-cert` is run on it
+  (`--oo-cert PATH`, default `lean/.lake/build/bin/oo-cert`). Nothing is
+  written unless `oo-cert` accepts the certificate and exits 1 on the copy,
+  naming the forged line and its rule, and the rule and exit code on the
+  figure are read from that report. On ies-core the forgery is
+  `SetOfRepresentations subClassOf Sign`, refused at line 265 as an `rdfs11`
+  step, drawn beside the 257 derived edges, which all stay certified. The
+  legend counts the ontology's edges only, as the Studio legend has since
+  #425: 420 asserted, 257 certified, 1 rejected, where it read 426 and 259 by
+  taking in the pipeline's arrows. The certificate row states the 265 lines
+  `oo-cert` read. Edges are sorted before the layout, so two certificates that
+  differ only in premises (#427) draw byte-identical figures. Both languages'
+  SVG, scene and WebP are regenerated, and
+  `tests/knowledge_graph_asset_test.rs` checks the red edge and the certified
+  edges against a live certificate.
+
 - **The replay demo's 3D legend is true of the graph under it** (#425). The
   legend reads "ies-core.ttl · 1,083 triples" and names three warrants
   (asserted, certified under `OOCert.certificate_sound`, forged and refused),

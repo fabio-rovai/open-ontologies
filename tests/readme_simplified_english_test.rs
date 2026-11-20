@@ -339,7 +339,7 @@ fn the_translated_page_carries_the_same_structure() {
         assert!(zh.contains(link), "the translated page is missing {link:?}");
     }
     // The headline numbers are digits in both languages, so they can be compared.
-    for n in ["426", "259", "901", "23", "12", "13", "190", "39"] {
+    for n in ["420", "257", "901", "23", "12", "13", "190", "39"] {
         assert!(
             zh.contains(n),
             "the translated page does not state {n}, and the English page does. A number \
