@@ -135,9 +135,18 @@ export async function lint(turtle: string): Promise<string> {
 
 const LIVE_FILE = '~/.open-ontologies/studio-live.ttl';
 
+// The file the toolbar names: every automatic save writes it and a reconnect
+// reloads it. It starts as LIVE_FILE and moves only when a Save As succeeds,
+// so the toolbar and the auto-save cannot name different files (#423).
+let projectFile = LIVE_FILE;
+
+export function currentProjectFile(): string {
+  return projectFile;
+}
+
 export async function saveGraphToFile(): Promise<void> {
   try {
-    const result = await apiPost('/save', { path: LIVE_FILE, format: 'turtle' }) as Record<string, unknown>;
+    const result = await apiPost('/save', { path: projectFile, format: 'turtle' }) as Record<string, unknown>;
     if (result.error) console.warn('Failed to save graph to file:', result.error);
   } catch (e) {
     console.warn('Failed to save graph to file:', e);
@@ -147,11 +156,12 @@ export async function saveGraphToFile(): Promise<void> {
 export async function saveGraphAs(path: string): Promise<void> {
   const result = await apiPost('/save', { path, format: 'turtle' }) as Record<string, unknown>;
   if (result.error) throw new Error(String(result.error));
+  projectFile = path;
 }
 
 export async function loadGraphFromFile(): Promise<boolean> {
   try {
-    const result = await apiPost('/load', { path: LIVE_FILE }) as Record<string, unknown>;
+    const result = await apiPost('/load', { path: projectFile }) as Record<string, unknown>;
     return result.ok === true && ((result.triples_loaded as number) ?? 0) > 0;
   } catch {
     return false;
