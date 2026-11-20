@@ -1,5 +1,6 @@
 import type { Chunk, Claim, Contradiction, Decision, DemoSource, Document, GraphView } from './demo-source'
 import { sparqlQuery, callTool } from './mcp-client'
+import { parseRows } from './sparql-rows'
 
 export interface LiveDeps {
   sparqlQuery: typeof sparqlQuery
@@ -42,11 +43,23 @@ SELECT ?thing ?doc WHERE {
 // access of its own, only the engine process does.
 const SHAPES_PATH = 'demo/corpus/dcat-us/recovered-shapes.ttl'
 
+// POST /api/query answers in the engine's own shape, not W3C SPARQL JSON:
+// {"variables":[...],"results":[{"c":"<http://example.org/A>"}]}, with every
+// value an N-Triples term (#413). parseRows reads that shape (and the W3C one
+// as a fallback); each term is reduced here to its plain value, an IRI without
+// its angle brackets and a literal without its quotes, language tag or
+// datatype, which is what every caller below compares and displays.
+//
+// A query the engine could not run comes back as a successful response
+// carrying {"error": ...}. That is thrown rather than read as zero rows, so a
+// failed query never draws as an empty store.
 function rows(raw: string): Record<string, string>[] {
-  const parsed = JSON.parse(raw)
-  const bindings = parsed?.results?.bindings ?? []
-  return bindings.map((b: Record<string, { value: string }>) =>
-    Object.fromEntries(Object.entries(b).map(([k, v]) => [k, v.value])),
+  const parsed = JSON.parse(raw) as { error?: unknown } | null
+  if (parsed && typeof parsed === 'object' && parsed.error !== undefined) {
+    throw new Error(`SPARQL query failed: ${String(parsed.error)}`)
+  }
+  return parseRows(raw).map((row) =>
+    Object.fromEntries(Object.entries(row).map(([k, term]) => [k, term.value])),
   )
 }
 
@@ -94,8 +107,18 @@ export function createLiveSource(deps: LiveDeps): DemoSource {
         deps.sparqlQuery(CLASSES).then(rows),
         deps.sparqlQuery(SUBCLASSES).then(rows),
       ])
+      // CLASSES returns a class once per UNION branch it matches, once per
+      // superclass and once per label, so an owl:Class with a superclass and
+      // labels in two languages arrives four times. It is drawn once, with
+      // the first label the engine returned.
+      const classes = new Map<string, { iri: string; label?: string }>()
+      for (const r of classRows) {
+        const seen = classes.get(r.c)
+        if (!seen) classes.set(r.c, r.l ? { iri: r.c, label: r.l } : { iri: r.c })
+        else if (!seen.label && r.l) seen.label = r.l
+      }
       return {
-        classes: classRows.map((r) => (r.l ? { iri: r.c, label: r.l } : { iri: r.c })),
+        classes: [...classes.values()],
         properties: [],
         edges: subRows.map((r) => ({ source: r.a, target: r.b })),
       }

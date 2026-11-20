@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { GraphView, Warrant } from '../lib/demo-source';
+import { legendText, type GraphOrigin } from '../lib/graph-legend';
 
 /**
  * 3D view of the knowledge graph: classes as nodes, subclass edges as links,
@@ -179,8 +180,14 @@ function toGraphData(graph: GraphView): { nodes: GNode[]; links: GLink[] } {
   return { nodes, links };
 }
 
-export function Graph3D({ graph, onNodeSelect }: {
+export function Graph3D({ graph, origin, onNodeSelect }: {
   graph: GraphView;
+  /**
+   * Where `graph` came from, so the legend names that file rather than the
+   * replay demo's. Required, so neither build can fall back to the other's
+   * text by omission.
+   */
+  origin: GraphOrigin;
   onNodeSelect: (n: { id: string; label: string; uri: string } | null) => void;
 }) {
   const data = toGraphData(graph);
@@ -281,7 +288,7 @@ export function Graph3D({ graph, onNodeSelect }: {
               onNodeSelect({ id: short(g.id), label: g.name, uri: g.id });
             }}
           />
-          <Legend links={data.links} />
+          <Legend links={data.links} origin={origin} />
         </>
       )}
     </div>
@@ -292,12 +299,14 @@ export function Graph3D({ graph, onNodeSelect }: {
  * A heads-up panel rather than a bare key. A reader arriving at a dense graph
  * needs three things before the colours mean anything: what was read, who
  * judged it, and what the judgement was worth. Every number is counted from
- * the data on screen, never typed.
+ * the data on screen, never typed. The file and triple count come from
+ * `origin`: the replay demo's own in replay, the loaded file's in live mode.
  */
-function Legend({ links }: { links: GLink[] }) {
+function Legend({ links, origin }: { links: GLink[]; origin: GraphOrigin }) {
   const n = (w: Warrant) => links.filter((l) => l.warrant === w).length;
+  const text = legendText(origin);
   const rows: { w: Warrant; label: string; means: string }[] = [
-    { w: 'asserted', label: 'ASSERTED', means: 'read from ies-core.ttl. claimed by a person' },
+    { w: 'asserted', label: 'ASSERTED', means: text.asserted },
     { w: 'certified', label: 'CERTIFIED', means: 'derived, then PROVED. OOCert.certificate_sound' },
     { w: 'rejected', label: 'REJECTED', means: 'forged. the checker exited 1 and named the rule' },
   ];
@@ -315,7 +324,7 @@ function Legend({ links }: { links: GLink[] }) {
         <span style={{ color: '#34d399', fontWeight: 800, letterSpacing: '.12em' }}>
           PROOF-CARRYING INFERENCE
         </span>
-        <span style={{ color: '#64748b' }}>ies-core.ttl · 1,083 triples</span>
+        {text.caption && <span style={{ color: '#64748b' }}>{text.caption}</span>}
       </div>
       {rows.map((r) => (
         <div key={r.w} className="flex items-center gap-2 pt-1.5">
