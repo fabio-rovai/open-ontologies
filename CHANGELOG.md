@@ -6,8 +6,15 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **Studio has a Graph view beside the 2D tree and the 3D view** (#415).
+  Schema mode draws classes with their subclass and object-property links,
+  each class's field codes and a Focus filter. Instances mode shows one
+  individual's neighbourhood, groups large sets of the same type and expands a
+  group on double-click. It is laid out with cytoscape and cytoscape-dagre,
+  both already Studio dependencies.
+
 - **SHACL property paths now translate all seven forms, not only a direct
-  IRI and `sh:inversePath`.** Sequence paths (`rdf:List`), `sh:alternativePath`,
+  IRI and `sh:inversePath`** (#418). Sequence paths (`rdf:List`), `sh:alternativePath`,
   `sh:zeroOrMorePath`, `sh:oneOrMorePath` and `sh:zeroOrOnePath` become SPARQL
   1.1 property paths with the parentheses their precedence needs, instead of
   being skipped and turning the whole report into `conforms: null`. A path
