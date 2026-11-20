@@ -221,7 +221,7 @@ function ReplayBody() {
       </div>
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 relative">
-          <Graph3D graph={graph} onNodeSelect={() => {}} />
+          <Graph3D graph={graph} origin={{ kind: 'replay' }} onNodeSelect={() => {}} />
         </div>
         <div
           className="w-96 border-l flex flex-col"

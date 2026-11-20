@@ -199,7 +199,11 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
             ? <TreeView onNodeSelect={setSelectedNode} />
             : graphMode === 'graph'
               ? <GraphView onNodeSelect={setSelectedNode} selected={selectedNode} />
-              : <Graph3D graph={graph} onNodeSelect={setSelectedNode} />}
+              : <Graph3D
+                  graph={graph}
+                  origin={{ kind: 'live', file: `${projectName}.ttl`, triples: stats?.triples }}
+                  onNodeSelect={setSelectedNode}
+                />}
         </div>
 
         {showInspector && (

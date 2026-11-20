@@ -165,6 +165,14 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's 3D legend names the ontology live mode has loaded** (#414). The
+  legend read "ies-core.ttl · 1,083 triples", and its ASSERTED row "read from
+  ies-core.ttl", in both builds. That is true of the replay demo, which is
+  built from ies-core, and false over anything else the desktop app loads. In
+  live mode the legend now names the file the toolbar shows and the engine's
+  triple count from `/api/stats`, and leaves out whichever of the two is not
+  known yet. The replay text is unchanged.
+
 - **Studio's live 3D graph and finding provenance read the engine's own
   query payload** (#413). `POST /api/query` returns
   `{"variables":[...],"results":[...]}` with each value an N-Triples term, but
