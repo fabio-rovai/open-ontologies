@@ -4,7 +4,7 @@
 use crate::graph::{GraphStore, ReadScope};
 use crate::temporal::{ScopeManifest, ScopeRequest};
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{Term, Variable};
+use oxigraph::model::{Literal, Term, Variable};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 use std::collections::{HashMap, HashSet};
@@ -25,7 +25,19 @@ use std::sync::Arc;
 ///
 /// All four target forms select focus nodes: `sh:targetClass` (including the
 /// implicit class target), `sh:targetNode`, `sh:targetSubjectsOf` and
-/// `sh:targetObjectsOf`.
+/// `sh:targetObjectsOf`. A `sh:PropertyShape` carrying its own `sh:targetClass`
+/// is a target-bearing shape too, not only a node shape reached through
+/// `sh:property`; the W3C `path-strange` cases are written that way.
+///
+/// All seven SHACL 2.3.1 path forms translate to SPARQL 1.1 property paths:
+/// a predicate IRI, `sh:inversePath`, an `rdf:List` sequence,
+/// `sh:alternativePath`, and the `sh:zeroOrMorePath`, `sh:oneOrMorePath` and
+/// `sh:zeroOrOnePath` repetitions. A path node is read by the path-form
+/// predicate it carries, so a named IRI carrying one is resolved as that form
+/// and not as an edge named after the node; a list head wins over a form
+/// predicate on the same node, because SHACL writes the sequence that way and
+/// the suite expects it. A cyclic list or self-referencing node is refused and
+/// reported, never followed.
 ///
 /// Any constraint the validator cannot execute is recorded in
 /// `skipped_constraints` and suppresses the conformance verdict: `conforms`
@@ -183,6 +195,8 @@ impl ShaclValidator {
             SELECT DISTINCT ?shape ?targetClass WHERE {
                 { ?shape a sh:NodeShape ; sh:targetClass ?targetClass . }
                 UNION
+                { ?shape a sh:PropertyShape ; sh:targetClass ?targetClass . }
+                UNION
                 { ?shape a sh:NodeShape, rdfs:Class . BIND(?shape AS ?targetClass) }
                 UNION
                 { ?shape a sh:NodeShape, owl:Class . BIND(?shape AS ?targetClass) }
@@ -197,6 +211,12 @@ impl ShaclValidator {
         // Assertion class over data typed with its concrete subclasses reported
         // `conforms: true` having evaluated no focus nodes at all.
         let mut violations: Vec<serde_json::Value> = Vec::new();
+        // The path tree behind each display string, for the RDF report. A
+        // property shape's JSON `path` is the canonical display form, which
+        // drops the angle brackets and so cannot be parsed back into SHACL's
+        // blank-node structure; the tree is carried beside it in the hidden
+        // `_rdf_terms` channel and never reaches the JSON renderer.
+        let mut path_forms: HashMap<String, serde_json::Value> = HashMap::new();
         let mut skipped: Vec<serde_json::Value> = Vec::new();
 
         // All four target forms, each reduced to a SPARQL pattern that binds one
@@ -681,10 +701,9 @@ impl ShaclValidator {
                 &format!(
                     r#"
                     PREFIX sh: <http://www.w3.org/ns/shacl#>
-                    SELECT ?shape ?prop ?path ?invPath ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?nodeKind ?minInclusive ?maxInclusive ?minExclusive ?maxExclusive ?minLength ?maxLength ?lessThan ?lessThanOrEquals ?node ?message ?severity WHERE {{
+                    SELECT ?shape ?prop ?path ?minCount ?maxCount ?datatype ?class ?pattern ?hasValue ?nodeKind ?minInclusive ?maxInclusive ?minExclusive ?maxExclusive ?minLength ?maxLength ?lessThan ?lessThanOrEquals ?node ?message ?severity WHERE {{
 {}
                         ?prop sh:path ?path .
-                        OPTIONAL {{ ?path sh:inversePath ?invPath }}
                         OPTIONAL {{ ?prop sh:class ?class }}
                         OPTIONAL {{ ?prop sh:minCount ?minCount }}
                         OPTIONAL {{ ?prop sh:maxCount ?maxCount }}
@@ -1175,7 +1194,29 @@ impl ShaclValidator {
                     continue;
                 };
                 let q_shape = row.get("prop").cloned().unwrap_or_else(|| shape_iri.clone());
-                let q_path = strip_angle_brackets(path_raw);
+                // The qualified count joins through the same translated path
+                // the rest of the property shape uses. Before this it spliced
+                // the raw path into `?focus <{path}> ?val`, so a compound
+                // path reached the query as `<a/b>` and returned a hard parse
+                // error instead of a report.
+                let q_path = match PathResolver::new(&shapes_store)
+                    .resolve(path_raw)
+                    .map_err(|e| e.to_string())
+                {
+                    Ok(p) => p,
+                    Err(reason) => {
+                        skipped.push(serde_json::json!({
+                            "shape": strip_angle_brackets(&shape_iri),
+                            "constraint": "sh:qualifiedValueShape",
+                            "path": strip_angle_brackets(path_raw),
+                            "reason": format!("unsupported property path: {reason}"),
+                        }));
+                        continue;
+                    }
+                };
+                path_forms.insert(q_path.display(), q_path.rdf_json());
+                let q_path_expr = q_path.sparql();
+                let q_path = q_path.display();
                 let q_message = row.get("message").map(|m| strip_quotes(m)).unwrap_or_default();
                 let q_severity = row
                     .get("severity")
@@ -1228,7 +1269,7 @@ impl ShaclValidator {
                 let query = format!(
                     r#"SELECT ?focus (COUNT(DISTINCT ?val) AS ?n) WHERE {{
                         {focus_pattern}
-                        OPTIONAL {{ ?focus <{q_path}> ?val . FILTER({clause}) }}
+                        OPTIONAL {{ ?focus {q_path_expr} ?val . FILTER({clause}) }}
                     }} GROUP BY ?focus"#
                 );
                 for result in &graph_sparql_select(graph, scope, &query)? {
@@ -1310,25 +1351,33 @@ impl ShaclValidator {
                     None => continue,
                 };
 
-                // sh:path is either a direct IRI, or a blank node carrying a
-                // property-path expression. sh:inversePath maps onto SPARQL's
-                // `^` operator; any other blank-node path (sequence,
-                // alternative, zero-or-more) is skipped and reported rather
-                // than injected into a query it would break.
-                let (path, path_expr) = match prop.get("invPath") {
-                    Some(inv) => {
-                        let inv = strip_angle_brackets(inv);
-                        (format!("^{}", inv), format!("^<{}>", inv))
-                    }
-                    None if raw_path.starts_with("_:") => {
+                // sh:path is resolved by walking the path node the shapes
+                // graph actually holds, so every SHACL 2.3.1 form is a SPARQL
+                // property path here: predicate, inverse, sequence,
+                // alternative, and the three repetition forms. What is
+                // refused is refused by the resolver with the reason it could
+                // not be read, and reaches `skipped_constraints`, which
+                // suppresses the verdict. A path this validator cannot
+                // translate must not be silently read as a direct edge or as
+                // a clean pass; the W3C `strange` cases are exactly that
+                // failure, where a sequence node also carried sh:inversePath
+                // and the old predicate test read the inverse alone.
+                let path = match PathResolver::new(&shapes_store)
+                    .resolve(&raw_path)
+                    .map_err(|e| e.to_string())
+                {
+                    Ok(p) => p,
+                    Err(reason) => {
                         skipped.push(serde_json::json!({
                             "shape": strip_angle_brackets(&shape_iri),
-                            "reason": "unsupported property path (only direct IRIs and sh:inversePath are executable)",
+                            "path": raw_path,
+                            "reason": format!("unsupported property path: {reason}"),
                         }));
                         continue;
                     }
-                    None => (raw_path.clone(), format!("<{}>", raw_path)),
                 };
+                path_forms.insert(path.display(), path.rdf_json());
+                let (path, path_expr) = (path.display(), path.sparql());
 
                 let message = prop
                     .get("message")
@@ -1425,7 +1474,7 @@ impl ShaclValidator {
                 if let Some(cls_str) = prop.get("class") {
                     let cls = strip_angle_brackets(cls_str);
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER NOT EXISTS {{
@@ -1487,7 +1536,7 @@ impl ShaclValidator {
                     // all passed `sh:datatype` here (#333).
                     let conforms = datatype_conforms(&dt, "val");
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER(!{conforms})
@@ -1523,7 +1572,7 @@ impl ShaclValidator {
                     let pattern = strip_quotes(pattern_raw);
                     let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER(!REGEX(STR(?val), "{escaped}"))
@@ -1566,7 +1615,7 @@ impl ShaclValidator {
                 if let Some(clauses) = prop_key.as_ref().and_then(|k| or_alternatives.get(k)) {
                     let disjunction = clauses.join(" || ");
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER(!({disjunction}))
@@ -1614,7 +1663,7 @@ impl ShaclValidator {
                         continue;
                     };
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER(isBlank(?val) || STRLEN(STR(?val)) {cmp} {bound})
@@ -1735,7 +1784,7 @@ impl ShaclValidator {
                 if let Some(clauses) = prop_key.as_ref().and_then(|k| not_clauses.get(k)) {
                     let conjunction = clauses.join(" && ");
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER({conjunction})
@@ -1767,7 +1816,7 @@ impl ShaclValidator {
                 if let Some(members) = prop_key.as_ref().and_then(|k| in_alternatives.get(k)) {
                     let list = members.join(", ");
                     let query = format!(
-                        r#"SELECT ?focus ?val WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             FILTER(?val NOT IN ({list}))
@@ -1813,7 +1862,7 @@ impl ShaclValidator {
                     match test {
                         Some(t) => {
                             let query = format!(
-                                r#"SELECT ?focus ?val WHERE {{
+                                r#"SELECT DISTINCT ?focus ?val WHERE {{
                                     {focus_pattern}
                                     ?focus {path_expr} ?val .
                                     FILTER(!{t})
@@ -1897,7 +1946,7 @@ impl ShaclValidator {
                     if let Some(bound_raw) = prop.get(key) {
                         let bound = bound_raw.trim();
                         let query = format!(
-                            r#"SELECT ?focus ?val WHERE {{
+                            r#"SELECT DISTINCT ?focus ?val WHERE {{
                                 {focus_pattern}
                                 ?focus {path_expr} ?val .
                                 FILTER(!COALESCE(?val {satisfy_op} {bound}, false))
@@ -2118,13 +2167,16 @@ impl ShaclValidator {
                                     if message.is_empty() {
                                         "SPARQL constraint violated".to_string()
                                     } else {
-                                        message.clone()
+                                        expand_message_template(&message, &row)
                                     }
                                 });
                                 let rdf = RdfTerms::new(
                                     constraint.get("severity").cloned(),
                                     bound_message.cloned().or_else(|| {
-                                        constraint.get("message").cloned().filter(|_| !message.is_empty())
+                                        constraint
+                                            .get("message")
+                                            .filter(|_| !message.is_empty())
+                                            .map(|raw| message_literal_with_text(raw, &msg))
                                     }),
                                 );
                                 let mut v = serde_json::json!({
@@ -2153,6 +2205,14 @@ impl ShaclValidator {
                         }));
                     }
                 }
+            }
+        }
+
+        for v in &mut violations {
+            if let Some(display) = v.get("path").and_then(|p| p.as_str())
+                && let Some(form) = path_forms.get(display)
+            {
+                v[crate::shacl_report::RDF_TERMS_KEY]["path_form"] = form.clone();
             }
         }
 
@@ -2525,6 +2585,355 @@ const PROPERTY_SHAPES_OF: &str = r#"
                         { ?shape sh:property ?prop . }
                         UNION
                         { ?shape sh:path ?_selfPath . BIND(?shape AS ?prop) }"#;
+
+/// A SHACL property path resolved from the shapes graph into the two forms the
+/// validator needs: the SPARQL 1.1 property path that the data queries execute,
+/// and the display form a validation result reports as its `sh:resultPath`.
+///
+/// One tree, two renderers, because the two grammars group differently. In
+/// SPARQL, `^`, `*`, `+` and `?` bind tighter than `/`, which binds tighter
+/// than `|`, so a form correct at the top level stops meaning the same thing
+/// as an operand. In the report, the W3C suite compares the path structurally,
+/// and its canonical rendering always parenthesises a sequence, an alternative
+/// and a repetition operand; a report that dropped those parentheses would
+/// describe the right path and still fail the comparison. Encoding the tree
+/// once and rendering twice keeps those two rules from drifting apart.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ShaclPath {
+    Predicate(String),
+    Inverse(Box<ShaclPath>),
+    Sequence(Vec<ShaclPath>),
+    Alternative(Vec<ShaclPath>),
+    ZeroOrMore(Box<ShaclPath>),
+    OneOrMore(Box<ShaclPath>),
+    ZeroOrOne(Box<ShaclPath>),
+}
+
+impl ShaclPath {
+    /// The SPARQL 1.1 property-path expression, IRIs in angle brackets.
+    fn sparql(&self) -> String {
+        match self {
+            Self::Predicate(iri) => format!("<{iri}>"),
+            Self::Inverse(inner) => match &**inner {
+                // `^` takes a PathElt, so an operand that is itself a
+                // compound path is parenthesised. Without this a double
+                // inverse rendered as `^^<p>`, which is not legal SPARQL:
+                // the two operators run together and the parser rejects the
+                // query instead of validating the shape.
+                Self::Predicate(_) => format!("^{}", inner.sparql()),
+                _ => format!("^({})", inner.sparql()),
+            },
+            Self::Sequence(parts) => parts
+                .iter()
+                .map(|p| match p {
+                    // `/` binds tighter than `|`, so an alternative used as a
+                    // sequence step is the one member that needs parentheses.
+                    Self::Alternative(_) => format!("({})", p.sparql()),
+                    _ => p.sparql(),
+                })
+                .collect::<Vec<_>>()
+                .join("/"),
+            Self::Alternative(parts) => {
+                parts.iter().map(Self::sparql).collect::<Vec<_>>().join("|")
+            }
+            Self::ZeroOrMore(inner) => format!("{}*", postfix_operand(inner)),
+            Self::OneOrMore(inner) => format!("{}+", postfix_operand(inner)),
+            Self::ZeroOrOne(inner) => format!("{}?", postfix_operand(inner)),
+        }
+    }
+
+    /// The display form used in `path` and `sh:resultPath`, matching the
+    /// canonical structural rendering the W3C harness compares against: a bare
+    /// IRI for a predicate, `^PATH` for an inverse, and parentheses around a
+    /// sequence, an alternative and every repetition operand.
+    fn display(&self) -> String {
+        match self {
+            Self::Predicate(iri) => iri.clone(),
+            Self::Inverse(inner) => format!("^{}", inner.display()),
+            Self::Sequence(parts) => format!(
+                "({})",
+                parts
+                    .iter()
+                    .map(Self::display)
+                    .collect::<Vec<_>>()
+                    .join("/")
+            ),
+            Self::Alternative(parts) => format!(
+                "({})",
+                parts
+                    .iter()
+                    .map(Self::display)
+                    .collect::<Vec<_>>()
+                    .join("|")
+            ),
+            Self::ZeroOrMore(inner) => format!("({})*", inner.display()),
+            Self::OneOrMore(inner) => format!("({})+", inner.display()),
+            Self::ZeroOrOne(inner) => format!("({})?", inner.display()),
+        }
+    }
+
+    /// The same tree as JSON, for the RDF report writer. The report has to
+    /// write the path as SHACL's blank-node structure, not as the display
+    /// string: a sequence is an `rdf:List`, a repetition is a blank node
+    /// carrying one path-form predicate. The display form cannot be parsed
+    /// back unambiguously because it strips the angle brackets that tell an
+    /// IRI from the operators around it, so the tree travels beside it.
+    fn rdf_json(&self) -> serde_json::Value {
+        match self {
+            Self::Predicate(iri) => serde_json::json!({ "predicate": iri }),
+            Self::Inverse(inner) => serde_json::json!({ "inverse": inner.rdf_json() }),
+            Self::Sequence(parts) => serde_json::json!({
+                "sequence": parts.iter().map(Self::rdf_json).collect::<Vec<_>>()
+            }),
+            Self::Alternative(parts) => serde_json::json!({
+                "alternative": parts.iter().map(Self::rdf_json).collect::<Vec<_>>()
+            }),
+            Self::ZeroOrMore(inner) => serde_json::json!({ "zeroOrMore": inner.rdf_json() }),
+            Self::OneOrMore(inner) => serde_json::json!({ "oneOrMore": inner.rdf_json() }),
+            Self::ZeroOrOne(inner) => serde_json::json!({ "zeroOrOne": inner.rdf_json() }),
+        }
+    }
+}
+
+/// The operand of a postfix `*`, `+` or `?`. `a/b*` is `a/(b*)` and `^a*` is
+/// `^(a*)` in the SPARQL grammar, so only a plain predicate can go bare.
+fn postfix_operand(inner: &ShaclPath) -> String {
+    match inner {
+        ShaclPath::Predicate(_) => inner.sparql(),
+        _ => format!("({})", inner.sparql()),
+    }
+}
+
+/// How deep a path may nest before it is refused rather than followed.
+///
+/// The SHACL grammar makes a path a finite tree, but the shapes graph need not
+/// contain one: an `rdf:List` may point back at itself and a path node may name
+/// itself as its own operand. The bound keeps a malformed shapes graph a
+/// reported skip instead of a validator that never returns.
+const PATH_DEPTH_LIMIT: usize = 64;
+
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+/// Walks a SHACL path node in the shapes graph and builds its [`ShaclPath`].
+///
+/// Resolution is BY PREDICATE, not by node kind. A path expression is usually
+/// a blank node, and reading only blank nodes as paths was itself a defect: a
+/// named IRI carrying `sh:zeroOrMorePath` used to be read as a plain predicate
+/// (#205), so the validator followed an edge named after the path node and
+/// never the path. The one exception is deliberate: a node that is the head of
+/// an `rdf:List` is a sequence path whatever else it carries, because that is
+/// what the W3C `strange` cases write (a sequence node that also carries
+/// `sh:inversePath`) and what the suite expects the sequence to mean.
+struct PathResolver<'a> {
+    store: &'a Store,
+    /// Nodes on the branch currently being resolved. Pushed before a node's
+    /// operand is resolved and popped after, so a node met twice here is a
+    /// cycle and not a path that happens to reuse a predicate.
+    branch: Vec<String>,
+}
+
+impl<'a> PathResolver<'a> {
+    fn new(store: &'a Store) -> Self {
+        Self {
+            store,
+            branch: Vec::new(),
+        }
+    }
+
+    fn resolve(&mut self, term: &str) -> anyhow::Result<ShaclPath> {
+        let node = strip_angle_brackets(term);
+        if self.branch.len() >= PATH_DEPTH_LIMIT {
+            anyhow::bail!("it nests deeper than {PATH_DEPTH_LIMIT} levels");
+        }
+        if self.branch.iter().any(|seen| seen == &node) {
+            anyhow::bail!("path node <{node}> refers to itself");
+        }
+        self.branch.push(node.clone());
+        let resolved = self.resolve_node(&node);
+        self.branch.pop();
+        resolved
+    }
+
+    fn resolve_node(&mut self, node: &str) -> anyhow::Result<ShaclPath> {
+        let subject = path_term(node)?;
+        let rows = query_solutions_bound(
+            self.store,
+            r#"
+            PREFIX sh: <http://www.w3.org/ns/shacl#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            SELECT ?node ?inverse ?alternative ?zeroOrMore ?oneOrMore ?zeroOrOne ?first WHERE {
+                OPTIONAL { ?node sh:inversePath ?inverse }
+                OPTIONAL { ?node sh:alternativePath ?alternative }
+                OPTIONAL { ?node sh:zeroOrMorePath ?zeroOrMore }
+                OPTIONAL { ?node sh:oneOrMorePath ?oneOrMore }
+                OPTIONAL { ?node sh:zeroOrOnePath ?zeroOrOne }
+                OPTIONAL { ?node rdf:first ?first }
+            }
+            "#,
+            "node",
+            &subject,
+        )
+        .map_err(|e| {
+            anyhow::anyhow!("the shapes graph could not be read for path node <{node}>: {e}")
+        })?;
+        let row = rows.first().ok_or_else(|| {
+            anyhow::anyhow!("path node <{node}> has no RDF term in the shapes graph")
+        })?;
+
+        // A node may carry more than one value for one form, and the query
+        // returns one row per value. Looking only at the first row would pick
+        // an operand at whatever order the store returned, validate against
+        // half the declared path, and still report a clean verdict; the
+        // duplicate form is refused before any operand is used, including
+        // before a list head is allowed to win.
+        let form_vars: [(&str, &str); 5] = [
+            ("sh:inversePath", "inverse"),
+            ("sh:alternativePath", "alternative"),
+            ("sh:zeroOrMorePath", "zeroOrMore"),
+            ("sh:oneOrMorePath", "oneOrMore"),
+            ("sh:zeroOrOnePath", "zeroOrOne"),
+        ];
+        let mut forms: Vec<(&str, String)> = Vec::new();
+        for (name, var) in form_vars {
+            let mut values: Vec<String> = rows
+                .iter()
+                .filter_map(|row| row.get(var).cloned())
+                .collect();
+            values.sort();
+            values.dedup();
+            if values.len() > 1 {
+                anyhow::bail!(
+                    "path node <{node}> carries more than one {name} value ({})",
+                    values.join(", ")
+                );
+            }
+            if let Some(value) = values.into_iter().next() {
+                forms.push((name, value));
+            }
+        }
+        // A sequence path is an rdf:List on a blank node. An IRI path term
+        // with no path-form predicate is a predicate path (SHACL 2.3.1
+        // 4.2.2), so rdf:first/rdf:rest triples on it are not a path the
+        // shape wrote; a named node carrying a form predicate is still
+        // resolved by that predicate (#205). A blank list head wins over one
+        // such predicate: `path-strange-001` and `-002` carry sh:inversePath
+        // alongside rdf:first/rdf:rest and the suite expects the sequence.
+        if node.starts_with("_:") && row.contains_key("first") {
+            let head = path_term(node)?;
+            return self.read_list(&head).map(ShaclPath::Sequence);
+        }
+        if forms.len() > 1 {
+            let names: Vec<&str> = forms.iter().map(|(name, _)| *name).collect();
+            anyhow::bail!(
+                "path node <{node}> carries more than one path-form predicate ({})",
+                names.join(", ")
+            );
+        }
+        let Some((form, operand)) = forms.first() else {
+            // A named IRI with no expression is a predicate path, which is
+            // the direct-IRI case. A blank node with no expression names no
+            // edge at all: `<_b0>` is not a legal SPARQL IRI, so refusing is
+            // the only answer that does not invent a predicate.
+            if node.starts_with("_:") {
+                anyhow::bail!("path node <{node}> is a blank node with no path expression");
+            }
+            return Ok(ShaclPath::Predicate(node.to_string()));
+        };
+        let operand = strip_angle_brackets(operand);
+        match *form {
+            "sh:inversePath" => Ok(ShaclPath::Inverse(Box::new(self.resolve(&operand)?))),
+            "sh:alternativePath" => {
+                let head = path_term(&operand)?;
+                self.read_list(&head).map(ShaclPath::Alternative)
+            }
+            "sh:zeroOrMorePath" => Ok(ShaclPath::ZeroOrMore(Box::new(self.resolve(&operand)?))),
+            "sh:oneOrMorePath" => Ok(ShaclPath::OneOrMore(Box::new(self.resolve(&operand)?))),
+            "sh:zeroOrOnePath" => Ok(ShaclPath::ZeroOrOne(Box::new(self.resolve(&operand)?))),
+            form => Err(anyhow::anyhow!("internal error: unhandled path form {form}")),
+        }
+    }
+
+    /// Reads a well-formed `rdf:List` of paths, resolving each member.
+    ///
+    /// The visited set is what turns a list whose `rdf:rest` reaches back into
+    /// itself into a named refusal, instead of a walk that never reaches
+    /// `rdf:nil`. A list with a missing `rdf:rest`, or one that does not end
+    /// in `rdf:nil`, is refused for the same reason: half a sequence is not
+    /// the sequence the shape wrote, and evaluating it would answer a
+    /// different question.
+    fn read_list(&mut self, head: &Term) -> anyhow::Result<Vec<ShaclPath>> {
+        let mut items = Vec::new();
+        let mut visited = HashSet::new();
+        let mut current = head.clone();
+        loop {
+            let key = current.to_string();
+            if !visited.insert(key.clone()) {
+                anyhow::bail!(
+                    "sequence path list at <{key}> is cyclic (rdf:rest reaches itself)"
+                );
+            }
+            let rows = query_solutions_bound(
+                self.store,
+                r#"
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?node ?first ?rest WHERE {
+                    ?node rdf:first ?first .
+                    ?node rdf:rest ?rest .
+                }
+                "#,
+                "node",
+                &current,
+            )
+            .map_err(|e| {
+                anyhow::anyhow!("the shapes graph could not be read for list node <{key}>: {e}")
+            })?;
+            let row = match rows.as_slice() {
+                [row] => row,
+                [] => {
+                    anyhow::bail!(
+                        "sequence path list at <{key}> has no rdf:first and rdf:rest"
+                    );
+                }
+                _ => {
+                    anyhow::bail!(
+                        "sequence path list at <{key}> has more than one rdf:first or rdf:rest"
+                    );
+                }
+            };
+            let first = row.get("first").ok_or_else(|| {
+                anyhow::anyhow!("sequence path list at <{key}> has no rdf:first")
+            })?;
+            items.push(self.resolve(first)?);
+            let rest = row.get("rest").ok_or_else(|| {
+                anyhow::anyhow!("sequence path list at <{key}> has no rdf:rest")
+            })?;
+            let rest = strip_angle_brackets(rest);
+            if rest == RDF_NIL {
+                break;
+            }
+            current = path_term(&rest)?;
+        }
+        if items.is_empty() {
+            anyhow::bail!("sequence path list is empty");
+        }
+        Ok(items)
+    }
+}
+
+/// The RDF term naming a path or list node, so it can be bound to a variable
+/// instead of spliced into a query: a blank-node label in query text is a
+/// non-distinguished variable, which is the ambiguity [`query_solutions_bound`]
+/// exists to avoid.
+fn path_term(node: &str) -> anyhow::Result<Term> {
+    let text = if node.starts_with("_:") {
+        node.to_string()
+    } else {
+        format!("<{node}>")
+    };
+    text.parse::<Term>()
+        .map_err(|e| anyhow::anyhow!("path node <{node}> is not a valid RDF term: {e}"))
+}
+
 
 /// Run a query against the shapes graph with `var` pre-bound to `term`.
 ///
@@ -3258,7 +3667,8 @@ fn attribute(
 /// `core/misc/message-001` declares `"Test message"@en`, and the language tag
 /// is gone. SHACL 3.6.2 makes `sh:resultSeverity` the shape's
 /// `sh:severity` and `sh:resultMessage` a copy of its `sh:message`, so the
-/// writer needs the terms as written. They travel inside each violation under
+/// writer needs the terms as written (with SPARQL message templates expanded).
+/// They travel inside each violation under
 /// [`crate::shacl_report::RDF_TERMS_KEY`] and the JSON renderer removes them.
 ///
 /// `message` is `None` whenever the result carries this engine's default text,
@@ -3522,6 +3932,38 @@ fn strip_quotes(s: &str) -> String {
         // out of it still needs the quotes gone.
         Err(_) => unescape_literal(s.trim_matches('"')),
     }
+}
+
+/// SHACL 5.3.2: expand `{?name}` and `{$name}` in a fallback `sh:message`.
+/// Literals use their lexical value; IRIs and blank nodes keep their RDF form.
+/// Unbound names stay as written. Only the template is scanned, so braces in
+/// an inserted value cannot trigger another substitution.
+fn expand_message_template(template: &str, row: &HashMap<String, String>) -> String {
+    let mut expanded = String::with_capacity(template.len());
+    for part in template.split_inclusive('}') {
+        if let Some((prefix, name)) = part.strip_suffix('}').and_then(|s| s.rsplit_once('{'))
+            && let Some(name) = name.strip_prefix('?').or_else(|| name.strip_prefix('$'))
+            && let Some(value) = row.get(name)
+        {
+            expanded.push_str(prefix);
+            expanded.push_str(&strip_quotes(value));
+        } else {
+            expanded.push_str(part);
+        }
+    }
+    expanded
+}
+
+/// Keep the RDF message's language tag or datatype when its text is expanded.
+fn message_literal_with_text(raw: &str, text: &str) -> String {
+    let Ok(Term::Literal(lit)) = raw.parse::<Term>() else {
+        return raw.to_string();
+    };
+    let expanded = match lit.language() {
+        Some(lang) => Literal::new_language_tagged_literal_unchecked(text, lang),
+        None => Literal::new_typed_literal(text, lit.datatype().into_owned()),
+    };
+    expanded.to_string()
 }
 
 /// Read a cardinality bound (`sh:minCount`, `sh:maxCount` and the qualified

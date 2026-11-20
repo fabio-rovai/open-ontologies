@@ -89,6 +89,36 @@ struct Schema {
     truncated: bool,
 }
 
+/// Transitive edges from this run, indexed before the next round joins them.
+/// They are published only after inference finishes, with their recorded support.
+#[derive(Default)]
+struct TransitiveEdges {
+    outgoing: HashMap<(String, String), HashSet<String>>,
+    incoming: HashMap<(String, String), HashSet<String>>,
+}
+
+impl TransitiveEdges {
+    fn insert(&mut self, (s, p, o): &Triple) {
+        self.outgoing
+            .entry((p.clone(), s.clone()))
+            .or_default()
+            .insert(o.clone());
+        self.incoming
+            .entry((p.clone(), o.clone()))
+            .or_default()
+            .insert(s.clone());
+    }
+
+    fn neighbours(&self, term: &str, pred: &str, forward: bool) -> Option<&HashSet<String>> {
+        let index = if forward {
+            &self.outgoing
+        } else {
+            &self.incoming
+        };
+        index.get(&(pred.to_owned(), term.to_owned()))
+    }
+}
+
 /// The row cap on every internally-authored scan here. A scan that returns
 /// exactly this many rows is reported as possibly truncated rather than assumed
 /// complete.
@@ -382,7 +412,11 @@ impl IncrementalReasoner {
         // that lead into it. Only asked for transitive properties, and only
         // about terms the delta actually mentions.
         let neighbours_truncated = std::cell::Cell::new(false);
-        let neighbours = |term: &str, pred: &str, forward: bool| -> anyhow::Result<Vec<String>> {
+        let neighbours = |term: &str,
+                          pred: &str,
+                          forward: bool,
+                          local: &TransitiveEdges|
+         -> anyhow::Result<HashSet<String>> {
             let q = if forward {
                 format!("SELECT ?x WHERE {{ {term} {pred} ?x }} LIMIT 10000")
             } else {
@@ -398,15 +432,26 @@ impl IncrementalReasoner {
             if rows.len() >= 10000 {
                 neighbours_truncated.set(true);
             }
-            rows.iter()
+            let mut found = rows
+                .iter()
                 .map(|row| {
                     row["x"].as_str().map(str::to_owned).ok_or_else(|| {
                         anyhow::anyhow!("incremental neighbour query returned an unbound term")
                     })
                 })
-                .collect()
+                .collect::<anyhow::Result<HashSet<_>>>()?;
+            if let Some(neighbours) = local.neighbours(term, pred, forward) {
+                found.extend(neighbours.iter().cloned());
+            }
+            Ok(found)
         };
 
+        let mut local_edges = TransitiveEdges::default();
+        for triple in delta {
+            if schema.transitive.contains(&triple.1) {
+                local_edges.insert(triple);
+            }
+        }
         let mut derived: HashSet<Triple> = HashSet::new();
         let mut frontier: Vec<Triple> = delta.to_vec();
         let mut rounds = 0usize;
@@ -547,7 +592,7 @@ impl IncrementalReasoner {
                         }
                     }
                     if schema.transitive.contains(p) {
-                        for far in neighbours(o, p, true)? {
+                        for far in neighbours(o, p, true, &local_edges)? {
                             emit(
                                 (s.clone(), p.clone(), far.clone()),
                                 "prp-trp",
@@ -563,7 +608,7 @@ impl IncrementalReasoner {
                                 &mut next,
                             );
                         }
-                        for near in neighbours(s, p, false)? {
+                        for near in neighbours(s, p, false, &local_edges)? {
                             emit(
                                 (near.clone(), p.clone(), o.clone()),
                                 "prp-trp",
@@ -595,6 +640,14 @@ impl IncrementalReasoner {
                     // If entity resolution is wanted it belongs in an explicit
                     // canonicalisation pass with its own contract, not in a
                     // forward chainer that only one of two entry points runs.
+                }
+            }
+            // Joins must also see edges derived in earlier rounds of THIS run.
+            // Querying only the store misses new-new joins and can falsely
+            // report a complete closure when the frontier becomes empty (#416).
+            for triple in &next {
+                if schema.transitive.contains(&triple.1) {
+                    local_edges.insert(triple);
                 }
             }
             frontier = next;

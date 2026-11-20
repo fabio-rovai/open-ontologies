@@ -1574,38 +1574,6 @@ pub struct OntoPlanCompilePddlInput {
     pub goal_ttl: Option<String>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn onto_embed_input_accepts_optional_descriptions_map() {
-        // GenOM enrichment: caller supplies {iri → description} mappings.
-        // The input must deserialize when the map is provided.
-        let json = serde_json::json!({
-            "struct_dim": 32,
-            "descriptions": {
-                "http://ex.org/Cat": "A domestic feline, kept as a companion animal.",
-                "http://ex.org/Dog": "A domestic canid, kept as a companion or working animal."
-            }
-        });
-        let parsed: OntoEmbedInput = serde_json::from_value(json).expect("deserialize");
-        let desc = parsed.descriptions.expect("descriptions field present");
-        assert_eq!(desc.len(), 2);
-        assert!(desc.get("http://ex.org/Cat").unwrap().contains("feline"));
-    }
-
-    #[test]
-    fn onto_embed_input_descriptions_default_is_none() {
-        // Existing callers that don't pass `descriptions` must still
-        // deserialize correctly (back-compat).
-        let json = serde_json::json!({});
-        let parsed: OntoEmbedInput = serde_json::from_value(json).expect("deserialize");
-        assert!(parsed.descriptions.is_none());
-        assert!(parsed.struct_dim.is_none());
-    }
-}
-
 #[derive(Deserialize, JsonSchema)]
 pub struct OntoOssieImportInput {
     /// Path to an Apache Ossie ontology document (YAML or JSON) OR the document
@@ -1758,4 +1726,36 @@ pub struct OntoInduceInput {
     /// Load the induced ontology, its shapes and the rows into the store (default: true).
     /// With false the result is returned and nothing in the store changes.
     pub load: Option<bool>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn onto_embed_input_accepts_optional_descriptions_map() {
+        // GenOM enrichment: caller supplies {iri → description} mappings.
+        // The input must deserialize when the map is provided.
+        let json = serde_json::json!({
+            "struct_dim": 32,
+            "descriptions": {
+                "http://ex.org/Cat": "A domestic feline, kept as a companion animal.",
+                "http://ex.org/Dog": "A domestic canid, kept as a companion or working animal."
+            }
+        });
+        let parsed: OntoEmbedInput = serde_json::from_value(json).expect("deserialize");
+        let desc = parsed.descriptions.expect("descriptions field present");
+        assert_eq!(desc.len(), 2);
+        assert!(desc.get("http://ex.org/Cat").unwrap().contains("feline"));
+    }
+
+    #[test]
+    fn onto_embed_input_descriptions_default_is_none() {
+        // Existing callers that don't pass `descriptions` must still
+        // deserialize correctly (back-compat).
+        let json = serde_json::json!({});
+        let parsed: OntoEmbedInput = serde_json::from_value(json).expect("deserialize");
+        assert!(parsed.descriptions.is_none());
+        assert!(parsed.struct_dim.is_none());
+    }
 }

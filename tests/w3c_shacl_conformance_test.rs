@@ -44,9 +44,12 @@
 //!
 //! THE FULL-TUPLE COLUMN compares the same verdict and the MULTISET of
 //! `(focus, sh:resultPath, sh:value, source shape, component,
-//! sh:resultSeverity)`. Paths are compared structurally: `path_form` renders
-//! a path subgraph canonically, which for SHACL's acyclic path language
-//! decides exactly what an RDFC-1.0 isomorphism check would. Measured on
+//! sh:resultSeverity)`. The expected path is read from the report graph and
+//! rendered canonically by `path_form`; the engine side is the path string
+//! from the JSON report with angle brackets removed. For SHACL's acyclic path
+//! language that canonical rendering has one string per path, so comparing it
+//! with the engine's string decides what an RDFC-1.0 isomorphism check would.
+//! Measured on
 //! 2026-10-24 at suite commit 94d8bc2 it scores PASS 12 of 120 against the gated
 //! column's 61. Of the 49 tests that pass the gated column and not this one,
 //! 48 differ in `sh:value`, which the engine does not emit on the default path
@@ -89,6 +92,19 @@
 //! UNDETERMINED to PASS in both columns: the gated one scores PASS 62 and the
 //! full-tuple one PASS 54, with no other test moving (measured 2026-10-30,
 //! same suite commit).
+//!
+//! With all seven SHACL 2.3.1 path forms translated, the nine `core/path`
+//! cases that the old direct-IRI/inverse-only translator left UNDETERMINED and
+//! the two `path-strange` cases it answered from the inverse alone all move to
+//! PASS in both columns: the gated one scores PASS 73 / FAIL 13 / UNDETERMINED
+//! 34 and the full-tuple one PASS 65 / FAIL 21 / UNDETERMINED 34, with no
+//! named PASS regressing (measured 2026-11-19, same suite commit). The
+//! `strange` pair also exposed that a standalone `sh:PropertyShape` carrying
+//! `sh:targetClass` was never discovered as a target, so a shape written that
+//! way selected no focus nodes at all. The full-tuple column now compares the
+//! canonical rendering of the expected path against the engine's path string
+//! for every one of those results, sequence lists and repetition blank nodes
+//! included.
 //!
 //! Severity is in the full-tuple column and NOT in the gated one, by
 //! measurement rather than by principle. The old reason for leaving it out

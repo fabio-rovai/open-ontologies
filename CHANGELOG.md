@@ -6,6 +6,33 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **Studio has a Graph view beside the 2D tree and the 3D view** (#415).
+  Schema mode draws classes with their subclass and object-property links,
+  each class's field codes and a Focus filter. Instances mode shows one
+  individual's neighbourhood, groups large sets of the same type and expands a
+  group on double-click. It is laid out with cytoscape and cytoscape-dagre,
+  both already Studio dependencies.
+
+- **SHACL property paths now translate all seven forms, not only a direct
+  IRI and `sh:inversePath`** (#418). Sequence paths (`rdf:List`), `sh:alternativePath`,
+  `sh:zeroOrMorePath`, `sh:oneOrMorePath` and `sh:zeroOrOnePath` become SPARQL
+  1.1 property paths with the parentheses their precedence needs, instead of
+  being skipped and turning the whole report into `conforms: null`. A path
+  node is resolved by the predicate it carries, so a named IRI carrying
+  `sh:zeroOrMorePath` is read as that path and not as an edge named after the
+  node (#205); a node that is both an `rdf:List` head and carries
+  `sh:inversePath` is read as the sequence the W3C `path-strange` cases
+  expect. Cyclic lists and self-referencing nodes are refused with the reason
+  in `skipped_constraints` rather than followed. The RDF report writes the
+  full path structure (`sh:alternativePath` lists, repetition blank nodes,
+  `sh:inversePath` under a sequence) rather than only the inverse form. On the
+  W3C SHACL suite the gated column rises from PASS 62 / FAIL 15 / UNDETERMINED
+  43 to PASS 73 / FAIL 13 / UNDETERMINED 34, and the full-tuple column from
+  PASS 54 / FAIL 23 / UNDETERMINED 43 to PASS 65 / FAIL 21 / UNDETERMINED 34,
+  of 120; the eleven `core/path` cases all move to PASS. A standalone
+  `sh:PropertyShape` carrying `sh:targetClass` is now discovered as a target
+  as well.
+
 - **`serve-http` can accept Host names other than localhost on `/mcp`.**
   rmcp's Host check, which blocks DNS rebinding, has refused every `Host`
   header except `localhost`, `127.0.0.1` and `::1` with 403 since rmcp 1.4.
@@ -164,6 +191,42 @@ All notable changes to Open Ontologies are documented here.
   the graph the daemon holds. In memory mode, that local store is empty.
 
 ### Fixed
+
+- **Studio's 3D legend names the ontology live mode has loaded** (#414). The
+  legend read "ies-core.ttl · 1,083 triples", and its ASSERTED row "read from
+  ies-core.ttl", in both builds. That is true of the replay demo, which is
+  built from ies-core, and false over anything else the desktop app loads. In
+  live mode the legend now names the file the toolbar shows and the engine's
+  triple count from `/api/stats`, and leaves out whichever of the two is not
+  known yet. The replay text is unchanged.
+
+- **Studio's live 3D graph and finding provenance read the engine's own
+  query payload** (#413). `POST /api/query` returns
+  `{"variables":[...],"results":[...]}` with each value an N-Triples term, but
+  the live source read W3C `results.bindings`, so every query came back
+  empty: the 3D view showed "Build the knowledge graph first" whatever was
+  loaded, and SHACL findings cited the focus node instead of the document.
+  The live source now parses through `parseRows` (W3C JSON is still read as a
+  fallback), draws a class the class query returns several times as one node,
+  and throws the engine's `{"error": ...}` reply instead of drawing it as an
+  empty store.
+
+- **SHACL-SPARQL message templates substitute solution variables** (#411).
+  Fallback `sh:message` text now expands `{?name}` and `{$name}` for each
+  result, including the pre-bound focus node. Literals use their lexical
+  values, while IRIs and blank nodes retain their RDF form. Unbound variables
+  stay as written, and inserted values are not expanded again. JSON, Turtle
+  and N-Triples reports carry the expanded message; RDF reports preserve its
+  language tag or datatype. A bound `?message` keeps its existing precedence.
+
+- **Incremental transitivity joins edges derived in the same run** (#416).
+  Subproperty and inverse rules could produce two connected edges without
+  their transitive consequence, while the response reported `complete: true`.
+  Targeted joins now include an in-memory index of the current run's edges
+  alongside the stored closure. Materialisation still happens after inference,
+  and tracked runs retain alternative supports and dependency-based withdrawal.
+  Regression tests cover tracked and untracked runs, multiple rounds, named
+  graphs, dry runs, batching, and withdrawal of alternative or cyclic support.
 
 - **Clinical validation and drift detection read a tagged label by its text**
   (#406). Both stripped quotes from the N-Triples form of the literal, so
