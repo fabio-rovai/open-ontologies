@@ -722,9 +722,9 @@ fn no_two_labels_sit_on_top_of_each_other() {
 
 // ── The hand-drawn animation on the front page ──────────────────────────
 //
-// The README shows `knowledge-graph.webp`, drawn in the paper style by
-// `docs/assets/hand-drawn/hero.js` from `knowledge-graph.scene.json`, and links
-// the SVG for anyone who wants the exact figure. A raster carries no number a
+// The README shows the SVG itself and links `knowledge-graph.webp`, drawn in
+// the paper style by `docs/assets/hand-drawn/hero.js` from
+// `knowledge-graph.scene.json`, as a hand-drawn version of the same run. A raster carries no number a
 // test can read, so the chain is checked one link at a time: the first test
 // ties the SVG to a live run, this one ties the scene to the SVG, and the WebP
 // carries the digest of the scene that drew it. Regenerating one without the
@@ -829,11 +829,21 @@ fn the_hand_drawn_animation_is_drawn_from_the_svgs_own_scene() {
             v.webp
         );
 
-        // The front page shows the animation and links the exact figure.
+        // The front page shows the exact figure and links the hand-drawn
+        // version of the same run.
         let md = std::fs::read_to_string(repo().join(v.readme)).expect("README");
         assert!(
-            md.contains(&format!("docs/assets/{}", v.webp)),
-            "{} no longer shows {}",
+            md.contains(&format!(
+                "img src=\"https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/{}\"",
+                v.svg
+            )),
+            "{} no longer shows {} on the front page",
+            v.readme,
+            v.svg
+        );
+        assert!(
+            md.contains(&format!("href=\"docs/assets/{}\"", v.webp)),
+            "{} no longer links the hand-drawn version {}",
             v.readme,
             v.webp
         );
