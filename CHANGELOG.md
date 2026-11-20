@@ -192,6 +192,25 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **The replay demo's 3D legend is true of the graph under it** (#425). The
+  legend reads "ies-core.ttl · 1,083 triples" and names three warrants
+  (asserted, certified under `OOCert.certificate_sound`, forged and refused),
+  but the replay drew 28 DCAT-US classes with no warrant on any edge. The
+  replay graph is now a certified run over ies-core.ttl, built by the new
+  `demo/build_certified_graph.py` (`make demo-graph`): `oo-cert` accepts the
+  built-in certificate, `oo-horn` and the Isabelle checker accept the Horn
+  certificate over the built-in table on the same bytes, and a forged line is
+  refused by all three, `oo-cert` exiting 1 and naming `rdfs11`. It draws 419
+  asserted edges, the 257 derived subClassOf edges both certificates conclude,
+  and the forged edge, with an evidence block of every verdict and digest.
+  The legend's counts now cover the ontology's edges only, not the
+  verification layer's; its proof parts appear over any graph with a
+  certified or rejected edge and over no other, in replay as in live mode;
+  and the replay's empty state no longer points to a Documents panel.
+  `make demo` no longer overwrites `graph.json` with the DCAT-US store's
+  graph, and the demo-artifacts job now runs the tests that hold the
+  committed graph to its evidence.
+
 - **Studio's live 3D view drops the replay demo's proof legend, empty-state
   text and tool-node tinting** (#424). In live mode the legend still listed
   CERTIFIED and REJECTED rows, always 0 because the live source sets no

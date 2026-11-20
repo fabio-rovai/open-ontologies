@@ -55,14 +55,15 @@ describe('legendText', () => {
 })
 
 // The proof-carrying parts of the legend (its heading, the CERTIFIED and
-// REJECTED rows and the Lean 4 / Isabelle footer) describe warrants that only
-// the replay demonstration carries. Live mode drew them anyway, with zero
-// counts, over every ontology it loaded (#424).
+// REJECTED rows and the Lean 4 / Isabelle footer) describe warrants. Live mode
+// drew them anyway, with zero counts, over every ontology it loaded (#424).
 describe('legendParts', () => {
   const labels = (p: ReturnType<typeof legendParts>) => p.rows.map((r) => r.label)
 
-  it('keeps every replay part, whatever the edges carry', () => {
-    const p = legendParts({ kind: 'replay' }, ['asserted'])
+  // The replay bundle's graph is a certified run over ies-core (#425), so its
+  // edges carry all three warrants and the legend names all three.
+  it('shows every part over a replay graph that carries warrants', () => {
+    const p = legendParts({ kind: 'replay' }, ['asserted', 'certified', 'rejected'])
     expect(p.heading).toBe('PROOF-CARRYING INFERENCE')
     expect(p.caption).toBe('ies-core.ttl · 1,083 triples')
     expect(p.rows).toEqual([
@@ -71,6 +72,16 @@ describe('legendParts', () => {
       { w: 'rejected', label: 'REJECTED', means: 'forged. the checker exited 1 and named the rule' },
     ])
     expect(p.proof).toBe(true)
+  })
+
+  // One rule for both origins: the proof parts describe warrants, so they are
+  // drawn only over a graph that carries one. The replay used to keep them
+  // whatever its edges held, and its edges held none (#425).
+  it('drops the proof parts from a replay graph with no warrant on any edge', () => {
+    const p = legendParts({ kind: 'replay' }, ['asserted'])
+    expect(labels(p)).toEqual(['ASSERTED'])
+    expect(p.proof).toBe(false)
+    expect(p.heading).not.toMatch(/PROOF/)
   })
 
   it('shows only the ASSERTED row in live mode when no edge carries a warrant', () => {
@@ -93,8 +104,11 @@ describe('legendParts', () => {
 })
 
 describe('emptyGraphText', () => {
-  it('keeps the replay text', () => {
-    expect(emptyGraphText({ kind: 'replay' })).toBe('Build the knowledge graph first (Documents panel).')
+  // The replay's tabs have no Documents panel either (#425).
+  it('does not send the replay to a Documents panel', () => {
+    const text = emptyGraphText({ kind: 'replay' })
+    expect(text).not.toMatch(/Documents panel/)
+    expect(text).toBe('The replay bundle carries no graph.')
   })
 
   // Live mode has no Documents panel.

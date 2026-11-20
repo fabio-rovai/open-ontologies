@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """
 Package the pipeline's derived output into the artifacts this script owns:
-corpus.json, graph.json, chat.json. (compare.json is built separately by
+corpus.json and chat.json. (compare.json is built separately by
 build_compare.py because it needs a human read of the raw grounded/baseline
 generations before the divergence field can be written honestly.)
+
+graph.json is NOT one of this script's outputs either. The replay's 3D view
+draws a legend of warrants (asserted, certified by OOCert.certificate_sound,
+forged and refused), and the DCAT-US store this script reads carries none:
+drawn under that legend, its 682 edges made every line of it false (#425).
+demo/build_certified_graph.py owns graph.json and builds it from a certified
+run over ies-core.ttl that oo-cert, oo-horn and the Isabelle checker all
+judge. build_graph(), below, is kept for reference and is never invoked from
+main(); demo/tests/test_build_precomputed.py proves main() leaves graph.json
+untouched.
 
 findings.json is NOT one of this script's outputs, and this script must
 never write it. The demonstration's findings are the five DCAT-US conformance
@@ -25,6 +35,7 @@ written against a guessed shape):
 
     corpus.json   -> Document[]            { id, title, text }
     graph.json    -> GraphView             { classes, properties, edges }
+                     (built by build_certified_graph.py; not written here)
     findings.json -> Contradiction[]       { id, subject, kind, claims }
                      claims: Claim[]       { document, predicate, object }
                      (curated by hand from dcat_conformance.py; not written here)
@@ -288,11 +299,8 @@ def main() -> None:
         json.dumps(corpus, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
     print(f"corpus.json: {len(corpus)} documents")
 
-    graph = build_graph()
-    (args.out / "graph.json").write_text(
-        json.dumps(graph, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
-    print(f"graph.json: {len(graph['classes'])} classes, {len(graph['properties'])} properties, "
-          f"{len(graph['edges'])} edges")
+    print("graph.json: left untouched (demo/build_certified_graph.py owns it; "
+          "see this script's module docstring)")
 
     findings_path = args.out / "findings.json"
     if findings_path.exists():

@@ -47,6 +47,27 @@ def test_main_never_touches_a_populated_findings_file(tmp_path, monkeypatch):
     )
 
 
+def test_main_never_touches_the_certified_graph(tmp_path, monkeypatch):
+    """graph.json is built by demo/build_certified_graph.py from a run three
+    checkers judged (#425). `make demo` must not replace it with the DCAT-US
+    store's unwarranted edges, nor call build_graph() to make them."""
+    certified = json.dumps({"classes": [], "properties": [], "edges": [],
+                            "source": {"file": "ies-core.ttl", "triples": 1083}})
+    graph_path = tmp_path / "graph.json"
+    graph_path.write_text(certified)
+    calls = []
+    monkeypatch.setattr(bp, "build_graph", lambda: calls.append(1) or {})
+    monkeypatch.setattr(bp, "STORE", tmp_path)
+    monkeypatch.setattr(bp, "BIN", tmp_path)
+    monkeypatch.setattr(bp, "sparql", lambda *_a, **_k: [])
+    monkeypatch.setattr(sys, "argv", ["build_precomputed.py", "--out", str(tmp_path)])
+
+    bp.main()
+
+    assert graph_path.read_text() == certified, "build_precomputed.py must never write graph.json"
+    assert calls == [], "build_graph() must not be called from main()"
+
+
 def test_build_findings_is_not_called_from_main(tmp_path, monkeypatch):
     """A second, more direct guard: build_findings() must not be invoked at all."""
     calls = []

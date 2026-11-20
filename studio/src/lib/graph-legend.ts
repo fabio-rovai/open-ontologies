@@ -22,7 +22,12 @@ export interface LegendText {
   asserted: string
 }
 
-/** The replay bundle is built from ies-core.ttl, and these are its facts. */
+/**
+ * The replay bundle's graph is built from ies-core.ttl by
+ * demo/build_certified_graph.py, and these are its facts: the bundle records
+ * the file and its 1,083 asserted triples under `graph.source`, and
+ * replay-bundle-legend.test.ts holds this text to them.
+ */
 const REPLAY: LegendText = {
   caption: 'ies-core.ttl · 1,083 triples',
   asserted: 'read from ies-core.ttl. claimed by a person',
@@ -74,20 +79,20 @@ export interface LegendParts {
 }
 
 /**
- * Everything Graph3D's legend draws for the graph on screen (#424).
+ * Everything Graph3D's legend draws for the graph on screen (#424, #425).
  *
  * Its proof-carrying parts (the heading, the CERTIFIED and REJECTED rows and
- * the footer naming Lean 4 and Isabelle) describe warrants, and only the
- * replay demonstration is presented as carrying them: it keeps every part,
- * exactly as before, whatever its edges hold. The live source sets no warrant
- * on any edge, so in live mode those parts appear only if an edge is
- * certified or rejected, and otherwise the legend is the ASSERTED row alone.
+ * the footer naming Lean 4 and Isabelle) describe warrants, so they are drawn
+ * only over a graph in which some edge is certified or rejected, whichever
+ * origin it came from. The replay bundle's graph is a certified run over
+ * ies-core.ttl that oo-cert, oo-horn and the Isabelle checker judged
+ * (demo/build_certified_graph.py), so it carries all three. The live source
+ * sets no warrant on any edge, so live mode shows the ASSERTED row alone.
  */
 export function legendParts(origin: GraphOrigin, warrants: Iterable<Warrant>): LegendParts {
   const text = legendText(origin)
   const asserted: LegendRow = { w: 'asserted', label: 'ASSERTED', means: text.asserted }
-  const proof =
-    origin.kind === 'replay' || [...warrants].some((w) => w === 'certified' || w === 'rejected')
+  const proof = [...warrants].some((w) => w === 'certified' || w === 'rejected')
   if (!proof) {
     return { proof, heading: 'KNOWLEDGE GRAPH', caption: text.caption, rows: [asserted] }
   }
@@ -104,12 +109,12 @@ export function legendParts(origin: GraphOrigin, warrants: Iterable<Warrant>): L
 }
 
 /**
- * What Graph3D says over a graph with no classes. Replay keeps its text; live
- * mode has no Documents panel, and an ontology reaches its engine through
- * Chat (#424).
+ * What Graph3D says over a graph with no classes. Neither mode has a
+ * Documents panel: the replay draws only what its bundle carries (#425), and
+ * in live mode an ontology reaches the engine through Chat (#424).
  */
 export function emptyGraphText(origin: GraphOrigin): string {
   return origin.kind === 'replay'
-    ? 'Build the knowledge graph first (Documents panel).'
+    ? 'The replay bundle carries no graph.'
     : 'No classes to draw yet. Load or build an ontology through Chat and it appears here.'
 }
