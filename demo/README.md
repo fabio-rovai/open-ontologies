@@ -123,6 +123,37 @@ Run the tests with:
 python -m pytest demo/tests/
 ```
 
+## The replay graph
+
+`demo/precomputed/graph.json` is not produced by the pipeline above either.
+The replay's 3D view prints a legend of warrants: ASSERTED (read from the
+file), CERTIFIED (derived, then proved under `OOCert.certificate_sound`) and
+REJECTED (forged, refused by the checker with the rule named). The DCAT-US
+store carries no warrant on any edge, so its graph made every line of that
+legend false (#425). `demo/build_certified_graph.py` builds the graph from a
+certified run over `benchmark/reference/ies-core.ttl` instead:
+
+1. The engine writes two certificates of the file: the built-in one
+   (`reason --profile rdfs --certificate`) and a Horn certificate over the
+   built-in rule table (`reason --rules tests/fixtures/horn/builtin_rules.tsv
+   --certificate`).
+2. `oo-cert` accepts the first (`OOCert.certificate_sound`); `oo-horn` and the
+   Isabelle checker both accept the second, the same bytes, with the verdict
+   `entailed`.
+3. One derived line is copied with its conclusion changed, appended to each
+   certificate, and all three checkers refuse it; `oo-cert` exits 1 and names
+   the rule.
+4. Only then is the graph written: ies-core's asserted subClassOf, rdf:type,
+   domain and range edges, the 257 derived subClassOf edges both
+   certificates conclude, and the forged edge, with an `evidence` block
+   recording every verdict, count and certificate digest.
+
+`make demo-graph` runs it (it needs the release engine, the Lean checkers and
+Poly/ML from Isabelle2025-2). `demo/tests/test_build_certified_graph.py` holds
+the committed file to its evidence on a fresh clone, and
+`studio/src/lib/__tests__/replay-bundle-legend.test.ts` holds the legend's
+text and counts to the bundle.
+
 ## The conformance finding
 
 `demo/precomputed/findings.json` is not produced by the pipeline above. The

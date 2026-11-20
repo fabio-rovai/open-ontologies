@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toGraphData, type GNode } from '../graph3d-model'
+import { toGraphData, warrantCounts, type GNode } from '../graph3d-model'
 import type { GraphView } from '../demo-source'
 
 // A live ontology whose classes happen to carry the names of the replay
@@ -91,5 +91,24 @@ describe('toGraphData in replay', () => {
       { source: 'urn:tool:certificate', target: 'urn:tool:lean', warrant: 'certified' },
       { source: 'urn:tool:e', target: 'urn:tool:certificate', warrant: 'asserted' },
     ])
+  })
+})
+
+describe('warrantCounts', () => {
+  it('counts only edges between ontology nodes, before and after the simulation resolves endpoints', () => {
+    const { nodes, links } = toGraphData(
+      {
+        classes: [{ iri: 'ex:A' }, { iri: 'ex:B' }, { iri: 'urn:cert', label: 'certificate' }, { iri: 'urn:lean', label: 'Lean 4 · oo-cert' }],
+        properties: [],
+        edges: [
+          { source: 'ex:A', target: 'ex:B', warrant: 'certified' },
+          { source: 'urn:cert', target: 'urn:lean', warrant: 'certified' },
+        ],
+      },
+      { kind: 'replay' },
+    )
+    expect(warrantCounts(nodes, links)).toEqual({ asserted: 0, certified: 1, rejected: 0 })
+    const resolved = links.map((l) => ({ ...l, source: { id: l.source }, target: { id: l.target } })) as unknown as typeof links
+    expect(warrantCounts(nodes, resolved)).toEqual({ asserted: 0, certified: 1, rejected: 0 })
   })
 })

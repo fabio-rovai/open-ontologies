@@ -1,3124 +1,4209 @@
 {
   "classes": [
     {
-      "iri": "Address",
-      "label": "Address"
+      "iri": "http://purl.org/ies/core/v0/ont/Accent"
     },
     {
-      "iri": "Agent",
-      "label": "Agent"
+      "iri": "http://purl.org/ies/core/v0/ont/Access"
     },
     {
-      "iri": "Attribution",
-      "label": "Attribution"
+      "iri": "http://purl.org/ies/core/v0/ont/Accessed"
     },
     {
-      "iri": "Author",
-      "label": "Author"
+      "iri": "http://purl.org/ies/core/v0/ont/Accessor"
     },
     {
-      "iri": "Catalog",
-      "label": "Catalog"
+      "iri": "http://purl.org/ies/core/v0/ont/Account"
     },
     {
-      "iri": "Commit",
-      "label": "Commit"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountAdminActivity"
     },
     {
-      "iri": "Concept",
-      "label": "Concept"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountClosure"
     },
     {
-      "iri": "ConformanceRequirement",
-      "label": "Conformance Requirement"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountDetails"
     },
     {
-      "iri": "DataService",
-      "label": "Data Service"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountHolder"
     },
     {
-      "iri": "Dataset",
-      "label": "Dataset"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountInCommunication"
     },
     {
-      "iri": "Distribution",
-      "label": "Distribution"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountNumber"
     },
     {
-      "iri": "Document",
-      "label": "Document"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountOpening"
     },
     {
-      "iri": "File",
-      "label": "File"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountProvider"
     },
     {
-      "iri": "Identifier",
-      "label": "Identifier"
+      "iri": "http://purl.org/ies/core/v0/ont/AccountUpdate"
     },
     {
-      "iri": "Implementation",
-      "label": "Implementation"
+      "iri": "http://purl.org/ies/core/v0/ont/ActiveParticipation"
     },
     {
-      "iri": "JsonSchema",
-      "label": "JSON Schema"
+      "iri": "http://purl.org/ies/core/v0/ont/Activity"
     },
     {
-      "iri": "Kind",
-      "label": "Kind"
+      "iri": "http://purl.org/ies/core/v0/ont/Actor"
     },
     {
-      "iri": "Location",
-      "label": "Location"
+      "iri": "http://purl.org/ies/core/v0/ont/Address"
     },
     {
-      "iri": "MetadataCatalog",
-      "label": "Metadata Catalog"
+      "iri": "http://purl.org/ies/core/v0/ont/ArbitraryPeriod"
     },
     {
-      "iri": "MetadataElement",
-      "label": "Metadata Element"
+      "iri": "http://purl.org/ies/core/v0/ont/Arrival"
     },
     {
-      "iri": "MetadataStandard",
-      "label": "Metadata Standard"
+      "iri": "http://purl.org/ies/core/v0/ont/Artefact"
     },
     {
-      "iri": "PeriodOfTime",
-      "label": "Period of Time"
+      "iri": "http://purl.org/ies/core/v0/ont/Assessment"
     },
     {
-      "iri": "Profile",
-      "label": "Profile"
+      "iri": "http://purl.org/ies/core/v0/ont/Assessor"
     },
     {
-      "iri": "PullRequest",
-      "label": "Pull Request"
+      "iri": "http://purl.org/ies/core/v0/ont/Attendance"
     },
     {
-      "iri": "Repository",
-      "label": "Repository"
+      "iri": "http://purl.org/ies/core/v0/ont/BirthState"
     },
     {
-      "iri": "Section",
-      "label": "Section"
+      "iri": "http://purl.org/ies/core/v0/ont/Capability"
     },
     {
-      "iri": "Standard",
-      "label": "Standard"
+      "iri": "http://purl.org/ies/core/v0/ont/CharacterString"
     },
     {
-      "iri": "Status",
-      "label": "Status"
+      "iri": "http://purl.org/ies/core/v0/ont/Characteristic"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/CoLocation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Color"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/CommercialOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Communication"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ContinuousAccess"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Contract"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Country"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Create"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Created"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Creator"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/CriminalOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/DeathState"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Department"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Departure"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Destroy"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Destroyed"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Destroyer"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Disposition"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/DocumentFormat"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/DocumentSection"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Easting"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/EducationalOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/EndToEndActivity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/EndToEndTransaction"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Entitlement"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Ethnicity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Exchange"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ExchangeMovement"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Facility"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/FiniteSetOfSpatiotemporalExtents"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/FirstLineOfAddress"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Forgery"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/FoundOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Gender"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GeoIdentity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GeoPoint"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GeographicFeature"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GivenName"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GovernanceActivity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/GovernmentOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/HumanMadeSystem"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ICalRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Identifier"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/IndividualDocument"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/IndividualDocumentID"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Installed"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/IntelligenceAgency"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/IntermittentAccess"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/InternationalCoalition"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Journey"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Language"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LanguageProficiency"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Latitude"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LawEnforcementOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LegalOwner"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LegalOwnership"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LifecycleActivity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LineOfAddress"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LivingOrganism"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/LivingSystem"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Location"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Longitude"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Measure"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Meeting"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/MilitaryOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Modifier"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Modify"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Movement"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Name"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/NamingScheme"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Nation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Nickname"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Northing"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/NotForProfitOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/OSGridReference"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Observation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Observed"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Observer"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Organization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/OrganizationIdentifier"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/OrganizationName"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/OwnedLegally"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PartNumber"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PartOfFacility"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Participation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ParticipationInGoverance"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ParticularPeriod"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PartyInCommunication"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Person"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PersonInCommunication"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PersonName"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PersonOrOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PersonTitle"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Possession"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/PostalCode"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Provision"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RealEstate"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Recognizer"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RecurringTimespan"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RegionOfCountry"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RegionOfEarth"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RegionalConsituency"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Religion"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ReligiousOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/ReplaceableLifespan"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Representation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RepresentationScheme"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RightGrantingArtefact"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RightHolder"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RightTo"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/RoomNumber"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SerialNumber"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfInformationProcessingSystems"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfNames"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfPersons"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfRepresentations"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfSigns"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SetOfUniverseMates"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Sex"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Sign"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/SimilarUniverseMates"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Skill"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Surname"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/System"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/TOID"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Team"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Tendency"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/TerroristOrganization"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Ticket"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Title"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/TransactionActivity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Usage"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/Vehicle"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/VersionNumber"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/VersionOfDocument"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/aCopyOf"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/allHaveCharacteristic"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/allHaveDisposition"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/assessed"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/attribute"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/category"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/documentedBy"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/duration"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/endBoundOfSet"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/finiteMembershipCount"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/format"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/formatOfIndividualDocument"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasAssociatedRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasCharacteristic"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasEthnicity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasGeoSparqlRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasICalRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasIdentifiedGender"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasName"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasQuantity"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasSex"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasSkill"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/hasTheme"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/iCalRRuleRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/inLanguage"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/inRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/isDisposedTo"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/isIdentifiedBy"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/isRepresentedAs"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/iso8601DurationRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/iso8601PeriodRepresentation"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/published"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/representationValue"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/schemeMasteredIn"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/schemeOwner"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/similarState"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/spokenLanguage"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/startBoundOfSet"
+    },
+    {
+      "iri": "http://purl.org/ies/core/v0/ont/versionOf"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/IntermittentTimespan"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/Period"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/SetOfStates"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/SpatiotemporalExtent"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/State"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/TemporallyContinuousState"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/TemporallyIntermittentState"
+    },
+    {
+      "iri": "http://purl.org/ies/top/v0/ont/Thing"
+    },
+    {
+      "iri": "http://qudt.org/schema/qudt/Quantity"
+    },
+    {
+      "iri": "http://www.opengis.net/ont/geosparql#Feature"
+    },
+    {
+      "iri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "label": "rdf:Property"
+    },
+    {
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "label": "rdfs:Class"
+    },
+    {
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "label": "rdfs:Literal"
+    },
+    {
+      "iri": "http://www.w3.org/2000/01/rdf-schema#Resource",
+      "label": "rdfs:Resource"
+    },
+    {
+      "iri": "http://www.w3.org/2001/XMLSchema#duration",
+      "label": "xsd:duration"
+    },
+    {
+      "iri": "http://www.w3.org/2001/XMLSchema#integer",
+      "label": "xsd:integer"
+    },
+    {
+      "iri": "http://www.w3.org/2002/07/owl#ObjectProperty",
+      "label": "owl:ObjectProperty"
+    },
+    {
+      "iri": "http://www.w3.org/2004/02/skos/core#Concept"
+    },
+    {
+      "iri": "urn:open-ontologies:replay:ies-core.ttl",
+      "label": "ies-core.ttl"
+    },
+    {
+      "iri": "urn:open-ontologies:replay:certificate",
+      "label": "certificate"
+    },
+    {
+      "iri": "urn:open-ontologies:replay:Lean 4 · oo-cert",
+      "label": "Lean 4 · oo-cert"
+    },
+    {
+      "iri": "urn:open-ontologies:replay:Isabelle/HOL",
+      "label": "Isabelle/HOL"
     }
   ],
   "edges": [
     {
-      "source": "AccessRestriction01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Accent",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "Address",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Access",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "Address01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Access",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Agent",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Accessed",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "Agent01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Accessed",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Attribution",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Accessor",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "Attribution01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Accessor",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Author",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/Account",
+      "target": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "Author01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Account",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_1",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_1",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_10",
-      "target": "ConformanceRequirement"
+      "source": "http://purl.org/ies/core/v0/ont/AccountClosure",
+      "target": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_10",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountClosure",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_11",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountDetails",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_11",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/AccountDetails",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_12",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountHolder",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_12",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/AccountHolder",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_13",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_13",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/AccountInCommunication",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_14",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountNumber",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_14",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/AccountOpening",
+      "target": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_15",
-      "target": "ConformanceRequirement"
+      "source": "http://purl.org/ies/core/v0/ont/AccountOpening",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_15",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountProvider",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_16",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountProvider",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_16",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/AccountUpdate",
+      "target": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_17",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/AccountUpdate",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_17",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_18",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_18",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/Activity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_19",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Activity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_19",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/Actor",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_2",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Actor",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_2",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/Address",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_20",
-      "target": "ConformanceRequirement"
+      "source": "http://purl.org/ies/core/v0/ont/ArbitraryPeriod",
+      "target": "http://purl.org/ies/top/v0/ont/Period",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_20",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/ArbitraryPeriod",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_21",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Arrival",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_21",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/Arrival",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_22",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Artefact",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_22",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/Artefact",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_23",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Assessment",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_23",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/Assessment",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_24",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Assessor",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_24",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/Assessor",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_25",
-      "target": "ConformanceRequirement"
+      "source": "http://purl.org/ies/core/v0/ont/Attendance",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_25",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Attendance",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_26",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/BirthState",
+      "target": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_26",
-      "target": "Dataset07"
+      "source": "http://purl.org/ies/core/v0/ont/BirthState",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_27",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Capability",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_27",
-      "target": "PublishedDataset07"
+      "source": "http://purl.org/ies/core/v0/ont/Capability",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_28",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/CharacterString",
+      "target": "http://purl.org/ies/core/v0/ont/Sign",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_28",
-      "target": "DatasetSeries01"
+      "source": "http://purl.org/ies/core/v0/ont/CharacterString",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_29",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_29",
-      "target": "Distribution01"
+      "source": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_3",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/CoLocation",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_3",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/CoLocation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_30",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Color",
+      "target": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_30",
-      "target": "File01"
+      "source": "http://purl.org/ies/core/v0/ont/Color",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_31",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/CommercialOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_31",
-      "target": "Organization01"
+      "source": "http://purl.org/ies/core/v0/ont/Communication",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_32",
-      "target": "Agent01"
+      "source": "http://purl.org/ies/core/v0/ont/Communication",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_32",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://purl.org/ies/core/v0/ont/Access",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_33",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://purl.org/ies/top/v0/ont/TemporallyContinuousState",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_33",
-      "target": "Identifier01"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_34",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Contract",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_34",
-      "target": "License01"
+      "source": "http://purl.org/ies/core/v0/ont/Contract",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_35",
-      "target": "AccessRestriction01"
+      "source": "http://purl.org/ies/core/v0/ont/Country",
+      "target": "http://purl.org/ies/core/v0/ont/Location",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_35",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Country",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_36",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Create",
+      "target": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_36",
-      "target": "UseRestriction01"
+      "source": "http://purl.org/ies/core/v0/ont/Create",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_37",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Created",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_37",
-      "target": "LiabilityStatement01"
+      "source": "http://purl.org/ies/core/v0/ont/Created",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_38",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Creator",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_38",
-      "target": "MetadataStandard01"
+      "source": "http://purl.org/ies/core/v0/ont/Creator",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_39",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/CriminalOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_39",
-      "target": "MetadataElement01"
+      "source": "http://purl.org/ies/core/v0/ont/DeathState",
+      "target": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_4",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/DeathState",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_4",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/Department",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_40",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Departure",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_40",
-      "target": "Profile01"
+      "source": "http://purl.org/ies/core/v0/ont/Departure",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_41",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Destroy",
+      "target": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_41",
-      "target": "JsonSchema01"
+      "source": "http://purl.org/ies/core/v0/ont/Destroy",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_42",
-      "target": "ConceptScheme01"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyed",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_42",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyed",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_43",
-      "target": "Concept01"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyer",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_43",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyer",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_44",
-      "target": "ControlledVocabulary01"
+      "source": "http://purl.org/ies/core/v0/ont/Disposition",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_44",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Disposition",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_45",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_45",
-      "target": "DataService01"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_46",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentSection",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_46",
-      "target": "DataCatalog01"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_47",
-      "target": "CatalogRecord01"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_47",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/EducationalOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_48",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_48",
-      "target": "MetadataCatalog01"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_49",
-      "target": "Commit01"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndTransaction",
+      "target": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_49",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndTransaction",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_5",
-      "target": "ConformanceRequirement"
+      "source": "http://purl.org/ies/core/v0/ont/Entitlement",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_5",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Entitlement",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_50",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Ethnicity",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_50",
-      "target": "PullRequest01"
+      "source": "http://purl.org/ies/core/v0/ont/Ethnicity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_51",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Exchange",
+      "target": "http://purl.org/ies/core/v0/ont/TransactionActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_51",
-      "target": "Repository01"
+      "source": "http://purl.org/ies/core/v0/ont/Exchange",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_52",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/ExchangeMovement",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_52",
-      "target": "Relationship01"
+      "source": "http://purl.org/ies/core/v0/ont/ExchangeMovement",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_53",
-      "target": "Attribution01"
+      "source": "http://purl.org/ies/core/v0/ont/Facility",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_53",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/FiniteSetOfSpatiotemporalExtents",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_54",
-      "target": "Author01"
+      "source": "http://purl.org/ies/core/v0/ont/FiniteSetOfSpatiotemporalExtents",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_54",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/FirstLineOfAddress",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_55",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Forgery",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_55",
-      "target": "Location01"
+      "source": "http://purl.org/ies/core/v0/ont/FoundOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_56",
-      "target": "Address01"
+      "source": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_56",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_57",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Gender",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_57",
-      "target": "Kind01"
+      "source": "http://purl.org/ies/core/v0/ont/Gender",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_58",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Gender",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_58",
-      "target": "PeriodOfTime01"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_59",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_59",
-      "target": "Status01"
+      "source": "http://purl.org/ies/core/v0/ont/GeoPoint",
+      "target": "http://purl.org/ies/core/v0/ont/Location",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_6",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/GeoPoint",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_6",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/GeographicFeature",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_60",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/GivenName",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_60",
-      "target": "Implementation01"
+      "source": "http://purl.org/ies/core/v0/ont/GovernanceActivity",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_61",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/GovernanceActivity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_61",
-      "target": "Theme01"
+      "source": "http://purl.org/ies/core/v0/ont/GovernmentOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_62",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_62",
-      "target": "ThemeTaxonomy01"
+      "source": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_63",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_63",
-      "target": "Language01"
+      "source": "http://purl.org/ies/core/v0/ont/ICalRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_64",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/ICalRepresentation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_64",
-      "target": "Rights01"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_65",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_65",
-      "target": "RightsHolder01"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_66",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_66",
-      "target": "Publisher01"
+      "source": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_67",
-      "target": "Creator01"
+      "source": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_67",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/IndividualDocumentID",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_68",
-      "target": "ContactPoint01"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_68",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_69",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_69",
-      "target": "Service01"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_7",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_7",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/Installed",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_8",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Installed",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_8",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/IntelligenceAgency",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_9",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://purl.org/ies/core/v0/ont/Access",
+      "warrant": "asserted"
     },
     {
-      "source": "CLAIM_9",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://purl.org/ies/top/v0/ont/TemporallyIntermittentState",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "CatalogRecord"
+      "source": "http://purl.org/ies/core/v0/ont/InternationalCoalition",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "ConceptScheme"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://purl.org/ies/core/v0/ont/Movement",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Language",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/Language",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/core/v0/ont/Skill",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "MetadataCatalog"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Catalog",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/LawEnforcementOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "CatalogRecord01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwner",
+      "target": "http://purl.org/ies/core/v0/ont/RightHolder",
+      "warrant": "asserted"
     },
     {
-      "source": "Commit",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwner",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Commit",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwnership",
+      "target": "http://purl.org/ies/core/v0/ont/Entitlement",
+      "warrant": "asserted"
     },
     {
-      "source": "Commit01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwnership",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Concept",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "Concept",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Concept",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/LineOfAddress",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "Concept01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "ConceptScheme01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "ConformanceRequirement",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "warrant": "asserted"
     },
     {
-      "source": "ContactPoint01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "asserted"
     },
     {
-      "source": "ControlledVocabulary01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "Creator01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Location",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Location",
+      "target": "http://www.opengis.net/ont/geosparql#Feature",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Location",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "CatalogRecord"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "ConceptScheme"
+      "source": "http://purl.org/ies/core/v0/ont/Measure",
+      "target": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/Measure",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Meeting",
+      "target": "http://purl.org/ies/core/v0/ont/Communication",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/Meeting",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/MilitaryOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Section"
+      "source": "http://purl.org/ies/core/v0/ont/Modifier",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_catalog_schema",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/Modifier",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Modify",
+      "target": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Modify",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "CatalogRecord"
+      "source": "http://purl.org/ies/core/v0/ont/Movement",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/Movement",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Name",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "ControlledVocabulary"
+      "source": "http://purl.org/ies/core/v0/ont/Name",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/Name",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://purl.org/ies/core/v0/ont/RepresentationScheme",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfNames",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "JsonSchema"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/Nickname",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "MetadataCatalog"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "MetadataElement"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Organization"
+      "source": "http://purl.org/ies/core/v0/ont/NotForProfitOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "Section"
+      "source": "http://purl.org/ies/core/v0/ont/OSGridReference",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_dataset_schema",
-      "target": "status"
+      "source": "http://purl.org/ies/core/v0/ont/Observation",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "AGENT_data_governance_team"
+      "source": "http://purl.org/ies/core/v0/ont/Observation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "AGENT_federal_data_management_office"
+      "source": "http://purl.org/ies/core/v0/ont/Observed",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "ATTRIBUTION_data_quality_team"
+      "source": "http://purl.org/ies/core/v0/ont/Observed",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "CATALOG_RECORD_1"
+      "source": "http://purl.org/ies/core/v0/ont/Observer",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "CATALOG_budget_subcatalog"
+      "source": "http://purl.org/ies/core/v0/ont/Observer",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "CATALOG_federal_data_catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "CATALOG_related_agency_catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "CATEGORY_aggregate_catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "DATASERVICE_federal_data_api"
+      "source": "http://purl.org/ies/core/v0/ont/OrganizationIdentifier",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "DATASET_SERIES_federal_budget_data_series"
+      "source": "http://purl.org/ies/core/v0/ont/OrganizationName",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "DATASET_annual_budget_data"
+      "source": "http://purl.org/ies/core/v0/ont/OwnedLegally",
+      "target": "http://purl.org/ies/core/v0/ont/RightTo",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "DATASET_employment_statistics"
+      "source": "http://purl.org/ies/core/v0/ont/OwnedLegally",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "ID_federal_data_catalog"
+      "source": "http://purl.org/ies/core/v0/ont/PartNumber",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "KIND_federal_data_support_center"
+      "source": "http://purl.org/ies/core/v0/ont/PartOfFacility",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "LOCATION_tok_location_10218a7d18c3"
+      "source": "http://purl.org/ies/core/v0/ont/Participation",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "PERIOD_1"
+      "source": "http://purl.org/ies/core/v0/ont/Participation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "STANDARD_dcat_us_3"
+      "source": "http://purl.org/ies/core/v0/ont/ParticipationInGoverance",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "THEME_government_administration"
+      "source": "http://purl.org/ies/core/v0/ont/ParticipationInGoverance",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_examples_sample",
-      "target": "THEME_public_services"
+      "source": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "target": "http://purl.org/ies/top/v0/ont/Period",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_pr_120_record",
-      "target": "neilmb"
+      "source": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_pr_120_record",
-      "target": "status"
+      "source": "http://purl.org/ies/core/v0/ont/PartyInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "LICENCE_CC0"
+      "source": "http://purl.org/ies/core/v0/ont/PartyInCommunication",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "ORG_1"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_1"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_10"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_100"
+      "source": "http://purl.org/ies/core/v0/ont/PersonInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_11"
+      "source": "http://purl.org/ies/core/v0/ont/PersonInCommunication",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_12"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_13"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_14"
+      "source": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_15"
+      "source": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_16"
+      "source": "http://purl.org/ies/core/v0/ont/PersonTitle",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_17"
+      "source": "http://purl.org/ies/core/v0/ont/Possession",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_18"
+      "source": "http://purl.org/ies/core/v0/ont/PostalCode",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_19"
+      "source": "http://purl.org/ies/core/v0/ont/Provision",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_2"
+      "source": "http://purl.org/ies/core/v0/ont/Provision",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_20"
+      "source": "http://purl.org/ies/core/v0/ont/RealEstate",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_21"
+      "source": "http://purl.org/ies/core/v0/ont/Recognizer",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_22"
+      "source": "http://purl.org/ies/core/v0/ont/Recognizer",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_23"
+      "source": "http://purl.org/ies/core/v0/ont/RecurringTimespan",
+      "target": "http://purl.org/ies/top/v0/ont/IntermittentTimespan",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_24"
+      "source": "http://purl.org/ies/core/v0/ont/RecurringTimespan",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_25"
+      "source": "http://purl.org/ies/core/v0/ont/RegionOfCountry",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_26"
+      "source": "http://purl.org/ies/core/v0/ont/RegionOfEarth",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_27"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/Organization",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_28"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_29"
+      "source": "http://purl.org/ies/core/v0/ont/Religion",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_3"
+      "source": "http://purl.org/ies/core/v0/ont/ReligiousOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_30"
+      "source": "http://purl.org/ies/core/v0/ont/ReplaceableLifespan",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_31"
+      "source": "http://purl.org/ies/core/v0/ont/ReplaceableLifespan",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_32"
+      "source": "http://purl.org/ies/core/v0/ont/Representation",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_33"
+      "source": "http://purl.org/ies/core/v0/ont/Representation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_34"
+      "source": "http://purl.org/ies/core/v0/ont/RepresentationScheme",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_35"
+      "source": "http://purl.org/ies/core/v0/ont/RepresentationScheme",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_36"
+      "source": "http://purl.org/ies/core/v0/ont/RightGrantingArtefact",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_37"
+      "source": "http://purl.org/ies/core/v0/ont/RightGrantingArtefact",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_38"
+      "source": "http://purl.org/ies/core/v0/ont/RightHolder",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_39"
+      "source": "http://purl.org/ies/core/v0/ont/RightHolder",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_4"
+      "source": "http://purl.org/ies/core/v0/ont/RightTo",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_40"
+      "source": "http://purl.org/ies/core/v0/ont/RightTo",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_41"
+      "source": "http://purl.org/ies/core/v0/ont/RoomNumber",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_42"
+      "source": "http://purl.org/ies/core/v0/ont/SerialNumber",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_43"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_44"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_45"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_46"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_47"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfInformationProcessingSystems",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_48"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_49"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_5"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfNames",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_50"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfNames",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_51"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_52"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_53"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_54"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_55"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_56"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_57"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_58"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_59"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_6"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_60"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_61"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_62"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfUniverseMates",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_63"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfUniverseMates",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_64"
+      "source": "http://purl.org/ies/core/v0/ont/Sex",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_65"
+      "source": "http://purl.org/ies/core/v0/ont/Sex",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_66"
+      "source": "http://purl.org/ies/core/v0/ont/Sign",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_67"
+      "source": "http://purl.org/ies/core/v0/ont/Sign",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_68"
+      "source": "http://purl.org/ies/core/v0/ont/SimilarUniverseMates",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfUniverseMates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_69"
+      "source": "http://purl.org/ies/core/v0/ont/SimilarUniverseMates",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_7"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://purl.org/ies/core/v0/ont/Capability",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_70"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_71"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_72"
+      "source": "http://purl.org/ies/core/v0/ont/Surname",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_73"
+      "source": "http://purl.org/ies/core/v0/ont/System",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_74"
+      "source": "http://purl.org/ies/core/v0/ont/System",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_75"
+      "source": "http://purl.org/ies/core/v0/ont/TOID",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_76"
+      "source": "http://purl.org/ies/core/v0/ont/Team",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_77"
+      "source": "http://purl.org/ies/core/v0/ont/Tendency",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_78"
+      "source": "http://purl.org/ies/core/v0/ont/Tendency",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_79"
+      "source": "http://purl.org/ies/core/v0/ont/TerroristOrganization",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_8"
+      "source": "http://purl.org/ies/core/v0/ont/Ticket",
+      "target": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_80"
+      "source": "http://purl.org/ies/core/v0/ont/Ticket",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_81"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_82"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_83"
+      "source": "http://purl.org/ies/core/v0/ont/TransactionActivity",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_84"
+      "source": "http://purl.org/ies/core/v0/ont/TransactionActivity",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_85"
+      "source": "http://purl.org/ies/core/v0/ont/Usage",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_86"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_87"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_88"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_89"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_9"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_90"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_91"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_92"
+      "source": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_93"
+      "source": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Class",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_94"
+      "source": "http://purl.org/ies/core/v0/ont/aCopyOf",
+      "target": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_95"
+      "source": "http://purl.org/ies/core/v0/ont/aCopyOf",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_96"
+      "source": "http://purl.org/ies/core/v0/ont/aCopyOf",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_97"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveCharacteristic",
+      "target": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_98"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveCharacteristic",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "SEC_profile_readme_99"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveCharacteristic",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "DOC_profile_readme",
-      "target": "https://github.com/GSA/dcat-us/"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveDisposition",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "asserted"
     },
     {
-      "source": "DataCatalog01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveDisposition",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "asserted"
     },
     {
-      "source": "DataService",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/allHaveDisposition",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "DataService",
-      "target": "CatalogedResource"
+      "source": "http://purl.org/ies/core/v0/ont/assessed",
+      "target": "http://purl.org/ies/core/v0/ont/Assessment",
+      "warrant": "asserted"
     },
     {
-      "source": "DataService",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/assessed",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "DataService",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/assessed",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Resource",
+      "warrant": "asserted"
     },
     {
-      "source": "DataService01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/attribute",
+      "target": "http://purl.org/ies/top/v0/ont/Thing",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/attribute",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "CatalogedResource"
+      "source": "http://purl.org/ies/core/v0/ont/attribute",
+      "target": "http://www.w3.org/2000/01/rdf-schema#Literal",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/category",
+      "target": "http://purl.org/ies/top/v0/ont/SpatiotemporalExtent",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "ControlledVocabulary"
+      "source": "http://purl.org/ies/core/v0/ont/category",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/category",
+      "target": "http://www.w3.org/2004/02/skos/core#Concept",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/documentedBy",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/documentedBy",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/duration",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/duration",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/duration",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "JsonSchema"
+      "source": "http://purl.org/ies/core/v0/ont/endBoundOfSet",
+      "target": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/endBoundOfSet",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "MetadataElement"
+      "source": "http://purl.org/ies/core/v0/ont/endBoundOfSet",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/finiteMembershipCount",
+      "target": "http://purl.org/ies/core/v0/ont/FiniteSetOfSpatiotemporalExtents",
+      "warrant": "asserted"
     },
     {
-      "source": "Dataset07",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/finiteMembershipCount",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "DatasetSeries01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/finiteMembershipCount",
+      "target": "http://www.w3.org/2001/XMLSchema#integer",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/format",
+      "target": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/format",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "ControlledVocabulary"
+      "source": "http://purl.org/ies/core/v0/ont/format",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/formatOfIndividualDocument",
+      "target": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/formatOfIndividualDocument",
+      "target": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/formatOfIndividualDocument",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "JsonSchema"
+      "source": "http://purl.org/ies/core/v0/ont/hasAssociatedRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/hasAssociatedRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "MetadataElement"
+      "source": "http://purl.org/ies/core/v0/ont/hasCharacteristic",
+      "target": "http://purl.org/ies/core/v0/ont/Characteristic",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/hasCharacteristic",
+      "target": "http://purl.org/ies/top/v0/ont/SpatiotemporalExtent",
+      "warrant": "asserted"
     },
     {
-      "source": "Distribution01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasCharacteristic",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Document",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/hasEthnicity",
+      "target": "http://purl.org/ies/core/v0/ont/Ethnicity",
+      "warrant": "asserted"
     },
     {
-      "source": "Document",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/hasEthnicity",
+      "target": "http://purl.org/ies/core/v0/ont/Person",
+      "warrant": "asserted"
     },
     {
-      "source": "File",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/hasEthnicity",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "File",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/hasGeoSparqlRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "File",
-      "target": "Repository"
+      "source": "http://purl.org/ies/core/v0/ont/hasICalRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/ICalRepresentation",
+      "warrant": "asserted"
     },
     {
-      "source": "File",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/hasICalRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/RecurringTimespan",
+      "warrant": "asserted"
     },
     {
-      "source": "File01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasICalRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Identifier",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/hasIdentifiedGender",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Identifier",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/hasName",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "asserted"
     },
     {
-      "source": "Identifier",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/hasName",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Identifier",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/hasQuantity",
+      "target": "http://purl.org/ies/core/v0/ont/Measure",
+      "warrant": "asserted"
     },
     {
-      "source": "Identifier01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasQuantity",
+      "target": "http://qudt.org/schema/qudt/Quantity",
+      "warrant": "asserted"
     },
     {
-      "source": "Implementation",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/hasQuantity",
+      "target": "http://www.w3.org/2002/07/owl#ObjectProperty",
+      "warrant": "asserted"
     },
     {
-      "source": "Implementation",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/hasSex",
+      "target": "http://purl.org/ies/core/v0/ont/Person",
+      "warrant": "asserted"
     },
     {
-      "source": "Implementation01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasSex",
+      "target": "http://purl.org/ies/core/v0/ont/Sex",
+      "warrant": "asserted"
     },
     {
-      "source": "JsonSchema",
-      "target": "Implementation"
+      "source": "http://purl.org/ies/core/v0/ont/hasSex",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "JsonSchema",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/hasSkill",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "JsonSchema01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasTheme",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "asserted"
     },
     {
-      "source": "Kind",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/hasTheme",
+      "target": "http://purl.org/ies/top/v0/ont/Thing",
+      "warrant": "asserted"
     },
     {
-      "source": "Kind01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/hasTheme",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Language01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/iCalRRuleRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "LiabilityStatement01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/inLanguage",
+      "target": "http://purl.org/ies/core/v0/ont/Language",
+      "warrant": "asserted"
     },
     {
-      "source": "License01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/inLanguage",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "Location",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/inLanguage",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Location01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/inRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/inRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/isDisposedTo",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog",
-      "target": "File"
+      "source": "http://purl.org/ies/core/v0/ont/isDisposedTo",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog",
-      "target": "Repository"
+      "source": "http://purl.org/ies/core/v0/ont/isDisposedTo",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/isIdentifiedBy",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataCatalog01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/isIdentifiedBy",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataElement",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/isRepresentedAs",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataElement01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/isRepresentedAs",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataStandard",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/iso8601DurationRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfStatesWithParticularDuration",
+      "warrant": "asserted"
     },
     {
-      "source": "MetadataStandard01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/iso8601DurationRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Organization01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/iso8601DurationRepresentation",
+      "target": "http://www.w3.org/2001/XMLSchema#duration",
+      "warrant": "asserted"
     },
     {
-      "source": "PeriodOfTime",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/iso8601PeriodRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "warrant": "asserted"
     },
     {
-      "source": "PeriodOfTime01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/iso8601PeriodRepresentation",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/published",
+      "target": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/published",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/published",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/representationValue",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/representationValue",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/schemeMasteredIn",
+      "target": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "warrant": "asserted"
     },
     {
-      "source": "Profile01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/schemeMasteredIn",
+      "target": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "warrant": "asserted"
     },
     {
-      "source": "PublishedDataset07",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/schemeMasteredIn",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Publisher01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/schemeOwner",
+      "target": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/schemeOwner",
+      "target": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/schemeOwner",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/similarState",
+      "target": "http://purl.org/ies/core/v0/ont/SimilarUniverseMates",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "File"
+      "source": "http://purl.org/ies/core/v0/ont/similarState",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "MetadataCatalog"
+      "source": "http://purl.org/ies/core/v0/ont/similarState",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "Repository"
+      "source": "http://purl.org/ies/core/v0/ont/spokenLanguage",
+      "target": "http://purl.org/ies/core/v0/ont/Language",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/spokenLanguage",
+      "target": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "warrant": "asserted"
     },
     {
-      "source": "PullRequest01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/spokenLanguage",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Relationship01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/startBoundOfSet",
+      "target": "http://purl.org/ies/core/v0/ont/ParticularPeriod",
+      "warrant": "asserted"
     },
     {
-      "source": "Repository",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/startBoundOfSet",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfTimeBoundedStates",
+      "warrant": "asserted"
     },
     {
-      "source": "Repository",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/startBoundOfSet",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "Repository",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/versionOf",
+      "target": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "warrant": "asserted"
     },
     {
-      "source": "Repository01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/versionOf",
+      "target": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "warrant": "asserted"
     },
     {
-      "source": "Rights01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/versionOf",
+      "target": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+      "warrant": "asserted"
     },
     {
-      "source": "RightsHolder01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Access",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_1"
+      "source": "http://purl.org/ies/core/v0/ont/Access",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_10"
+      "source": "http://purl.org/ies/core/v0/ont/Accessed",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_100"
+      "source": "http://purl.org/ies/core/v0/ont/Accessor",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_11"
+      "source": "http://purl.org/ies/core/v0/ont/Account",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_12"
+      "source": "http://purl.org/ies/core/v0/ont/Account",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_13"
+      "source": "http://purl.org/ies/core/v0/ont/Account",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_14"
+      "source": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_15"
+      "source": "http://purl.org/ies/core/v0/ont/AccountAdminActivity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_16"
+      "source": "http://purl.org/ies/core/v0/ont/AccountClosure",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_17"
+      "source": "http://purl.org/ies/core/v0/ont/AccountClosure",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_18"
+      "source": "http://purl.org/ies/core/v0/ont/AccountClosure",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_19"
+      "source": "http://purl.org/ies/core/v0/ont/AccountDetails",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_2"
+      "source": "http://purl.org/ies/core/v0/ont/AccountDetails",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_20"
+      "source": "http://purl.org/ies/core/v0/ont/AccountHolder",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_21"
+      "source": "http://purl.org/ies/core/v0/ont/AccountInCommunication",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_22"
+      "source": "http://purl.org/ies/core/v0/ont/AccountOpening",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_23"
+      "source": "http://purl.org/ies/core/v0/ont/AccountOpening",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_24"
+      "source": "http://purl.org/ies/core/v0/ont/AccountOpening",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_25"
+      "source": "http://purl.org/ies/core/v0/ont/AccountProvider",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_26"
+      "source": "http://purl.org/ies/core/v0/ont/AccountUpdate",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_27"
+      "source": "http://purl.org/ies/core/v0/ont/AccountUpdate",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_28"
+      "source": "http://purl.org/ies/core/v0/ont/AccountUpdate",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_29"
+      "source": "http://purl.org/ies/core/v0/ont/ActiveParticipation",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_3"
+      "source": "http://purl.org/ies/core/v0/ont/Activity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_30"
+      "source": "http://purl.org/ies/core/v0/ont/Assessment",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_31"
+      "source": "http://purl.org/ies/core/v0/ont/Assessment",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_32"
+      "source": "http://purl.org/ies/core/v0/ont/Assessor",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_33"
+      "source": "http://purl.org/ies/core/v0/ont/Assessor",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_34"
+      "source": "http://purl.org/ies/core/v0/ont/Attendance",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_35"
+      "source": "http://purl.org/ies/core/v0/ont/BirthState",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_36"
+      "source": "http://purl.org/ies/core/v0/ont/Capability",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_37"
+      "source": "http://purl.org/ies/core/v0/ont/CharacterString",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_38"
+      "source": "http://purl.org/ies/core/v0/ont/CoLocation",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_39"
+      "source": "http://purl.org/ies/core/v0/ont/Color",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_4"
+      "source": "http://purl.org/ies/core/v0/ont/Communication",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_40"
+      "source": "http://purl.org/ies/core/v0/ont/Communication",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_41"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_42"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_43"
+      "source": "http://purl.org/ies/core/v0/ont/ContinuousAccess",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_44"
+      "source": "http://purl.org/ies/core/v0/ont/Contract",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_45"
+      "source": "http://purl.org/ies/core/v0/ont/Country",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_46"
+      "source": "http://purl.org/ies/core/v0/ont/Country",
+      "target": "http://www.opengis.net/ont/geosparql#Feature",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_47"
+      "source": "http://purl.org/ies/core/v0/ont/Create",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_48"
+      "source": "http://purl.org/ies/core/v0/ont/Create",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_49"
+      "source": "http://purl.org/ies/core/v0/ont/Create",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_5"
+      "source": "http://purl.org/ies/core/v0/ont/Created",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_50"
+      "source": "http://purl.org/ies/core/v0/ont/Created",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_51"
+      "source": "http://purl.org/ies/core/v0/ont/Creator",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_52"
+      "source": "http://purl.org/ies/core/v0/ont/Creator",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_53"
+      "source": "http://purl.org/ies/core/v0/ont/DeathState",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_54"
+      "source": "http://purl.org/ies/core/v0/ont/Destroy",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_55"
+      "source": "http://purl.org/ies/core/v0/ont/Destroy",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_56"
+      "source": "http://purl.org/ies/core/v0/ont/Destroy",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_57"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyed",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_58"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyed",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_59"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyer",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_6"
+      "source": "http://purl.org/ies/core/v0/ont/Destroyer",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_60"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_61"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_62"
+      "source": "http://purl.org/ies/core/v0/ont/DocumentFormat",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_63"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_64"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_65"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_66"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_67"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_68"
+      "source": "http://purl.org/ies/core/v0/ont/Easting",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_69"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_7"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndActivity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_70"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndTransaction",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_71"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndTransaction",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_72"
+      "source": "http://purl.org/ies/core/v0/ont/EndToEndTransaction",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_73"
+      "source": "http://purl.org/ies/core/v0/ont/Entitlement",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_74"
+      "source": "http://purl.org/ies/core/v0/ont/Entitlement",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_75"
+      "source": "http://purl.org/ies/core/v0/ont/Ethnicity",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_76"
+      "source": "http://purl.org/ies/core/v0/ont/Ethnicity",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_77"
+      "source": "http://purl.org/ies/core/v0/ont/Exchange",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_78"
+      "source": "http://purl.org/ies/core/v0/ont/Exchange",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_79"
+      "source": "http://purl.org/ies/core/v0/ont/Exchange",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_8"
+      "source": "http://purl.org/ies/core/v0/ont/ExchangeMovement",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_80"
+      "source": "http://purl.org/ies/core/v0/ont/ExchangeMovement",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_81"
+      "source": "http://purl.org/ies/core/v0/ont/Gender",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_82"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_83"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_84"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_85"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_86"
+      "source": "http://purl.org/ies/core/v0/ont/GeoIdentity",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_87"
+      "source": "http://purl.org/ies/core/v0/ont/GeoPoint",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_88"
+      "source": "http://purl.org/ies/core/v0/ont/GeoPoint",
+      "target": "http://www.opengis.net/ont/geosparql#Feature",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_89"
+      "source": "http://purl.org/ies/core/v0/ont/GovernanceActivity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_9"
+      "source": "http://purl.org/ies/core/v0/ont/GovernanceActivity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_90"
+      "source": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_91"
+      "source": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_92"
+      "source": "http://purl.org/ies/core/v0/ont/ICalRepresentation",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_93"
+      "source": "http://purl.org/ies/core/v0/ont/ICalRepresentation",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_94"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_95"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_96"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_97"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_98"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "SEC_w3c_dcat_conformance_4",
-      "target": "SEC_w3c_dcat_conformance_4_99"
+      "source": "http://purl.org/ies/core/v0/ont/ISO3166_1Alpha_3",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "Service01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "Standard",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "Standard",
-      "target": "DOC_dataset_schema"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "Status01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/Identifier",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "Theme01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/IndividualDocument",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "ThemeTaxonomy01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "UseRestriction01",
-      "target": "DOC_recovered_context"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "accessRights",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "accessRights",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystem",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "accessRights",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessPolicy",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/InformationProcessingSystemInCommunication",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessPolicy",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessProtocol",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessProtocol",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/IntermittentAccess",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessURL",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessURL",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessURL",
-      "target": "anyURI"
+      "source": "http://purl.org/ies/core/v0/ont/Journey",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasAccessURL",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Language",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasAgent",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Language",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasAgent",
-      "target": "Attribution"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/core/v0/ont/Capability",
+      "warrant": "certified"
     },
     {
-      "source": "hasAltLabel",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "certified"
     },
     {
-      "source": "hasAuthor",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "certified"
     },
     {
-      "source": "hasAuthor",
-      "target": "PullRequest"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "warrant": "certified"
     },
     {
-      "source": "hasByteSize",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/LanguageProficiency",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasByteSize",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "certified"
     },
     {
-      "source": "hasByteSize",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "hasCatalog",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasCategory",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasCategory",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasCharacterEncoding",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Latitude",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasCharacterEncoding",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwner",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasCommit",
-      "target": "Commit"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwner",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasCommit",
-      "target": "Repository"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwnership",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "hasConformsTo",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwnership",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasConformsTo",
-      "target": "Standard"
+      "source": "http://purl.org/ies/core/v0/ont/LegalOwnership",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasContactPoint",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasContactPoint",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/LifecycleActivity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasContactPoint",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasControlledVocabulary",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/LivingSystem",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasControlledVocabulary",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "certified"
     },
     {
-      "source": "hasCountryName",
-      "target": "Address"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "hasCountryName",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasCreator",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasCreator",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasCreator",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Longitude",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasDataService",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Measure",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSpatiotemporalExtents",
+      "warrant": "certified"
     },
     {
-      "source": "hasDataService",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/Meeting",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "hasDataset",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Meeting",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasDataset",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Meeting",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasDatasetSeries",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Modifier",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasDatasetSeries",
-      "target": "DatasetSeries"
+      "source": "http://purl.org/ies/core/v0/ont/Modifier",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasDescription",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Modify",
+      "target": "http://purl.org/ies/core/v0/ont/Activity",
+      "warrant": "certified"
     },
     {
-      "source": "hasDescription",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Modify",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasDescription",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/Modify",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasDescription",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/Movement",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasDescription",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Movement",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasDistribution",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Name",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasDistribution",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/Name",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasDownloadURL",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "warrant": "certified"
     },
     {
-      "source": "hasDownloadURL",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasDownloadURL",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/NamingScheme",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasEmail",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "certified"
     },
     {
-      "source": "hasEmail",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "hasFN",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasFN",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "warrant": "certified"
     },
     {
-      "source": "hasFormat",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/Organization",
+      "warrant": "certified"
     },
     {
-      "source": "hasFormat",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "warrant": "certified"
     },
     {
-      "source": "hasFormat",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "hasHasPart",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Nation",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasIdentifier",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/Identifier",
+      "warrant": "certified"
     },
     {
-      "source": "hasIdentifier",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "hasIdentifier",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasIdentifier",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasIssued",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasIssued",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/Northing",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasJsonSchema",
-      "target": "JsonSchema"
+      "source": "http://purl.org/ies/core/v0/ont/Observation",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasJsonSchema",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/Observation",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasLanguage",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Observed",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasLanguage",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Observer",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasLicense",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Observer",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasLicense",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "certified"
     },
     {
-      "source": "hasLicense",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "hasLicense",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasLocality",
-      "target": "Address"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "hasLocality",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Organization",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasMedia",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/OwnedLegally",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasMedia",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/OwnedLegally",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasMediaType",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/ParticipationInGoverance",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasMediaType",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/PartyInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadata",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/PartyInCommunication",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadata",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadataCatalog",
-      "target": "Author"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadataCatalog",
-      "target": "MetadataCatalog"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/LivingOrganism",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadataElement",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "hasMetadataElement",
-      "target": "MetadataElement"
+      "source": "http://purl.org/ies/core/v0/ont/Person",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasModified",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/PersonInCommunication",
+      "target": "http://purl.org/ies/core/v0/ont/Participation",
+      "warrant": "certified"
     },
     {
-      "source": "hasModified",
-      "target": "Distribution"
+      "source": "http://purl.org/ies/core/v0/ont/PersonInCommunication",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasName",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasName",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasNotation",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasNotation",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/PersonName",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasOrganizationName",
-      "target": "Kind"
+      "source": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasOrganizationName",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Provision",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasOtherIdentifier",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Recognizer",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasOtherIdentifier",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/Actor",
+      "warrant": "certified"
     },
     {
-      "source": "hasPart",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "hasPostalCode",
-      "target": "Address"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasPostalCode",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/HumanMadeSystem",
+      "warrant": "certified"
     },
     {
-      "source": "hasPrefLabel",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/PersonOrOrganization",
+      "warrant": "certified"
     },
     {
-      "source": "hasPrimaryTopic",
-      "target": "CatalogRecord"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "hasPrimaryTopic",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/RegionalConsituency",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasPublisher",
-      "target": "Agent"
+      "source": "http://purl.org/ies/core/v0/ont/ReplaceableLifespan",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasPublisher",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Representation",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasPublisher",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/RepresentationScheme",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasQualifiedAttribution",
-      "target": "Attribution"
+      "source": "http://purl.org/ies/core/v0/ont/RepresentationScheme",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasQualifiedAttribution",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/RightGrantingArtefact",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasRDFDescription",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/RightHolder",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasRDFDescription",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/RightTo",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasRDFSyntax",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRDFSyntax",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasRecord",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRecord",
-      "target": "CatalogRecord"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfNames",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasRegion",
-      "target": "Address"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfNames",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRegion",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfPersons",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRequiredField",
-      "target": "Profile"
+      "source": "http://purl.org/ies/core/v0/ont/SetOfRepresentations",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfSetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRequiredField",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Sex",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRights",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/SimilarUniverseMates",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasRights",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://purl.org/ies/core/v0/ont/Disposition",
+      "warrant": "certified"
     },
     {
-      "source": "hasSection",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfLivingOrganisms",
+      "warrant": "certified"
     },
     {
-      "source": "hasSection",
-      "target": "Section"
+      "source": "http://purl.org/ies/core/v0/ont/Skill",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasSectionNumber",
-      "target": "Section"
+      "source": "http://purl.org/ies/core/v0/ont/System",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasSectionNumber",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/Tendency",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasService",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Ticket",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "hasService",
-      "target": "DataService"
+      "source": "http://purl.org/ies/core/v0/ont/Ticket",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasSpatial",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasSpatial",
-      "target": "Location"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasStatus",
-      "target": "File"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasStatus",
-      "target": "Status"
+      "source": "http://purl.org/ies/core/v0/ont/Title",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasStreetAddress",
-      "target": "Address"
+      "source": "http://purl.org/ies/core/v0/ont/TransactionActivity",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasStreetAddress",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/TransactionActivity",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasTemporal",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://purl.org/ies/core/v0/ont/Artefact",
+      "warrant": "certified"
     },
     {
-      "source": "hasTemporal",
-      "target": "PeriodOfTime"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts",
+      "warrant": "certified"
     },
     {
-      "source": "hasTheme",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://purl.org/ies/core/v0/ont/System",
+      "warrant": "certified"
     },
     {
-      "source": "hasTheme",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/Vehicle",
+      "target": "http://purl.org/ies/top/v0/ont/State",
+      "warrant": "certified"
     },
     {
-      "source": "hasTheme",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/core/v0/ont/Name",
+      "warrant": "certified"
     },
     {
-      "source": "hasThemeTaxonomy",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasThemeTaxonomy",
-      "target": "ConceptScheme"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfCharacterStrings",
+      "warrant": "certified"
     },
     {
-      "source": "hasTitle",
-      "target": "Catalog"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasTitle",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/VersionNumber",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasTitle",
-      "target": "Document"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasTitle",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfIndividualDocuments",
+      "warrant": "certified"
     },
     {
-      "source": "hasVersion",
-      "target": "Concept"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasVersion",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/VersionOfDocument",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "hasVersion",
-      "target": "Identifier"
+      "source": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "target": "http://purl.org/ies/core/v0/ont/Representation",
+      "warrant": "certified"
     },
     {
-      "source": "hasVersion",
-      "target": "MetadataStandard"
+      "source": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "target": "http://purl.org/ies/core/v0/ont/SetOfSigns",
+      "warrant": "certified"
     },
     {
-      "source": "hasVersion",
-      "target": "string"
+      "source": "http://purl.org/ies/core/v0/ont/WorkOfDocumentation",
+      "target": "http://purl.org/ies/top/v0/ont/SetOfStates",
+      "warrant": "certified"
     },
     {
-      "source": "liabilityStatement",
-      "target": "Dataset"
+      "source": "http://purl.org/ies/core/v0/ont/Access",
+      "target": "http://purl.org/ies/core/v0/ont/Accessed",
+      "warrant": "rejected"
     },
     {
-      "source": "liabilityStatement",
-      "target": "string"
+      "source": "urn:open-ontologies:replay:ies-core.ttl",
+      "target": "urn:open-ontologies:replay:certificate",
+      "warrant": "asserted"
     },
     {
-      "source": "purpose",
-      "target": "Dataset"
+      "source": "urn:open-ontologies:replay:certificate",
+      "target": "urn:open-ontologies:replay:Lean 4 · oo-cert",
+      "warrant": "certified"
     },
     {
-      "source": "purpose",
-      "target": "string"
-    },
-    {
-      "source": "versionNotes",
-      "target": "Dataset"
-    },
-    {
-      "source": "versionNotes",
-      "target": "string"
+      "source": "urn:open-ontologies:replay:certificate",
+      "target": "urn:open-ontologies:replay:Isabelle/HOL",
+      "warrant": "certified"
     }
   ],
-  "properties": [
-    {
-      "iri": "accessRights",
-      "label": "access rights"
-    },
-    {
-      "iri": "hasAccessPolicy",
-      "label": "has access policy"
-    },
-    {
-      "iri": "hasAccessProtocol",
-      "label": "has access protocol"
-    },
-    {
-      "iri": "hasAccessURL",
-      "label": "has access URL"
-    },
-    {
-      "iri": "hasAgent",
-      "label": "has agent"
-    },
-    {
-      "iri": "hasAltLabel",
-      "label": "has alt label"
-    },
-    {
-      "iri": "hasAuthor",
-      "label": "has author"
-    },
-    {
-      "iri": "hasByteSize",
-      "label": "has byte size"
-    },
-    {
-      "iri": "hasCatalog",
-      "label": "has catalog"
-    },
-    {
-      "iri": "hasCategory",
-      "label": "has category"
-    },
-    {
-      "iri": "hasCharacterEncoding",
-      "label": "has character encoding"
-    },
-    {
-      "iri": "hasCommit",
-      "label": "has commit"
-    },
-    {
-      "iri": "hasConformsTo",
-      "label": "has conforms to"
-    },
-    {
-      "iri": "hasContactPoint",
-      "label": "has contact point"
-    },
-    {
-      "iri": "hasControlledVocabulary",
-      "label": "has controlled vocabulary"
-    },
-    {
-      "iri": "hasCountryName",
-      "label": "has country name"
-    },
-    {
-      "iri": "hasCreator",
-      "label": "has creator"
-    },
-    {
-      "iri": "hasDataService",
-      "label": "has data service"
-    },
-    {
-      "iri": "hasDataset",
-      "label": "has dataset"
-    },
-    {
-      "iri": "hasDatasetSeries",
-      "label": "has dataset series"
-    },
-    {
-      "iri": "hasDescription",
-      "label": "has description"
-    },
-    {
-      "iri": "hasDistribution",
-      "label": "has distribution"
-    },
-    {
-      "iri": "hasDownloadURL",
-      "label": "has download URL"
-    },
-    {
-      "iri": "hasEmail",
-      "label": "has email"
-    },
-    {
-      "iri": "hasFN",
-      "label": "has FN"
-    },
-    {
-      "iri": "hasFormat",
-      "label": "has format"
-    },
-    {
-      "iri": "hasHasPart",
-      "label": "has part"
-    },
-    {
-      "iri": "hasIdentifier",
-      "label": "has identifier"
-    },
-    {
-      "iri": "hasIssued",
-      "label": "has issued"
-    },
-    {
-      "iri": "hasJsonSchema",
-      "label": "has JSON schema"
-    },
-    {
-      "iri": "hasLanguage",
-      "label": "has language"
-    },
-    {
-      "iri": "hasLicense",
-      "label": "has license"
-    },
-    {
-      "iri": "hasLocality",
-      "label": "has locality"
-    },
-    {
-      "iri": "hasMedia",
-      "label": "has media type"
-    },
-    {
-      "iri": "hasMediaType",
-      "label": "has media type"
-    },
-    {
-      "iri": "hasMetadata",
-      "label": "has metadata"
-    },
-    {
-      "iri": "hasMetadataCatalog",
-      "label": "has metadata catalog"
-    },
-    {
-      "iri": "hasMetadataElement",
-      "label": "has metadata element"
-    },
-    {
-      "iri": "hasModified",
-      "label": "has modified"
-    },
-    {
-      "iri": "hasName",
-      "label": "has name"
-    },
-    {
-      "iri": "hasNotation",
-      "label": "has notation"
-    },
-    {
-      "iri": "hasOrganizationName",
-      "label": "has organization name"
-    },
-    {
-      "iri": "hasOtherIdentifier",
-      "label": "has other identifier"
-    },
-    {
-      "iri": "hasPart",
-      "label": "has part"
-    },
-    {
-      "iri": "hasPostalCode",
-      "label": "has postal code"
-    },
-    {
-      "iri": "hasPrefLabel",
-      "label": "has pref label"
-    },
-    {
-      "iri": "hasPrimaryTopic",
-      "label": "has primary topic"
-    },
-    {
-      "iri": "hasPublisher",
-      "label": "has publisher"
-    },
-    {
-      "iri": "hasQualifiedAttribution",
-      "label": "has qualified attribution"
-    },
-    {
-      "iri": "hasRDFDescription",
-      "label": "has RDF description"
-    },
-    {
-      "iri": "hasRDFSyntax",
-      "label": "has RDF syntax"
-    },
-    {
-      "iri": "hasRecord",
-      "label": "has record"
-    },
-    {
-      "iri": "hasRegion",
-      "label": "has region"
-    },
-    {
-      "iri": "hasRequiredField",
-      "label": "has required field"
-    },
-    {
-      "iri": "hasRights",
-      "label": "has rights"
-    },
-    {
-      "iri": "hasSection",
-      "label": "has section"
-    },
-    {
-      "iri": "hasSectionNumber",
-      "label": "has section number"
-    },
-    {
-      "iri": "hasService",
-      "label": "has service"
-    },
-    {
-      "iri": "hasSpatial",
-      "label": "has spatial"
-    },
-    {
-      "iri": "hasStatus",
-      "label": "has status"
-    },
-    {
-      "iri": "hasStreetAddress",
-      "label": "has street address"
-    },
-    {
-      "iri": "hasTemporal",
-      "label": "has temporal"
-    },
-    {
-      "iri": "hasTheme",
-      "label": "has theme"
-    },
-    {
-      "iri": "hasThemeTaxonomy",
-      "label": "has theme taxonomy"
-    },
-    {
-      "iri": "hasTitle",
-      "label": "has title"
-    },
-    {
-      "iri": "hasVersion",
-      "label": "has version"
-    },
-    {
-      "iri": "liabilityStatement",
-      "label": "liability statement"
-    },
-    {
-      "iri": "purpose",
-      "label": "purpose"
-    },
-    {
-      "iri": "versionNotes",
-      "label": "version notes"
+  "evidence": {
+    "builtin_certificate": {
+      "asserted": 1083,
+      "asserted_sha256": "86cf553dc7db498ce4bf32d301af4bc6cb7756080a3cb0ebf771bb1104e5b674",
+      "by_rule": {
+        "rdfs11": 257,
+        "rdfs5": 8
+      },
+      "command": "reason --profile rdfs --certificate",
+      "conclusions_sha256": "f9dbe0209d84f45ea20b5773576af0b6ba7ef8335e450e85016ccaaa4e1505cd",
+      "derivations": 265,
+      "oo_cert": {
+        "exit": 0,
+        "ok": true,
+        "theorem": "OOCert.certificate_sound"
+      }
+    },
+    "drawn": {
+      "asserted": 419,
+      "certified": 257,
+      "predicates": [
+        "rdfs:subClassOf",
+        "rdf:type",
+        "rdfs:domain",
+        "rdfs:range"
+      ],
+      "rejected": 1
+    },
+    "forged": {
+      "claim": [
+        "http://purl.org/ies/core/v0/ont/Access",
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+        "http://purl.org/ies/core/v0/ont/Accessed"
+      ],
+      "copied_from": [
+        "http://purl.org/ies/core/v0/ont/Access",
+        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+        "http://purl.org/ies/core/v0/ont/FusionOfIntegralParts"
+      ],
+      "isabelle": {
+        "exit": 1,
+        "ok": false,
+        "strict": "rejected step=416 reason=head_mismatch"
+      },
+      "oo_cert": {
+        "exit": 1,
+        "first_rejected": 265,
+        "ok": false,
+        "rule": "rdfs11"
+      },
+      "oo_horn": {
+        "exit": 1,
+        "ok": false
+      }
+    },
+    "generator": "demo/build_certified_graph.py",
+    "horn_certificate": {
+      "command": "reason --rules tests/fixtures/horn/builtin_rules.tsv --certificate",
+      "derivations": 416,
+      "horn_sha256": "e73c4685b50105f94a60c7ba9b09b0fff163c9fa6c145e319d033e150f2899d6",
+      "isabelle": {
+        "exit": 0,
+        "theorem": "OOHorn.run_check_entailed_sound",
+        "verdict": "entailed"
+      },
+      "oo_horn": {
+        "exit": 0,
+        "theorem": "OOCert.entails_of_builtin_horn",
+        "verdict": "entailed"
+      },
+      "rules": 27,
+      "rules_sha256": "50d3668e978bfc23009a8fdd5285f554fcb7b9da15b799fa970cd0eb8c7e9670"
     }
-  ]
+  },
+  "properties": [],
+  "source": {
+    "file": "ies-core.ttl",
+    "path": "benchmark/reference/ies-core.ttl",
+    "sha256": "3207e2a681cddb70b804d85cb3d73a72d1f8701945bfbae9ddb15ee23f52f6cb",
+    "triples": 1083
+  }
 }

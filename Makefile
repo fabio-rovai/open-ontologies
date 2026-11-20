@@ -1,4 +1,4 @@
-.PHONY: build test lint audit verify verify-dafny bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-verify demo-verify-pipeline
+.PHONY: build test lint audit verify verify-dafny bench bench-pizza bench-ontoaxiom bench-mushroom bench-vision bench-reasoner bench-oaei docker clean demo demo-graph demo-verify demo-verify-pipeline
 
 # ─── Development ─────────────────────────────────────────────────────────────
 
@@ -128,11 +128,27 @@ serve-http:
 # 4 says a script must not make unsupervised. It is committed like the rest
 # of demo/precomputed/ and is a precondition for `make demo`, the same way
 # demo/corpus/dcat-us/ is: an input this target consumes, not one it derives.
+# graph.json is the same kind of input. The replay's 3D legend names warrants
+# (asserted, certified, forged and refused), so its graph comes from a certified
+# run that three checkers judge, built by `make demo-graph` below, and not from
+# the DCAT-US store, whose edges carry none (#425).
 demo:
 	python3 demo/ontology_from_docs.py --corpus demo/corpus/dcat-us --workers 2
 	python3 demo/corpus_text.py
 	python3 demo/build_precomputed.py --out demo/precomputed
 	python3 demo/build_validation.py --out demo/precomputed
+	python3 demo/bundle_fixtures.py --in demo/precomputed --out demo/precomputed/bundle.json
+	cd demo/precomputed && shasum -a 256 *.json | sort > MANIFEST.sha256
+
+# demo-graph rebuilds graph.json from ies-core.ttl: the engine writes the
+# built-in and the Horn certificate, oo-cert, oo-horn and the Isabelle checker
+# must accept them and refuse one forged line, and only then is the graph
+# written. Needs the release engine, the Lean checkers and Poly/ML (Isabelle2025-2).
+demo-graph:
+	cargo build --release
+	cd lean && lake build oo-cert oo-horn
+	isabelle/build_native.sh
+	python3 demo/build_certified_graph.py --out demo/precomputed
 	python3 demo/bundle_fixtures.py --in demo/precomputed --out demo/precomputed/bundle.json
 	cd demo/precomputed && shasum -a 256 *.json | sort > MANIFEST.sha256
 

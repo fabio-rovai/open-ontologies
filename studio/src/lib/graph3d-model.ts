@@ -139,6 +139,27 @@ export function componentCentres(count: number): [number, number, number][] {
   return out;
 }
 
+/**
+ * How many edges OF THE ONTOLOGY carry each warrant: the numbers the legend
+ * prints beside "read from the file", "derived, then PROVED" and "forged".
+ * The verification layer's own edges (the file to its certificate, the
+ * certificate to each checker) are drawn in the same colours but are neither
+ * triples of the file nor conclusions of the certificate, so they are not
+ * counted (#425). The force simulation replaces a link's endpoints with node
+ * objects once it starts, so both shapes are read.
+ */
+export function warrantCounts(nodes: GNode[], links: GLink[]): Record<Warrant, number> {
+  const ontology = new Set(nodes.filter((n) => n.role === 'class').map((n) => n.id));
+  const id = (end: unknown) => (typeof end === 'string' ? end : (end as { id?: string } | null)?.id);
+  const out: Record<Warrant, number> = { asserted: 0, certified: 0, rejected: 0 };
+  for (const l of links) {
+    const s = id(l.source);
+    const t = id(l.target);
+    if (s !== undefined && t !== undefined && ontology.has(s) && ontology.has(t)) out[l.warrant] += 1;
+  }
+  return out;
+}
+
 /** What `name` is drawn as in a graph from `origin`. */
 function roleOf(name: string, origin: GraphOrigin): NodeRole {
   if (origin.kind !== 'replay') return 'class';

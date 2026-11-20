@@ -3,7 +3,7 @@ import ForceGraph3D from 'react-force-graph-3d';
 import type { GraphView, Warrant } from '../lib/demo-source';
 import { emptyGraphText, legendParts, type GraphOrigin } from '../lib/graph-legend';
 import {
-  componentCentres, short, toGraphData,
+  componentCentres, short, toGraphData, warrantCounts,
   type GLink, type GNode, type NodeRole, type SimNode,
 } from '../lib/graph3d-model';
 
@@ -157,7 +157,7 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
               onNodeSelect({ id: short(g.id), label: g.name, uri: g.id });
             }}
           />
-          <Legend links={data.links} origin={origin} />
+          <Legend counts={warrantCounts(data.nodes, data.links)} links={data.links} origin={origin} />
         </>
       )}
     </div>
@@ -171,8 +171,14 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
  * the data on screen, never typed. The file and triple count come from
  * `origin`: the replay demo's own in replay, the loaded file's in live mode.
  */
-function Legend({ links, origin }: { links: GLink[]; origin: GraphOrigin }) {
-  const n = (w: Warrant) => links.filter((l) => l.warrant === w).length;
+function Legend({ counts, links, origin }: {
+  counts: Record<Warrant, number>;
+  links: GLink[];
+  origin: GraphOrigin;
+}) {
+  // The ontology's own edges only: the verification layer's are drawn in the
+  // same colours but are not what the rows describe (#425).
+  const n = (w: Warrant) => counts[w];
   const parts = legendParts(origin, links.map((l) => l.warrant));
   return (
     <div

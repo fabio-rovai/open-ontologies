@@ -28,3 +28,18 @@ jobs:
         run: |
           python3 demo/bundle_fixtures.py --in demo/precomputed --out /tmp/bundle.regenerated.json
           diff demo/precomputed/bundle.json /tmp/bundle.regenerated.json
+      # The replay's 3D legend says every edge is asserted, certified by
+      # OOCert.certificate_sound, or forged and refused (#425). graph.json is
+      # written by demo/build_certified_graph.py only after oo-cert, oo-horn and
+      # the Isabelle checker judge the run, and those take the lean job's
+      # toolchain to rebuild. What runs here, with nothing built, is that the
+      # committed graph is the one that script writes: its warrants are backed
+      # by its evidence block, its source is this repository's ies-core.ttl,
+      # and `make demo` cannot overwrite it with the unwarranted DCAT-US graph.
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: The replay graph carries the warrants its legend names
+        run: |
+          pip install "pytest==8.4.2"
+          python3 -m pytest -q demo/tests/test_build_certified_graph.py demo/tests/test_build_precomputed.py
