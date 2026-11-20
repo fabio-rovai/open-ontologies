@@ -216,6 +216,30 @@ All notable changes to Open Ontologies are documented here.
   `tests/certificate_determinism_test.rs` certifies one store three times in
   three processes, under each profile, and requires identical bytes.
 
+- **The README figure's red edge is a forged claim, and the refusal it
+  reports is a real run of `oo-cert`** (#428). `docs/assets/knowledge-graph.py`
+  took one of the derived subClassOf edges, every one of which `oo-cert`
+  accepts, chose it by where it landed in the layout and drew it as the
+  forgery, so the figure painted a certified entailment red and stated a
+  refusal no checker had made. It now forges a new claim `s subClassOf X`, X a
+  class the closure does not reach from s, as `demo/build_certified_graph.py`
+  does: a derived line of s is copied with its conclusion changed to X,
+  appended to a copy of the certificate, and `oo-cert` is run on it
+  (`--oo-cert PATH`, default `lean/.lake/build/bin/oo-cert`). Nothing is
+  written unless `oo-cert` accepts the certificate and exits 1 on the copy,
+  naming the forged line and its rule, and the rule and exit code on the
+  figure are read from that report. On ies-core the forgery is
+  `SetOfRepresentations subClassOf Sign`, refused at line 265 as an `rdfs11`
+  step, drawn beside the 257 derived edges, which all stay certified. The
+  legend counts the ontology's edges only, as the Studio legend has since
+  #425: 420 asserted, 257 certified, 1 rejected, where it read 426 and 259 by
+  taking in the pipeline's arrows. The certificate row states the 265 lines
+  `oo-cert` read. Edges are sorted before the layout, so two certificates that
+  differ only in premises (#427) draw byte-identical figures. Both languages'
+  SVG, scene and WebP are regenerated, and
+  `tests/knowledge_graph_asset_test.rs` checks the red edge and the certified
+  edges against a live certificate.
+
 - **The replay demo's 3D legend is true of the graph under it** (#425). The
   legend reads "ies-core.ttl · 1,083 triples" and names three warrants
   (asserted, certified under `OOCert.certificate_sound`, forged and refused),

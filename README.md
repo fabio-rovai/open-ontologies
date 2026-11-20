@@ -59,9 +59,9 @@
 </p>
 
 <p align="center">
-  <sub><b>426 asserted, 259 certified, 1 rejected.</b> The engine derived the green edges. A Lean 4
-  checker then <i>proved</i> them. One certificate holds all 259, and one run of the checker accepts it.
-  The red edge is a forged line. The same checker refused that line, gave exit 1, and named the rule.
+  <sub><b>420 asserted, 257 certified, 1 rejected.</b> The engine derived the green edges. A Lean 4
+  checker then <i>proved</i> them. One certificate holds all 257, and one run of the checker accepts it.
+  The red edge is a forged line. The same checker refused that line, gave exit 1, and named the rule (rdfs11).
   The run supplies each count. Nobody writes a count into the caption.</sub>
 </p>
 

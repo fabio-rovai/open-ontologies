@@ -19,6 +19,12 @@
 //! implementation of the same projection agreeing with the first says very
 //! little. The asserted and derived totals are the load-bearing numbers and
 //! they come straight from the engine.
+//!
+//! One projection is re-derived all the same, since #428: which edges are
+//! green and which one is red. The generator once took a certified edge and
+//! drew it as the forgery, and every count it printed stayed self-consistent
+//! while it did. So the green edges are compared with the certificate's
+//! subClassOf conclusions, and the red edge has to be absent from them.
 
 use open_ontologies::graph::GraphStore;
 use open_ontologies::reason::{InferenceTarget, Reasoner};
@@ -838,4 +844,251 @@ fn the_hand_drawn_animation_is_drawn_from_the_svgs_own_scene() {
             v.svg
         );
     }
+}
+
+// ── The red edge is a forgery, drawn beside the certified edges ─────────
+//
+// The fifth beat says "a line is forged, and the same checker refuses", and the
+// legend's REJECTED row says the checker exited 1 and named the rule. Until
+// #428 neither was true. The generator took one of the DERIVED subClassOf
+// edges, every one of which `oo-cert` accepts, chose it by where it landed in
+// the layout, and relabelled it `rejected`. No forged line was written and no
+// checker ran on one, so the figure painted a certified entailment red and
+// reported a refusal that never happened.
+//
+// So the certificate is the referee here, not the generator: this test writes
+// one from a live run and holds every published scene to it.
+
+const SUBCLASS: &str = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>";
+
+/// The certificate a live run writes over ies-core: the rows of `asserted.tsv`
+/// and of `derivations.tsv`, as `reason --profile rdfs --certificate` writes
+/// them and as `docs/assets/knowledge-graph.py` reads them.
+fn certificate_rows(tag: &str) -> (Vec<Vec<String>>, Vec<Vec<String>>) {
+    let ttl = std::fs::read_to_string(
+        repo()
+            .join("benchmark")
+            .join("reference")
+            .join("ies-core.ttl"),
+    )
+    .expect("read ies-core.ttl");
+    let graph = Arc::new(GraphStore::new());
+    graph
+        .load_turtle(&ttl, None)
+        .expect("ies-core.ttl must parse");
+    let dir = std::env::temp_dir().join(format!("oo-kg-{tag}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("scratch dir");
+    Reasoner::run_full(
+        &graph,
+        "rdfs",
+        false,
+        InferenceTarget::DefaultGraph,
+        Some(dir.as_path()),
+    )
+    .expect("reason over ies-core.ttl");
+    let rows = |name: &str| -> Vec<Vec<String>> {
+        std::fs::read_to_string(dir.join(name))
+            .unwrap_or_else(|_| panic!("the run wrote no {name}"))
+            .lines()
+            .filter(|l| !l.is_empty())
+            .map(|l| l.split('\t').map(str::to_string).collect())
+            .collect()
+    };
+    let out = (rows("asserted.tsv"), rows("derivations.tsv"));
+    let _ = std::fs::remove_dir_all(&dir);
+    out
+}
+
+#[test]
+fn the_red_edge_is_forged_beside_the_certified_ones_and_refused_by_a_real_run() {
+    use std::collections::HashSet;
+    let (asserted, derivations) = certificate_rows("forged");
+    let derived: HashSet<(String, String)> = derivations
+        .iter()
+        .filter(|r| r.len() >= 4 && r[2] == SUBCLASS)
+        .map(|r| (r[1].clone(), r[3].clone()))
+        .collect();
+    let asserted_sc: HashSet<(String, String)> = asserted
+        .iter()
+        .filter(|r| r.len() >= 3 && r[1] == SUBCLASS)
+        .map(|r| (r[0].clone(), r[2].clone()))
+        .collect();
+    assert!(
+        !derived.is_empty(),
+        "the run derived no subClassOf edge, so this test checks nothing"
+    );
+
+    for v in &VARIANTS {
+        let scene: serde_json::Value = serde_json::from_slice(&asset(v.scene))
+            .unwrap_or_else(|_| panic!("{} is not JSON", v.scene));
+        let nodes = scene["nodes"].as_array().expect("nodes");
+        let edges = scene["edges"].as_array().expect("edges");
+        let name = |i: &serde_json::Value| -> String {
+            nodes[i.as_u64().expect("node index") as usize]["name"]
+                .as_str()
+                .expect("node name")
+                .to_string()
+        };
+        let is_class =
+            |i: &serde_json::Value| nodes[i.as_u64().unwrap() as usize]["kind"] == "class";
+
+        // 1. The red edge is not a conclusion the certificate carries, nor an
+        //    asserted subclass edge: a claim the closure does not reach.
+        let red: Vec<(usize, String, String)> = edges
+            .iter()
+            .enumerate()
+            .filter(|(_, e)| e[2] == "rejected")
+            .map(|(k, e)| (k, name(&e[0]), name(&e[1])))
+            .collect();
+        assert_eq!(
+            red.len(),
+            1,
+            "{} draws {} red edges; the figure forges one",
+            v.scene,
+            red.len()
+        );
+        let (k, s, x) = &red[0];
+        assert!(
+            !derived.contains(&(s.clone(), x.clone())),
+            "{}: the red edge {s} subClassOf {x} is a conclusion of the certificate, which \
+             oo-cert ACCEPTS. The figure paints a certified entailment red and reports a \
+             refusal that never happened. Forge a claim the closure does not reach.",
+            v.scene
+        );
+        assert!(
+            !asserted_sc.contains(&(s.clone(), x.clone())) && s != x,
+            "{}: the red edge {s} subClassOf {x} is asserted or trivial, so it is no forgery",
+            v.scene
+        );
+        assert_eq!(
+            scene["forged"].as_u64(),
+            Some(*k as u64),
+            "{}: `forged` does not point at the red edge",
+            v.scene
+        );
+
+        // 2. Every derived edge is drawn certified, and nothing else in the
+        //    ontology is: the green edges ARE the certificate's subClassOf
+        //    conclusions, so none of them was taken to make the red one.
+        let green: Vec<(String, String)> = edges
+            .iter()
+            .filter(|e| e[2] == "certified" && is_class(&e[0]) && is_class(&e[1]))
+            .map(|e| (name(&e[0]), name(&e[1])))
+            .collect();
+        assert_eq!(
+            green.len(),
+            derived.len(),
+            "{} draws {} certified edges and the certificate derives {} subClassOf conclusions",
+            v.scene,
+            green.len(),
+            derived.len()
+        );
+        assert_eq!(
+            green.iter().cloned().collect::<HashSet<_>>(),
+            derived,
+            "{}: the certified edges are not the certificate's subClassOf conclusions",
+            v.scene
+        );
+        let row = |key: &str| {
+            scene["legend"]["rows"]
+                .as_array()
+                .expect("legend rows")
+                .iter()
+                .find(|r| r["key"] == key)
+                .and_then(|r| r["count"].as_u64())
+                .unwrap_or_else(|| panic!("{} has no {key} count", v.scene))
+        };
+        assert_eq!(
+            row("certified") as usize,
+            derived.len(),
+            "{}: the CERTIFIED count is not the number of derived subClassOf edges. A count \
+             that also takes in the pipeline's arrows says the certificate holds edges it does \
+             not hold.",
+            v.scene
+        );
+        assert_eq!(row("rejected"), 1, "{}: one line is forged", v.scene);
+
+        // 3. The refusal is a run's, and the figure's words about it are read
+        //    from that run. The line copied for the forgery is a real line of
+        //    this certificate with the rule the checker named.
+        let ev = &scene["forgery"];
+        let claim: Vec<&str> = ev["claim"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|x| x.as_str()).collect())
+            .unwrap_or_default();
+        assert_eq!(
+            claim,
+            vec![s.as_str(), SUBCLASS, x.as_str()],
+            "{}: the scene records no forged claim, or one that is not the red edge",
+            v.scene
+        );
+        let rule = ev["oo_cert"]["rule"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{}: no rule from oo-cert", v.scene));
+        assert_eq!(
+            ev["oo_cert"]["exit"], 1,
+            "{}: oo-cert did not exit 1 on the forgery",
+            v.scene
+        );
+        assert_eq!(
+            ev["oo_cert"]["ok"], false,
+            "{}: oo-cert did not report ok:false",
+            v.scene
+        );
+        let from: Vec<&str> = ev["copied_from"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|x| x.as_str()).collect())
+            .unwrap_or_default();
+        assert!(
+            derivations.iter().any(|r| r.len() >= 4
+                && r[0] == rule
+                && r[1] == from[0]
+                && r[2] == from[1]
+                && r[3] == from[2]),
+            "{}: the forged line is said to copy {from:?}, an {rule} step, and the certificate has no such line",
+            v.scene
+        );
+        assert_eq!(
+            from[0],
+            s.as_str(),
+            "{}: the forgery changes the subject as well as the conclusion",
+            v.scene
+        );
+        let refused = scene["labels"]["refused"].as_str().expect("refusal label");
+        assert!(
+            refused.contains(rule) && refused.contains("exit 1"),
+            "{}: the refusal reads {refused:?}, which is not what oo-cert reported (exit 1, {rule})",
+            v.scene
+        );
+        let svg = String::from_utf8(asset(v.svg)).expect("the SVG is UTF-8");
+        assert!(
+            svg.contains(refused),
+            "{} does not print the refusal its scene records",
+            v.svg
+        );
+
+        // The caption under the figure names the same rule.
+        let md = std::fs::read_to_string(repo().join(v.readme)).expect("README");
+        let named = if v.readme.contains("zh-CN") {
+            format!("规则（{rule}）")
+        } else {
+            format!("named the rule ({rule})")
+        };
+        assert!(
+            md.contains(&named),
+            "{} does not say the checker named {rule}, the rule oo-cert named in the run that drew {}",
+            v.readme,
+            v.scene
+        );
+    }
+
+    // And the English legend, which the README caption is checked against.
+    let (_, c, r) = legend_counts();
+    assert_eq!(
+        c as usize,
+        derived.len(),
+        "the SVG legend's CERTIFIED is not the derived subClassOf count"
+    );
+    assert_eq!(r, 1);
 }
