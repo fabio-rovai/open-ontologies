@@ -192,6 +192,15 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's auto-save writes the file the toolbar names after a Save As**
+  (#423). Save As wrote `~/.open-ontologies/<name>.ttl` and renamed the
+  toolbar, but every later automatic save, after a chat edit or a Property
+  Inspector edit, still wrote the constant `studio-live.ttl`, so the file the
+  toolbar and the 3D legend named went stale. `mcp-client.ts` now keeps the
+  project file: it starts as `studio-live.ttl`, moves when a Save As
+  succeeds, and is what auto-save writes and what an engine reconnect
+  reloads. The toolbar reads its first name from the same place.
+
 - **Studio's live graph loads even when the SHACL findings are undetermined**
   (#422). The store fetched the graph and the findings with one
   `Promise.all`, so when the live `findings()` threw, the graph it had already

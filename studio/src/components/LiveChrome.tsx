@@ -32,7 +32,11 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
   const [showLineage, setShowLineage] = useState(false);
   const [showGovernance, setShowGovernance] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
-  const [projectName, setProjectName] = useState('studio-live');
+  // Read from mcp-client, which owns the file auto-save writes, so the name
+  // shown here is always that file's (#423).
+  const [projectName, setProjectName] = useState(
+    () => mcp.currentProjectFile().replace(/^.*\//, '').replace(/\.ttl$/i, ''),
+  );
   const [savingAs, setSavingAs] = useState(false);
   const [saveAsName, setSaveAsName] = useState('');
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
