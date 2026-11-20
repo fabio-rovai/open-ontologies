@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { legendText } from '../graph-legend'
+import { emptyGraphText, legendParts, legendText } from '../graph-legend'
 
 // Graph3D's legend used to hard-code the replay demo's file and triple count,
 // and rendered them over whatever ontology live mode had loaded (#414).
@@ -51,5 +51,56 @@ describe('legendText', () => {
 
   it('shows no caption at all when neither the file nor the count is known', () => {
     expect(legendText({ kind: 'live' })).toEqual({ caption: null, asserted: 'claimed by a person' })
+  })
+})
+
+// The proof-carrying parts of the legend (its heading, the CERTIFIED and
+// REJECTED rows and the Lean 4 / Isabelle footer) describe warrants that only
+// the replay demonstration carries. Live mode drew them anyway, with zero
+// counts, over every ontology it loaded (#424).
+describe('legendParts', () => {
+  const labels = (p: ReturnType<typeof legendParts>) => p.rows.map((r) => r.label)
+
+  it('keeps every replay part, whatever the edges carry', () => {
+    const p = legendParts({ kind: 'replay' }, ['asserted'])
+    expect(p.heading).toBe('PROOF-CARRYING INFERENCE')
+    expect(p.caption).toBe('ies-core.ttl · 1,083 triples')
+    expect(p.rows).toEqual([
+      { w: 'asserted', label: 'ASSERTED', means: 'read from ies-core.ttl. claimed by a person' },
+      { w: 'certified', label: 'CERTIFIED', means: 'derived, then PROVED. OOCert.certificate_sound' },
+      { w: 'rejected', label: 'REJECTED', means: 'forged. the checker exited 1 and named the rule' },
+    ])
+    expect(p.proof).toBe(true)
+  })
+
+  it('shows only the ASSERTED row in live mode when no edge carries a warrant', () => {
+    const p = legendParts({ kind: 'live', file: 'pizza.ttl', triples: 1940 }, ['asserted', 'asserted'])
+    expect(labels(p)).toEqual(['ASSERTED'])
+    expect(p.rows[0].means).toBe('read from pizza.ttl. claimed by a person')
+    expect(p.proof).toBe(false)
+    expect(p.heading).not.toMatch(/PROOF/)
+    expect(p.caption).toBe('pizza.ttl · 1,940 triples')
+  })
+
+  it('shows the proof parts in live mode once an edge is certified or rejected', () => {
+    for (const w of ['certified', 'rejected'] as const) {
+      const p = legendParts({ kind: 'live', file: 'pizza.ttl' }, ['asserted', w])
+      expect(labels(p)).toEqual(['ASSERTED', 'CERTIFIED', 'REJECTED'])
+      expect(p.proof).toBe(true)
+      expect(p.heading).toBe('PROOF-CARRYING INFERENCE')
+    }
+  })
+})
+
+describe('emptyGraphText', () => {
+  it('keeps the replay text', () => {
+    expect(emptyGraphText({ kind: 'replay' })).toBe('Build the knowledge graph first (Documents panel).')
+  })
+
+  // Live mode has no Documents panel.
+  it('does not send live mode to a Documents panel', () => {
+    const text = emptyGraphText({ kind: 'live', file: 'pizza.ttl' })
+    expect(text).not.toMatch(/Documents panel/)
+    expect(text).toMatch(/Chat/)
   })
 })

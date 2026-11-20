@@ -312,7 +312,7 @@ impl BatchRunner {
         match crate::graph::GraphStore::read_as_turtle(input) {
             Ok(content) => {
                 let result = OntologyService::lint_with_feedback(&content, Some(&self.db))
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                    .unwrap_or_else(crate::output::error_json);
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
             Err(e) => json!({"error": e.to_string()}),
@@ -1067,7 +1067,7 @@ impl BatchRunner {
         match crate::graph::GraphStore::read_as_turtle(data_path) {
             Ok(data) => {
                 let result = crate::vocab_check::check_data_vocab(&self.graph, &data, &extra)
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                    .unwrap_or_else(crate::output::error_json);
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
             Err(e) => json!({"error": e.to_string()}),
@@ -1088,7 +1088,7 @@ impl BatchRunner {
             Err(e) => return json!({"error": format!("reading {}: {}", args[1], e)}),
         };
         let result = OntologyService::diff(&old, &new)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
@@ -1142,7 +1142,7 @@ impl BatchRunner {
         let pack = args.first().map(|s| s.as_str()).unwrap_or("generic");
         let enforcer = crate::enforce::Enforcer::new(self.db.clone(), self.graph.clone());
         let result = enforcer.enforce_with_feedback(pack, Some(&self.db))
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
@@ -1207,7 +1207,7 @@ impl BatchRunner {
                     logic: !args.iter().any(|a| a == "--no-logic-check"),
                 };
                 let result = planner.plan_with(&turtle, checks)
-                    .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+                    .unwrap_or_else(crate::output::error_json);
                 serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
             }
             Err(e) => json!({"error": e.to_string()}),
@@ -1223,7 +1223,7 @@ impl BatchRunner {
             .unwrap_or("safe");
         let planner = crate::plan::Planner::new(self.db.clone(), self.graph.clone());
         let result = planner.apply_plan(plan_id.as_deref(), mode)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
@@ -1234,14 +1234,14 @@ impl BatchRunner {
             None => return json!({"error": "version requires a label"}),
         };
         let result = OntologyService::save_version(&self.db, &self.graph, label)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
     fn exec_history(&self) -> Value {
         use crate::ontology::OntologyService;
         let result = OntologyService::list_versions(&self.db)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
@@ -1252,7 +1252,7 @@ impl BatchRunner {
             None => return json!({"error": "rollback requires a label"}),
         };
         let result = OntologyService::rollback_version(&self.db, &self.graph, label)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 
@@ -1431,7 +1431,7 @@ impl BatchRunner {
         };
         let detector = crate::drift::DriftDetector::new(self.db.clone());
         let result = detector.detect(&v1, &v2)
-            .unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
+            .unwrap_or_else(crate::output::error_json);
         serde_json::from_str(&result).unwrap_or(json!({"raw": result}))
     }
 

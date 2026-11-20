@@ -37,6 +37,7 @@ function DemoPanels() {
   const documents = useDemoStore((s) => s.documents)
   const documentsError = useDemoStore((s) => s.documentsError)
   const findings = useDemoStore((s) => s.findings)
+  const findingsError = useDemoStore((s) => s.findingsError)
   const selectedFinding = useDemoStore((s) => s.selectedFinding)
   const ledger = useDemoStore((s) => s.ledger)
   const select = useDemoStore((s) => s.select)
@@ -161,7 +162,12 @@ function DemoPanels() {
         {tab === 'findings' && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto">
-              <FindingsPanel findings={findings} selected={selectedFinding} onSelect={select} />
+              <FindingsPanel
+                findings={findings}
+                error={findingsError}
+                selected={selectedFinding}
+                onSelect={select}
+              />
             </div>
             <div className="h-72 border-t overflow-hidden" style={{ borderColor: 'var(--border)' }}>
               <ResolutionPanel finding={selected} ledger={ledger} onResolve={resolve} />

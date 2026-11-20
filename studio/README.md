@@ -27,7 +27,7 @@ The graph view renders your OWL ontology as a live 3D force-directed graph power
 - **Right-click**: opens the Add Class dialog at the cursor position
 - **Delete / Backspace**: deletes the selected class (fires two SPARQL DELETE statements, then saves and refreshes)
 
-**Refresh:** After any mutation (agent, inspector, delete, add), `window.__refreshGraph()` is called to re-query the store and redraw. This is also wired to the `engine-ready` Tauri event on startup.
+**Refresh:** After any mutation (agent, inspector, delete, add), `notifyGraphChanged()` in `src/lib/graph-refresh.ts` tells every subscribed view to re-query the store and redraw: the 2D tree while it is mounted, and the store that the 3D view draws from. Each view subscribes with `onGraphChanged()` and removes only its own subscription. This is also wired to the `engine-ready` Tauri event on startup.
 
 ### AI Agent Chat
 

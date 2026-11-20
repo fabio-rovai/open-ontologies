@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import cytoscape, { type Core, type ElementDefinition, type NodeSingular, type StylesheetStyle } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import * as mcp from '../lib/mcp-client';
+import { onGraphChanged } from '../lib/graph-refresh';
 import { parseRows } from '../lib/sparql-rows';
 import type { Collection } from 'cytoscape';
 import {
@@ -138,6 +139,8 @@ export function GraphView({ onNodeSelect, selected }: GraphViewProps) {
     }
   }, []);
   useEffect(() => { load(); }, [load]);
+  // Re-read the schema after a chat or inspector edit, like the 2D tree (#421).
+  useEffect(() => onGraphChanged(load), [load]);
 
   /** Labels and asserted or inferred types for a batch of IRIs. */
   const fetchInfo = useCallback(async (uris: string[]) => {

@@ -506,16 +506,30 @@ fn the_ontology_heading_names_the_predicate_it_drew() {
     // graph out this way. It did not: `Graph3D.tsx` was a plain ForceGraph3D,
     // one force run over everything, and the figure's placed pipeline and
     // per-component packing existed only in the drawing. The claim was made
-    // true by changing the component, and this keeps it true.
+    // true by changing the component, and this keeps it true. The layout
+    // moved out of the component into `studio/src/lib/graph3d-model.ts`
+    // (#424) so it can be tested without WebGL; the component imports it, so
+    // the two files together are what the Studio draws.
     if s.contains("the Studio 3D view") {
-        let studio = std::fs::read_to_string(repo().join("studio/src/components/Graph3D.tsx"))
-            .expect("studio/src/components/Graph3D.tsx");
+        let mut studio = String::new();
+        for file in [
+            "studio/src/components/Graph3D.tsx",
+            "studio/src/lib/graph3d-model.ts",
+        ] {
+            studio.push_str(&std::fs::read_to_string(repo().join(file)).expect(file));
+        }
+        assert!(
+            studio.contains("from '../lib/graph3d-model'"),
+            "Graph3D.tsx no longer imports graph3d-model.ts, so the layout read \
+             here is not the one the Studio draws"
+        );
         for needed in ["PIPELINE", "componentCentres", "fx:", "comp"] {
             assert!(
                 studio.contains(needed),
-                "the asset calls itself the Studio 3D view but Graph3D.tsx has no \
-                 {needed:?}. Either the Studio lays the graph out the way this \
-                 figure draws it, or the figure must stop saying it is the Studio."
+                "the asset calls itself the Studio 3D view but neither Graph3D.tsx \
+                 nor graph3d-model.ts has {needed:?}. Either the Studio lays the \
+                 graph out the way this figure draws it, or the figure must stop \
+                 saying it is the Studio."
             );
         }
     }

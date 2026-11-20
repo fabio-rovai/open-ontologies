@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Chunk, Contradiction, Decision, Document, GraphView } from '../lib/demo-source'
+import type { Chunk, Contradiction, Decision, DemoSource, Document, GraphView } from '../lib/demo-source'
 import { getDemoSource } from '../lib/source-factory'
 
 interface DemoState {
@@ -12,6 +12,13 @@ interface DemoState {
   documentsError: string | null
   graph: GraphView
   findings: Contradiction[]
+  // Set when findings() throws: an engine failure, or live-source.ts's
+  // undetermined SHACL result (conforms: null, the usual answer for an
+  // ontology the DCAT-US shapes select nothing in). Kept apart from `error`
+  // so that it costs the findings panel alone and never the graph, and
+  // shown by that panel so an undetermined run never reads as "no findings"
+  // (#422).
+  findingsError: string | null
   selectedFinding: string | null
   ledger: { id: string; decision: Decision }[]
   chat: Chunk[]
@@ -32,6 +39,8 @@ interface DemoState {
 
 const EMPTY_GRAPH: GraphView = { classes: [], properties: [], edges: [] }
 
+const message = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+
 // The only module in the frontend that touches a DemoSource. Components
 // take data and callbacks as props, so the same tree renders live against
 // the engine and offline from the precomputed artifacts.
@@ -40,6 +49,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   documentsError: null,
   graph: EMPTY_GRAPH,
   findings: [],
+  findingsError: null,
   selectedFinding: null,
   ledger: [],
   chat: [],
@@ -49,30 +59,39 @@ export const useDemoStore = create<DemoState>((set, get) => ({
 
   async load() {
     set({ loading: true, error: null })
+    let source: DemoSource
     try {
-      const source = await getDemoSource()
-
-      // graph() and findings() are honestly implemented in both live and
-      // replay mode, so a failure here is a real error (engine down,
-      // session lost) and is surfaced as one.
-      const [graph, findings] = await Promise.all([source.graph(), source.findings()])
-      set({ graph, findings, loading: false })
+      source = await getDemoSource()
     } catch (e) {
       // Surfaced, never swallowed. An empty graph and a dead engine must not look alike.
-      set({ error: e instanceof Error ? e.message : String(e), loading: false })
+      set({ error: message(e), loading: false })
       return
     }
+
+    // graph() and findings() are fetched together but settle apart (#422).
+    // A failed graph() is a real error (engine down, session lost) and is
+    // surfaced as the shell's error. A failed findings() goes to its own
+    // `findingsError` and leaves the graph in place: live-source.ts throws
+    // there on purpose whenever SHACL is undetermined, the usual answer for
+    // an ontology that is not a DCAT-US catalogue.
+    const [graph, findings] = await Promise.allSettled([source.graph(), source.findings()])
+    set({
+      ...(graph.status === 'fulfilled' ? { graph: graph.value } : { error: message(graph.reason) }),
+      ...(findings.status === 'fulfilled'
+        ? { findings: findings.value, findingsError: null }
+        : { findings: [], findingsError: message(findings.reason) }),
+      loading: false,
+    })
 
     // corpus() is fetched separately and after the above, on purpose: today
     // it throws in live mode (no tool reaches document text there), and
     // that must degrade the corpus panel alone, not take the graph and
     // findings panels down with it.
     try {
-      const source = await getDemoSource()
       const documents = await source.corpus()
       set({ documents, documentsError: null })
     } catch (e) {
-      set({ documents: [], documentsError: e instanceof Error ? e.message : String(e) })
+      set({ documents: [], documentsError: message(e) })
     }
   },
 

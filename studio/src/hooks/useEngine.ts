@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { listen } from '@tauri-apps/api/event';
 import * as mcp from '../lib/mcp-client';
+import { notifyGraphChanged } from '../lib/graph-refresh';
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -31,11 +32,8 @@ export const useEngine = create<EngineStore>((set, get) => ({
           // Load persisted graph from file
           await mcp.loadGraphFromFile();
           await get().refreshStats();
-          // Trigger graph canvas refresh
-          setTimeout(() => {
-            const refresh = (window as unknown as Record<string, () => void>).__refreshGraph;
-            if (refresh) refresh();
-          }, 300);
+          // Tell every mounted graph view to re-read the store
+          setTimeout(notifyGraphChanged, 300);
           return;
         }
       } catch {

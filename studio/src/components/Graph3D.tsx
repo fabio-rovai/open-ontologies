@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { GraphView, Warrant } from '../lib/demo-source';
-import { legendText, type GraphOrigin } from '../lib/graph-legend';
+import { emptyGraphText, legendParts, type GraphOrigin } from '../lib/graph-legend';
+import {
+  componentCentres, short, toGraphData,
+  type GLink, type GNode, type NodeRole, type SimNode,
+} from '../lib/graph3d-model';
 
 /**
  * 3D view of the knowledge graph: classes as nodes, subclass edges as links,
@@ -19,47 +23,26 @@ import { legendText, type GraphOrigin } from '../lib/graph-legend';
  * to Isabelle, which read the same bytes, while the first-order family reads a
  * different artefact entirely and never sees this graph.
  *
+ * Both the warrants and the verification layer belong to the replay
+ * demonstration. In live mode every node is a class, whatever it is called,
+ * and the legend drops its proof-carrying parts unless an edge carries a
+ * warrant (graph3d-model.ts and graph-legend.ts, #424).
+ *
  * This used to issue its own SPARQL straight at the engine, which made it
  * unusable in the replay build. It takes `graph` as a prop instead, behind the
  * same DemoSource interface the replay build satisfies from committed
  * artifacts.
  */
 
-interface GNode {
-  id: string;
-  name: string;
-  val: number;
-  /** Pinned position. Set for the verification layer, absent for classes. */
-  fx?: number;
-  fy?: number;
-  fz?: number;
-  /** Which connected piece of the ontology this class belongs to. */
-  comp?: number;
-}
-
-/** A node as the force simulation mutates it. */
-interface SimNode extends GNode {
-  x?: number;
-  y?: number;
-  z?: number;
-  vx?: number;
-  vy?: number;
-  vz?: number;
-}
-interface GLink { source: string; target: string; warrant: Warrant; }
-
 const NODE_COLOR = '#7dd3fc';
-
 /** The verification layer, drawn hotter than the ontology it judges. */
-const TOOL_NODES = new Set([
-  'certificate', 'problem.tsv', 'ies-core.ttl', 'forged line',
-  'Lean 4 · oo-cert', 'Isabelle/HOL', 'Vampire', 'E', 'Z3', 'Mace4', 'oo-fores',
-]);
 const TOOL_COLOR = '#f0abfc';
-
 /** The kernel that decides. Brighter and larger than anything it judges. */
-const LEAN_NODE = 'Lean 4 · oo-cert';
 const LEAN_COLOR = '#34d399';
+
+/** Colour and size by what a node is (graph3d-model.ts), never by its name (#424). */
+const ROLE_COLOR: Record<NodeRole, string> = { kernel: LEAN_COLOR, tool: TOOL_COLOR, class: NODE_COLOR };
+const ROLE_VAL: Record<NodeRole, number> = { kernel: 22, tool: 9, class: 2.2 };
 
 const LINK_COLOR: Record<Warrant, string> = {
   asserted: '#475569',
@@ -67,118 +50,6 @@ const LINK_COLOR: Record<Warrant, string> = {
   rejected: '#fb3b53',
 };
 const LINK_WIDTH: Record<Warrant, number> = { asserted: 0.5, certified: 0.9, rejected: 2.4 };
-
-function short(iri: string): string {
-  const h = iri.lastIndexOf('#');
-  return h >= 0 ? iri.slice(h + 1) : iri.slice(iri.lastIndexOf('/') + 1);
-}
-
-/**
- * Where each member of the verification layer is PINNED, in simulation units.
- *
- * The pipeline is a process, not a graph, and a force layout is the wrong tool
- * for it: run free, the six judges land wherever repulsion puts them and the
- * picture stops showing that anything flows. Three columns left to right --
- * what was read, what it became, who judged it -- with the two that read the
- * CERTIFICATE together and above, and the four that read `problem.tsv`, a
- * different artefact, together and below. That grouping is the argument.
- *
- * `docs/assets/knowledge-graph.svg` is this layout, and the README calls that
- * figure the Studio 3D view, so this is where the claim is kept true.
- */
-const PIPELINE: Record<string, [number, number, number]> = {
-  'ies-core.ttl': [-300, 30, 0],
-  certificate: [-190, 70, 0],
-  'problem.tsv': [-190, -70, 0],
-  'Lean 4 · oo-cert': [-70, 105, 0],
-  'Isabelle/HOL': [-70, 45, 0],
-  Vampire: [-70, -25, 0],
-  E: [-70, -65, 0],
-  Z3: [-70, -105, 0],
-  Mace4: [-70, -145, 0],
-  // The checker of Fo certificates, one rank out from Vampire whose proof it reads.
-  'oo-fores': [20, -25, 0],
-  'forged line': [-300, -110, 0],
-};
-
-/**
- * Connected components of the ontology, and a centre for each.
- *
- * `ies-core`'s subclass graph is not connected. Laid out as one system the two
- * big pieces end up in opposite corners and the small ones, which feel nothing
- * but repulsion, sail off into the gap next to the pipeline. Each piece gets
- * its own centre instead, placed on a ring whose radius grows with the piece,
- * so the arrangement says something true about their sizes.
- */
-function components(nodes: GNode[], links: GLink[]): Map<string, number> {
-  const parent = new Map<string, string>();
-  for (const n of nodes) parent.set(n.id, n.id);
-  const find = (x: string): string => {
-    let r = x;
-    while (parent.get(r) !== r) r = parent.get(r) as string;
-    while (parent.get(x) !== r) {
-      const nx = parent.get(x) as string;
-      parent.set(x, r);
-      x = nx;
-    }
-    return r;
-  };
-  for (const l of links) {
-    if (!parent.has(l.source) || !parent.has(l.target)) continue;
-    const a = find(l.source);
-    const b = find(l.target);
-    if (a !== b) parent.set(a, b);
-  }
-  const size = new Map<string, number>();
-  for (const n of nodes) {
-    const r = find(n.id);
-    size.set(r, (size.get(r) ?? 0) + 1);
-  }
-  const order = [...size.entries()].sort((a, b) => b[1] - a[1]).map(([r]) => r);
-  const rank = new Map(order.map((r, i) => [r, i]));
-  const out = new Map<string, number>();
-  for (const n of nodes) out.set(n.id, rank.get(find(n.id)) as number);
-  return out;
-}
-
-/** The centre each component is pulled towards, biggest nearest the middle. */
-export function componentCentres(count: number): [number, number, number][] {
-  const out: [number, number, number][] = [];
-  for (let i = 0; i < count; i += 1) {
-    if (i === 0) {
-      out.push([190, 0, 0]);
-      continue;
-    }
-    const a = (i - 1) * ((2 * Math.PI) / Math.max(1, count - 1));
-    const r = 230 + i * 26;
-    out.push([190 + Math.cos(a) * r, Math.sin(a) * r, Math.sin(a * 1.7) * 90]);
-  }
-  return out;
-}
-
-function toGraphData(graph: GraphView): { nodes: GNode[]; links: GLink[] } {
-  const nodes: GNode[] = graph.classes.map((c) => {
-    const name = c.label || short(c.iri);
-    const pin = PIPELINE[name];
-    return pin
-      ? { id: c.iri, name, val: 3, fx: pin[0], fy: pin[1], fz: pin[2] }
-      : { id: c.iri, name, val: 3 };
-  });
-  const known = new Set(nodes.map((n) => n.id));
-  const links = graph.edges
-    .filter((e) => known.has(e.source) && known.has(e.target))
-    .map((e) => ({ source: e.source, target: e.target, warrant: (e.warrant ?? 'asserted') as Warrant }));
-  // Components are computed over the ONTOLOGY only. The pipeline is pinned, so
-  // letting it join a component would drag that component onto the pins.
-  const ontology = nodes.filter((n) => !TOOL_NODES.has(n.name));
-  const within = new Set(ontology.map((n) => n.id));
-  const comp = components(ontology, links.filter((l) => within.has(l.source) && within.has(l.target)));
-  for (const n of nodes) {
-    const c = comp.get(n.id);
-    if (c !== undefined && !TOOL_NODES.has(n.name)) n.comp = c;
-  }
-  return { nodes, links };
-}
 
 export function Graph3D({ graph, origin, onNodeSelect }: {
   graph: GraphView;
@@ -190,7 +61,7 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
   origin: GraphOrigin;
   onNodeSelect: (n: { id: string; label: string; uri: string } | null) => void;
 }) {
-  const data = toGraphData(graph);
+  const data = toGraphData(graph, origin);
   const fgRef = useRef<{
     d3Force: (
       name: string,
@@ -245,7 +116,7 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
     <div ref={holder} className="absolute inset-0" style={{ background: '#020617' }}>
       {data.nodes.length === 0 ? (
         <div className="h-full flex items-center justify-center text-sm" style={{ color: '#6c7086' }}>
-          Build the knowledge graph first (Documents panel).
+          {emptyGraphText(origin)}
         </div>
       ) : (
         <>
@@ -269,10 +140,8 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
             backgroundColor="#020617"
             showNavInfo={false}
             nodeLabel={(n) => `<div style="font-family:ui-monospace,monospace;font-size:12px;color:#e0f2fe;background:rgba(2,6,23,.92);padding:3px 7px;border:1px solid #334155;border-radius:4px">${(n as GNode).name}</div>`}
-            nodeColor={(n) => ((n as GNode).name === LEAN_NODE ? LEAN_COLOR
-              : TOOL_NODES.has((n as GNode).name) ? TOOL_COLOR : NODE_COLOR)}
-            nodeVal={(n) => ((n as GNode).name === LEAN_NODE ? 22
-              : TOOL_NODES.has((n as GNode).name) ? 9 : 2.2)}
+            nodeColor={(n) => ROLE_COLOR[(n as GNode).role]}
+            nodeVal={(n) => ROLE_VAL[(n as GNode).role]}
             nodeOpacity={0.95}
             nodeResolution={16}
             linkColor={(l) => LINK_COLOR[(l as GLink).warrant]}
@@ -304,12 +173,7 @@ export function Graph3D({ graph, origin, onNodeSelect }: {
  */
 function Legend({ links, origin }: { links: GLink[]; origin: GraphOrigin }) {
   const n = (w: Warrant) => links.filter((l) => l.warrant === w).length;
-  const text = legendText(origin);
-  const rows: { w: Warrant; label: string; means: string }[] = [
-    { w: 'asserted', label: 'ASSERTED', means: text.asserted },
-    { w: 'certified', label: 'CERTIFIED', means: 'derived, then PROVED. OOCert.certificate_sound' },
-    { w: 'rejected', label: 'REJECTED', means: 'forged. the checker exited 1 and named the rule' },
-  ];
+  const parts = legendParts(origin, links.map((l) => l.warrant));
   return (
     <div
       className="absolute left-4 bottom-4 rounded-xl px-4 py-3 text-xs"
@@ -321,12 +185,12 @@ function Legend({ links, origin }: { links: GLink[]; origin: GraphOrigin }) {
       }}
     >
       <div className="flex items-baseline gap-2 pb-2" style={{ borderBottom: '1px solid #1e3a5f' }}>
-        <span style={{ color: '#34d399', fontWeight: 800, letterSpacing: '.12em' }}>
-          PROOF-CARRYING INFERENCE
+        <span style={{ color: parts.proof ? '#34d399' : NODE_COLOR, fontWeight: 800, letterSpacing: '.12em' }}>
+          {parts.heading}
         </span>
-        {text.caption && <span style={{ color: '#64748b' }}>{text.caption}</span>}
+        {parts.caption && <span style={{ color: '#64748b' }}>{parts.caption}</span>}
       </div>
-      {rows.map((r) => (
+      {parts.rows.map((r) => (
         <div key={r.w} className="flex items-center gap-2 pt-1.5">
           <span
             style={{
@@ -341,12 +205,14 @@ function Legend({ links, origin }: { links: GLink[]; origin: GraphOrigin }) {
           <span style={{ color: '#94a3b8' }}>{r.means}</span>
         </div>
       ))}
-      <div className="pt-2 mt-2" style={{ borderTop: '1px solid #1e3a5f', color: '#64748b', lineHeight: 1.55 }}>
-        <span style={{ color: '#34d399', fontWeight: 700 }}>● Lean 4</span> decides.{' '}
-        <span style={{ color: '#f0abfc' }}>● Isabelle/HOL</span> checks the same bytes independently.{' '}
-        <span style={{ color: '#f0abfc' }}>● Vampire, E, Z3, Mace4</span> read a different artefact and
-        their verdicts are oracle opinions, never certificates.
-      </div>
+      {parts.proof && (
+        <div className="pt-2 mt-2" style={{ borderTop: '1px solid #1e3a5f', color: '#64748b', lineHeight: 1.55 }}>
+          <span style={{ color: '#34d399', fontWeight: 700 }}>● Lean 4</span> decides.{' '}
+          <span style={{ color: '#f0abfc' }}>● Isabelle/HOL</span> checks the same bytes independently.{' '}
+          <span style={{ color: '#f0abfc' }}>● Vampire, E, Z3, Mace4</span> read a different artefact and
+          their verdicts are oracle opinions, never certificates.
+        </div>
+      )}
     </div>
   );
 }

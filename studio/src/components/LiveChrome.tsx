@@ -9,6 +9,7 @@ import { PropertyInspector } from './PropertyInspector';
 import { LineagePanel } from './LineagePanel';
 import { GovernancePanel } from './GovernancePanel';
 import * as mcp from '../lib/mcp-client';
+import { onGraphChanged, notifyGraphChanged } from '../lib/graph-refresh';
 
 /**
  * Desktop-only chrome: everything here needs a running engine and a live
@@ -31,7 +32,11 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
   const [showLineage, setShowLineage] = useState(false);
   const [showGovernance, setShowGovernance] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; uri: string } | null>(null);
-  const [projectName, setProjectName] = useState('studio-live');
+  // Read from mcp-client, which owns the file auto-save writes, so the name
+  // shown here is always that file's (#423).
+  const [projectName, setProjectName] = useState(
+    () => mcp.currentProjectFile().replace(/^.*\//, '').replace(/\.ttl$/i, ''),
+  );
   const [savingAs, setSavingAs] = useState(false);
   const [saveAsName, setSaveAsName] = useState('');
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -47,19 +52,17 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
   // Chat-driven ontology mutations (onto_load, onto_apply, ...) happen over
   // the agent sidecar, entirely outside the demo-store. Graph3D no longer
   // queries the engine itself, so it needs telling when something changed.
-  // useChat.ts and PropertyInspector already call window.__refreshGraph
-  // after a mutation; this keeps that same contract rather than inventing
-  // a second one, and now points it at the store instead of a component's
-  // own local reload.
+  // useChat.ts, useEngine.ts and the Property Inspector notify through
+  // graph-refresh.ts, and this subscribes the store beside TreeView's own
+  // subscription: each holds its own registration, so TreeView unmounting
+  // (leaving the 2D view) no longer removes this one (#421).
   useEffect(() => {
-    const w = window as unknown as { __refreshGraph?: () => void };
-    const prev = w.__refreshGraph;
-    w.__refreshGraph = () => { prev?.(); refreshGraph(); };
+    const unsubscribe = onGraphChanged(refreshGraph);
     const onLineageRefresh = () => refreshGraph();
     window.addEventListener('lineage-refresh', onLineageRefresh);
     return () => {
       window.removeEventListener('lineage-refresh', onLineageRefresh);
-      w.__refreshGraph = prev;
+      unsubscribe();
     };
   }, [refreshGraph]);
 
@@ -209,7 +212,7 @@ export function LiveChrome({ children }: { children: React.ReactNode }) {
         {showInspector && (
           <div className="w-72 border-l overflow-hidden"
                style={{ borderColor: 'var(--border)', background: 'var(--bg-panel)' }}>
-            <PropertyInspector node={selectedNode} onGraphChanged={refreshGraph} />
+            <PropertyInspector node={selectedNode} onGraphChanged={notifyGraphChanged} />
           </div>
         )}
 

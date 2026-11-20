@@ -192,6 +192,60 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's live 3D view drops the replay demo's proof legend, empty-state
+  text and tool-node tinting** (#424). In live mode the legend still listed
+  CERTIFIED and REJECTED rows, always 0 because the live source sets no
+  warrant, with the Lean 4 / Isabelle footer; an empty graph pointed to a
+  "Documents panel" live mode does not have; and the verification-layer nodes
+  were recognised by display name, so a live class called `E`, `Z3`,
+  `Vampire` or `certificate` was pinned to the pipeline, pulled out of its
+  component and tinted as a tool. In live mode the legend now shows its
+  proof-carrying parts only when an edge is certified or rejected, the empty
+  state says to load or build an ontology through Chat, and every node is a
+  class whatever it is called. The replay view renders exactly as before.
+
+- **Studio's auto-save writes the file the toolbar names after a Save As**
+  (#423). Save As wrote `~/.open-ontologies/<name>.ttl` and renamed the
+  toolbar, but every later automatic save, after a chat edit or a Property
+  Inspector edit, still wrote the constant `studio-live.ttl`, so the file the
+  toolbar and the 3D legend named went stale. `mcp-client.ts` now keeps the
+  project file: it starts as `studio-live.ttl`, moves when a Save As
+  succeeds, and is what auto-save writes and what an engine reconnect
+  reloads. The toolbar reads its first name from the same place.
+
+- **Studio's live graph loads even when the SHACL findings are undetermined**
+  (#422). The store fetched the graph and the findings with one
+  `Promise.all`, so when the live `findings()` threw, the graph it had already
+  fetched was dropped and the 3D view stayed empty until a later refresh. The
+  live `findings()` throws on purpose when `onto_shacl` reports
+  `conforms: null`, which is the usual answer for an ontology that is not a
+  DCAT-US catalogue. The two now settle apart: a failed graph is the shell's
+  error, and a failed or undetermined findings run goes to its own
+  `findingsError`, which the findings panel shows in place of "No findings in
+  this corpus".
+
+- **Studio's graph views keep refreshing after the 2D view is left** (#421).
+  TreeView set `window.__refreshGraph` on mount and deleted it on unmount,
+  and LiveChrome had wrapped that same global to refresh the store the 3D view
+  draws. Switching from 2D to GRAPH or 3D therefore deleted LiveChrome's
+  wrapper, and chat edits and engine reconnects refreshed nothing. Views now
+  subscribe through `onGraphChanged` in `studio/src/lib/graph-refresh.ts`, each
+  removing only its own subscription, and chat, the engine connection and the
+  Property Inspector call `notifyGraphChanged`. Inspector edits refresh the 2D
+  tree again as well as the store.
+
+- **An error is valid JSON whatever its message contains** (#420). The
+  `serve-http` REST routes, several CLI commands and `batch` wrote
+  `{"error": ...}` by string formatting, so a message carrying a double quote,
+  a backslash or a newline (a SPARQL or Turtle parse error quoting the
+  offending character, a format name the caller supplied, any Windows path)
+  was invalid JSON. `/api/query`, `/api/save` and the other `/api` routes
+  then answered `null` with HTTP 200; `lint`, `diff`, `defects`, `drift` and
+  `vocab-check` printed the broken text and exited 0; `batch` kept it only
+  under `raw`. `/api/save` also answered `null` on success when the saved path
+  needed escaping, which is every Windows path. All 36 sites now build the
+  object with `serde_json`.
+
 - **Studio's 3D legend names the ontology live mode has loaded** (#414). The
   legend read "ies-core.ttl · 1,083 triples", and its ASSERTED row "read from
   ies-core.ttl", in both builds. That is true of the replay demo, which is
