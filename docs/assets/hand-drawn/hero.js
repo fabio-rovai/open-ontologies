@@ -189,7 +189,7 @@ function layout(){
     const f=S.labels.forged;
     const b=placeIn([textBox(mx+rx-10,my-ry-10,f,28,FONT.body),textBox(mx-rx+10-measure(f,28,FONT.body),my-ry-10,f,28,FONT.body),
                      textBox(mx-measure(f,28,FONT.body)/2,my+ry+34,f,28,FONT.body)],'the forged-line note');
-    FORGED={mx,my,rx,ry,x:b[0]+4,y:b[3]-28*0.26};
+    FORGED={mx,my,rx,ry,x:b[0]+4,y:b[3]-28*0.26,b};
     const li=S.nodes.findIndex(n=>n.kind==='lean'), lab=LABELS.find(l=>l.i===li);
     const rb=pick([textBox(lab.b[0]+4,P[li].y+48,S.labels.refused,24,FONT.body)],'the refusal');
     REFUSED={x:rb[0]+4,y:P[li].y+48,li};
@@ -394,6 +394,10 @@ function drawAt(t){
   // beat 5: the forged line is named, and the checker refuses the certificate carrying it
   if(litF>0&&FORGED){ const {mx,my,rx,ry}=FORGED;
     circleAround(mx,my,rx,ry,PAL.red,clamp((t-F.t0)/0.7),litF);
+    // paper under the note, as under beat six's: the forged line is wherever
+    // the closure leaves room for one, and the note can land on the cloud
+    const fb=FORGED.b;
+    wash(ctx,[[fb[0],fb[1]],[fb[2],fb[1]],[fb[2],fb[3]],[fb[0],fb[3]]],PAL.paper,{alpha:0.9*litF,spread:2});
     hand(ctx,S.labels.forged,FORGED.x,FORGED.y,28,{font:FONT.body,c:PAL.red,alpha:litF});
     const li=REFUSED.li, cx=P[li].x, cy=P[li].y, st=clamp((t-F.t0-1.2)/0.4);
     if(st>0){ const s=27*(1.25-0.25*st);

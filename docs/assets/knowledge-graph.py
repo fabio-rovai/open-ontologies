@@ -2,10 +2,18 @@
 """Regenerate docs/assets/knowledge-graph.svg from a real certified run.
 
 Run:
+    cargo build --release
+    (cd lean && lake build oo-cert)
     printf 'load benchmark/reference/ies-core.ttl\nreason --profile rdfs --certificate DIR\n' \
-        | open-ontologies batch - --no-connect
+        | target/release/open-ontologies batch - --no-connect
     python3 docs/assets/knowledge-graph.py DIR/asserted.tsv DIR/derivations.tsv \
-        docs/assets/knowledge-graph.svg
+        docs/assets/knowledge-graph.svg docs/assets/kgcert/prove.json docs/assets/kgcert/mu.json en
+    python3 docs/assets/knowledge-graph.py DIR/asserted.tsv DIR/derivations.tsv \
+        docs/assets/knowledge-graph.zh-CN.svg docs/assets/kgcert/prove.json docs/assets/kgcert/mu.json zh
+
+`--oo-cert PATH` names the checker; it defaults to lean/.lake/build/bin/oo-cert.
+The figure cannot be drawn without it, because the fifth beat is a run of it
+(see "The forgery" below).
 
 `reason` takes no positional file. It reasons over the loaded store, so the
 graph has to be loaded first and the two have to be one batch: a second process
@@ -33,6 +41,17 @@ projected through a camera, so a node's size and opacity follow its distance and
 the edges cross in front of and behind one another the way they do on screen.
 Drawn far to near, painter's algorithm, because SVG has no z-buffer.
 
+THE FORGERY IS FORGED, AND THE REFUSAL IS A RUN. The red edge is a claim
+`s subClassOf X` that the closure does not reach (not asserted, not derived),
+drawn beside the certified edges and never in place of one. The generator
+copies a derived line of `s`, changes its conclusion to X, appends it to a copy
+of the certificate and runs `oo-cert` on that copy. Nothing is written unless
+`oo-cert` accepts the honest certificate, then exits 1 on the forged one with
+`ok: false`, the forged line as `first_rejected` and its rule named. The rule
+and the exit code on the figure are read from that report. Until #428 the red
+edge was one of the derived edges, all of which `oo-cert` accepts, relabelled
+`rejected`: a true entailment painted red, and a refusal that never happened.
+
 It is also ANIMATED, in four beats on one 14-second clock: the asserted graph
 arrives, the engine derives, Lean sweeps the derived edges, and a forged edge is
 drawn and then refused. That order is the argument the README makes, and a still
@@ -55,9 +74,15 @@ The layout is a plain spring embedder with a FIXED seed, so the same input
 gives the same picture and a regeneration is a diff a reader can check rather
 than a new arrangement of the same facts.
 """
+import argparse
+import json
 import math
+import os
 import random
+import shutil
+import subprocess
 import sys
+import tempfile
 
 SUBCLASS = "<http://www.w3.org/2000/01/rdf-schema#subClassOf>"
 TYPE = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
@@ -71,6 +96,8 @@ ONTOLOGY = "<http://www.w3.org/2002/07/owl#Ontology>"
 LINKING = (SUBCLASS, TYPE, DOMAIN, RANGE)
 W, H = 1100, 780
 SEED = 20260919
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OO_CERT = os.path.join(ROOT, "lean", ".lake", "build", "bin", "oo-cert")
 
 
 def text_width(s, size):
@@ -135,9 +162,57 @@ def read(path):
 
 
 
-# Every word on the drawing, in each language it is published in. The NUMBERS
-# stay out of this table: they are computed from the run and formatted into
-# these strings, so a translation cannot state a count the data does not carry.
+def oo_cert(checker, asserted_path, derivations_path):
+    """Run the checker on one certificate: (exit code, its JSON report)."""
+    proc = subprocess.run([checker, asserted_path, derivations_path],
+                          capture_output=True, text=True)
+    for line in reversed(proc.stdout.splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            return proc.returncode, json.loads(line)
+    raise SystemExit(f"{checker} printed no JSON report (exit {proc.returncode}):\n"
+                     f"{proc.stdout}{proc.stderr}")
+
+
+def forge(checker, asserted_path, derivations_path, line, forged_to):
+    """Run the checker on the certificate as the engine wrote it, then on a copy
+    with one forged line appended: `line`, a derived line of the certificate,
+    with its conclusion changed to `forged_to` and its rule and premises kept.
+
+    Refuses to go on unless the checker accepts the certificate and exits 1 on
+    the copy, with `ok: false`, the appended line as `first_rejected` and that
+    line's rule named. Returns both reports, which is where every word the
+    figure says about the refusal comes from."""
+    code_h, honest = oo_cert(checker, asserted_path, derivations_path)
+    if not (code_h == 0 and honest.get("ok") is True
+            and honest.get("theorem") == "OOCert.certificate_sound"):
+        raise SystemExit(f"refusing to draw: oo-cert did not accept the certificate "
+                         f"(exit {code_h}): {honest}")
+    with open(derivations_path) as f:
+        body = f.read()
+    if body and not body.endswith("\n"):
+        body += "\n"
+    work = tempfile.mkdtemp(prefix="oo-kg-forged-")
+    try:
+        forged_path = os.path.join(work, "derivations.tsv")
+        with open(forged_path, "w") as f:
+            f.write(body + "\t".join([line[0], line[1], line[2], forged_to, *line[4:]]) + "\n")
+        code_f, refused = oo_cert(checker, asserted_path, forged_path)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    if not (code_f == 1 and refused.get("ok") is False and refused.get("rule") == line[0]
+            and refused.get("first_rejected") == honest.get("derivations")
+            and refused.get("conclusion") == f"{line[1]} {line[2]} {forged_to}"):
+        raise SystemExit(f"refusing to draw: oo-cert did not refuse the forged line "
+                         f"{line[1]} {line[2]} {forged_to}, line {honest.get('derivations')}, "
+                         f"and name its rule {line[0]} (exit {code_f}): {refused}")
+    return (code_h, honest), (code_f, refused)
+
+
+# Every word on the drawing, in each language it is published in. The NUMBERS,
+# and the rule the checker names, stay out of this table: they are read from
+# the runs and formatted into these strings, so a translation cannot state a
+# count or a verdict the data does not carry.
 TEXT = {
     "en": {
         "headline": "ies-core.ttl, reasoned over and proved",
@@ -155,7 +230,7 @@ TEXT = {
         "legend_file": "ies-core.ttl · {n:,} triples",
         "asserted": ("ASSERTED", "read from ies-core.ttl. claimed by a person"),
         "certified": ("CERTIFIED", "derived, then PROVED. one certificate, one run"),
-        "rejected": ("REJECTED", "forged. the checker exited 1 and named the rule"),
+        "rejected": ("REJECTED", "forged. the checker exited {code} and named {rule}"),
         "unasked": ("UNASKED", "a question outside the file's language. no judge was asked"),
         "worth_head": "WHAT A VERDICT IS WORTH",
         "w_cert": "certificate",
@@ -174,7 +249,7 @@ TEXT = {
         "j_checks": "checks it", "j_noproof": "no proof",
         "disagree": "disagreement · stops the line",
         "forged": "this line is forged",
-        "refused": "exit 1, refused",
+        "refused": "exit {code}, {rule} step refused",
         "mu_badge": "returned unasked · {s} is {why}",
         "mu_individual": "a {t}, never a class",
         "mu_individual_plain": "an individual, never a class",
@@ -198,7 +273,7 @@ TEXT = {
         "legend_file": "ies-core.ttl · {n:,} 条三元组",
         "asserted": ("断言", "读自 ies-core.ttl，由人作出的声称"),
         "certified": ("已认证", "推导得出，并且已证明。一份证书，一次运行"),
-        "rejected": ("被拒绝", "伪造。检查器以 exit 1 退出，并指出规则"),
+        "rejected": ("被拒绝", "伪造。检查器以 exit {code} 退出，并指出规则 {rule}"),
         "unasked": ("未提问", "超出该文件语言范围的问题。没有询问任何裁判"),
         "worth_head": "一个结论值多少",
         "w_cert": "证书",
@@ -217,7 +292,7 @@ TEXT = {
         "j_checks": "检查它", "j_noproof": "没有证明",
         "disagree": "分歧 · 停止这条流水线",
         "forged": "这一行是伪造的",
-        "refused": "exit 1，已拒绝",
+        "refused": "exit {code}，{rule} 步骤被拒绝",
         "mu_badge": "原样退回 · {s} 是{why}",
         "mu_individual": "一个 {t}，从来不是类",
         "mu_individual_plain": "一个个体，从来不是类",
@@ -228,7 +303,8 @@ TEXT = {
 }
 
 
-def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=None, lang="en"):
+def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=None, lang="en",
+         checker=OO_CERT):
     # `T` is already a box coordinate in this file, so the text table is `TX`.
     TX = TEXT[lang]
     asserted = read(asserted_path)
@@ -287,15 +363,18 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     header = {r[0] for r in asserted if r[1] == TYPE and r[2] == ONTOLOGY}
     header |= {r[2] for r in asserted if r[0] in header}
 
-    a_edges = [(r[0], r[2]) for r in asserted
-               if r[1] in LINKING and r[2].startswith("<")
-               and r[0] not in header and r[2] not in header]
-    d_edges, by_rule = [], {}
+    # Sorted, so the picture depends on WHAT the run concluded and not on the
+    # order it wrote it in. The engine records a different premise for some
+    # steps, in a different order, on every run (#427); the conclusions are the
+    # same set every time, and the layout sums forces in edge order, so an
+    # unsorted list moved the drawing between two runs of one input.
+    a_edges = sorted((r[0], r[2]) for r in asserted
+                     if r[1] in LINKING and r[2].startswith("<")
+                     and r[0] not in header and r[2] not in header)
+    by_rule = {}
     for r in derivations:
-        rule = r[0]
-        by_rule[rule] = by_rule.get(rule, 0) + 1
-        if len(r) >= 4 and r[2] == SUBCLASS:
-            d_edges.append((r[1], r[3]))
+        by_rule[r[0]] = by_rule.get(r[0], 0) + 1
+    d_edges = sorted({(r[1], r[3]) for r in derivations if len(r) >= 4 and r[2] == SUBCLASS})
 
     # ── The verification layer ──────────────────────────────────────────
     #
@@ -330,12 +409,14 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     idx = {n: i for i, n in enumerate(nodes)}
 
     # Every edge as (i, j, warrant), which is what the drawing works from and
-    # what the legend counts. Ontology edges first, layer edges after.
+    # what the legend counts. Ontology edges first, layer edges after. Every
+    # derived edge is certified, because `oo-cert` accepts every one of them.
+    # The forged edge is a claim of its own, chosen after the layout and added
+    # beside these (see "The forgery"), so it plays no part in where anything
+    # lands.
     edges = [(idx[a], idx[b], "asserted") for a, b in a_edges]
     edges += [(idx[a], idx[b], "certified") for a, b in d_edges]
     edges += [(idx[a], idx[b], w) for a, b, w in tool_edges]
-    # Which of the derived edges is the forged one is decided after the layout,
-    # in `forge_one`, because it is decided on where the edge LANDS.
 
     # ── Layout: a COMPOSITION, not one force run over everything ────────
     #
@@ -577,40 +658,118 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
             py_ = min(max(oy + (pr[m][1] - y0) * sc, ty0), ty1)
             pt[idx[ont[g]]] = [px_, py_, pr[m][2]]
 
-    # ── Which claim is the forged one ───────────────────────────────────
+    # ── The forgery ─────────────────────────────────────────────────────
     #
     # It used to be a node of its own, `forged line`, parked in the pipeline
     # column with a red edge to Lean. Nothing about it was in the graph the
     # viewer had spent four beats looking at, so the last beat refused a claim
-    # about nothing: the red line was the most important thing in the figure
-    # and the easiest thing to miss.
+    # about nothing.
     #
-    # The forged claim is now one of the DERIVED edges, drawn among the others
-    # and indistinguishable from them until the checker names it. That is what
-    # a forgery is: a line that looks like the rest.
+    # Then it was one of the DERIVED edges, relabelled. That drew the forgery
+    # where the viewer was looking, and it was false twice over: every derived
+    # edge is a conclusion `oo-cert` accepts, so the figure painted a true,
+    # certified entailment red, and no forged line was ever written or checked,
+    # so the refusal it reported never happened (#428).
     #
-    # Chosen on where it lands, not on what it says, so it is chosen after the
-    # layout: long enough to read as a line, and as near the middle of the
-    # largest piece as a long one gets.
-    big = comps[0]
-    inbig = {idx[ont[g]] for g in big}
+    # Now the forged claim is NEW: `s subClassOf X` for a class X that the
+    # closure does not reach from s (not s, not asserted, not derived), drawn
+    # red BESIDE the certified edges, which all stay green. It is forged the way
+    # `demo/build_certified_graph.py` forges one: a derived line of s is copied
+    # with its conclusion changed to X, appended to a copy of the certificate,
+    # and `oo-cert` is run on that copy. Nothing is drawn unless it exits 1,
+    # names the forged line, and names the rule.
+    #
+    # Validity first, then legibility. Among the valid claims, the one drawn is
+    # chosen on where it LANDS, as before: at least as long as the median
+    # derived edge, so it reads as a line like the others, and as near the
+    # middle of the graph as such a line gets. It may not lie on a pair of
+    # classes an edge already joins, or it would be drawn over that edge; it
+    # may not pass over a third class, or it reads as two edges through that
+    # class; and it keeps clear of the busiest classes, which carry the labels
+    # its halo and badge would otherwise cross. Ties go to the smaller (s, X)
+    # by name, so a regeneration forges the same line.
+    reach = {}
+    for a, b in [(r[0], r[2]) for r in asserted if r[1] == SUBCLASS] + d_edges:
+        reach.setdefault(a, set()).add(b)
+    sc_terms = sorted({t for r in asserted if r[1] == SUBCLASS for t in (r[0], r[2])
+                       if t.startswith("<") and t not in header}
+                      | {t for e in d_edges for t in e})
+    joined = {frozenset((i, j)) for i, j, _ in edges}
+    lengths = sorted(math.hypot(pt[i][0] - pt[j][0], pt[i][1] - pt[j][1])
+                     for i, j, w in edges if w == "certified"
+                     and nodes[i] not in TOOLS and nodes[j] not in TOOLS)
+    # Between the median and the 90th percentile of the derived edges' drawn
+    # lengths. Shorter, and the line hides under the two dots at its ends.
+    L_MIN, L_MAX = lengths[len(lengths) // 2], lengths[int(len(lengths) * 0.9)]
     bx0, by0, bx1, by1 = tiles[0]
     cxm, cym = (bx0 + bx1) / 2.0, (by0 + by1) / 2.0
-    best, best_score = None, None
-    for e, (i, j, w) in enumerate(edges):
-        if w != "certified" or i not in inbig or j not in inbig:
-            continue
-        L = math.hypot(pt[i][0] - pt[j][0], pt[i][1] - pt[j][1])
-        if L < 34.0:
-            continue
-        mx, my = (pt[i][0] + pt[j][0]) / 2.0, (pt[i][1] + pt[j][1]) / 2.0
-        score = math.hypot(mx - cxm, my - cym) - L * 0.55
-        if best_score is None or score < best_score:
-            best, best_score = e, score
-    forged = best
-    if forged is not None:
-        i, j, _ = edges[forged]
-        edges[forged] = (i, j, "rejected")
+    o_deg = {}
+    for i, j, _ in edges:
+        for k in (i, j):
+            o_deg[k] = o_deg.get(k, 0) + 1
+    o_nodes = [idx[n] for n in ont]
+    # The labels go to the busiest classes, in this drawing and in the
+    # hand-drawn one, which sets a name larger (about 8.5 units a character at
+    # this scale) and on whichever side of its dot is free. So each of the ten
+    # busiest gets a band as wide as its name on BOTH sides, and the marker
+    # drawn round the forged line (the halo here, the ellipse in hero.js) has
+    # to stay out of every band.
+    busy = sorted(o_nodes, key=lambda k: (-o_deg.get(k, 0), nodes[k]))[:10]
+    bands = []
+    for k in busy:
+        half = 8.5 * len(short(nodes[k])) + 12.0
+        bands.append((pt[k][0] - half, pt[k][1] - 18.0, pt[k][0] + half, pt[k][1] + 12.0))
+    CLEAR_NODE = 9.0
+
+    def off_segment(k, i, j):
+        """How far node k sits from the segment i-j."""
+        ax_, ay_ = pt[i][0], pt[i][1]
+        vx_, vy_ = pt[j][0] - ax_, pt[j][1] - ay_
+        t_ = max(0.0, min(1.0, ((pt[k][0] - ax_) * vx_ + (pt[k][1] - ay_) * vy_)
+                          / ((vx_ * vx_ + vy_ * vy_) or 1.0)))
+        return math.hypot(pt[k][0] - ax_ - t_ * vx_, pt[k][1] - ay_ - t_ * vy_)
+
+    best = None
+    for s_ in sorted({a for a, _ in d_edges}):
+        for x_ in sc_terms:
+            if x_ == s_ or x_ in reach.get(s_, ()) or x_ not in idx:
+                continue
+            i, j = idx[s_], idx[x_]
+            if frozenset((i, j)) in joined:
+                continue
+            L = math.hypot(pt[i][0] - pt[j][0], pt[i][1] - pt[j][1])
+            if not L_MIN <= L <= L_MAX:
+                continue
+            mx, my = (pt[i][0] + pt[j][0]) / 2.0, (pt[i][1] + pt[j][1]) / 2.0
+            key = (round(math.hypot(mx - cxm, my - cym) - L * 0.55, 6), s_, x_)
+            if best is not None and key >= best:
+                continue
+            if any(off_segment(k, i, j) < CLEAR_NODE for k in o_nodes if k != i and k != j):
+                continue
+            hw = max(abs(pt[i][0] - pt[j][0]) / 2.0 + 24.0, 0.34 * L)
+            hh = max(abs(pt[i][1] - pt[j][1]) / 2.0 + 20.0, 0.34 * L)
+            if any(mx - hw < b_[2] and b_[0] < mx + hw and my - hh < b_[3] and b_[1] < my + hh
+                   for b_ in bands):
+                continue
+            best = key
+    if best is None:
+        raise SystemExit("no class the closure does not reach lands where a forged line "
+                         "can be drawn legibly; the fifth beat has nothing to refuse")
+    _, f_s, f_x = best
+    # The line copied: the derived line of f_s with the smallest conclusion.
+    # Its premises may differ between runs (#427); nothing drawn reads them.
+    f_line = min((r for r in derivations if len(r) >= 4 and r[1] == f_s and r[2] == SUBCLASS),
+                 key=lambda r: r[3])
+    (accepted_exit, accepted), (refused_exit, refusal) = forge(checker, asserted_path, derivations_path,
+                                                   f_line, f_x)
+    if accepted.get("derivations") != len(derivations):
+        raise SystemExit(f"oo-cert read {accepted.get('derivations')} derivation lines and this "
+                         f"script read {len(derivations)}; they are not reading one certificate")
+    f_rule = refusal["rule"]
+    edges.append((idx[f_s], idx[f_x], "rejected"))
+    forged = len(edges) - 1
+    print(f"forged {short(f_s)} subClassOf {short(f_x)} (copied from {short(f_line[1])} "
+          f"subClassOf {short(f_line[3])}); oo-cert: {json.dumps(refusal)}", file=sys.stderr)
 
     # ── The pipeline, placed ────────────────────────────────────────────
     #
@@ -637,8 +796,12 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         # at opacity 0.20, which is why they were invisible.
         pt[idx[n]] = [float(px), float(py), 0.0]
 
+    # A forged claim makes no class busier, so it adds nothing to the degree
+    # that sizes a node: the true graph is drawn the same with or without it.
     deg = [0] * len(nodes)
-    for i, j, _ in edges:
+    for i, j, w in edges:
+        if w == "rejected":
+            continue
         deg[i] += 1
         deg[j] += 1
 
@@ -661,7 +824,20 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # --certificate` writes ONE (asserted.tsv + derivations.tsv, one line per
     # derived triple with its rule and premises), `oo-cert` reads it in ONE
     # run, and what it discharges is ONE theorem over the whole set.
-    n_certified_edges = sum(1 for _, _, w in edges if w == "certified")
+    #
+    # Edges OF THE ONTOLOGY only. The verification layer's arrows (the
+    # certificate to each checker) are drawn green and are no conclusion of the
+    # certificate, and counting them put the figure three edges above the
+    # certificate it describes. Each count is one of ies-core's edges, the way
+    # `warrantCounts` in studio/src/lib/graph3d-model.ts counts them (#425).
+    def ontology_count(warrant):
+        return sum(1 for i, j, w in edges if w == warrant
+                   and nodes[i] not in TOOLS and nodes[j] not in TOOLS)
+
+    n_certified_edges = ontology_count("certified")
+    if n_certified_edges != len(d_edges):
+        raise SystemExit(f"{n_certified_edges} edges are drawn certified and the certificate "
+                         f"derives {len(d_edges)} subClassOf edges; they must be the same edges")
 
     CYCLE = 22.0 if mu else 18.0
     # Five steps, and the prover step is its own rather than a footnote inside
@@ -1050,7 +1226,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # ── Beat five: the claim in the graph, and the refusal at the checker ─
     #
     # Two halves of one event, and both have to be visible or the beat says
-    # nothing. The forged claim is an edge among the derived ones, so it is
+    # nothing. The forged claim is drawn beside the derived ones, so it is
     # marked WHERE IT IS: a halo on it, and the badge beside it, in the cloud
     # the viewer has been watching for four beats.
     #
@@ -1102,8 +1278,19 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         A('</g>')
 
         ftxt = TX["forged"]
-        fw = len(ftxt) * 5.4 + 12
-        cands = []
+        # Wide enough for the glyphs actually drawn. `len * 5.4` is a Latin
+        # estimate, and a Chinese glyph is a full em, so the two beat-five
+        # badges ran their text into the rim of the box in the zh figure.
+        fw = max(len(ftxt) * 5.4, text_width(ftxt, 9.5)) + 12
+        # Beside the line first, on either side of it: just far enough along
+        # the normal that the box clears the line, so the badge names the line
+        # without covering an end of it. A steep line took the badge straight
+        # above its middle, which is on the line.
+        fnx = -(pt[fj][1] - pt[fi][1]) / (flen or 1.0)
+        fny = (pt[fj][0] - pt[fi][0]) / (flen or 1.0)
+        foff = (fw / 2.0 + 3.0) * abs(fnx) + 8.5 * abs(fny) + 6.0
+        cands = [(fmx + fnx * foff, fmy + fny * foff + 3.5),
+                 (fmx - fnx * foff, fmy - fny * foff + 3.5)]
         for dy_ in (-26.0, 26.0, -44.0, 44.0):
             for dx_ in (0.0, -46.0, 46.0):
                 cands.append((fmx + dx_, fmy + dy_))
@@ -1125,8 +1312,8 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         A('</g>')
 
     # And the verdict, at the checker.
-    rtxt = TX["refused"]
-    rw = len(rtxt) * 5.4 + 12
+    rtxt = TX["refused"].format(code=refused_exit, rule=f_rule)
+    rw = max(len(rtxt) * 5.4, text_width(rtxt, 9.5)) + 12
     rx, ry = pt[li][0] - rw / 2, pt[li][1] + lr + 22
     for ccx, ccy in [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
                      (pt[li][0] + lr + 8, pt[li][1] + lr + 12),
@@ -1387,10 +1574,10 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     #
     # Same title, same three rows, same wording, same footer. Counted from the
     # edges drawn above rather than typed, exactly as the component counts them
-    # from the links on screen.
-    n_a = sum(1 for _, _, w in edges if w == "asserted")
-    n_c = sum(1 for _, _, w in edges if w == "certified")
-    n_r = sum(1 for _, _, w in edges if w == "rejected")
+    # from the links on screen: the ontology's edges, not the pipeline's.
+    n_a = ontology_count("asserted")
+    n_c = ontology_count("certified")
+    n_r = ontology_count("rejected")
     ly = H - 152
     lw = 560.0          # where the counting column ends and the meaning begins
     A(f'<rect x="28" y="{ly}" width="{W - 56}" height="132" rx="12" fill="#030a1c" '
@@ -1402,7 +1589,8 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     A(f'<line x1="40" y1="{ly+33}" x2="{lw - 12:.0f}" y2="{ly+33}" stroke="#1e3a5f"/>')
     rows = [(C_ASSERT, TX["asserted"][0], n_a, TX["asserted"][1]),
             (C_CERT, TX["certified"][0], n_c, TX["certified"][1]),
-            (C_REJECT, TX["rejected"][0], n_r, TX["rejected"][1])]
+            (C_REJECT, TX["rejected"][0], n_r,
+             TX["rejected"][1].format(code=refused_exit, rule=f_rule))]
     if mu:
         rows.append((C_MU, TX["unasked"][0], 1, TX["unasked"][1]))
     for m, (col, label, count, means) in enumerate(rows):
@@ -1422,16 +1610,20 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
       f'stroke="#1e3a5f"/>')
     A(f'<text x="{lw + 34:.0f}" y="{ly+24}" font-size="12" font-weight="800" '
       f'fill="#94a3b8" letter-spacing="1.4">{TX["worth_head"]}</text>')
+    # "One file, all N lines" is a sentence about the FILE, so N is the number
+    # of lines `oo-cert` read and accepted, not the green edges: the file also
+    # carries the subPropertyOf steps, which the drawing does not draw.
+    n_cert_lines = accepted["derivations"]
     if vampire_certified:
         verdicts = [
             (C_CERT, TX["w_cert"],
-             TX["w_cert1_fo"].format(n=n_certified_edges),
+             TX["w_cert1_fo"].format(n=n_cert_lines),
              TX["w_cert2_fo"].format(t=fo_theorem)),
             (C_TOOL, TX["w_op"], TX["w_op1_fo"], TX["w_op2"]),
         ]
     else:
         verdicts = [
-            (C_CERT, TX["w_cert"], TX["w_cert1"].format(n=n_certified_edges), TX["w_cert2"]),
+            (C_CERT, TX["w_cert"], TX["w_cert1"].format(n=n_cert_lines), TX["w_cert2"]),
             (C_TOOL, TX["w_op"], TX["w_op1"], TX["w_op2"]),
         ]
     if mu:
@@ -1498,6 +1690,18 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
                   for i, n in enumerate(nodes)],
         "edges": [[i, j, w] for i, j, w in edges],
         "forged": forged,
+        # What was forged and what the checker said, from the runs. Only what a
+        # rerun reproduces: the claim, the line it copies, the exit codes, the
+        # line refused and the rule named. Never the premises, which the engine
+        # chooses differently from run to run (#427).
+        "forgery": {
+            "claim": [f_s, SUBCLASS, f_x],
+            "copied_from": [f_line[1], f_line[2], f_line[3]],
+            "certificate": {"exit": accepted_exit, "ok": accepted["ok"], "theorem": accepted["theorem"],
+                            "derivations": accepted["derivations"]},
+            "oo_cert": {"exit": refused_exit, "ok": refusal["ok"],
+                        "first_rejected": refusal["first_rejected"], "rule": f_rule},
+        },
         "mu": ({"s": idx[mu_s], "o": idx[mu_o],
                 "badge": TX["mu_badge"].format(s=short(mu_s), why=mu_line)} if mu else None),
         "beats": [{"key": beat_keys[k], "text": text, "t0": t0, "t1": t1}
@@ -1515,7 +1719,7 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
                   "rows": [{"key": k, "word": word, "l1": l1, "l2": l2}
                            for k, (_, word, l1, l2) in
                            zip(["certificate", "opinion", "unasked"], verdicts)]},
-        "labels": {"forged": TX["forged"], "refused": TX["refused"],
+        "labels": {"forged": TX["forged"], "refused": rtxt,
                    "disagree": TX["disagree"], "disagree_t": [11.4, 13.0]},
     }
     stray = _re.findall(r"\{[a-z_]+\}", _json.dumps(scene, ensure_ascii=False))
@@ -1530,4 +1734,17 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:7])
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("asserted")
+    ap.add_argument("derivations")
+    ap.add_argument("out")
+    ap.add_argument("prove", nargs="?")
+    ap.add_argument("mu", nargs="?")
+    ap.add_argument("lang", nargs="?", default="en", choices=sorted(TEXT))
+    ap.add_argument("--oo-cert", default=OO_CERT,
+                    help="the oo-cert binary (default: lean/.lake/build/bin/oo-cert)")
+    args = ap.parse_args()
+    if not (os.path.isfile(args.oo_cert) and os.access(args.oo_cert, os.X_OK)):
+        raise SystemExit(f"{args.oo_cert} is not an executable. Build it with "
+                         f"`cd lean && lake build oo-cert`: the fifth beat is a run of it.")
+    main(args.asserted, args.derivations, args.out, args.prove, args.mu, args.lang, args.oo_cert)
