@@ -11,6 +11,105 @@ function sparqlJson(bindings: Record<string, string>[]): string {
   })
 }
 
+// What POST /api/query really returns (src/graph.rs, `render`): not W3C SPARQL
+// JSON but {"variables":[...],"results":[{var: term}, ...]}, with `results` an
+// array, every value the term's N-Triples form (<iri>, "lexical"@lang,
+// "lexical"^^<datatype>), and an unbound OPTIONAL variable left out of its row.
+function enginePayload(variables: string[], results: Record<string, string>[]): string {
+  return JSON.stringify({ variables, results })
+}
+
+describe('LiveSource against the engine /api/query payload (#413)', () => {
+  it('builds the graph from the classes and subclass edges the engine returns', async () => {
+    const sparqlQuery = vi.fn(async (q: string) =>
+      q.includes('rdfs:subClassOf ?b')
+        ? enginePayload(['a', 'b'], [
+            { a: '<http://example.org/B>', b: '<http://example.org/A>' },
+            { a: '<http://example.org/C>', b: '<http://example.org/B>' },
+          ])
+        : enginePayload(['c', 'l'], [
+            { c: '<http://example.org/A>', l: '"Alpha"@en' },
+            { c: '<http://example.org/B>', l: '"Beta"^^<http://www.w3.org/2001/XMLSchema#string>' },
+            { c: '<http://example.org/C>' },
+          ]),
+    )
+    const callTool = vi.fn(async () => '{}')
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    const g = await src.graph()
+    expect(g.classes).toEqual([
+      { iri: 'http://example.org/A', label: 'Alpha' },
+      { iri: 'http://example.org/B', label: 'Beta' },
+      { iri: 'http://example.org/C' },
+    ])
+    expect(g.edges).toEqual([
+      { source: 'http://example.org/B', target: 'http://example.org/A' },
+      { source: 'http://example.org/C', target: 'http://example.org/B' },
+    ])
+  })
+
+  // The CLASSES query returns a class once per UNION branch it matches, per
+  // superclass and per label: an owl:Class with a superclass and labels in two
+  // languages comes back four times. It is still one class.
+  it('draws a class the query returns several times as one node', async () => {
+    const sparqlQuery = vi.fn(async (q: string) =>
+      q.includes('rdfs:subClassOf ?b')
+        ? enginePayload(['a', 'b'], [])
+        : enginePayload(['c', 'l'], [
+            { c: '<http://example.org/A>', l: '"Alpha"@en' },
+            { c: '<http://example.org/A>', l: '"Alfa"@it' },
+            { c: '<http://example.org/A>', l: '"Alpha"@en' },
+            { c: '<http://example.org/A>', l: '"Alfa"@it' },
+          ]),
+    )
+    const callTool = vi.fn(async () => '{}')
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    const g = await src.graph()
+    expect(g.classes).toEqual([{ iri: 'http://example.org/A', label: 'Alpha' }])
+  })
+
+  it('names the document from the engine provenance rows', async () => {
+    const callTool = vi.fn(async () =>
+      JSON.stringify({
+        conforms: false,
+        violation_count: 1,
+        violations: [
+          {
+            severity: 'Violation',
+            // onto_shacl strips the angle brackets (src/shacl.rs, strip_angle_brackets).
+            focus_node: 'http://example.org/dataset-1',
+            path: 'http://www.w3.org/ns/dcat#distribution',
+            constraint: 'minCount',
+            message: 'Property <http://www.w3.org/ns/dcat#distribution> has fewer than 1 values',
+          },
+        ],
+      }),
+    )
+    const sparqlQuery = vi.fn(async () =>
+      enginePayload(['thing', 'doc'], [
+        { thing: '<http://example.org/dataset-1>', doc: '"profile-readme.md"' },
+      ]),
+    )
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    const found = await src.findings()
+    expect(found).toHaveLength(1)
+    expect(found[0].subject).toBe('http://example.org/dataset-1')
+    expect(found[0].claims.map((c) => c.document)).toEqual(['profile-readme.md'])
+  })
+
+  // A query the engine cannot run comes back as {"error": ...} (src/main.rs,
+  // the /query route), not as an HTTP failure. That is not an empty store.
+  it('surfaces the engine error payload rather than drawing an empty graph', async () => {
+    const sparqlQuery = vi.fn(async () => JSON.stringify({ error: 'Parser error at line 3' }))
+    const callTool = vi.fn(async () => '{}')
+    const src = createLiveSource({ sparqlQuery, callTool })
+
+    await expect(src.graph()).rejects.toThrow('Parser error at line 3')
+  })
+})
+
 describe('LiveSource', () => {
   it('maps the class and subclass queries into a GraphView', async () => {
     const sparqlQuery = vi.fn(async (q: string) =>

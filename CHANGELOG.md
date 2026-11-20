@@ -165,6 +165,17 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's live 3D graph and finding provenance read the engine's own
+  query payload** (#413). `POST /api/query` returns
+  `{"variables":[...],"results":[...]}` with each value an N-Triples term, but
+  the live source read W3C `results.bindings`, so every query came back
+  empty: the 3D view showed "Build the knowledge graph first" whatever was
+  loaded, and SHACL findings cited the focus node instead of the document.
+  The live source now parses through `parseRows` (W3C JSON is still read as a
+  fallback), draws a class the class query returns several times as one node,
+  and throws the engine's `{"error": ...}` reply instead of drawing it as an
+  empty store.
+
 - **Clinical validation and drift detection read a tagged label by its text**
   (#406). Both stripped quotes from the N-Triples form of the literal, so
   `"Dog"@en` became `Dog"@en`. Clinical validation searched the crosswalk for
