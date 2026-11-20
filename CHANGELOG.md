@@ -165,6 +165,14 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **SHACL-SPARQL message templates substitute solution variables** (#411).
+  Fallback `sh:message` text now expands `{?name}` and `{$name}` for each
+  result, including the pre-bound focus node. Literals use their lexical
+  values, while IRIs and blank nodes retain their RDF form. Unbound variables
+  stay as written, and inserted values are not expanded again. JSON, Turtle
+  and N-Triples reports carry the expanded message; RDF reports preserve its
+  language tag or datatype. A bound `?message` keeps its existing precedence.
+
 - **Clinical validation and drift detection read a tagged label by its text**
   (#406). Both stripped quotes from the N-Triples form of the literal, so
   `"Dog"@en` became `Dog"@en`. Clinical validation searched the crosswalk for
