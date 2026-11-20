@@ -53,7 +53,7 @@
 ---
 
 <p align="center">
-  <a href="docs/assets/knowledge-graph.zh-CN.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.webp" alt="ies-core.ttl 的手绘动画。有人断言灰色边。引擎推导出绿色边，Lean 4 检查涵盖它们的那一份证书。四个证明器读取子句，只给出意见。一条伪造的红线被拒绝，一个该文件无法回答的问题被原样退回。" width="100%"></a>
+  <a href="docs/assets/knowledge-graph.zh-CN.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.zh-CN.svg" alt="ies-core.ttl 的动画。有人断言灰色边。引擎推导出绿色边，Lean 4 检查涵盖它们的那一份证书。四个证明器读取子句，只给出意见。一条伪造的红线被拒绝，一个该文件无法回答的问题被原样退回。" width="100%"></a>
 </p>
 
 <p align="center">
@@ -61,6 +61,10 @@
   检查器<i>证明</i>了它们。一份证书涵盖全部 257 条，检查器一次运行即可接受它。
   红色边是一行伪造的内容。同一个检查器拒绝了它，以 exit 1 退出，并指出了规则（rdfs11）。
   每个数字都来自运行结果。没有人把数字写进说明文字。</sub>
+</p>
+
+<p align="center">
+  <sub>同一次运行还绘制了这张图的<a href="docs/assets/knowledge-graph.zh-CN.webp">手绘版本</a>。</sub>
 </p>
 
 <p align="center">
@@ -501,7 +505,7 @@ Tauri 2、React 19 和 Tailwind 4 用于 Studio。完整表格见
 同样的章节，同样的图，同样的数字。
 
 两张图各有一个中文版本，由同一个生成器产生：`knowledge-graph.zh-CN.svg` 和
-`hqdm-audit.zh-CN.svg`。首页的手绘动画 `knowledge-graph.zh-CN.webp` 由同一次运行写出的
+`hqdm-audit.zh-CN.svg`。首页图下方链接的手绘动画 `knowledge-graph.zh-CN.webp` 由同一次运行写出的
 `knowledge-graph.zh-CN.scene.json` 绘制。图中的数字不来自翻译。它们由运行结果计算得出，然后填入翻译好的句子，
 因此中文版本不可能说出数据不支持的数字。`tests/readme_simplified_english_test.rs` 要求本页面
 与英文页面在结构上一致。

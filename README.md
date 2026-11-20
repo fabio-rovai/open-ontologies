@@ -55,7 +55,7 @@
 ---
 
 <p align="center">
-  <a href="docs/assets/knowledge-graph.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.webp" alt="A hand-drawn animation of ies-core.ttl. A person asserts the grey edges. The engine derives the green edges, and Lean 4 checks the one certificate that holds them. Four provers read the clauses and give opinions. A forged red line is refused, and a question the file cannot be asked comes back unasked." width="100%"></a>
+  <a href="docs/assets/knowledge-graph.svg"><img src="https://raw.githubusercontent.com/fabio-rovai/open-ontologies/main/docs/assets/knowledge-graph.svg" alt="An animation of ies-core.ttl. A person asserts the grey edges. The engine derives the green edges, and Lean 4 checks the one certificate that holds them. Four provers read the clauses and give opinions. A forged red line is refused, and a question the file cannot be asked comes back unasked." width="100%"></a>
 </p>
 
 <p align="center">
@@ -63,6 +63,10 @@
   checker then <i>proved</i> them. One certificate holds all 257, and one run of the checker accepts it.
   The red edge is a forged line. The same checker refused that line, gave exit 1, and named the rule (rdfs11).
   The run supplies each count. Nobody writes a count into the caption.</sub>
+</p>
+
+<p align="center">
+  <sub>The same run also draws <a href="docs/assets/knowledge-graph.webp">a hand-drawn version</a> of this figure.</sub>
 </p>
 
 <p align="center">
