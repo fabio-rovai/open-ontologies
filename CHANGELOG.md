@@ -192,6 +192,18 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's live 3D view drops the replay demo's proof legend, empty-state
+  text and tool-node tinting** (#424). In live mode the legend still listed
+  CERTIFIED and REJECTED rows, always 0 because the live source sets no
+  warrant, with the Lean 4 / Isabelle footer; an empty graph pointed to a
+  "Documents panel" live mode does not have; and the verification-layer nodes
+  were recognised by display name, so a live class called `E`, `Z3`,
+  `Vampire` or `certificate` was pinned to the pipeline, pulled out of its
+  component and tinted as a tool. In live mode the legend now shows its
+  proof-carrying parts only when an edge is certified or rejected, the empty
+  state says to load or build an ontology through Chat, and every node is a
+  class whatever it is called. The replay view renders exactly as before.
+
 - **Studio's auto-save writes the file the toolbar names after a Save As**
   (#423). Save As wrote `~/.open-ontologies/<name>.ttl` and renamed the
   toolbar, but every later automatic save, after a chat edit or a Property
