@@ -192,6 +192,17 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's live graph loads even when the SHACL findings are undetermined**
+  (#422). The store fetched the graph and the findings with one
+  `Promise.all`, so when the live `findings()` threw, the graph it had already
+  fetched was dropped and the 3D view stayed empty until a later refresh. The
+  live `findings()` throws on purpose when `onto_shacl` reports
+  `conforms: null`, which is the usual answer for an ontology that is not a
+  DCAT-US catalogue. The two now settle apart: a failed graph is the shell's
+  error, and a failed or undetermined findings run goes to its own
+  `findingsError`, which the findings panel shows in place of "No findings in
+  this corpus".
+
 - **Studio's graph views keep refreshing after the 2D view is left** (#421).
   TreeView set `window.__refreshGraph` on mount and deleted it on unmount,
   and LiveChrome had wrapped that same global to refresh the store the 3D view

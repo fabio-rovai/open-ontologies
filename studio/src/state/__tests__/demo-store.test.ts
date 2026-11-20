@@ -74,6 +74,58 @@ describe('useDemoStore.load', () => {
     expect(s.documents).toEqual([])
     expect(s.documentsError).toMatch(/document text/)
   })
+
+  // live-source.ts's findings() throws when onto_shacl reports conforms: null,
+  // the usual answer for any ontology that is not a DCAT-US catalogue. That
+  // must cost the findings panel alone, not the graph (#422).
+  it('keeps the graph when findings() throws, and holds the findings error apart', async () => {
+    getDemoSource.mockResolvedValue({
+      ...fakeSource(),
+      findings: vi.fn(async () => {
+        throw new Error('SHACL validation is undetermined, not clean: conforms is null with 0 focus node(s).')
+      }),
+    })
+    await useDemoStore.getState().load()
+    const s = useDemoStore.getState()
+    expect(s.graph.classes).toEqual([{ iri: 'ex:Dataset' }])
+    expect(s.error).toBeNull()
+    expect(s.findings).toEqual([])
+    expect(s.findingsError).toMatch(/undetermined, not clean/)
+    expect(s.documents).toHaveLength(1)
+    expect(s.loading).toBe(false)
+  })
+
+  it('keeps the findings when graph() throws, and reports the graph error', async () => {
+    getDemoSource.mockResolvedValue({
+      ...fakeSource(),
+      graph: vi.fn(async () => {
+        throw new Error('engine not listening')
+      }),
+    })
+    await useDemoStore.getState().load()
+    const s = useDemoStore.getState()
+    expect(s.error).toMatch(/engine not listening/)
+    expect(s.findings).toHaveLength(1)
+    expect(s.findingsError).toBeNull()
+    expect(s.loading).toBe(false)
+  })
+
+  it('clears an earlier findings error once findings() succeeds', async () => {
+    useDemoStore.setState({ findingsError: 'undetermined last time' })
+    getDemoSource.mockResolvedValue(fakeSource())
+    await useDemoStore.getState().load()
+    const s = useDemoStore.getState()
+    expect(s.findingsError).toBeNull()
+    expect(s.findings).toHaveLength(1)
+  })
+
+  it('reports an unreachable source once, as the shell error', async () => {
+    getDemoSource.mockRejectedValue(new Error('no source for this build'))
+    await useDemoStore.getState().load()
+    const s = useDemoStore.getState()
+    expect(s.error).toMatch(/no source for this build/)
+    expect(s.loading).toBe(false)
+  })
 })
 
 describe('useDemoStore.refreshGraph', () => {

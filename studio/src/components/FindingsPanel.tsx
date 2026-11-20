@@ -2,6 +2,11 @@ import type { Contradiction } from '../lib/demo-source'
 
 export interface FindingsPanelProps {
   findings: Contradiction[]
+  // Set when the findings run failed or could not decide (live mode's SHACL
+  // run reports conforms: null for an ontology its shapes select nothing
+  // in). Rendered as the reason instead of "No findings", which would read
+  // as a clean pass (#422). Required, so a caller cannot drop it by omission.
+  error: string | null
   selected: string | null
   onSelect: (id: string) => void
 }
@@ -20,7 +25,14 @@ const KIND_LABEL: Record<Contradiction['kind'], string> = {
  * imports no source, so it renders identically whether the findings came
  * from a live SHACL run or the precomputed replay bundle.
  */
-export function FindingsPanel({ findings, selected, onSelect }: FindingsPanelProps) {
+export function FindingsPanel({ findings, error, selected, onSelect }: FindingsPanelProps) {
+  if (error) {
+    return (
+      <p className="p-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+        {error}
+      </p>
+    )
+  }
   if (findings.length === 0) {
     return (
       <p className="p-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
