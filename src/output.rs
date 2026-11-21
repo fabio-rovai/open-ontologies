@@ -694,6 +694,15 @@ fn render_vocab_check(v: &Value) -> String {
         ));
         push_lines(&mut out, terms, text);
     }
+    let wrong_role = items(v, "wrong_role_terms");
+    if !wrong_role.is_empty() {
+        out.push_str(&format!(
+            "\n{} term(s) the ontology declares in the other role \
+             (a class used as a predicate, or a property used as a type):",
+            wrong_role.len()
+        ));
+        push_lines(&mut out, wrong_role, text);
+    }
     out.push_str(&format!(
         "\nChecked {} predicate(s) and {} type(s) against {} ontology term(s); namespaces policed: {}.",
         text(&v["predicates_checked"]),
@@ -1467,6 +1476,34 @@ mod tests {
             assert!(!rendered.contains("Loaded"), "got: {rendered}");
         }
         assert!(render("load", payload).contains("Loaded 3 triple(s)"));
+    }
+
+    #[test]
+    fn vocab_check_lists_wrong_role_terms_apart_from_undeclared_ones() {
+        let rendered = render(
+            "vocab-check",
+            json!({
+                "conforms": false,
+                "hallucinated_terms": ["http://example.org/o#Persn"],
+                "wrong_role_terms": ["http://example.org/o#worksFor"],
+                "checked_namespaces": ["http://example.org/o#"],
+                "predicates_checked": 1,
+                "types_checked": 2,
+                "ontology_terms": 4
+            }),
+        );
+        assert!(
+            rendered
+                .contains("1 term(s) the ontology does not declare:\n  http://example.org/o#Persn"),
+            "got: {rendered}"
+        );
+        assert!(
+            rendered.contains(
+                "1 term(s) the ontology declares in the other role \
+                 (a class used as a predicate, or a property used as a type):\n  http://example.org/o#worksFor"
+            ),
+            "got: {rendered}"
+        );
     }
 
     #[test]

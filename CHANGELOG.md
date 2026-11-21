@@ -192,6 +192,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`vocab-check` checks that each term is used in the role it is declared in**
+  (#432). A class used as a predicate, or a property used as the object of
+  `rdf:type`, passed with `conforms: true` because the check only asked whether
+  the term was declared at all. Declared terms are now kept per role (typed
+  classes and subjects of `rdfs:subClassOf`; typed properties and subjects of
+  `rdfs:domain`, `rdfs:range` and `rdfs:subPropertyOf`), and a declared term used
+  in the other role is reported under a new `wrong_role_terms` field and fails
+  the check. Undeclared terms stay in `hallucinated_terms`, so the two cases
+  remain distinguishable. A term declared in both roles is accepted in both.
+
 - **`reason --certificate` writes the same `derivations.tsv` on every run over
   the same store** (#427). The conclusions were always the same set, but the
   premises a step recorded (which intermediate class justifies a transitive
