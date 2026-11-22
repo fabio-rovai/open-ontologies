@@ -694,6 +694,21 @@ fn render_vocab_check(v: &Value) -> String {
         ));
         push_lines(&mut out, terms, text);
     }
+    let wrong_role = items(v, "wrong_role_terms");
+    if !wrong_role.is_empty() {
+        out.push_str(&format!(
+            "\n{} declared term(s) used in a role the ontology does not give them:",
+            wrong_role.len()
+        ));
+        push_lines(&mut out, wrong_role, |x| {
+            format!(
+                "{} used as a {}, declared as a {}",
+                text(&x["term"]),
+                text(&x["used_as"]),
+                text(&x["declared_as"])
+            )
+        });
+    }
     out.push_str(&format!(
         "\nChecked {} predicate(s) and {} type(s) against {} ontology term(s); namespaces policed: {}.",
         text(&v["predicates_checked"]),

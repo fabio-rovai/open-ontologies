@@ -119,3 +119,36 @@ def test_a_term_carrying_only_a_domain_axiom_counts_as_declared():
     report = vocab_check(ontology, data)
 
     assert report["conforms"] is True
+
+
+def test_a_declared_term_in_the_wrong_role_is_flagged():
+    """#432: a class used as a predicate, or a property used as a type, is declared
+    but not in the role it is used in."""
+    data = """
+    @prefix ex: <http://example.org/onto#> .
+    <http://example.org/instances/s1> a ex:hasName .
+    <http://example.org/instances/s2> ex:Person <http://example.org/instances/x> .
+    """
+    report = vocab_check(ONTOLOGY, data)
+
+    assert report["conforms"] is False
+    assert report["undeclared_terms"] == []
+    assert report["wrong_role_terms"] == [
+        {"term": "http://example.org/onto#Person", "used_as": "property", "declared_as": "class"},
+        {"term": "http://example.org/onto#hasName", "used_as": "class", "declared_as": "property"},
+    ]
+
+
+def test_a_punned_term_may_be_used_in_either_role():
+    ontology = """
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix ex:  <http://example.org/onto#> .
+    ex:Tag a owl:Class , owl:AnnotationProperty .
+    """
+    data = """
+    @prefix ex: <http://example.org/onto#> .
+    <http://example.org/instances/a> a ex:Tag ; ex:Tag "x" .
+    """
+    report = vocab_check(ontology, data)
+
+    assert report["conforms"] is True, report["wrong_role_terms"]

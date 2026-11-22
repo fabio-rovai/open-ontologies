@@ -39,6 +39,9 @@ pub struct VocabReport {
     pub conforms: bool,
     /// Terms used in the data, in a policed namespace, but not declared in the ontology.
     pub hallucinated_terms: Vec<String>,
+    /// Declared terms used in a role their declaration does not give them: a class used
+    /// as a predicate, or a property used as the object of `rdf:type` (#432).
+    pub wrong_role_terms: Vec<WrongRole>,
     /// The namespaces that were policed (ontology's own namespaces + any caller-supplied).
     pub checked_namespaces: Vec<String>,
     pub predicates_checked: usize,
@@ -48,6 +51,15 @@ pub struct VocabReport {
     /// A closed-world check with no ontology must NEVER silently pass.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub warning: Option<String>,
+}
+
+/// A declared term used in a role its declaration does not give it.
+#[derive(Serialize)]
+pub struct WrongRole {
+    pub term: String,
+    /// `property` (used as a predicate) or `class` (used as the object of `rdf:type`).
+    pub used_as: &'static str,
+    pub declared_as: &'static str,
 }
 
 /// Namespace of an IRI: everything up to and including the last `#` or `/`.
@@ -100,6 +112,49 @@ const CLASS_OR_PROP_FILTER: &str = r#"FILTER(
  || ?k = <http://www.w3.org/2002/07/owl#InverseFunctionalProperty>
  || ?k = <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)"#;
 
+// The same declarations as above, split by the role they give a term. A term with
+// declarations of both kinds (OWL 2 punning) fits either role.
+const CLASS_FILTER: &str = r#"FILTER(
+    ?k = <http://www.w3.org/2002/07/owl#Class>
+ || ?k = <http://www.w3.org/2000/01/rdf-schema#Class>)"#;
+
+const CLASS_AXIOM_FILTER: &str =
+    r#"FILTER(?p = <http://www.w3.org/2000/01/rdf-schema#subClassOf>)"#;
+
+const PROPERTY_FILTER: &str = r#"FILTER(
+    ?k = <http://www.w3.org/2002/07/owl#ObjectProperty>
+ || ?k = <http://www.w3.org/2002/07/owl#DatatypeProperty>
+ || ?k = <http://www.w3.org/2002/07/owl#AnnotationProperty>
+ || ?k = <http://www.w3.org/2002/07/owl#FunctionalProperty>
+ || ?k = <http://www.w3.org/2002/07/owl#InverseFunctionalProperty>
+ || ?k = <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)"#;
+
+const PROPERTY_AXIOM_FILTER: &str = r#"FILTER(
+    ?p = <http://www.w3.org/2000/01/rdf-schema#domain>
+ || ?p = <http://www.w3.org/2000/01/rdf-schema#range>
+ || ?p = <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>)"#;
+
+/// IRIs typed with a kind `kind_filter` accepts, or the subject of an axiom `axiom_filter` accepts.
+fn declared_by(
+    graph: &Arc<GraphStore>,
+    kind_filter: &str,
+    axiom_filter: &str,
+) -> anyhow::Result<BTreeSet<String>> {
+    let mut out: BTreeSet<String> = select_iris(
+        graph,
+        &format!("SELECT DISTINCT ?t WHERE {{ ?t a ?k . {kind_filter} }}"),
+        "t",
+    )?
+    .into_iter()
+    .collect();
+    out.extend(select_iris(
+        graph,
+        &format!("SELECT DISTINCT ?t WHERE {{ ?t ?p ?o . {axiom_filter} }}"),
+        "t",
+    )?);
+    Ok(out)
+}
+
 const DEFINED_BY_AXIOM_FILTER: &str = r#"FILTER(
     ?p = <http://www.w3.org/2000/01/rdf-schema#domain>
  || ?p = <http://www.w3.org/2000/01/rdf-schema#range>
@@ -143,6 +198,7 @@ pub fn check_data_vocab(
         let report = VocabReport {
             conforms: false,
             hallucinated_terms: Vec::new(),
+            wrong_role_terms: Vec::new(),
             checked_namespaces: Vec::new(),
             predicates_checked: 0,
             types_checked: 0,
@@ -175,9 +231,30 @@ pub fn check_data_vocab(
         }
     }
 
+    // 6. Flag a declared term used in a role no declaration gives it.
+    let classes = declared_by(onto, CLASS_FILTER, CLASS_AXIOM_FILTER)?;
+    let properties = declared_by(onto, PROPERTY_FILTER, PROPERTY_AXIOM_FILTER)?;
+    let mut wrong_role: Vec<WrongRole> = Vec::new();
+    for (used, used_as, fits, declared_as) in [
+        (&preds, "property", &properties, "class"),
+        (&types, "class", &classes, "property"),
+    ] {
+        for iri in used {
+            if onto_terms.contains(iri) && !fits.contains(iri) {
+                wrong_role.push(WrongRole {
+                    term: iri.clone(),
+                    used_as,
+                    declared_as,
+                });
+            }
+        }
+    }
+    wrong_role.sort_by(|a, b| (&a.term, a.used_as).cmp(&(&b.term, b.used_as)));
+
     let report = VocabReport {
-        conforms: bad.is_empty(),
+        conforms: bad.is_empty() && wrong_role.is_empty(),
         hallucinated_terms: bad.into_iter().collect(),
+        wrong_role_terms: wrong_role,
         checked_namespaces: checked.into_iter().collect(),
         predicates_checked: preds.len(),
         types_checked: types.len(),
@@ -235,6 +312,53 @@ mod tests {
             bad.iter().any(|t| t.as_str().unwrap().ends_with("hasDeparturePort")),
             "hasDeparturePort should be flagged: {out}"
         );
+    }
+
+    /// #432: a declared class used as a predicate, or a declared property used as an
+    /// `rdf:type` object, is declared but not in that role.
+    #[test]
+    fn declared_term_in_the_wrong_role_is_caught() {
+        let data = r#"
+            @prefix ex: <http://example.org/onto#> .
+            @prefix d: <http://data.example/> .
+            d:s1 a ex:worksFor .
+            d:s2 ex:Person d:x .
+        "#;
+        let out = check_data_vocab(&onto(), data, &[]).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(
+            v["conforms"], false,
+            "wrong-role uses must not conform: {out}"
+        );
+        assert_eq!(
+            v["wrong_role_terms"],
+            serde_json::json!([
+                {"term": "http://example.org/onto#Person", "used_as": "property", "declared_as": "class"},
+                {"term": "http://example.org/onto#worksFor", "used_as": "class", "declared_as": "property"}
+            ]),
+            "{out}"
+        );
+        assert_eq!(v["hallucinated_terms"], serde_json::json!([]), "{out}");
+    }
+
+    /// OWL 2 punning: a term declared as both a class and a property may be used as either.
+    #[test]
+    fn punned_term_may_be_used_in_either_role() {
+        let onto_ttl = r#"
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix ex: <http://example.org/onto#> .
+            ex:Tag a owl:Class , owl:AnnotationProperty .
+        "#;
+        let g = Arc::new(GraphStore::new());
+        g.load_turtle(onto_ttl, None).unwrap();
+        let data = r#"
+            @prefix ex: <http://example.org/onto#> .
+            @prefix d: <http://data.example/> .
+            d:a a ex:Tag ; ex:Tag "x" .
+        "#;
+        let out = check_data_vocab(&g, data, &[]).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(v["conforms"], true, "a punned term fits both roles: {out}");
     }
 
     #[test]

@@ -192,6 +192,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **`vocab-check` reports a declared term used in the wrong role** (#432).
+  It checked that each term was declared, not that it was used as what it was
+  declared as, so a class used as a predicate (`d:s2 ex:Sensor d:x`) and a
+  property used as an `rdf:type` object (`d:s1 a ex:observes`) both passed
+  with `conforms: true`. They are now listed under `wrong_role_terms` with the
+  role they were used in and the role they were declared in, and make
+  `conforms` false; `hallucinated_terms` still lists only terms the ontology
+  does not declare at all. A term declared as both a class and a property (OWL
+  2 punning) fits either role. The Python `vocab_check` reports the same field.
+
 - **`reason --certificate` writes the same `derivations.tsv` on every run over
   the same store** (#427). The conclusions were always the same set, but the
   premises a step recorded (which intermediate class justifies a transitive
