@@ -1537,12 +1537,15 @@ fn test_shacl_path_list_head_with_repeated_form_is_refused() {
     assert!(reason.contains("http://example.org/q"), "{reason}");
 }
 
-// --- SHACL 4.6.5 sh:node: the result carries the value node -----------------
+// --- SHACL 4.6.3/4.6.4/4.6.5 sh:lessThan, sh:lessThanOrEquals and sh:node ----
 //
-// A value node that does not conform to the referenced shape is one
-// validation result (SHACL 4.6.5), and that result carries the value node. The
-// engine bound the value all along and the report dropped it, so a consumer
-// had to re-query the store for the node that failed.
+// All three are value-node constraints: SHACL pairs each result with the value
+// node that failed (`sh:value`), and emits one result per (focus node, value
+// node) pair. The engine's queries bound the value all along and the report
+// dropped it, so a consumer had to re-query the store for the offending node;
+// and `sh:lessThan` wrapped an errored comparison so loosely that a pair which
+// cannot be ordered (a string against an integer) went unreported and the shape
+// came back clean.
 
 #[test]
 fn test_shacl_node_constraint_reports_the_failing_value_node() {
@@ -1582,5 +1585,106 @@ fn test_shacl_node_constraint_reports_the_failing_value_node() {
     assert_eq!(
         violations[0]["value"], "http://example.org/addr2",
         "SHACL 4.6.5: the result carries the value node that failed: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_less_than_reports_one_result_per_failing_pair() {
+    // SHACL 4.6.3: a result for each (focus node, value node) pair for which no
+    // value of the other property satisfies the comparison, with `sh:value`
+    // set to that value node. Two values against two others is four results,
+    // and the pair whose operands cannot be ordered is one of them rather than
+    // a silent pass.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:i1 ex:first 1, 2 ; ex:second "a", "b" .
+            ex:i2 ex:first 3 ; ex:second 4 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:i1, ex:i2 ;
+            sh:property [ sh:path ex:first ; sh:lessThan ex:second ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    // 1 and 2 each fail against both "a" and "b"; 3 < 4 conforms.
+    assert_eq!(
+        violations.len(),
+        4,
+        "SHACL 4.6.3: one result per (focus node, value node) pair: {violations:?}"
+    );
+    let mut values: Vec<&str> = violations
+        .iter()
+        .map(|v| {
+            v["value"]
+                .as_str()
+                .unwrap_or_else(|| panic!("SHACL 4.6.3: every result carries sh:value: {v}"))
+        })
+        .collect();
+    values.sort_unstable();
+    // Literals are reported in N-Triples lexical form, as everywhere else in
+    // the report.
+    assert_eq!(
+        values,
+        [
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        ],
+        "{violations:?}"
+    );
+    assert!(
+        violations
+            .iter()
+            .all(|v| v["focus_node"] == "http://example.org/i1"),
+        "ex:i2's 3 against 4 conforms: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_less_than_or_equals_reports_the_failing_value_node() {
+    // SHACL 4.6.4 is the inclusive form of the same constraint and carries the
+    // same value node.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:i1 ex:first 5 ; ex:second 4 .
+            ex:i2 ex:first 4 ; ex:second 4 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:i1, ex:i2 ;
+            sh:property [ sh:path ex:first ; sh:lessThanOrEquals ex:second ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "only 5 <= 4 fails: {violations:?}");
+    assert_eq!(
+        violations[0]["value"], "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "SHACL 4.6.4: the result carries the failing value node: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#LessThanOrEqualsConstraintComponent"
     );
 }

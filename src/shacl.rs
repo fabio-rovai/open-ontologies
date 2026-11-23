@@ -114,14 +114,15 @@ impl ShaclValidator {
     /// `path`) are unchanged.
     ///
     /// `value` is the offending value node (`sh:value`) wherever the query
-    /// that found the violation binds it (#318). The value queries selected it
+    /// that found the violation binds one (#318). The value queries selected it
     /// all along and the report dropped it, so whoever repaired the data had to
     /// query the store again for what the validator already knew. It is absent
     /// where SHACL gives a result no value (`sh:minCount`, `sh:maxCount`,
-    /// `sh:hasValue`, the qualified counts) and for `sh:lessThan`,
-    /// `sh:lessThanOrEquals` and `sh:node`, whose queries select
-    /// `DISTINCT ?focus`: projecting the value there would change how many
-    /// results they emit, which is a different change from this one.
+    /// `sh:hasValue`, the qualified counts). `sh:lessThan`,
+    /// `sh:lessThanOrEquals` and `sh:node` used to be on that list because
+    /// their queries selected `DISTINCT ?focus`; SHACL 4.6.3, 4.6.4 and 4.6.5
+    /// pair a result with the value node that failed, so they project it and
+    /// emit one result per (focus node, value node) pair.
     ///
     /// Reads the whole store. Over a store that uses the temporal vocabulary
     /// that is now REFUSED rather than done silently — see
@@ -1690,13 +1691,26 @@ impl ShaclValidator {
 
                 // sh:lessThan / sh:lessThanOrEquals compare the values of this
                 // path against the values of another property on the SAME focus
-                // node, which is why they take a predicate and not a value. A
-                // pair that cannot be ordered (comparing a string to an integer)
-                // makes the SPARQL comparison an error rather than false, and an
-                // error inside FILTER is dropped, so such a pair goes unreported
-                // instead of counting as a violation. That is the one place these
-                // two are weaker than pyshacl, and it is stated here rather than
-                // discovered later.
+                // node, which is why they take a predicate and not a value.
+                //
+                // SHACL 4.6.3/4.6.4: one result per (focus node, value node)
+                // pair for which NO value of the other property satisfies the
+                // comparison — so `?val` is emitted as `sh:value` and
+                // `?otherVal` stays in the projection even though the report
+                // has no field for it, because a value node failing against two
+                // other values is two results and DISTINCT over (focus, val)
+                // alone would collapse them into one. lessThan-002 is exactly
+                // that case: 1,2 against "a","b" is four results.
+                //
+                // A pair that cannot be ordered (comparing a string to an
+                // integer) makes the SPARQL comparison an error rather than
+                // false. SHACL does not say an errored comparison is a pass, and
+                // a bare `FILTER(!(?val < ?otherVal))` dropped it, so such a
+                // pair went unreported and the shape came back clean. Wrapping
+                // the satisfying comparison in COALESCE(_, false) — the same
+                // template the inclusive/exclusive bounds below use — makes an
+                // errored comparison "does not return true", which is a
+                // violation.
                 for (key, constraint, ok_cmp) in [
                     ("lessThan", "lessThan", "<"),
                     ("lessThanOrEquals", "lessThanOrEquals", "<="),
@@ -1706,11 +1720,11 @@ impl ShaclValidator {
                     };
                     let other = strip_angle_brackets(other_raw);
                     let query = format!(
-                        r#"SELECT DISTINCT ?focus WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val ?otherVal WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             ?focus <{other}> ?otherVal .
-                            FILTER(!(?val {ok_cmp} ?otherVal))
+                            FILTER(!COALESCE(?val {ok_cmp} ?otherVal, false))
                         }}"#
                     );
                     for row in &graph_sparql_select(graph, scope, &query)? {
@@ -1723,6 +1737,7 @@ impl ShaclValidator {
                             violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": constraint,
                                 "message": msg,
@@ -1737,12 +1752,12 @@ impl ShaclValidator {
                 // compiled the whole constraint is recorded as unevaluated,
                 // because a half-checked nested shape reads as a clean one.
                 //
-                // SHACL 4.6.5 pairs each violation with the value node that
+                // SHACL 4.6.3 pairs each violation with the value node that
                 // failed the referenced shape, so `?nodeval` is projected and
-                // emitted as `sh:value`. It was bound and not emitted before:
-                // one result per (focus node, value node) pair is what the
-                // specification asks for, and two values failing the same
-                // nested shape is two results, not one.
+                // emitted as `sh:value`. It was selected but not projected in
+                // the report before: one result per (focus, value) pair is
+                // what the specification asks for, and two values failing the
+                // same nested shape is two results, not one.
                 if let Some(node_ref) = prop.get("node") {
                     match compile_node_shape(&shapes_store, node_ref.trim(), "nodeval", 0) {
                         Some(expr) => {
