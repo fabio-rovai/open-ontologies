@@ -603,6 +603,12 @@ pub struct UnpackOptions {
     /// read from `$OO_CERT` here so that a test can point at a fake without
     /// mutating the environment of a parallel test.
     pub checker: Option<PathBuf>,
+    /// An explicit `oo-refute` path, used only when the pack carries a
+    /// `refutation.tsv`. Handed in for the same reason as `checker`: a test
+    /// points at a fake without mutating a parallel test's environment. `None`
+    /// means discovery, and discovery finding nothing is reported as
+    /// `checker_absent_nothing_was_checked`, which does not block the load.
+    pub refute_checker: Option<PathBuf>,
     /// Keep the certificate files here instead of in a scratch directory that
     /// is removed, so a receiver can re-run the checker by hand.
     pub certificate_out_dir: Option<PathBuf>,
@@ -634,10 +640,32 @@ impl Packer {
         lines.sort_unstable();
         let graph = lines.join("\n") + "\n";
 
+        let mut refutation_at_pack: Option<crate::refute::RefuteCheck> = None;
         let certificate = match req.certificate_dir {
             None => None,
             Some(dir) => {
                 let cert = read_certificate_dir(dir, req.profile_claimed)?;
+                // The refutation travels in the pack, so the sender runs the
+                // same check the receiver will. A refusal stops the pack here:
+                // shipping a file this machine's checker refused means the
+                // receiver, and not the sender, discovers the defect.
+                if cert.files.contains_key("refutation.tsv") {
+                    let checked = crate::refute::check(
+                        &dir.join("asserted.tsv"),
+                        &dir.join("refutation.tsv"),
+                        None,
+                    );
+                    if let crate::refute::RefuteCheck::Rejected { .. } = checked {
+                        anyhow::bail!(
+                            "the refutation in {} was REJECTED by this machine's oo-refute, so it \
+                             cannot travel in the pack. That is a defect in the run that produced \
+                             it, not in the graph. `check_with` reproduces it. Checker output: {}",
+                            dir.display(),
+                            checked.stdout().unwrap_or("(none)")
+                        );
+                    }
+                    refutation_at_pack = Some(checked);
+                }
                 // Refused at pack time, not warned about. A certificate whose
                 // assertions are not all in the graph being packed produces an
                 // artefact whose proof is about premises the pack does not
@@ -709,8 +737,9 @@ impl Packer {
                 "profile_claimed_by_sender": c.profile_claimed_by_sender,
                 "checked_by_this_packer": false,
                 "means": "the certificate travels with the graph and the content digest covers \
-                          both. NOTHING HERE HAS CHECKED IT: the receiver runs its own checker, \
-                          which is the point of shipping it",
+                          both. The derivation steps are NOT checked here: the receiver runs its \
+                          own checker, which is the point of shipping it",
+                "refutation": refutation_at_pack.as_ref().map(refutation_report),
             })),
             "graph_bytes": pack.graph.len(),
             "pack_json_bytes": json.len(),
@@ -951,6 +980,15 @@ impl Packer {
             rules.as_deref(),
         );
 
+        // The refutation is a SECOND claim carried by the same run: the graph has
+        // no model under the `owl:disjointWith` reading. `oo-cert` has no theorem
+        // about it and `oo-refute` has no theorem about the derivation, so it is
+        // checked separately, and its absence is a case of its own.
+        let refutation_path = dir.join("refutation.tsv");
+        let refutation = cert.files.contains_key("refutation.tsv").then(|| {
+            crate::refute::check(&asserted, &refutation_path, opts.refute_checker.as_deref())
+        });
+
         // The question is about the graph IN THE PACK, and it is asked BEFORE
         // anything is loaded, so a pack that is about to be refused never
         // touches the receiver's graph.
@@ -1006,9 +1044,23 @@ impl Packer {
                           which is the normal shape when the sender reasoned without materialising",
             },
             "refutation_in_pack": cert.files.contains_key("refutation.tsv"),
-            "refutation_means": "a refutation.tsv is carried when the run found a contradiction. \
-                                 NOTHING in this crate runs oo-refute, so it was not checked here \
-                                 and no verdict in this report is about it",
+            "refutation": refutation.as_ref().map(|r| {
+                let mut report = refutation_report(r);
+                report["check_with"] = serde_json::json!(format!(
+                    "cd lean && lake exe oo-refute check {} {}",
+                    asserted.display(),
+                    refutation_path.display()
+                ));
+                report["check_with_means"] = serde_json::json!(if kept {
+                    "the certificate files are still in certificate_dir, so this command repeats \
+                     the refutation check exactly"
+                } else {
+                    "the certificate went to a scratch directory that is removed once the checker \
+                     has read it, so this command names files that no longer exist. Unpack again \
+                     with certificate_out_dir set to keep them and run it"
+                });
+                report
+            }),
         });
 
         // The order of these arms is the policy. A checker that said no, or
@@ -1071,6 +1123,23 @@ impl Packer {
             }
         };
 
+        // A refutation this machine's checker REFUSED outranks the certificate's
+        // verdict: the pack carries a file claiming a contradiction it cannot
+        // support, which blocks the load. Absence is not a rejection and
+        // downgrades nothing here; the report says nothing was checked.
+        let mut extra = extra;
+        let verdict = match &refutation {
+            Some(crate::refute::RefuteCheck::Rejected { stdout }) => {
+                extra["refutation_checker_said"] = serde_json::json!(stdout);
+                PackCertVerdict::Refused
+            }
+            Some(crate::refute::RefuteCheck::Unreadable { stdout, .. }) => {
+                extra["refutation_checker_said"] = serde_json::json!(stdout);
+                PackCertVerdict::Unreadable
+            }
+            _ => verdict,
+        };
+
         let mut r = base(&verdict, checker_block);
         if let (Some(a), Some(b)) = (r.as_object_mut(), extra.as_object()) {
             for (k, val) in b {
@@ -1091,6 +1160,68 @@ impl Packer {
             let _ = std::fs::remove_dir_all(&dir);
         }
         Ok((verdict, r))
+    }
+}
+
+/// The refutation sub-report both the pack-time and unpack-time paths print.
+///
+/// The accepted word is carried by `verdict` only when a checker accepted: the
+/// two boolean claims are ABSENT otherwise, so a report where nothing was
+/// checked cannot contain the accepted word even as a key.
+fn refutation_report(r: &crate::refute::RefuteCheck) -> serde_json::Value {
+    let mut report = serde_json::json!({
+        "status": r.status(),
+        "verdict": refutation_word(r),
+        "exit": r.exit(),
+        "stdout": r.stdout(),
+        "what": r.what(),
+        "means": refutation_means(r),
+    });
+    if matches!(r, crate::refute::RefuteCheck::Accepted(_)) {
+        report["graph_is_unsatisfiable"] = serde_json::json!(true);
+        report["derivation_certificate_is_worthless"] = serde_json::json!(true);
+    }
+    report
+}
+
+/// The word this crate may print about a refutation. `graph_is_unsatisfiable`
+/// is minted from an accepting token, never from the checker's own verdict
+/// string; the other three are the pack verdicts a refusal, an unreadable file
+/// and an absent checker already have.
+fn refutation_word(r: &crate::refute::RefuteCheck) -> &'static str {
+    match r {
+        crate::refute::RefuteCheck::Accepted(_) => "graph_is_unsatisfiable",
+        crate::refute::RefuteCheck::Rejected { .. } => PackCertVerdict::Refused.word(),
+        crate::refute::RefuteCheck::Unreadable { .. } => PackCertVerdict::Unreadable.word(),
+        crate::refute::RefuteCheck::CheckerAbsent { .. } => PackCertVerdict::CheckerAbsent.word(),
+    }
+}
+
+/// What the refutation answer does and does not mean. One wording for pack time
+/// and unpack time, because the two must not disagree about the same file.
+fn refutation_means(r: &crate::refute::RefuteCheck) -> &'static str {
+    match r {
+        crate::refute::RefuteCheck::Accepted(_) => {
+            "the checker ACCEPTED this refutation: under the owl:disjointWith reading the graph \
+             has no model, so every triple follows and the derivation certificate beside this \
+             file proves nothing about this graph. It is not a claim that the asserted triples \
+             are true, and the contradiction is certified relative to the disjointness axioms, \
+             not absolutely"
+        }
+        crate::refute::RefuteCheck::Rejected { .. } => {
+            "the checker REFUSED the refutation carried in this pack. STOP: the run that produced \
+             this pack recorded a contradiction its own checker will not accept, so the \
+             refutation file is a defect. This is not a proof of consistency either"
+        }
+        crate::refute::RefuteCheck::Unreadable { .. } => {
+            "the refutation file could not be read (exit 2, or an exit 0 that named no theorem \
+             this crate can require), so nothing is known about it. This is not a rejection and \
+             not a pass: NOTHING WAS CHECKED about the refutation"
+        }
+        crate::refute::RefuteCheck::CheckerAbsent { .. } => {
+            "no oo-refute checker was found, so NOTHING WAS CHECKED about the refutation. This is \
+             not a pass and not a rejection. Build it with `cd lean && lake build oo-refute`"
+        }
     }
 }
 

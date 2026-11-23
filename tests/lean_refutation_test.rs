@@ -8,13 +8,14 @@
 //! they come from. The derivation certificate cannot express that, because
 //! `Step.conclusion` is a `Triple` and `OOCert.certificate_sound` concludes
 //! `Entails`. There is no triple to conclude. `Refute.lean` adds the second
-//! format, with `cax-dw` as its one rule, and `OOCert.refutation_sound` proved
-//! about it. Of the sixteen it does not implement, fifteen are expressible in
-//! that layer and absent; `dt-not-type` is not expressible there at all,
-//! because `OOCert.Semantics` has no datatype value space, which is the same
-//! ground on which `the_rules_that_were_left_out_stay_out` in
-//! `reason_rl_coverage_test.rs` keeps the whole `dt-*` family out of the
-//! engine.
+//! format, and `OOCert.refutation_fast_sound` is the theorem proved about it
+//! (the general form is `OOCert.refutation_sound`). `RefuteConditions` states
+//! twelve of the seventeen; the other five have no semantic condition there —
+//! four (`cax-adc`, `prp-adp`, `eq-diff2`, `eq-diff3`) read an RDF list and one
+//! (`dt-not-type`) is not expressible at all, because `OOCert.Semantics` has no
+//! datatype value space, which is the same ground on which
+//! `the_rules_that_were_left_out_stay_out` in `reason_rl_coverage_test.rs`
+//! keeps the whole `dt-*` family out of the engine.
 //!
 //! # The two things this file exists to protect
 //!

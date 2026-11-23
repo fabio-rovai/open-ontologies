@@ -103,6 +103,9 @@ pub mod plugins;
 pub mod poincare;
 pub mod reason;
 pub mod reason_incremental;
+/// Run `oo-refute` over the refutation the producer wrote, and mint the token
+/// only when it names the theorem.
+pub mod refute;
 /// Durable dependencies committed with materialised inferences.
 pub mod truth_maintenance;
 /// Provenance semirings over the derivation DAG: what algebraic expression

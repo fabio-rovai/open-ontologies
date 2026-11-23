@@ -213,6 +213,16 @@ fn every_word() -> Vec<(&'static str, String)> {
             "EngineRefutation::RefutationWrittenNotYetChecked",
             EngineRefutation::RefutationWrittenNotYetChecked.word().to_string(),
         ),
+        // ... and the one word that may only appear when a checker run minted
+        // the token it carries.
+        (
+            "EngineRefutation::RefutationAcceptedByThisMachinesChecker",
+            EngineRefutation::RefutationAcceptedByThisMachinesChecker(earned(
+                "OOCert.refutation_fast_sound",
+            ))
+            .word()
+            .to_string(),
+        ),
     ]
 }
 
@@ -247,6 +257,10 @@ fn the_wire_words_are_exactly_these() {
         ("GoalVerdict::Refused", "refused"),
         ("EngineRefutation::ClashFoundByThisEngine", "clash_found_by_this_engine"),
         ("EngineRefutation::RefutationWrittenNotYetChecked", "refutation_written_not_yet_checked"),
+        (
+            "EngineRefutation::RefutationAcceptedByThisMachinesChecker",
+            "refutation_accepted_by_this_machines_checker",
+        ),
     ];
     let got = every_word();
     assert_eq!(got.len(), want.len(), "a verdict was added or removed without pinning its word");
@@ -287,6 +301,13 @@ fn serde_writes_the_bare_word_and_never_an_object() {
         (
             serde_json::to_string(&EngineRefutation::ClashFoundByThisEngine).unwrap(),
             "\"clash_found_by_this_engine\"",
+        ),
+        (
+            serde_json::to_string(&EngineRefutation::RefutationAcceptedByThisMachinesChecker(
+                earned("OOCert.refutation_fast_sound"),
+            ))
+            .unwrap(),
+            "\"refutation_accepted_by_this_machines_checker\"",
         ),
     ];
     for (got, want) in cases {

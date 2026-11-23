@@ -21,6 +21,14 @@
 //! for the accepted word in the whole serialised report and requires it to be
 //! absent.
 //!
+//! A pack may also carry `refutation.tsv`, written by a run that found a
+//! contradiction. That is a SECOND claim with its own checker: `oo-refute`.
+//! A refutation this machine's checker refuses blocks the load exactly as a
+//! refused derivation does — the pack carries a contradiction it cannot
+//! support. A refutation that could not be checked (no `oo-refute` here) is
+//! reported as `checker_absent_nothing_was_checked` and blocks nothing, because
+//! absence is not a rejection.
+//!
 //! The two legs that need a real `oo-cert` skip loudly through
 //! `common::skip_unless`; the `lean` job runs this file with
 //! `OO_REQUIRE_FIXTURES=1`, which turns that skip into a failure. Everything
@@ -136,11 +144,20 @@ fn unpack(path: &Path, opts: &UnpackOptions) -> Value {
     serde_json::from_str(&out).expect("the unpack report is JSON")
 }
 
+/// The default options every leg starts from.
+///
+/// Nine `UnpackOptions` literals exist in the tree: the three production ones
+/// (`src/batch.rs`, `src/server.rs`, `src/main.rs`) and six in this file (this
+/// function plus five `..UnpackOptions { .. }` legs). A new field has to reach
+/// all nine or the compiler says so.
 fn options(checker: Option<PathBuf>) -> UnpackOptions {
     UnpackOptions {
         verify_only: false,
         check_certificate: true,
         checker,
+        // Discovery by default, like the CLI. A test that needs a fake
+        // refutation checker names one explicitly.
+        refute_checker: None,
         certificate_out_dir: None,
         load_even_if_refused: false,
     }
@@ -786,6 +803,140 @@ fn pack_refuses_a_certificate_that_is_not_about_the_graph() {
         !path.exists(),
         "a refused pack must not be left on disk: {}",
         path.display()
+    );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// 4b. The refutation a pack may also carry
+// ───────────────────────────────────────────────────────────────────────────
+
+/// A script that exits with `code`, standing in for `oo-refute`.
+///
+/// It prints a rejected line, because that is what a rejecting run prints and
+/// the report quotes its bytes. The engine's decision is the exit code (1 =
+/// rejected, 2 = unreadable), so the payload is not what the test turns on.
+fn fake_refute(code: i32) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!(
+        "refute_exit{code}_{}_{serial}.sh",
+        std::process::id()
+    ));
+    let body = format!(
+        "#!/bin/sh\necho '{{\"ok\":false,\"reason\":\"the fake refuter refused the file\"}}'\nexit {code}\n"
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+    p
+}
+
+/// A refutation the receiver's own `oo-refute` refuses blocks the load; one the
+/// receiver could not check does not.
+#[test]
+fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
+    // A graph the engine refutes under `cax-dw`, so `certify` writes
+    // `refutation.tsv` beside the derivation certificate.
+    const REFUTED: &str = r#"
+        :Herbivore owl:disjointWith :Carnivore .
+        :Lion rdfs:subClassOf :BigCat . :BigCat rdfs:subClassOf :Carnivore .
+        :leo a :Lion ; a :Herbivore .
+    "#;
+    let dir = scratch("refutation-leg");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+
+    let packed = pack_with_certificate(&store, &cert_dir, &dir);
+    // Pack time checked it too, or said it could not. Either way the pack went
+    // through, because a refusal is the only thing that stops a pack here.
+    let at_pack = &packed["certificate"]["refutation"];
+    assert!(
+        at_pack.is_object(),
+        "pack time must report the refutation: {packed:#}"
+    );
+    let at_pack_status = at_pack["status"].as_str().unwrap_or_default();
+    assert!(
+        matches!(
+            at_pack_status,
+            "accepted" | "checker_absent_nothing_was_checked"
+        ),
+        "pack time either accepted the refutation or had no checker: {packed:#}"
+    );
+
+    let path = dir.join("carried.oopack");
+
+    // (a) A refutation checker that refuses: the pack's own contradiction does
+    // not check, so the graph is not promoted even though the DERIVATION
+    // certificate was accepted by the fake checker above.
+    let refused = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute(1)),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        refused["certificate"]["verdict"], "certificate_refused",
+        "a refused refutation outranks an accepted certificate: {refused:#}"
+    );
+    assert_eq!(refused["loaded"], false, "{refused:#}");
+    assert_eq!(
+        refused["certificate"]["refutation"]["status"], "rejected",
+        "{refused:#}"
+    );
+    assert!(
+        refused["certificate"]["refutation"]
+            .get("graph_is_unsatisfiable")
+            .is_none(),
+        "a refusal proves nothing about the graph, so the accepted word is absent: {refused:#}"
+    );
+
+    // (b) No refutation checker on this machine: the certificate still loads,
+    // and the report says the refutation was NOT checked rather than borrowing
+    // any verdict for it.
+    let absent = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(PathBuf::from("/nonexistent/oo-refute")),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        absent["certificate"]["verdict"], "certificate_accepted",
+        "the derivation certificate is still checked and accepted: {absent:#}"
+    );
+    assert_eq!(
+        absent["loaded"], true,
+        "an absent refute checker is not a rejection: {absent:#}"
+    );
+    assert_eq!(
+        absent["certificate"]["refutation"]["status"], "checker_absent_nothing_was_checked",
+        "{absent:#}"
+    );
+    let whole = serde_json::to_string(&absent).unwrap();
+    assert!(
+        !whole.contains("graph_is_unsatisfiable"),
+        "nothing checked the refutation, so the accepted word may not appear: {absent:#}"
+    );
+    assert!(
+        absent["certificate"]["refutation"]["means"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("NOTHING WAS CHECKED"),
+        "{absent:#}"
     );
 }
 
