@@ -3,12 +3,12 @@
   "suite_commit": "94d8bc2bd4fc4fdc6f2964d1ec4a892329e05f06",
   "counts": {
     "total": 120,
-    "pass": 73,
-    "fail": 13,
+    "pass": 75,
+    "fail": 11,
     "undetermined": 34,
     "error": 0
   },
-  "partial_compliance": 74,
+  "partial_compliance": 75,
   "outcomes": {
     "core/complex/personexample": "UNDETERMINED",
     "core/complex/shacl-shacl": "UNDETERMINED",
@@ -74,7 +74,7 @@
     "core/property/in-001": "PASS",
     "core/property/languageIn-001": "UNDETERMINED",
     "core/property/lessThan-001": "PASS",
-    "core/property/lessThan-002": "FAIL",
+    "core/property/lessThan-002": "PASS",
     "core/property/lessThanOrEquals-001": "PASS",
     "core/property/maxCount-001": "PASS",
     "core/property/maxCount-002": "PASS",
@@ -129,13 +129,13 @@
     "sparql/pre-binding/unsupported-sparql-004": "UNDETERMINED",
     "sparql/pre-binding/unsupported-sparql-005": "UNDETERMINED",
     "sparql/pre-binding/unsupported-sparql-006": "FAIL",
-    "sparql/property/sparql-001": "FAIL"
+    "sparql/property/sparql-001": "PASS"
   },
   "full_tuple": {
     "counts": {
       "total": 120,
-      "pass": 65,
-      "fail": 21,
+      "pass": 75,
+      "fail": 11,
       "undetermined": 34,
       "error": 0
     },
@@ -151,7 +151,7 @@
       "core/node/and-002": "UNDETERMINED",
       "core/node/class-001": "PASS",
       "core/node/class-002": "PASS",
-      "core/node/class-003": "FAIL",
+      "core/node/class-003": "PASS",
       "core/node/closed-001": "UNDETERMINED",
       "core/node/closed-002": "UNDETERMINED",
       "core/node/datatype-001": "PASS",
@@ -203,9 +203,9 @@
       "core/property/hasValue-001": "PASS",
       "core/property/in-001": "PASS",
       "core/property/languageIn-001": "UNDETERMINED",
-      "core/property/lessThan-001": "FAIL",
-      "core/property/lessThan-002": "FAIL",
-      "core/property/lessThanOrEquals-001": "FAIL",
+      "core/property/lessThan-001": "PASS",
+      "core/property/lessThan-002": "PASS",
+      "core/property/lessThanOrEquals-001": "PASS",
       "core/property/maxCount-001": "PASS",
       "core/property/maxCount-002": "PASS",
       "core/property/maxExclusive-001": "PASS",
@@ -217,7 +217,7 @@
       "core/property/minExclusive-002": "PASS",
       "core/property/minLength-001": "PASS",
       "core/property/node-001": "UNDETERMINED",
-      "core/property/node-002": "FAIL",
+      "core/property/node-002": "PASS",
       "core/property/nodeKind-001": "PASS",
       "core/property/not-001": "PASS",
       "core/property/or-001": "PASS",
@@ -236,7 +236,7 @@
       "core/targets/targetNode-001": "PASS",
       "core/targets/targetObjectsOf-001": "PASS",
       "core/targets/targetSubjectsOf-001": "PASS",
-      "core/targets/targetSubjectsOf-002": "FAIL",
+      "core/targets/targetSubjectsOf-002": "PASS",
       "core/validation-reports/shared": "FAIL",
       "sparql/component/optional-001": "FAIL",
       "sparql/component/propertyValidator-select-001": "FAIL",
@@ -245,13 +245,13 @@
       "sparql/node/sparql-001": "PASS",
       "sparql/node/sparql-002": "UNDETERMINED",
       "sparql/node/sparql-003": "UNDETERMINED",
-      "sparql/pre-binding/pre-binding-001": "FAIL",
-      "sparql/pre-binding/pre-binding-002": "FAIL",
+      "sparql/pre-binding/pre-binding-001": "PASS",
+      "sparql/pre-binding/pre-binding-002": "PASS",
       "sparql/pre-binding/pre-binding-003": "FAIL",
       "sparql/pre-binding/pre-binding-004": "FAIL",
       "sparql/pre-binding/pre-binding-005": "FAIL",
       "sparql/pre-binding/pre-binding-006": "UNDETERMINED",
-      "sparql/pre-binding/pre-binding-007": "FAIL",
+      "sparql/pre-binding/pre-binding-007": "PASS",
       "sparql/pre-binding/shapesGraph-001": "FAIL",
       "sparql/pre-binding/unsupported-sparql-001": "UNDETERMINED",
       "sparql/pre-binding/unsupported-sparql-002": "FAIL",
@@ -259,7 +259,7 @@
       "sparql/pre-binding/unsupported-sparql-004": "UNDETERMINED",
       "sparql/pre-binding/unsupported-sparql-005": "UNDETERMINED",
       "sparql/pre-binding/unsupported-sparql-006": "FAIL",
-      "sparql/property/sparql-001": "FAIL"
+      "sparql/property/sparql-001": "PASS"
     }
   }
 }
