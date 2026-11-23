@@ -1186,8 +1186,22 @@ fn check_staged_refutation(
     checker: Option<&Path>,
 ) -> crate::refute::RefuteCheck {
     let dir = scratch_dir();
+    let checked = check_staged_refutation_in(&dir, cert, checker);
+    let _ = std::fs::remove_dir_all(&dir);
+    checked
+}
+
+/// [`check_staged_refutation`] with the staging directory named by the caller.
+///
+/// Separate so the failure path can be driven by a test: handing a regular
+/// file as `dir` makes staging fail without touching the checker at all.
+fn check_staged_refutation_in(
+    dir: &Path,
+    cert: &PackedCertificate,
+    checker: Option<&Path>,
+) -> crate::refute::RefuteCheck {
     let staged = (|| -> std::io::Result<()> {
-        std::fs::create_dir_all(&dir)?;
+        std::fs::create_dir_all(dir)?;
         let asserted = cert.files.get("asserted.tsv").ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -1205,19 +1219,18 @@ fn check_staged_refutation(
         Ok(())
     })();
     if let Err(e) = staged {
-        let _ = std::fs::remove_dir_all(&dir);
-        return crate::refute::RefuteCheck::Unreadable {
-            stdout: format!("could not stage the certificate for the refutation check: {e}"),
-            exit: -1,
+        // This crate could not prepare the inputs, so no checker ran. The
+        // error must not masquerade as checker output: an `Unreadable` with a
+        // synthetic stdout and exit -1 would claim a binary said something.
+        return crate::refute::RefuteCheck::StagingFailed {
+            what: format!("could not stage the certificate for the refutation check: {e}"),
         };
     }
-    let checked = crate::refute::check(
+    crate::refute::check(
         &dir.join("asserted.tsv"),
         &dir.join("refutation.tsv"),
         checker,
-    );
-    let _ = std::fs::remove_dir_all(&dir);
-    checked
+    )
 }
 
 /// The refutation sub-report both the pack-time and unpack-time paths print.
@@ -1254,6 +1267,9 @@ fn refutation_word(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'static
         crate::refute::RefuteCheck::Rejected { .. } => PackCertVerdict::Refused.word(),
         crate::refute::RefuteCheck::Unreadable { .. } => PackCertVerdict::Unreadable.word(),
         crate::refute::RefuteCheck::CheckerAbsent { .. } => PackCertVerdict::CheckerAbsent.word(),
+        // A word of this crate's own: no checker ran, and unlike an absent
+        // checker the reason is this side's inability to stage the inputs.
+        crate::refute::RefuteCheck::StagingFailed { .. } => "staging_failed_nothing_was_checked",
     }
 }
 
@@ -1288,6 +1304,11 @@ fn refutation_means(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'stati
         crate::refute::RefuteCheck::CheckerAbsent { .. } => {
             "no oo-refute checker was found, so NOTHING WAS CHECKED about the refutation. This is \
              not a pass and not a rejection. Build it with `cd lean && lake build oo-refute`"
+        }
+        crate::refute::RefuteCheck::StagingFailed { .. } => {
+            "no checker ran, because the captured bytes could not be staged for it, so NOTHING \
+             WAS CHECKED about the refutation. This is not a pass and not a rejection: the pack \
+             still carries the refutation bytes, and the receiver runs its own checker over them"
         }
     }
 }
@@ -1413,6 +1434,64 @@ exit 0
         assert!(
             !Path::new(staging.trim()).exists(),
             "the staging directory is removed after the check: {staging}"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// A staging failure is this crate's own outcome, never synthetic checker
+    /// output: no exit code, no stdout, and a word that says nothing ran.
+    #[cfg(unix)]
+    #[test]
+    fn a_staging_failure_is_not_checker_output() {
+        let root = std::env::temp_dir().join(format!("oo-staging-failure-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).expect("root dir");
+        let not_a_dir = root.join("this-is-a-file");
+        std::fs::write(&not_a_dir, "not a directory").expect("blocking file");
+        let cert = PackedCertificate {
+            format: "oo-cert/1".to_string(),
+            files: BTreeMap::from([
+                ("asserted.tsv".to_string(), "asserted line\n".to_string()),
+                (
+                    "refutation.tsv".to_string(),
+                    "refutation line\n".to_string(),
+                ),
+            ]),
+            asserted: 1,
+            derivations: 1,
+            profile_claimed_by_sender: None,
+        };
+
+        let checked = check_staged_refutation_in(&not_a_dir, &cert, None);
+        assert!(
+            matches!(checked, RefuteCheck::StagingFailed { .. }),
+            "a file where the directory should be is a staging failure: {checked:?}"
+        );
+        assert_eq!(
+            checked.exit(),
+            None,
+            "no checker ran, so there is no exit code"
+        );
+        assert_eq!(checked.stdout(), None, "and no checker output to quote");
+        assert!(
+            checked
+                .what()
+                .unwrap_or_default()
+                .contains("could not stage"),
+            "this crate's own account is in `what`: {checked:?}"
+        );
+        assert!(
+            !crate::verdict::CHECKER_OWNED_WORDS.contains(&"staging_failed_nothing_was_checked"),
+            "the staging word is an engine word, not a checker word"
+        );
+
+        let report = refutation_report(&checked, true);
+        assert_eq!(report["verdict"], "staging_failed_nothing_was_checked");
+        assert!(report["exit"].is_null(), "no exit code: {report:#}");
+        assert!(report["stdout"].is_null(), "no checker bytes: {report:#}");
+        assert!(
+            report.get("graph_is_unsatisfiable").is_none(),
+            "nothing was checked, so the accepted word may not appear: {report:#}"
         );
         let _ = std::fs::remove_dir_all(&root);
     }

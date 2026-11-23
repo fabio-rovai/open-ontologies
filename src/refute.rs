@@ -28,9 +28,9 @@ pub const THEOREM: &str = "OOCert.refutation_fast_sound";
 
 /// What running `oo-refute check` over the pair produced.
 ///
-/// Four answers, never folded into each other. In particular
-/// [`RefuteCheck::CheckerAbsent`] is not a pass and is not a rejection: nothing
-/// was checked.
+/// Five answers, never folded into each other. In particular
+/// [`RefuteCheck::CheckerAbsent`] and [`RefuteCheck::StagingFailed`] are not a
+/// pass and are not a rejection: nothing was checked.
 #[derive(Debug)]
 pub enum RefuteCheck {
     /// The checker accepted, and named [`THEOREM`]. The token proves the run
@@ -49,6 +49,12 @@ pub enum RefuteCheck {
     /// Discovery found no `oo-refute`, or found one that could not be run.
     /// NOTHING WAS CHECKED.
     CheckerAbsent { what: String },
+    /// This crate could not prepare the checker's inputs: staging the captured
+    /// certificate bytes into a private directory failed. NO CHECKER RAN, and
+    /// `what` is this crate's own account of the I/O error rather than a
+    /// checker's output. Distinct from [`RefuteCheck::Unreadable`], where a
+    /// checker ran and its answer could not be read.
+    StagingFailed { what: String },
 }
 
 impl RefuteCheck {
@@ -59,6 +65,7 @@ impl RefuteCheck {
             RefuteCheck::Rejected { .. } => "rejected",
             RefuteCheck::Unreadable { .. } => "unreadable",
             RefuteCheck::CheckerAbsent { .. } => "checker_absent_nothing_was_checked",
+            RefuteCheck::StagingFailed { .. } => "staging_failed",
         }
     }
 
@@ -68,7 +75,7 @@ impl RefuteCheck {
             RefuteCheck::Accepted(_) => Some(0),
             RefuteCheck::Rejected { .. } => Some(1),
             RefuteCheck::Unreadable { exit, .. } => Some(*exit),
-            RefuteCheck::CheckerAbsent { .. } => None,
+            RefuteCheck::CheckerAbsent { .. } | RefuteCheck::StagingFailed { .. } => None,
         }
     }
 
@@ -92,10 +99,11 @@ impl RefuteCheck {
 
     /// Why no checker ran, when none did. `None` for every status that actually
     /// reached a binary: "the checker rejected this" is a different finding
-    /// from "there was no checker".
+    /// from "there was no checker", and a staging failure is this crate's
+    /// finding about its own inputs.
     pub fn what(&self) -> Option<&str> {
         match self {
-            RefuteCheck::CheckerAbsent { what } => Some(what),
+            RefuteCheck::CheckerAbsent { what } | RefuteCheck::StagingFailed { what } => Some(what),
             _ => None,
         }
     }

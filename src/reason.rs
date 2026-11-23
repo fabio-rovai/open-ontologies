@@ -3039,6 +3039,19 @@ impl Reasoner {
                                          what was looked for."
                                         .into()
                                 }
+                                crate::refute::RefuteCheck::StagingFailed { what } => {
+                                    checker["what"] = serde_json::json!(what);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, but the checker's inputs could not be \
+                                         prepared, so NO CHECKER RAN: NOTHING WAS CHECKED. \
+                                         This is not a pass."
+                                    );
+                                    "`refutation.tsv` was written, but the \
+                                         checker's inputs could not be prepared, so nothing \
+                                         was checked; `checker.what` says why."
+                                        .into()
+                                }
                             };
                             let refutation_verdict = match &checked {
                                 crate::refute::RefuteCheck::Accepted(_) => {
@@ -3057,7 +3070,8 @@ impl Reasoner {
                                 }
                                 // No checker ran, so the file really is written
                                 // and not yet checked.
-                                crate::refute::RefuteCheck::CheckerAbsent { .. } => {
+                                crate::refute::RefuteCheck::CheckerAbsent { .. }
+                                | crate::refute::RefuteCheck::StagingFailed { .. } => {
                                     serde_json::json!(
                                         crate::verdict::EngineRefutation::RefutationWrittenNotYetChecked
                                     )

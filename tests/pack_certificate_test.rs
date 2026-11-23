@@ -756,6 +756,10 @@ fn a_certificate_about_another_graph_is_not_about_this_pack() {
     );
     assert_eq!(r["loaded"], false, "{r:#}");
     assert!(
+        r["why_not_loaded"].is_string(),
+        "a real refusal says why it did not load: {r:#}"
+    );
+    assert!(
         r["certificate"]["coverage"]["in_certificate_only"]
             .as_u64()
             .unwrap_or(0)
@@ -1055,7 +1059,6 @@ fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsat
     let r = unpack(
         &path,
         &UnpackOptions {
-            verify_only: true,
             refute_checker: Some(fake_refute_accepting()),
             ..options(Some(fake_checker(0)))
         },
