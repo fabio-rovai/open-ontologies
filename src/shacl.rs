@@ -277,11 +277,13 @@ impl ShaclValidator {
         // inferring it from the absence of another. Fixture A1 in
         // `tests/adversarial_shacl_test.rs` is the attack it makes visible.
         //
-        // Per TARGET and not per SHAPE, deliberately. A shape carrying two
-        // target declarations is walked twice by the loop below, and these
-        // rows are what the loop did. Adding them up per shape would produce a
-        // number that is not a count of distinct focus nodes, for exactly the
-        // reason `focus_nodes` is documented as inflatable further down.
+        // Per TARGET DECLARATION and not per SHAPE, deliberately. A shape
+        // carrying two declarations has one focus-node set, which the loop
+        // below walks once, but two answers to "how many nodes does this
+        // declaration select" — and that is the question these rows answer.
+        // Adding them up per shape would produce a number that is not a count
+        // of distinct focus nodes, for exactly the reason `focus_nodes` is
+        // documented as inflatable further down.
         //
         // The verdict is NOT computed from this. `conforms` keeps SHACL's
         // meaning, and a gate that wants to refuse a vacuous load-bearing
@@ -433,8 +435,71 @@ impl ShaclValidator {
             }));
         }
 
+        // SHACL 2.1.1: a shape's focus nodes are the UNION of the nodes its
+        // target declarations select, and validation is per focus node. A node
+        // selected by two declarations is ONE focus node, not two. Walking the
+        // declarations one at a time checked it once per declaration, so every
+        // result it produced was reported once per declaration: `ex:John`
+        // typed as a target class AND named by `sh:targetNode` came back with
+        // six results where the specification's five are right, and a node
+        // selected by both `sh:targetSubjectsOf` and `sh:targetNode` likewise
+        // (W3C core/node/class-003, core/targets/targetSubjectsOf-002).
+        //
+        // Grouped rather than deduplicated downstream, because SHACL 5.3.2
+        // emits one result per solution and collapsing results would break
+        // agreement where two identical results are both correct. The fix has
+        // to be at the point the focus nodes are computed.
+        let mut shape_order: Vec<String> = Vec::new();
+        let mut targets_by_shape: HashMap<String, Vec<(String, String)>> = HashMap::new();
+        for (shape, kind, target_value) in &targets {
+            if !targets_by_shape.contains_key(shape) {
+                shape_order.push(shape.clone());
+            }
+            targets_by_shape
+                .entry(shape.clone())
+                .or_default()
+                .push(((*kind).to_string(), target_value.clone()));
+        }
+
+        // How many nodes does each declaration select? A shape whose target
+        // appears nowhere in the data evaluates every one of its constraints
+        // against the empty set and contributes no violations, which is
+        // indistinguishable in the report from a shape that checked its nodes
+        // and found them sound. Counted per declaration and reported per
+        // declaration, for the reason given where these rows are declared.
         for (shape_term, kind, target_value) in &targets {
-            let kind = *kind;
+            let focus_pattern = format!(
+                "{{ SELECT DISTINCT ?focus WHERE {{ {} . }} }}",
+                target_pattern(kind, target_value, "focus")
+            );
+            let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
+            focus_nodes_total += focus_count;
+            focus_by_target.push(serde_json::json!({
+                "shape": strip_angle_brackets(shape_term),
+                "target_form": *kind,
+                "target": strip_angle_brackets(target_value),
+                "focus_nodes": focus_count,
+            }));
+            if focus_count == 0 {
+                let mut entry = serde_json::json!({
+                    "shape": strip_angle_brackets(shape_term),
+                    "target_form": *kind,
+                    "target": strip_angle_brackets(target_value),
+                });
+                // `target_class` is the key callers already read for the common
+                // form. Keep emitting it rather than renaming it under them.
+                if *kind == "class" {
+                    entry["target_class"] = serde_json::json!(target_value);
+                }
+                unmatched.push(entry);
+            }
+        }
+
+        for shape_term in &shape_order {
+            let shape_targets: &[(String, String)] = targets_by_shape
+                .get(shape_term)
+                .map(|t| t.as_slice())
+                .unwrap_or(&[]);
             // A DISTINCT subquery, not a bare pattern. `sh:targetClass` compiles
             // to `?focus rdf:type/rdfs:subClassOf* <target>`, which matches once
             // per path, so a node typed as two subclasses of the target binds
@@ -444,41 +509,12 @@ impl ShaclValidator {
             // once per path. Issue #168, found by a differential oracle against
             // pySHACL.
             //
-            // Fixed here rather than by collapsing results: SHACL 5.3.2 emits
-            // one result per solution and both implementations do, so
-            // deduplicating results would break agreement on cases where two
-            // identical results are both correct.
+            // The union of the shape's declarations is what is deduplicated
+            // here, which also collapses a node two declarations both select.
             let focus_pattern = format!(
                 "{{ SELECT DISTINCT ?focus WHERE {{ {} . }} }}",
-                target_pattern(kind, target_value, "focus")
+                union_target_pattern(shape_targets, "focus")
             );
-
-            // How many nodes does this shape actually apply to? A shape whose
-            // target appears nowhere in the data evaluates every one of its
-            // constraints against the empty set and contributes no violations,
-            // which is indistinguishable in the report from a shape that checked
-            // its nodes and found them sound.
-            let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
-            focus_nodes_total += focus_count;
-            focus_by_target.push(serde_json::json!({
-                "shape": strip_angle_brackets(shape_term),
-                "target_form": kind,
-                "target": strip_angle_brackets(target_value),
-                "focus_nodes": focus_count,
-            }));
-            if focus_count == 0 {
-                let mut entry = serde_json::json!({
-                    "shape": strip_angle_brackets(shape_term),
-                    "target_form": kind,
-                    "target": strip_angle_brackets(target_value),
-                });
-                // `target_class` is the key callers already read for the common
-                // form. Keep emitting it rather than renaming it under them.
-                if kind == "class" {
-                    entry["target_class"] = serde_json::json!(target_value);
-                }
-                unmatched.push(entry);
-            }
 
             // 3. Find property constraints for this shape
             let shape_iri = shape_term.clone();
@@ -2005,8 +2041,12 @@ impl ShaclValidator {
         // A validator that reports success on rules it never ran is worse than
         // one that refuses, so every constraint here is either executed or
         // recorded in skipped_constraints, and skipping suppresses `conforms`.
-        for (shape_term, kind, target_value) in &targets {
-            let this_pattern = target_pattern(kind, target_value, "this");
+        for shape_term in &shape_order {
+            let shape_targets: &[(String, String)] = targets_by_shape
+                .get(shape_term)
+                .map(|t| t.as_slice())
+                .unwrap_or(&[]);
+            let this_pattern = union_target_pattern(shape_targets, "this");
             let shape_iri = shape_term.clone();
             let shape_node = match shape_iri.parse::<Term>() {
                 Ok(t) => t,
@@ -3579,6 +3619,28 @@ fn target_pattern(kind: &str, value: &str, var: &str) -> String {
         "subjectsOf" => format!("?{var} {value} ?_target_object"),
         _ => format!("?_target_subject {value} ?{var}"),
     }
+}
+
+/// The union of a shape's target patterns, as one graph pattern binding the
+/// focus variable.
+///
+/// SHACL 2.1.1 makes the focus nodes of a shape the union of the nodes its
+/// target declarations select. A `UNION` of the declaration patterns is that
+/// union with duplicates collapsed, which is what keeps a node selected by two
+/// declarations from being validated — and so reported — twice.
+fn union_target_pattern(targets: &[(String, String)], var: &str) -> String {
+    if targets.is_empty() {
+        // Unreachable: a shape reaches the loops above only through a target
+        // declaration. Spelled out rather than left as an empty pattern so a
+        // future caller that does pass nothing selects nothing instead of
+        // failing to parse.
+        return "FILTER(false)".to_string();
+    }
+    targets
+        .iter()
+        .map(|(kind, value)| format!("{{ {} }}", target_pattern(kind, value, var)))
+        .collect::<Vec<_>>()
+        .join(" UNION ")
 }
 
 /// Count the focus nodes a target selects, given the SPARQL pattern that binds

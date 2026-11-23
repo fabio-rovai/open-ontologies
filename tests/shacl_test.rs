@@ -1777,6 +1777,115 @@ fn test_shacl_sparql_property_shape_result_path_is_the_shapes_path() {
 }
 
 #[test]
+fn test_shacl_target_union_reports_one_result_per_focus_node() {
+    // SHACL 2.1.1: the focus nodes of a shape are the union of the nodes its
+    // target declarations select, and validation is per focus node. A node
+    // selected by BOTH a target class and a target node is one focus node, so
+    // its failing result must appear once, not once per declaration.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:John a ex:Person .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:TestShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:targetNode ex:John ;
+            sh:class ex:Employee .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL 2.1.1: ex:John is one focus node, selected by both declarations, so one failing result: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/John");
+}
+
+#[test]
+fn test_shacl_target_union_reports_one_result_per_focus_node_for_subjects_of() {
+    // The same union, through `sh:targetSubjectsOf` rather than a class: the
+    // subject of a triple that names the focus node outright is still one
+    // focus node when a second declaration selects it too.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:InvalidInstance1 ex:myProperty "a" , "b" .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:TestShape a sh:PropertyShape ;
+            sh:path ex:myProperty ;
+            sh:targetSubjectsOf ex:myProperty ;
+            sh:targetNode ex:InvalidInstance1 ;
+            sh:maxCount 1 .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL 2.1.1: the same focus node selected twice is validated once: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["focus_node"],
+        "http://example.org/InvalidInstance1"
+    );
+    assert_eq!(violations[0]["path"], "http://example.org/myProperty");
+}
+
+#[test]
+fn test_shacl_target_union_applies_to_property_constraints_too() {
+    // A property constraint hangs off the focus nodes of the shape that
+    // carries it, so a duplicated focus node used to duplicate these results
+    // as well.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:alice a ex:Person .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:PersonShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:targetNode ex:alice ;
+            sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#MinCountConstraintComponent"
+    );
+}
+
+#[test]
 fn test_shacl_sparql_dollar_path_is_substituted_with_the_shapes_path() {
     // SHACL-SPARQL 6.3: for a SELECT-based validator on a property shape, the
     // variable PATH is substituted before execution with the shape's sh:path.

@@ -79,13 +79,17 @@ fn a_subquery_that_cannot_receive_the_binding_is_refused_and_not_called_conformi
          one failure mode a validator used as an assurance gate must not have: {r}"
     );
     let skipped = r["skipped_constraints"].as_array().expect("skipped_constraints");
-    // One entry per constraint-evaluation SITE, so a shape with two target
-    // nodes produces two. That granularity is documented on `onto_shacl`.
+    // One entry per constraint-evaluation site. The site is the shape's
+    // constraint over its whole focus-node set, not one per target
+    // declaration: SHACL 2.1.1 makes the focus nodes the UNION of what the
+    // declarations select, so `sh:targetNode ex:InvalidResource, ex:
+    // ValidResource` is one evaluation over two nodes, and a per-declaration
+    // count here would be a count of declarations rather than of refusals.
     assert_eq!(
         skipped.len(),
-        2,
-        "the refusal must be VISIBLE, once per evaluation site. A null verdict with nothing in \
-         skipped_constraints leaves a reader unable to tell a refusal from a clean run: {r}"
+        1,
+        "the refusal must be VISIBLE. A null verdict with nothing in skipped_constraints leaves \
+         a reader unable to tell a refusal from a clean run: {r}"
     );
     for entry in skipped {
         assert!(
