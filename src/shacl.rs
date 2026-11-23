@@ -2223,7 +2223,17 @@ impl ShaclValidator {
                 // shapes graph declares. An author prologue of its own is
                 // legal after those: the grammar allows any number of
                 // PREFIX and BASE declarations in any order.
-                let query = format!("{prefix_block}{select_raw}");
+                // SHACL-SPARQL 6.3: `$PATH` is substituted rather than
+                // pre-bound, so the text the engine runs is the author's query
+                // with the shape's path written where `$PATH` stood. Only a
+                // property shape gets the substitution, because only a
+                // property shape has an `sh:path` to substitute; a node
+                // shape's query runs as written.
+                let select_substituted = match shape_path.as_ref() {
+                    Some(p) => substitute_path(&select_raw, &p.sparql()),
+                    None => select_raw.clone(),
+                };
+                let query = format!("{prefix_block}{select_substituted}");
                 if let Some(construct) = prebinding_violation(&select_raw, "this") {
                     skipped.push(serde_json::json!({
                         "shape": strip_angle_brackets(&shape_iri),
@@ -3728,6 +3738,101 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
         }
     }
     None
+}
+
+/// Replace the variable `PATH` in a SHACL-SPARQL query with the shape's path.
+///
+/// SHACL-SPARQL 6.3: for a SELECT-based validator on a property shape, "prior
+/// to execution substitute the variable PATH where it appears in the predicate
+/// position of a triple pattern with a valid SPARQL surface syntax string of
+/// the SHACL property path specified via sh:path at the property shape."
+/// `$PATH` is the one SHACL variable that is SUBSTITUTED rather than
+/// pre-bound (SHACL-SPARQL 5.1), so there is no term to bind it to and the
+/// query text is what changes.
+///
+/// Left as written, `$PATH` is an ordinary SPARQL variable and `$this $PATH
+/// ?value` is a pattern whose predicate is a variable: it matches EVERY
+/// predicate of the focus node. That is neither a refusal nor an empty result
+/// but a fully bound wrong one, which is why the pre-binding checks cannot
+/// catch it — nothing about the query is malformed.
+///
+/// Two details matter for text surgery. The substitute is parenthesised, so a
+/// sequence or an alternative cannot re-associate with the pattern around it.
+/// And the scan skips string literals, IRIs and comments, the way
+/// [`prebinding_violation`] does: `?PATH` inside a message literal is text,
+/// not a variable, and splicing a path into one would corrupt the message
+/// instead of the pattern.
+fn substitute_path(query: &str, path: &str) -> String {
+    const NAME: [char; 4] = ['P', 'A', 'T', 'H'];
+    let chars: Vec<char> = query.chars().collect();
+    let mut out = String::with_capacity(query.len());
+    let mut i = 0;
+    while i < chars.len() {
+        match chars[i] {
+            quote @ ('"' | '\'') => {
+                out.push(quote);
+                i += 1;
+                while i < chars.len() {
+                    let c = chars[i];
+                    out.push(c);
+                    i += 1;
+                    if c == '\\' {
+                        if let Some(escaped) = chars.get(i) {
+                            out.push(*escaped);
+                            i += 1;
+                        }
+                    } else if c == quote {
+                        break;
+                    }
+                }
+            }
+            // An operator is not the start of an IRI: `FILTER(?x < 5)` must
+            // not swallow the rest of the query looking for a `>`.
+            '<' if chars
+                .get(i + 1)
+                .is_some_and(|n| !n.is_whitespace() && !n.is_ascii_digit() && !matches!(n, '=' | '!' | '<' | '?' | '$' | '-' | '+')) =>
+            {
+                out.push('<');
+                i += 1;
+                while i < chars.len() {
+                    let c = chars[i];
+                    out.push(c);
+                    i += 1;
+                    if c == '>' {
+                        break;
+                    }
+                }
+            }
+            '#' => {
+                out.push('#');
+                i += 1;
+                while i < chars.len() {
+                    let c = chars[i];
+                    out.push(c);
+                    i += 1;
+                    if c == '\n' {
+                        break;
+                    }
+                }
+            }
+            '?' | '$'
+                if chars[i + 1..].starts_with(&NAME)
+                    && chars
+                        .get(i + 1 + NAME.len())
+                        .is_none_or(|n| !(n.is_alphanumeric() || *n == '_')) =>
+            {
+                out.push('(');
+                out.push_str(path);
+                out.push(')');
+                i += 1 + NAME.len();
+            }
+            other => {
+                out.push(other);
+                i += 1;
+            }
+        }
+    }
+    out
 }
 
 /// Name the shape and the constraint component that produced a violation.

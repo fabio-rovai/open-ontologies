@@ -1775,3 +1775,87 @@ fn test_shacl_sparql_property_shape_result_path_is_the_shapes_path() {
         "SHACL 5.3.2: with no ?path binding the shape's sh:path is the result path: {violations:?}"
     );
 }
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_with_the_shapes_path() {
+    // SHACL-SPARQL 6.3: for a SELECT-based validator on a property shape, the
+    // variable PATH is substituted before execution with the shape's sh:path.
+    // Left unsubstituted it is an ordinary SPARQL variable, and
+    // `$this $PATH ?value` then matches EVERY predicate of the focus node —
+    // including rdf:type — so the constraint fires on nodes it must pass.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:InvalidCountry a ex:Country ; ex:germanLabel "Spain"@en .
+            ex:ValidCountry a ex:Country ; ex:germanLabel "Spanien"@de .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:LanguageExamplePropertyShape a sh:PropertyShape ;
+            sh:path ex:germanLabel ;
+            sh:targetClass ex:Country ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE {
+                    $this $PATH ?value .
+                    FILTER (!isLiteral(?value) || !langMatches(lang(?value), "de"))
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL-SPARQL 6.3: $PATH must constrain the pattern to ex:germanLabel, so only the English label fails: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["focus_node"], "http://example.org/InvalidCountry",
+        "{violations:?}"
+    );
+    assert_eq!(violations[0]["path"], "http://example.org/germanLabel");
+    assert_eq!(violations[0]["value"], "\"Spain\"@en", "{violations:?}");
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_substitutes_a_compound_path() {
+    // The substitute is a path expression, not an IRI, so a sequence has to
+    // arrive parenthesised: `$this ex:a/ex:b ?value` would re-associate with
+    // the surrounding pattern instead of standing in for it.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:a ex:mid .
+            ex:mid ex:b "wrong" .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ( ex:a ex:b ) ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE { $this $PATH ?value . FILTER (isLiteral(?value)) }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["path"], "(http://example.org/a/http://example.org/b)",
+        "SHACL 5.3.2: the result path is the shape's path: {violations:?}"
+    );
+    assert_eq!(violations[0]["value"], "\"wrong\"", "{violations:?}");
+}
