@@ -919,25 +919,22 @@ impl Packer {
             return Ok((v, r));
         }
 
-        // The checker reads files, so the pack's strings go to disk. The name
-        // joined is the WHITELIST's own literal and never the sender's string,
-        // so a crafted name cannot escape this directory even if the equality
-        // test below were wrong.
-        let dir = match &opts.certificate_out_dir {
-            Some(d) => d.clone(),
-            None => scratch_dir(),
-        };
-        // A read-only filesystem with no writable temp directory is a reason to
-        // report that nothing was checked, not a reason to fail an unpack that
-        // used to succeed.
-        if let Err(e) = std::fs::create_dir_all(&dir) {
+        // The checker reads files, so the pack's strings go to a PRIVATE
+        // staging directory written from the captured bytes. The name joined is
+        // the WHITELIST's own literal and never the sender's string, so a
+        // crafted name cannot escape a directory even if the equality test
+        // below were wrong. Nothing here reads `certificate_out_dir`: a
+        // concurrent writer to a shared export directory must not be able to
+        // change what the checker read, and therefore what the verdict claims.
+        let private = scratch_dir();
+        if let Err(e) = std::fs::create_dir_all(&private) {
             let v = PackCertVerdict::Unreadable;
             let r = base(
                 &v,
                 serde_json::json!({
                     "why": format!(
-                        "the certificate could not be written to {} ({e}), so no checker could \
-                         read it", dir.display()
+                        "the certificate could not be staged in a private directory ({e}), so no \
+                         checker could read it"
                     ),
                     "means": ABSENT_MEANS,
                 }),
@@ -946,6 +943,7 @@ impl Packer {
         }
         for name in cert.files.keys() {
             let Some(known) = CERTIFICATE_FILES.iter().find(|k| *k == name) else {
+                let _ = std::fs::remove_dir_all(&private);
                 let v = PackCertVerdict::Unreadable;
                 let r = base(
                     &v,
@@ -960,12 +958,15 @@ impl Packer {
                 );
                 return Ok((v, r));
             };
-            if let Err(e) = std::fs::write(dir.join(*known), &cert.files[*known]) {
+            if let Err(e) = std::fs::write(private.join(*known), &cert.files[*known]) {
+                let _ = std::fs::remove_dir_all(&private);
                 let v = PackCertVerdict::Unreadable;
                 let r = base(
                     &v,
                     serde_json::json!({
-                        "why": format!("{known} could not be written to {} ({e})", dir.display()),
+                        "why": format!(
+                            "{known} could not be staged in the private directory ({e})"
+                        ),
                         "means": ABSENT_MEANS,
                     }),
                 );
@@ -973,9 +974,41 @@ impl Packer {
             }
         }
 
-        let asserted = dir.join("asserted.tsv");
-        let derivations = dir.join(kind.derivations_file());
-        let rules = (kind == CertKind::OoHorn).then(|| dir.join("rules.tsv"));
+        // `certificate_out_dir` is an EXPORT for a human to inspect, written
+        // from the SAME captured strings. It is not where the checker reads,
+        // and a failed export is reported as a field, never as a change of
+        // verdict: the verdict does not rest on this copy.
+        let mut certificate_dir_error: Option<String> = None;
+        if let Some(out) = &opts.certificate_out_dir {
+            if let Err(e) = std::fs::create_dir_all(out) {
+                certificate_dir_error = Some(format!(
+                    "the certificate could not be exported to {} ({e})",
+                    out.display()
+                ));
+            } else {
+                for name in cert.files.keys() {
+                    let Some(known) = CERTIFICATE_FILES.iter().find(|k| *k == name) else {
+                        // Unreachable: the staging loop above refused it.
+                        certificate_dir_error = Some(format!(
+                            "the pack names a certificate file this build does not write: \
+                             {name:?}"
+                        ));
+                        break;
+                    };
+                    if let Err(e) = std::fs::write(out.join(*known), &cert.files[*known]) {
+                        certificate_dir_error = Some(format!(
+                            "{known} could not be exported to {} ({e})",
+                            out.display()
+                        ));
+                        break;
+                    }
+                }
+            }
+        }
+
+        let asserted = private.join("asserted.tsv");
+        let derivations = private.join(kind.derivations_file());
+        let rules = (kind == CertKind::OoHorn).then(|| private.join("rules.tsv"));
         let status = pe::run_checker(
             kind,
             opts.checker.as_deref(),
@@ -988,7 +1021,7 @@ impl Packer {
         // no model under the `owl:disjointWith` reading. `oo-cert` has no theorem
         // about it and `oo-refute` has no theorem about the derivation, so it is
         // checked separately, and its absence is a case of its own.
-        let refutation_path = dir.join("refutation.tsv");
+        let refutation_path = private.join("refutation.tsv");
         let refutation = cert.files.contains_key("refutation.tsv").then(|| {
             crate::refute::check(&asserted, &refutation_path, opts.refute_checker.as_deref())
         });
@@ -1014,11 +1047,25 @@ impl Packer {
                 derivations.display()
             ),
         };
-        // A scratch directory is removed once the checker has read it, so the
-        // command above names files that will not be there. Saying which is
-        // cheap; printing a command a reader cannot run and letting them find
-        // out is not.
-        let kept = opts.certificate_out_dir.is_some();
+        // The private staging directory is removed once the checker has read
+        // it, so the command above names files that will not be there. Saying
+        // which is cheap; printing a command a reader cannot run and letting
+        // them find out is not. `certificate_out_dir`, when asked for, is an
+        // export written from the same captured bytes and is not what the
+        // checker read.
+        let exported = opts.certificate_out_dir.is_some() && certificate_dir_error.is_none();
+        let check_with_means = if exported {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, and those \
+             copies are removed after the check, so the command above names files that no longer \
+             exist. certificate_dir holds an EXPORT written from the same captured bytes for \
+             inspection; running the command against that copy repeats the check only if the \
+             copy was not modified after it was written"
+        } else {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, and those \
+             copies are removed after the check, so the command above names files that no \
+             longer exist. Unpack again with certificate_out_dir set to export them for \
+             inspection"
+        };
         // The derivation certificate's premises are the refutation's premises,
         // so a certificate that rests on triples this pack does not carry is a
         // refutation about a graph this pack only partially contains. The
@@ -1028,16 +1075,10 @@ impl Packer {
         let checker_block = serde_json::json!({
             "status": status.word(),
             "check_with": check_with,
-            "certificate_dir": dir.display().to_string(),
-            "certificate_dir_kept": kept,
-            "check_with_means": if kept {
-                "the certificate files are still in certificate_dir, so this command repeats the \
-                 check exactly"
-            } else {
-                "the certificate went to a scratch directory that is removed once the checker has \
-                 read it, so this command names files that no longer exist. Unpack again with \
-                 certificate_out_dir set to keep them and run it"
-            },
+            "certificate_dir": opts.certificate_out_dir.as_ref().map(|d| d.display().to_string()),
+            "certificate_dir_kept": exported,
+            "certificate_dir_error": certificate_dir_error,
+            "check_with_means": check_with_means,
             "checker_says_it_is": checker_self_block(&status),
             "checker_limit": CHECKER_LIMIT,
             "coverage": {
@@ -1061,13 +1102,17 @@ impl Packer {
                     asserted.display(),
                     refutation_path.display()
                 ));
-                report["check_with_means"] = serde_json::json!(if kept {
-                    "the certificate files are still in certificate_dir, so this command repeats \
-                     the refutation check exactly"
+                report["check_with_means"] = serde_json::json!(if exported {
+                    "the checker read PRIVATE staged copies of the captured asserted/refutation \
+                     bytes, and those copies are removed after the check, so the command above \
+                     names files that no longer exist. certificate_dir holds an EXPORT for \
+                     inspection; running the command against that copy repeats the refutation \
+                     check only if the copy was not modified after it was written"
                 } else {
-                    "the certificate went to a scratch directory that is removed once the checker \
-                     has read it, so this command names files that no longer exist. Unpack again \
-                     with certificate_out_dir set to keep them and run it"
+                    "the checker read PRIVATE staged copies of the captured asserted/refutation \
+                     bytes, and those copies are removed after the check, so the command above \
+                     names files that no longer exist. Unpack again with certificate_out_dir set \
+                     to export them for inspection"
                 });
                 report
             }),
@@ -1163,12 +1208,10 @@ impl Packer {
             None => serde_json::Value::Null,
         };
         r["checked_here"] = serde_json::json!(verdict.is_checked());
-        if opts.certificate_out_dir.is_none() {
-            // Best effort, and it is fine if it fails: a leftover scratch
-            // directory is untidy and a missing one would break the
-            // check_with command this report just printed.
-            let _ = std::fs::remove_dir_all(&dir);
-        }
+        // Best effort, and it is fine if it fails: a leftover private directory
+        // is untidy and a missing one would break nothing that survives. The
+        // export, when asked for, is deliberately NOT removed.
+        let _ = std::fs::remove_dir_all(&private);
         Ok((verdict, r))
     }
 }
@@ -1473,6 +1516,15 @@ exit 0
             "no checker ran, so there is no exit code"
         );
         assert_eq!(checked.stdout(), None, "and no checker output to quote");
+        assert_eq!(
+            checked.status(),
+            "staging_failed",
+            "a staging failure has its own status: {checked:?}"
+        );
+        assert!(
+            checked.certified().is_none(),
+            "no theorem was named, so no token was minted: {checked:?}"
+        );
         assert!(
             checked
                 .what()
@@ -1492,6 +1544,10 @@ exit 0
         assert!(
             report.get("graph_is_unsatisfiable").is_none(),
             "nothing was checked, so the accepted word may not appear: {report:#}"
+        );
+        assert!(
+            report.get("derivation_certificate_is_worthless").is_none(),
+            "and it may not call the derivation certificate worthless: {report:#}"
         );
         let _ = std::fs::remove_dir_all(&root);
     }

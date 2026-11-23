@@ -434,13 +434,19 @@ fn the_receiver_outcomes_are_distinguishable() {
         "a command over a deleted directory must be labelled as one: {accepted:#}"
     );
     assert!(
-        !PathBuf::from(
-            accepted["certificate"]["certificate_dir"]
-                .as_str()
-                .unwrap()
-        )
-        .exists(),
-        "the scratch directory must actually be gone: {accepted:#}"
+        accepted["certificate"]["certificate_dir"].is_null(),
+        "no export was asked for, so there is no kept directory to name: {accepted:#}"
+    );
+    let printed = accepted["certificate"]["check_with"]
+        .as_str()
+        .expect("the report still prints the command it ran");
+    let printed_asserted = printed
+        .split_whitespace()
+        .nth(1)
+        .expect("the command names the asserted file it read");
+    assert!(
+        !PathBuf::from(printed_asserted).exists(),
+        "the private staging directory the command names must actually be gone: {accepted:#}"
     );
 
     // ... and with certificate_out_dir the files stay, so the command runs.
@@ -458,12 +464,17 @@ fn the_receiver_outcomes_are_distinguishable() {
         "the files a receiver was told to re-check must be there: {}",
         kept_dir.display()
     );
+    assert_eq!(
+        kept["certificate"]["certificate_dir"],
+        kept_dir.display().to_string(),
+        "the kept directory is the export, and the report names it: {kept:#}"
+    );
     assert!(
         kept["certificate"]["check_with_means"]
             .as_str()
             .unwrap_or_default()
-            .contains("repeats the check exactly"),
-        "{kept:#}"
+            .contains("EXPORT"),
+        "the report says certificate_out_dir is an export, not what the check read: {kept:#}"
     );
 
     // (b) exit 1: refused, and the load is blocked.
@@ -878,6 +889,47 @@ fn fake_refute_accepting() -> PathBuf {
     p
 }
 
+/// A script that ACCEPTS, unless it is handed a path inside `shared`.
+///
+/// That makes the path the checker read observable. A receiver that checks the
+/// export directory it just wrote is handed a path under `shared` and gets a
+/// refusal; a receiver that checks private staged copies is handed a scratch
+/// path and gets the acceptance. The export itself is never modified, so the
+/// test can also assert it holds the captured bytes.
+fn fake_refute_outside(shared: &Path) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!(
+        "refute_private_{}_{serial}.sh",
+        std::process::id()
+    ));
+    let shared = shared.to_str().expect("temp paths are UTF-8");
+    let body = format!(
+        r#"#!/bin/sh
+case "$2" in
+  "{shared}"/*) echo '{{"ok":false,"reason":"the checker read the shared export directory"}}'; exit 1 ;;
+esac
+case "$3" in
+  "{shared}"/*) echo '{{"ok":false,"reason":"the checker read the shared export directory"}}'; exit 1 ;;
+esac
+echo '{{"ok":true,"theorem":"OOCert.refutation_fast_sound"}}'
+exit 0
+"#
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+    p
+}
+
 /// A refutation the receiver's own `oo-refute` refuses blocks the load; one the
 /// receiver could not check does not.
 #[test]
@@ -1091,6 +1143,172 @@ fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsat
     assert!(
         !whole.contains("derivation_certificate_is_worthless"),
         "and it may not call this pack's derivation certificate worthless: {r:#}"
+    );
+}
+
+/// The receiver checks PRIVATE staged copies; `certificate_out_dir` is only an
+/// export for a human to inspect.
+///
+/// The fake `oo-refute` refuses whenever either input path lies under the
+/// export directory, so this leg fails if the receiver ever points the checker
+/// at the directory it just wrote. It also proves the export still holds the
+/// captured bytes, and that the report names the private staging rather than
+/// claiming the export is what was checked.
+#[test]
+fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
+    let dir = scratch("receiver-private");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+    let export = dir.join("export");
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_outside(&export)),
+            certificate_out_dir: Some(export.clone()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the checker must have read the private copies, not the export: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "graph_is_unsatisfiable",
+        "{r:#}"
+    );
+    assert_eq!(r["loaded"], true, "{r:#}");
+    assert_eq!(
+        r["certificate"]["certificate_dir_kept"], true,
+        "the export is kept for inspection: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["certificate_dir"],
+        export.display().to_string(),
+        "{r:#}"
+    );
+    assert!(
+        r["certificate"]["certificate_dir_error"].is_null(),
+        "the export succeeded: {r:#}"
+    );
+    assert!(
+        r["certificate"]["check_with_means"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("PRIVATE staged copies"),
+        "the report says the verdict rests on private copies: {r:#}"
+    );
+    let export_text = export.to_str().unwrap();
+    let check_with = r["certificate"]["check_with"].as_str().unwrap();
+    let refute_check_with = r["certificate"]["refutation"]["check_with"]
+        .as_str()
+        .unwrap();
+    assert!(
+        !check_with.contains(export_text) && !refute_check_with.contains(export_text),
+        "the commands name the private copies the checkers read: {r:#}"
+    );
+
+    for name in ["asserted.tsv", "refutation.tsv"] {
+        let exported = std::fs::read_to_string(export.join(name)).expect("exported file");
+        let captured = std::fs::read_to_string(cert_dir.join(name)).expect("captured file");
+        assert_eq!(
+            exported, captured,
+            "the export must hold the captured {name}, not a concurrent writer's replacement"
+        );
+    }
+}
+
+/// A failed export is reported, and the verdict does not rest on it.
+///
+/// `certificate_out_dir` is for a human, so an I/O error there must not turn an
+/// accepted certificate into a refused one. The field says what happened, the
+/// private copies are still what the checker read, and the pack still loads.
+#[test]
+fn a_failed_export_is_a_field_and_does_not_change_the_verdict() {
+    let dir = scratch("export-failure");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let not_a_dir = dir.join("export-is-a-file");
+    std::fs::write(&not_a_dir, "a file where a directory was asked for").unwrap();
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_accepting()),
+            certificate_out_dir: Some(not_a_dir.clone()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_accepted",
+        "a failed export must not change the verdict: {r:#}"
+    );
+    assert_eq!(r["loaded"], true, "{r:#}");
+    assert_eq!(
+        r["certificate"]["certificate_dir_kept"], false,
+        "nothing was exported: {r:#}"
+    );
+    let error = r["certificate"]["certificate_dir_error"]
+        .as_str()
+        .unwrap_or_default();
+    assert!(
+        error.contains("could not be exported"),
+        "the failure is reported as a field: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the check itself still ran on the private copies: {r:#}"
+    );
+}
+
+/// A refutation the receiver could not read blocks the load as `unreadable`,
+/// and its exit code and bytes are quoted rather than folded into a rejection.
+#[test]
+fn a_refutation_the_receiver_could_not_read_blocks_the_load_as_unreadable() {
+    let dir = scratch("refutation-exit-two");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute(2)),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_unreadable",
+        "exit 2 is not a rejection and not a pass: {r:#}"
+    );
+    assert_eq!(r["loaded"], false, "{r:#}");
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "unreadable",
+        "{r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "certificate_unreadable",
+        "{r:#}"
+    );
+    assert_eq!(r["certificate"]["refutation"]["exit"], 2, "{r:#}");
+    assert!(
+        r["certificate"]["refutation"]["stdout"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("the fake refuter refused the file"),
+        "the checker's bytes are quoted: {r:#}"
     );
 }
 

@@ -131,6 +131,22 @@ weaker verification.
 | `checker_absent_nothing_was_checked` | no checker here, or the caller turned the check off | yes |
 | `no_certificate_in_pack` | the pack carries no proof, which every pack written before this does | yes |
 
+**The nested refutation sub-report is a second verdict, with its own vocabulary.**
+A pack that carries `refutation.tsv` gets a `certificate.refutation` object beside the certificate
+verdict. Its `status` is one of `accepted`, `rejected`, `unreadable`,
+`checker_absent_nothing_was_checked`, `staging_failed`. The `verdict` word is
+`graph_is_unsatisfiable` only when the checker accepted the refutation AND `in_certificate_only` is
+zero, so the refutation is about the packed graph; an accepted refutation whose premises are not all
+in the pack earns `certificate_not_about_this_pack` instead and asserts nothing about this graph. The
+other words are `certificate_refused`, `certificate_unreadable`,
+`checker_absent_nothing_was_checked` and `staging_failed_nothing_was_checked`. A `staging_failed`
+status means THIS CRATE could not write the captured bytes into a private staging directory, so no
+checker ran: `exit` and `stdout` are null, `what` carries the I/O error, and it is neither a pass
+nor a rejection. Both the sender at pack time and the receiver at unpack time run their checkers on
+private staged copies of the captured bytes, never on a shared directory; `certificate_out_dir` is
+an export for a human to inspect, and a failed export is reported under `certificate_dir_error`
+without changing the verdict.
+
 `certificate_not_about_this_pack` is the gate the checker cannot be. `oo-cert` verifies the steps
 against the triples inside `asserted.tsv` and has no way to ask where they came from, so a
 certificate that is internally sound over somebody else's premises checks green. `onto_unpack`
@@ -978,8 +994,9 @@ Stated rather than discovered later.
   drops the inference graph from what it reads, records the drop in `scope.tsv`, and materialises
   nothing of its own.
 - **No clash found is not consistency.** Seven of the seventeen clash rules are not looked for at
-  all and eight of the ten that are cannot be certified, so a clean `reason` run means "none of the
-  ten rules tried fired", never "this ontology is consistent". A rejected refutation means the same:
+  all, and the ten that are can be certified (for `cls-maxc1`, only when its witness is the
+  canonical `xsd:nonNegativeInteger` zero), so a clean `reason` run means "none of the ten rules
+  tried fired", never "this ontology is consistent". A rejected refutation means the same:
   `oo-refute`'s own report says so in every verdict it prints.
 - **One clash is reported per refutation, and only the first certifiable one is written.** A graph
   with twenty disjointness clashes gets one `refutation.tsv`. `clash_count` and `by_rule` carry the
