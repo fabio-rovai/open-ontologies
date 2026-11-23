@@ -95,6 +95,7 @@ fn with_refute_env<T>(value: &Path, f: impl FnOnce() -> T) -> T {
     out
 }
 
+#[cfg(unix)]
 fn fake_checker(name: &str, code: i32, theorem: &str) -> PathBuf {
     let path = scratch(name).join("fake-oo-refute.sh");
     let body = format!(
@@ -151,6 +152,7 @@ fn an_accepting_checker_mints_the_certified_word() {
     assert_eq!(checker["exit"], 0, "{r}");
 }
 
+#[cfg(unix)]
 #[test]
 fn a_checker_that_says_ok_with_the_wrong_theorem_is_not_accepted() {
     // The whole point of `accepted_naming`: exit status is a claim by the
