@@ -892,32 +892,97 @@ fn fake_refute_accepting() -> PathBuf {
     p
 }
 
-/// A script that ACCEPTS, unless it is handed a path inside `shared`.
+/// A derivation checker that first MUTATES the export, then records what it
+/// was handed and what it read.
 ///
-/// That makes the path the checker read observable. A receiver that checks the
-/// export directory it just wrote is handed a path under `shared` and gets a
-/// refusal; a receiver that checks private staged copies is handed a scratch
-/// path and gets the acceptance. The export itself is never modified, so the
-/// test can also assert it holds the captured bytes.
+/// The mutation makes the export disagree with the captured bytes before the
+/// checker reads anything, so a receiver that points this fake at the export
+/// gets the mutated bytes and the test fails. The script saves and restores
+/// the export on exit, so the export still holds the captured bytes afterwards.
 #[cfg(unix)]
-fn fake_refute_outside(shared: &Path) -> PathBuf {
+fn fake_checker_recording(export: &Path, record: &Path) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-checkers");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!("recording_{}_{serial}.sh", std::process::id()));
+    let export = export.to_str().expect("temp paths are UTF-8");
+    let record = record.to_str().expect("temp paths are UTF-8");
+    let body = format!(
+        r#"#!/bin/sh
+set -e
+export_dir="{export}"
+record_dir="{record}"
+mkdir -p "$record_dir"
+cp "$export_dir/asserted.tsv" "$record_dir/derivation_export_asserted.orig"
+cp "$export_dir/derivations.tsv" "$record_dir/derivation_export_derivations.orig"
+restore() {{
+  cp "$record_dir/derivation_export_asserted.orig" "$export_dir/asserted.tsv"
+  cp "$record_dir/derivation_export_derivations.orig" "$export_dir/derivations.tsv"
+}}
+trap restore EXIT
+printf 'MUTATED BY THE FAKE DERIVATION CHECKER
+' > "$export_dir/asserted.tsv"
+printf 'MUTATED BY THE FAKE DERIVATION CHECKER
+' > "$export_dir/derivations.tsv"
+printf '%s
+' "$1" >> "$record_dir/derivation_paths.txt"
+printf '%s
+' "$2" >> "$record_dir/derivation_paths.txt"
+cp "$1" "$record_dir/derivation_asserted.seen"
+cp "$2" "$record_dir/derivation_derivations.seen"
+case "$1" in "$export_dir"/*) exit 1 ;; esac
+case "$2" in "$export_dir"/*) exit 1 ;; esac
+echo '{{"ok":true,"theorem":"OOCert.certificate_sound","checker":{{"name":"fake","sha256":"0"}}}}'
+exit 0
+"#
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    p
+}
+
+/// The refutation twin: mutate the export, record the paths and the bytes the
+/// `oo-refute check ASSERTED REFUTATION` invocation actually read, restore the
+/// export, then accept.
+#[cfg(unix)]
+fn fake_refute_recording(export: &Path, record: &Path) -> PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
     std::fs::create_dir_all(&dir).unwrap();
     let serial = NEXT.fetch_add(1, Ordering::Relaxed);
-    let p = dir.join(format!(
-        "refute_private_{}_{serial}.sh",
-        std::process::id()
-    ));
-    let shared = shared.to_str().expect("temp paths are UTF-8");
+    let p = dir.join(format!("recording_{}_{serial}.sh", std::process::id()));
+    let export = export.to_str().expect("temp paths are UTF-8");
+    let record = record.to_str().expect("temp paths are UTF-8");
     let body = format!(
         r#"#!/bin/sh
-case "$2" in
-  "{shared}"/*) echo '{{"ok":false,"reason":"the checker read the shared export directory"}}'; exit 1 ;;
-esac
-case "$3" in
-  "{shared}"/*) echo '{{"ok":false,"reason":"the checker read the shared export directory"}}'; exit 1 ;;
-esac
+set -e
+export_dir="{export}"
+record_dir="{record}"
+mkdir -p "$record_dir"
+cp "$export_dir/asserted.tsv" "$record_dir/refutation_export_asserted.orig"
+cp "$export_dir/refutation.tsv" "$record_dir/refutation_export_refutation.orig"
+restore() {{
+  cp "$record_dir/refutation_export_asserted.orig" "$export_dir/asserted.tsv"
+  cp "$record_dir/refutation_export_refutation.orig" "$export_dir/refutation.tsv"
+}}
+trap restore EXIT
+printf 'MUTATED BY THE FAKE REFUTATION CHECKER
+' > "$export_dir/asserted.tsv"
+printf 'MUTATED BY THE FAKE REFUTATION CHECKER
+' > "$export_dir/refutation.tsv"
+printf '%s
+' "$2" >> "$record_dir/refutation_paths.txt"
+printf '%s
+' "$3" >> "$record_dir/refutation_paths.txt"
+cp "$2" "$record_dir/refutation_asserted.seen"
+cp "$3" "$record_dir/refutation_refutation.seen"
+case "$2" in "$export_dir"/*) exit 1 ;; esac
+case "$3" in "$export_dir"/*) exit 1 ;; esac
 echo '{{"ok":true,"theorem":"OOCert.refutation_fast_sound"}}'
 exit 0
 "#
@@ -925,11 +990,8 @@ exit 0
     {
         let _gate = common::exec_gate();
         std::fs::write(&p, body).unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt as _;
-            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
-        }
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
     }
     p
 }
@@ -1026,6 +1088,17 @@ fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
             .unwrap_or_default()
             .contains("NOTHING WAS CHECKED"),
         "{absent:#}"
+    );
+    let absent_means = absent["certificate"]["refutation"]["check_with_means"]
+        .as_str()
+        .unwrap_or_default();
+    assert!(
+        absent_means.contains("no checker ran, so NOTHING WAS CHECKED"),
+        "an absent checker did not read anything, so the means must not say it did: {absent:#}"
+    );
+    assert!(
+        !absent_means.contains("the checker read PRIVATE"),
+        "the private-copies phrasing is for a run that happened: {absent:#}"
     );
 }
 
@@ -1156,11 +1229,12 @@ fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsat
 /// The receiver checks PRIVATE staged copies; `certificate_out_dir` is only an
 /// export for a human to inspect.
 ///
-/// The fake `oo-refute` refuses whenever either input path lies under the
-/// export directory, so this leg fails if the receiver ever points the checker
-/// at the directory it just wrote. It also proves the export still holds the
-/// captured bytes, and that the report names the private staging rather than
-/// claiming the export is what was checked.
+/// Both fakes overwrite the export in place before reading their inputs, record
+/// the paths they were handed and the bytes they actually read, then restore
+/// the export. A receiver that hands either checker the export makes it read
+/// the mutated bytes, which the assertions below catch; a receiver that hands
+/// it the private copies reads the captured bytes, and the export still holds
+/// the captured bytes when the run ends.
 #[cfg(unix)]
 #[test]
 fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
@@ -1173,16 +1247,22 @@ fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
         "the run must have written the refutation this leg is about"
     );
     let export = dir.join("export");
+    let record = dir.join("record");
+    std::fs::create_dir_all(&record).unwrap();
     pack_with_certificate(&store, &cert_dir, &dir);
     let path = dir.join("carried.oopack");
 
     let r = unpack(
         &path,
         &UnpackOptions {
-            refute_checker: Some(fake_refute_outside(&export)),
+            refute_checker: Some(fake_refute_recording(&export, &record)),
             certificate_out_dir: Some(export.clone()),
-            ..options(Some(fake_checker(0)))
+            ..options(Some(fake_checker_recording(&export, &record)))
         },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_accepted",
+        "the derivation checker must have read the private copies: {r:#}"
     );
     assert_eq!(
         r["certificate"]["refutation"]["status"], "accepted",
@@ -1206,13 +1286,20 @@ fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
         r["certificate"]["certificate_dir_error"].is_null(),
         "the export succeeded: {r:#}"
     );
-    assert!(
-        r["certificate"]["check_with_means"]
-            .as_str()
-            .unwrap_or_default()
-            .contains("PRIVATE staged copies"),
-        "the report says the verdict rests on private copies: {r:#}"
-    );
+    for field in [
+        &r["certificate"]["check_with_means"],
+        &r["certificate"]["refutation"]["check_with_means"],
+    ] {
+        let means = field.as_str().unwrap_or_default();
+        assert!(
+            means.contains("PRIVATE staged copies"),
+            "the report says the verdict rests on private copies: {means}"
+        );
+        assert!(
+            means.contains("EXPORT"),
+            "and it says the export is for inspection only: {means}"
+        );
+    }
     let export_text = export.to_str().unwrap();
     let check_with = r["certificate"]["check_with"].as_str().unwrap();
     let refute_check_with = r["certificate"]["refutation"]["check_with"]
@@ -1223,12 +1310,45 @@ fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
         "the commands name the private copies the checkers read: {r:#}"
     );
 
-    for name in ["asserted.tsv", "refutation.tsv"] {
-        let exported = std::fs::read_to_string(export.join(name)).expect("exported file");
-        let captured = std::fs::read_to_string(cert_dir.join(name)).expect("captured file");
+    // (a) Neither checker was handed a path inside the export directory.
+    for name in ["derivation_paths.txt", "refutation_paths.txt"] {
+        let text = std::fs::read_to_string(record.join(name)).expect("the checker recorded paths");
+        let lines = text.lines().collect::<Vec<_>>();
+        assert_eq!(lines.len(), 2, "both inputs were recorded in {name}: {text}");
+        for line in lines {
+            assert!(!line.is_empty(), "a recorded path is empty: {text}");
+            assert!(
+                !line.starts_with(export_text),
+                "a checker read a file inside the export directory: {line}"
+            );
+        }
+    }
+
+    // (b) What each checker recorded is the captured certificate bytes, not
+    // the mutated export. If either check is pointed at the export, the fake
+    // reads "MUTATED BY ..." and this fails.
+    let captured = |name: &str| std::fs::read(cert_dir.join(name)).expect("captured file");
+    for (seen, captured_name) in [
+        ("derivation_asserted.seen", "asserted.tsv"),
+        ("derivation_derivations.seen", "derivations.tsv"),
+        ("refutation_asserted.seen", "asserted.tsv"),
+        ("refutation_refutation.seen", "refutation.tsv"),
+    ] {
+        let got = std::fs::read(record.join(seen)).expect("the checker recorded its input");
         assert_eq!(
-            exported, captured,
-            "the export must hold the captured {name}, not a concurrent writer's replacement"
+            got,
+            captured(captured_name),
+            "{seen} must be the captured {captured_name}, not the mutated export"
+        );
+    }
+
+    // (c) The export still holds the captured bytes, not the fake's mutation.
+    for name in ["asserted.tsv", "derivations.tsv", "refutation.tsv"] {
+        let exported = std::fs::read(export.join(name)).expect("exported file");
+        assert_eq!(
+            exported,
+            captured(name),
+            "the export must hold the captured {name}, not the fake's mutation"
         );
     }
 }

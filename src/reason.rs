@@ -3106,7 +3106,7 @@ impl Reasoner {
                             "written": false,
                             "why": "no clash found has a witness shape `OOCert.checkRefuteStep` \
                                     can judge, so no checkable refutation could be built. A \
-                                    clash of a rule outside the ten `OOCert.RefuteConditions` \
+                                    clash of a rule outside the twelve `OOCert.RefuteConditions` \
                                     has a condition for is one case. The other is `cls-maxc1` \
                                     with a zero that is not the canonical \
                                     `\"0\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>` \

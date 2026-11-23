@@ -338,9 +338,11 @@ impl std::fmt::Display for PackCertVerdict {
 /// drifts in three of them.
 pub const MEANS: &str = "A checker on THIS machine re-derived every conclusion in this pack's \
      certificate from the triples the certificate lists as asserted, and accepted all of them. \
-     You did not have to trust the sender's engine to learn that. To repeat it by hand, unpack \
-     again with certificate_out_dir set and run the command in check_with over the files it \
-     keeps.";
+     You did not have to trust the sender's engine to learn that. The command in check_with \
+     names the private staged copies the checker read, which are removed after the check. To \
+     repeat it by hand, unpack again with certificate_out_dir set and run that command against \
+     the exported copies, substituting the export paths; those copies repeat the check only if \
+     they were not modified after they were written.";
 
 /// What an acceptance does NOT settle. Printed beside every accepted verdict.
 pub const DOES_NOT_MEAN: &str = "The asserted triples themselves are NOT proved. A certificate \
@@ -1054,18 +1056,13 @@ impl Packer {
         // export written from the same captured bytes and is not what the
         // checker read.
         let exported = opts.certificate_out_dir.is_some() && certificate_dir_error.is_none();
-        let check_with_means = if exported {
-            "the checker read PRIVATE staged copies of the bytes this pack carries, and those \
-             copies are removed after the check, so the command above names files that no longer \
-             exist. certificate_dir holds an EXPORT written from the same captured bytes for \
-             inspection; running the command against that copy repeats the check only if the \
-             copy was not modified after it was written"
-        } else {
-            "the checker read PRIVATE staged copies of the bytes this pack carries, and those \
-             copies are removed after the check, so the command above names files that no \
-             longer exist. Unpack again with certificate_out_dir set to export them for \
-             inspection"
-        };
+        let derivation_ran = matches!(
+            &status,
+            CheckerStatus::Accepted(_)
+                | CheckerStatus::Rejected { .. }
+                | CheckerStatus::Unreadable { .. }
+        );
+        let check_with_means = derivation_check_with_means(derivation_ran, exported);
         // The derivation certificate's premises are the refutation's premises,
         // so a certificate that rests on triples this pack does not carry is a
         // refutation about a graph this pack only partially contains. The
@@ -1102,18 +1099,10 @@ impl Packer {
                     asserted.display(),
                     refutation_path.display()
                 ));
-                report["check_with_means"] = serde_json::json!(if exported {
-                    "the checker read PRIVATE staged copies of the captured asserted/refutation \
-                     bytes, and those copies are removed after the check, so the command above \
-                     names files that no longer exist. certificate_dir holds an EXPORT for \
-                     inspection; running the command against that copy repeats the refutation \
-                     check only if the copy was not modified after it was written"
-                } else {
-                    "the checker read PRIVATE staged copies of the captured asserted/refutation \
-                     bytes, and those copies are removed after the check, so the command above \
-                     names files that no longer exist. Unpack again with certificate_out_dir set \
-                     to export them for inspection"
-                });
+                report["check_with_means"] = serde_json::json!(refutation_check_with_means(
+                    refutation_ran(r),
+                    exported
+                ));
                 report
             }),
         });
@@ -1274,6 +1263,84 @@ fn check_staged_refutation_in(
         &dir.join("refutation.tsv"),
         checker,
     )
+}
+
+/// What `check_with` means when the derivation checker DID run.
+///
+/// The command names private staged copies that are removed afterwards, so the
+/// prose says so and points at the export when one exists.
+fn derivation_check_with_means(ran: bool, exported: bool) -> &'static str {
+    match (ran, exported) {
+        (true, true) => {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, \
+             and those copies are removed after the check, so the command above names files that \
+             no longer exist. certificate_dir holds an EXPORT written from the same captured \
+             bytes for inspection; running the command against that copy repeats the check only \
+             if the copy was not modified after it was written"
+        }
+        (true, false) => {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, \
+             and those copies are removed after the check, so the command above names files \
+             that no longer exist. Unpack again with certificate_out_dir set to export them for \
+             inspection"
+        }
+        (false, true) => {
+            "no checker ran, so NOTHING WAS CHECKED. The command above names the \
+             private staged copies that were prepared and then removed. certificate_dir holds \
+             an EXPORT for inspection; it is not evidence that anything was checked"
+        }
+        (false, false) => {
+            "no checker ran, so NOTHING WAS CHECKED. The command above names the \
+             private staged copies that were prepared and then removed. Unpack again with \
+             certificate_out_dir set to export them for inspection, but the export is not \
+             evidence that anything was checked"
+        }
+    }
+}
+
+/// Whether the refutation checker was actually run, as opposed to absent or
+/// unable to stage its inputs. Both no-checker cases must not be described as
+/// "the checker read" anything.
+fn refutation_ran(r: &crate::refute::RefuteCheck) -> bool {
+    matches!(
+        r,
+        crate::refute::RefuteCheck::Accepted(_)
+            | crate::refute::RefuteCheck::Rejected { .. }
+            | crate::refute::RefuteCheck::Unreadable { .. }
+    )
+}
+
+/// What the refutation `check_with` means. Same rule as the derivation one:
+/// the private-copies phrasing belongs to a run that happened.
+fn refutation_check_with_means(ran: bool, exported: bool) -> &'static str {
+    match (ran, exported) {
+        (true, true) => {
+            "the checker read PRIVATE staged copies of the captured asserted/refutation \
+             bytes, and those copies are removed after the check, so the command above names \
+             files that no longer exist. certificate_dir holds an EXPORT for inspection; running \
+             the command against that copy repeats the refutation check only if the copy was not \
+             modified after it was written"
+        }
+        (true, false) => {
+            "the checker read PRIVATE staged copies of the captured asserted/refutation \
+             bytes, and those copies are removed after the check, so the command above names \
+             files that no longer exist. Unpack again with certificate_out_dir set to export them \
+             for inspection"
+        }
+        (false, true) => {
+            "no checker ran, so NOTHING WAS CHECKED about the refutation. The command \
+             above names the private staged copies of the captured asserted/refutation bytes \
+             that were prepared and then removed. certificate_dir holds an EXPORT for inspection; \
+             it is not evidence that anything was checked"
+        }
+        (false, false) => {
+            "no checker ran, so NOTHING WAS CHECKED about the refutation. The command \
+             above names the private staged copies of the captured asserted/refutation bytes \
+             that were prepared and then removed. Unpack again with certificate_out_dir set to \
+             export them for inspection, but the export is not evidence that anything was \
+             checked"
+        }
+    }
 }
 
 /// The refutation sub-report both the pack-time and unpack-time paths print.
