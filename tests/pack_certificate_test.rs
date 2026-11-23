@@ -810,6 +810,14 @@ fn pack_refuses_a_certificate_that_is_not_about_the_graph() {
 // 4b. The refutation a pack may also carry
 // ───────────────────────────────────────────────────────────────────────────
 
+/// A graph the engine refutes under `cax-dw`, so `certify` writes
+/// `refutation.tsv` beside the derivation certificate.
+const REFUTED: &str = r#"
+    :Herbivore owl:disjointWith :Carnivore .
+    :Lion rdfs:subClassOf :BigCat . :BigCat rdfs:subClassOf :Carnivore .
+    :leo a :Lion ; a :Herbivore .
+"#;
+
 /// A script that exits with `code`, standing in for `oo-refute`.
 ///
 /// It prints a rejected line, because that is what a rejecting run prints and
@@ -839,17 +847,37 @@ fn fake_refute(code: i32) -> PathBuf {
     p
 }
 
+/// A script that prints what an ACCEPTING `oo-refute` prints and exits 0.
+///
+/// The theorem is the one `CheckerRun::accepted_naming` requires, because the
+/// token must be minted from the checker's own line rather than from the exit
+/// code alone.
+fn fake_refute_accepting() -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!(
+        "refute_accepted_{}_{serial}.sh",
+        std::process::id()
+    ));
+    let body = "#!/bin/sh\necho '{\"ok\":true,\"theorem\":\"OOCert.refutation_fast_sound\"}'\nexit 0\n";
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+    p
+}
+
 /// A refutation the receiver's own `oo-refute` refuses blocks the load; one the
 /// receiver could not check does not.
 #[test]
 fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
-    // A graph the engine refutes under `cax-dw`, so `certify` writes
-    // `refutation.tsv` beside the derivation certificate.
-    const REFUTED: &str = r#"
-        :Herbivore owl:disjointWith :Carnivore .
-        :Lion rdfs:subClassOf :BigCat . :BigCat rdfs:subClassOf :Carnivore .
-        :leo a :Lion ; a :Herbivore .
-    "#;
     let dir = scratch("refutation-leg");
     let cert_dir = dir.join("cert");
     std::fs::create_dir_all(&cert_dir).unwrap();
@@ -937,6 +965,129 @@ fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
             .unwrap_or_default()
             .contains("NOTHING WAS CHECKED"),
         "{absent:#}"
+    );
+}
+
+/// An accepted refutation about THIS pack still says the graph has no model.
+///
+/// The coverage gate must not silence the claim when the certificate and the
+/// graph are the same graph: that is the one case where the refutation is about
+/// the packed triples and the booleans mean something.
+#[test]
+fn an_accepted_refutation_about_this_pack_claims_unsatisfiability() {
+    let dir = scratch("accepted-refutation");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let accepted = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_accepting()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        accepted["certificate"]["verdict"], "certificate_accepted",
+        "clean coverage leaves the derivation certificate accepted: {accepted:#}"
+    );
+    assert_eq!(accepted["loaded"], true, "{accepted:#}");
+    assert_eq!(
+        accepted["certificate"]["refutation"]["status"], "accepted",
+        "{accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["verdict"], "graph_is_unsatisfiable",
+        "the accepted refutation is about this graph: {accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["graph_is_unsatisfiable"], true,
+        "{accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["derivation_certificate_is_worthless"], true,
+        "{accepted:#}"
+    );
+}
+
+/// An accepted refutation whose `asserted.tsv` is not this pack's graph is NOT
+/// a claim about this pack.
+///
+/// The checker was right about the certificate and the pack still carries no
+/// unsatisfiability claim: `in_certificate_only` is non-empty, so `asserted.tsv`
+/// holds premises this graph does not, and the derivation certificate here was
+/// never shown worthless by it.
+#[test]
+fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsatisfiable() {
+    let mine = scratch("refuted-elsewhere-mine");
+    let theirs = scratch("refuted-elsewhere-theirs");
+    let out = scratch("refuted-elsewhere");
+    let store = certify(LIST_BEARING, &mine);
+    let other = certify(REFUTED, &theirs);
+    assert!(
+        theirs.join("refutation.tsv").exists(),
+        "the certificate being transplanted must carry a refutation"
+    );
+
+    // `Packer::pack` refuses this at pack time, so the artefact is assembled by
+    // hand: the receiver must not depend on the sender having refused it.
+    pack_with_certificate(&store, &mine, &out);
+    let other_out = scratch("refuted-elsewhere-other");
+    pack_with_certificate(&other, &theirs, &other_out);
+    let path = out.join("carried.oopack");
+    let mut pack = read_pack(&path);
+    pack["manifest"]["certificate"] =
+        read_pack(&other_out.join("carried.oopack"))["manifest"]["certificate"].clone();
+    let cert: PackedCertificate =
+        serde_json::from_value(pack["manifest"]["certificate"].clone()).unwrap();
+    pack["manifest"]["content_sha256"] = serde_json::json!(content_digest(
+        pack["graph"].as_str().unwrap(),
+        Some(&cert)
+    ));
+    write_pack(&path, &pack);
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            verify_only: true,
+            refute_checker: Some(fake_refute_accepting()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_not_about_this_pack",
+        "the derivation certificate rests on premises the pack does not carry: {r:#}"
+    );
+    assert_eq!(r["loaded"], false, "{r:#}");
+    assert!(
+        r["certificate"]["coverage"]["in_certificate_only"]
+            .as_u64()
+            .unwrap_or(0)
+            > 0,
+        "{r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the checker accepted the refutation itself: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "certificate_not_about_this_pack",
+        "the accepted word is not about this pack: {r:#}"
+    );
+    let whole = serde_json::to_string(&r).unwrap();
+    assert!(
+        !whole.contains("graph_is_unsatisfiable"),
+        "an accepted refutation about another graph may not assert this one is unsatisfiable: {r:#}"
+    );
+    assert!(
+        !whole.contains("derivation_certificate_is_worthless"),
+        "and it may not call this pack's derivation certificate worthless: {r:#}"
     );
 }
 

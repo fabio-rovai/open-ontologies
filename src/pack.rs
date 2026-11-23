@@ -650,16 +650,18 @@ impl Packer {
                 // shipping a file this machine's checker refused means the
                 // receiver, and not the sender, discovers the defect.
                 if cert.files.contains_key("refutation.tsv") {
-                    let checked = crate::refute::check(
-                        &dir.join("asserted.tsv"),
-                        &dir.join("refutation.tsv"),
-                        None,
-                    );
+                    // Check the bytes captured into `cert.files`, not the files
+                    // still sitting in `dir`: a concurrent rerun can rewrite
+                    // those between the read and the check, and then the sender
+                    // would check one certificate and ship another.
+                    let checked = check_staged_refutation(&cert, None);
                     if let crate::refute::RefuteCheck::Rejected { .. } = checked {
                         anyhow::bail!(
                             "the refutation in {} was REJECTED by this machine's oo-refute, so it \
                              cannot travel in the pack. That is a defect in the run that produced \
-                             it, not in the graph. `check_with` reproduces it. Checker output: {}",
+                             it, not in the graph. This pack-time report carries no `check_with`: \
+                             the bytes checked were staged copies that are no longer on disk. \
+                             Checker output: {}",
                             dir.display(),
                             checked.stdout().unwrap_or("(none)")
                         );
@@ -739,7 +741,9 @@ impl Packer {
                 "means": "the certificate travels with the graph and the content digest covers \
                           both. The derivation steps are NOT checked here: the receiver runs its \
                           own checker, which is the point of shipping it",
-                "refutation": refutation_at_pack.as_ref().map(refutation_report),
+                // A pack only gets here when coverage passed, so the graph in
+                // this pack is the graph the refutation is about.
+                "refutation": refutation_at_pack.as_ref().map(|r| refutation_report(r, true)),
             })),
             "graph_bytes": pack.graph.len(),
             "pack_json_bytes": json.len(),
@@ -1015,6 +1019,12 @@ impl Packer {
         // cheap; printing a command a reader cannot run and letting them find
         // out is not.
         let kept = opts.certificate_out_dir.is_some();
+        // The derivation certificate's premises are the refutation's premises,
+        // so a certificate that rests on triples this pack does not carry is a
+        // refutation about a graph this pack only partially contains. The
+        // enclosing verdict already says NotAboutThisPack; the refutation
+        // sub-report must not claim more than it can.
+        let about_pack = cover.in_certificate_only_total == 0;
         let checker_block = serde_json::json!({
             "status": status.word(),
             "check_with": check_with,
@@ -1045,7 +1055,7 @@ impl Packer {
             },
             "refutation_in_pack": cert.files.contains_key("refutation.tsv"),
             "refutation": refutation.as_ref().map(|r| {
-                let mut report = refutation_report(r);
+                let mut report = refutation_report(r, about_pack);
                 report["check_with"] = serde_json::json!(format!(
                     "cd lean && lake exe oo-refute check {} {}",
                     asserted.display(),
@@ -1163,21 +1173,70 @@ impl Packer {
     }
 }
 
+/// Check a refutation from the bytes a pack CAPTURED.
+///
+/// The source certificate directory is mutable: a concurrent
+/// `reason --certificate` can replace `asserted.tsv` or `refutation.tsv` between
+/// `read_certificate_dir` and the check, so reading that directory again would
+/// let the sender check one certificate and ship another. The captured strings
+/// are staged into a private directory, checked there, and the directory is
+/// removed best-effort once the checker has read it.
+fn check_staged_refutation(
+    cert: &PackedCertificate,
+    checker: Option<&Path>,
+) -> crate::refute::RefuteCheck {
+    let dir = scratch_dir();
+    let staged = (|| -> std::io::Result<()> {
+        std::fs::create_dir_all(&dir)?;
+        let asserted = cert.files.get("asserted.tsv").ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "the certificate carries no asserted.tsv",
+            )
+        })?;
+        let refutation = cert.files.get("refutation.tsv").ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "the certificate carries no refutation.tsv",
+            )
+        })?;
+        std::fs::write(dir.join("asserted.tsv"), asserted)?;
+        std::fs::write(dir.join("refutation.tsv"), refutation)?;
+        Ok(())
+    })();
+    if let Err(e) = staged {
+        let _ = std::fs::remove_dir_all(&dir);
+        return crate::refute::RefuteCheck::Unreadable {
+            stdout: format!("could not stage the certificate for the refutation check: {e}"),
+            exit: -1,
+        };
+    }
+    let checked = crate::refute::check(
+        &dir.join("asserted.tsv"),
+        &dir.join("refutation.tsv"),
+        checker,
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+    checked
+}
+
 /// The refutation sub-report both the pack-time and unpack-time paths print.
 ///
-/// The accepted word is carried by `verdict` only when a checker accepted: the
-/// two boolean claims are ABSENT otherwise, so a report where nothing was
-/// checked cannot contain the accepted word even as a key.
-fn refutation_report(r: &crate::refute::RefuteCheck) -> serde_json::Value {
+/// The accepted word is carried by `verdict` only when a checker accepted AND
+/// the certificate is about the packed graph: the two boolean claims are ABSENT
+/// otherwise, so a report where nothing was checked (or where the proof rests
+/// on premises this pack does not carry) cannot contain the accepted word even
+/// as a key.
+fn refutation_report(r: &crate::refute::RefuteCheck, about_pack: bool) -> serde_json::Value {
     let mut report = serde_json::json!({
         "status": r.status(),
-        "verdict": refutation_word(r),
+        "verdict": refutation_word(r, about_pack),
         "exit": r.exit(),
         "stdout": r.stdout(),
         "what": r.what(),
-        "means": refutation_means(r),
+        "means": refutation_means(r, about_pack),
     });
-    if matches!(r, crate::refute::RefuteCheck::Accepted(_)) {
+    if about_pack && matches!(r, crate::refute::RefuteCheck::Accepted(_)) {
         report["graph_is_unsatisfiable"] = serde_json::json!(true);
         report["derivation_certificate_is_worthless"] = serde_json::json!(true);
     }
@@ -1188,9 +1247,10 @@ fn refutation_report(r: &crate::refute::RefuteCheck) -> serde_json::Value {
 /// is minted from an accepting token, never from the checker's own verdict
 /// string; the other three are the pack verdicts a refusal, an unreadable file
 /// and an absent checker already have.
-fn refutation_word(r: &crate::refute::RefuteCheck) -> &'static str {
+fn refutation_word(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'static str {
     match r {
-        crate::refute::RefuteCheck::Accepted(_) => "graph_is_unsatisfiable",
+        crate::refute::RefuteCheck::Accepted(_) if about_pack => "graph_is_unsatisfiable",
+        crate::refute::RefuteCheck::Accepted(_) => PackCertVerdict::NotAboutThisPack.word(),
         crate::refute::RefuteCheck::Rejected { .. } => PackCertVerdict::Refused.word(),
         crate::refute::RefuteCheck::Unreadable { .. } => PackCertVerdict::Unreadable.word(),
         crate::refute::RefuteCheck::CheckerAbsent { .. } => PackCertVerdict::CheckerAbsent.word(),
@@ -1199,14 +1259,21 @@ fn refutation_word(r: &crate::refute::RefuteCheck) -> &'static str {
 
 /// What the refutation answer does and does not mean. One wording for pack time
 /// and unpack time, because the two must not disagree about the same file.
-fn refutation_means(r: &crate::refute::RefuteCheck) -> &'static str {
+fn refutation_means(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'static str {
     match r {
-        crate::refute::RefuteCheck::Accepted(_) => {
+        crate::refute::RefuteCheck::Accepted(_) if about_pack => {
             "the checker ACCEPTED this refutation: under the owl:disjointWith reading the graph \
              has no model, so every triple follows and the derivation certificate beside this \
              file proves nothing about this graph. It is not a claim that the asserted triples \
              are true, and the contradiction is certified relative to the disjointness axioms, \
              not absolutely"
+        }
+        crate::refute::RefuteCheck::Accepted(_) => {
+            "the checker ACCEPTED this refutation, but not every premise in its asserted.tsv is \
+             in this pack (see coverage.in_certificate_only), so what it proved has no model is \
+             a graph this pack does not fully carry. It is therefore NOT a claim that the graph \
+             in this pack is unsatisfiable, and no derivation certificate of this pack is shown \
+             worthless by it"
         }
         crate::refute::RefuteCheck::Rejected { .. } => {
             "the checker REFUSED the refutation carried in this pack. STOP: the run that produced \
@@ -1258,4 +1325,95 @@ fn scratch_dir() -> PathBuf {
         "oo-unpack-{}-{nanos}-{serial}",
         std::process::id()
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::refute::RefuteCheck;
+
+    /// Write an executable shell script and return its path.
+    #[cfg(unix)]
+    fn executable(dir: &Path, name: &str, body: &str) -> PathBuf {
+        use std::os::unix::fs::PermissionsExt as _;
+        let path = dir.join(name);
+        std::fs::write(&path, body).expect("write the fake checker");
+        let mut perms = std::fs::metadata(&path)
+            .expect("stat the fake checker")
+            .permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&path, perms).expect("make the fake checker executable");
+        path
+    }
+
+    /// The pack-time check reads the bytes the pack CAPTURED, not whatever the
+    /// source certificate directory holds a moment later.
+    ///
+    /// The source files are rewritten after `read_certificate_dir` returns, and
+    /// the fake checker copies the two files it was handed into a record
+    /// directory. If the helper read the source again the record would hold the
+    /// mutation; it holds the sentinel instead. The helper's staging directory
+    /// is removed after the check, and the `$1` path it recorded lets this test
+    /// observe that too.
+    #[cfg(unix)]
+    #[test]
+    fn the_refutation_is_checked_from_the_captured_bytes() {
+        let root = std::env::temp_dir().join(format!("oo-staged-bytes-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let src = root.join("certificate");
+        std::fs::create_dir_all(&src).expect("source dir");
+        std::fs::write(src.join("asserted.tsv"), "captured asserted line\n").expect("asserted");
+        std::fs::write(src.join("refutation.tsv"), "captured refutation line\n")
+            .expect("refutation");
+        // `kind_of` needs one of the two derivation files to recognise a kind;
+        // this test is only about the refutation pair.
+        std::fs::write(src.join("derivations.tsv"), "captured derivation line\n")
+            .expect("derivations");
+        let cert = read_certificate_dir(&src, None).expect("capture the certificate");
+        std::fs::write(src.join("asserted.tsv"), "MUTATED asserted line\n").expect("mutate");
+        std::fs::write(src.join("refutation.tsv"), "MUTATED refutation line\n").expect("mutate");
+
+        let record = root.join("record");
+        std::fs::create_dir_all(&record).expect("record dir");
+        let recorded_asserted = record.join("asserted");
+        let recorded_refutation = record.join("refutation");
+        let recorded_staging = record.join("staging-dir");
+        // `oo-refute check ASSERTED REFUTATION`: the subcommand is `$1`, so
+        // the two files are `$2` and `$3`.
+        let body = format!(
+            r#"#!/bin/sh
+cp "$2" "{}"
+cp "$3" "{}"
+dirname "$2" > "{}"
+echo '{{"ok":true,"theorem":"OOCert.refutation_fast_sound"}}'
+exit 0
+"#,
+            recorded_asserted.display(),
+            recorded_refutation.display(),
+            recorded_staging.display(),
+        );
+        let checker = executable(&record, "fake-oo-refute.sh", &body);
+
+        let checked = check_staged_refutation(&cert, Some(&checker));
+        assert!(
+            matches!(checked, RefuteCheck::Accepted(_)),
+            "the fake checker accepts: {checked:?}"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&recorded_asserted).expect("recorded asserted"),
+            "captured asserted line\n",
+            "the sender checked the bytes it captured, not the mutated source"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&recorded_refutation).expect("recorded refutation"),
+            "captured refutation line\n",
+            "the sender checked the captured refutation, not the mutated source"
+        );
+        let staging = std::fs::read_to_string(&recorded_staging).expect("recorded staging dir");
+        assert!(
+            !Path::new(staging.trim()).exists(),
+            "the staging directory is removed after the check: {staging}"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
 }
