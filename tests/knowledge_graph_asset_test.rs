@@ -668,56 +668,223 @@ fn the_unasked_beat_comes_from_the_mu_run() {
 /// stricter rule is a few pixels of layout freedom.
 #[test]
 fn no_two_labels_sit_on_top_of_each_other() {
-    let s = svg();
-    let mut boxes: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let mut at = 0usize;
-    while let Some(i) = s[at..].find("<rect x=\"") {
-        let start = at + i;
-        let Some(end) = s[start..].find("/>") else { break };
-        let tag = &s[start..start + end + 2];
-        at = start + end + 2;
-        // Label chips and badges only: the legend panel and the colour swatches
-        // are neither rounded nor this colour.
-        if !tag.contains("fill=\"#020617\"") || !tag.contains("rx=\"") {
-            continue;
-        }
-        let num = |k: &str| -> Option<f64> {
-            let i = tag.find(&format!("{k}=\""))? + k.len() + 2;
-            tag[i..].split('"').next()?.parse().ok()
-        };
-        if let (Some(x), Some(y), Some(w), Some(h)) =
-            (num("x"), num("y"), num("width"), num("height"))
-        {
-            boxes.push((x, y, x + w, y + h));
-        }
-    }
-    assert!(
-        boxes.len() > 20,
-        "only {} label boxes were found, so this test is not looking at the labels and \
-         cannot fail",
-        boxes.len()
-    );
-    let mut clashes = Vec::new();
-    for (i, a) in boxes.iter().enumerate() {
-        for b in &boxes[i + 1..] {
-            let ix = a.2.min(b.2) - a.0.max(b.0);
-            let iy = a.3.min(b.3) - a.1.max(b.1);
-            if ix > 0.5 && iy > 0.5 {
-                clashes.push(format!(
-                    "  {:?} and {:?} share {ix:.0}x{iy:.0} pixels",
-                    a, b
-                ));
+    for name in FIGURES {
+        let s = figure(name);
+        let boxes = label_boxes(&s);
+        assert!(
+            boxes.len() > 20,
+            "{name}: only {} label boxes were found, so this test is not looking at the \
+             labels and cannot fail",
+            boxes.len()
+        );
+        let mut clashes = Vec::new();
+        for (i, a) in boxes.iter().enumerate() {
+            for b in &boxes[i + 1..] {
+                let ix = a.2.min(b.2) - a.0.max(b.0);
+                let iy = a.3.min(b.3) - a.1.max(b.1);
+                if ix > 0.5 && iy > 0.5 {
+                    clashes.push(format!(
+                        "  {:?} and {:?} share {ix:.0}x{iy:.0} pixels",
+                        a, b
+                    ));
+                }
             }
         }
+        assert!(
+            clashes.is_empty(),
+            "{name}: {} pair(s) of labels overlap, so the drawing prints two sentences \
+             through each other:\n{}\n\nEvery badge is placed by trying candidate positions \
+             against `placed`; one that overlaps is one that was placed blind.",
+            clashes.len(),
+            clashes.join("\n")
+        );
     }
-    assert!(
-        clashes.is_empty(),
-        "{} pair(s) of labels overlap, so the drawing prints two sentences through each \
-         other:\n{}\n\nEvery badge is placed by trying candidate positions against \
-         `placed`; one that overlaps is one that was placed blind.",
-        clashes.len(),
-        clashes.join("\n")
-    );
+}
+
+/// Both published figures. The Chinese one is laid out by the same code with
+/// wider strings, so it is where a badge runs out of room first.
+const FIGURES: [&str; 2] = ["knowledge-graph.svg", "knowledge-graph.zh-CN.svg"];
+
+fn figure(name: &str) -> String {
+    std::fs::read_to_string(repo().join("docs/assets").join(name))
+        .unwrap_or_else(|_| panic!("read docs/assets/{name}"))
+}
+
+/// Every opening tag `<name ...>` in the document, attributes included.
+fn open_tags<'a>(s: &'a str, name: &str) -> Vec<&'a str> {
+    let pat = format!("<{name} ");
+    let mut out = Vec::new();
+    let mut at = 0usize;
+    while let Some(i) = s[at..].find(&pat) {
+        let start = at + i;
+        let Some(end) = s[start..].find('>') else { break };
+        out.push(&s[start..start + end + 1]);
+        at = start + end + 1;
+    }
+    out
+}
+
+/// A numeric attribute. Matched with the leading space, so `x` never reads the
+/// `x` inside `rx` and `r` never reads the one inside `cx`.
+fn num_attr(tag: &str, k: &str) -> Option<f64> {
+    let key = format!(" {k}=\"");
+    let i = tag.find(&key)? + key.len();
+    tag[i..].split('"').next()?.parse().ok()
+}
+
+/// The box of every label chip and badge: a rounded `#020617` rectangle with
+/// text over it. The legend panel and the colour swatches are neither. Plus
+/// the 無 of the sixth beat, which is writing without a box: one em wide, its
+/// ink from 0.9 em above the baseline to 0.15 below.
+fn label_boxes(s: &str) -> Vec<(f64, f64, f64, f64)> {
+    let mut out: Vec<(f64, f64, f64, f64)> = open_tags(s, "rect")
+        .into_iter()
+        .filter(|t| t.contains("fill=\"#020617\"") && t.contains(" rx=\""))
+        .filter_map(|t| {
+            let (x, y) = (num_attr(t, "x")?, num_attr(t, "y")?);
+            Some((x, y, x + num_attr(t, "width")?, y + num_attr(t, "height")?))
+        })
+        .collect();
+    if let Some(end) = s.find("無</text>") {
+        let start = s[..end].rfind("<text ").expect("the 無 is in a <text>");
+        let tag = &s[start..start + s[start..].find('>').unwrap()];
+        let (x, y, f) = (
+            num_attr(tag, "x").expect("無 x"),
+            num_attr(tag, "y").expect("無 y"),
+            num_attr(tag, "font-size").expect("無 font-size"),
+        );
+        out.push((x - f * 0.6, y - f * 0.9, x + f * 0.6, y + f * 0.15));
+    }
+    out
+}
+
+/// Points along every arrow of the pipeline, sampled every two units: the
+/// straight `<line>`s and the dotted `Q` curves that run back from the provers
+/// to the certificate. The pipeline is everything left of the ontology panel
+/// and above its bottom edge; the step rail and the legend sit below that.
+fn pipeline_points(s: &str, panel: (f64, f64, f64, f64)) -> Vec<(f64, f64)> {
+    let (panel_x0, bottom) = (panel.0, panel.3);
+    let mut pts = Vec::new();
+    let mut run = |a: (f64, f64), b: (f64, f64), c: Option<(f64, f64)>| {
+        let n = (((b.0 - a.0).hypot(b.1 - a.1)) / 2.0).ceil().max(1.0) as usize;
+        for k in 0..=n {
+            let t = k as f64 / n as f64;
+            pts.push(match c {
+                None => (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t),
+                Some(q) => {
+                    let u = 1.0 - t;
+                    (
+                        u * u * a.0 + 2.0 * u * t * q.0 + t * t * b.0,
+                        u * u * a.1 + 2.0 * u * t * q.1 + t * t * b.1,
+                    )
+                }
+            });
+        }
+    };
+    for t in open_tags(s, "line") {
+        let (Some(x1), Some(y1), Some(x2), Some(y2)) =
+            (num_attr(t, "x1"), num_attr(t, "y1"), num_attr(t, "x2"), num_attr(t, "y2"))
+        else {
+            continue;
+        };
+        if x1 < panel_x0 && x2 < panel_x0 && y1 < bottom && y2 < bottom {
+            run((x1, y1), (x2, y2), None);
+        }
+    }
+    for t in open_tags(s, "path") {
+        let Some(i) = t.find(" d=\"M") else { continue };
+        let d = t[i + 5..].split('"').next().unwrap_or("");
+        if !d.contains('Q') {
+            continue;
+        }
+        let v: Vec<f64> = d
+            .split(|c: char| c == 'Q' || c.is_whitespace())
+            .filter_map(|w| w.parse().ok())
+            .collect();
+        if v.len() == 6 && v[0] < panel_x0 && v[4] < panel_x0 {
+            run((v[0], v[1]), (v[4], v[5]), Some((v[2], v[3])));
+        }
+    }
+    pts
+}
+
+/// A label may not sit on a node, under an arrow, or across the edge of the
+/// ontology panel.
+///
+/// `no_two_labels_sit_on_top_of_each_other` compares labels with labels only,
+/// and it passed a figure Fabio called crowded at a glance: the amber
+/// "returned unasked" badge ran through a row of nine classes, the forged-line
+/// badge sat on more, "Activity" covered the node beside it, three labels
+/// straddled the panel's border, and `problem.tsv` was crossed by the dotted
+/// curves that come back from the provers. Every one of those is a label
+/// against something that is NOT a label, which is exactly what that test
+/// cannot see. A badge rests at 0.4 opacity, so whatever it covers shows
+/// through it, and the reader sees two things printed in one place.
+#[test]
+fn no_label_sits_on_a_node_an_arrow_or_the_panel_edge() {
+    for name in FIGURES {
+        let s = figure(name);
+        let boxes = label_boxes(&s);
+        let panel = open_tags(&s, "rect")
+            .into_iter()
+            .find(|t| t.contains("fill=\"#060e20\""))
+            .and_then(|t| {
+                let (x, y) = (num_attr(t, "x")?, num_attr(t, "y")?);
+                Some((x, y, x + num_attr(t, "width")?, y + num_attr(t, "height")?))
+            })
+            .unwrap_or_else(|| panic!("{name}: the ontology panel is not drawn"));
+        let circles: Vec<(f64, f64, f64)> = open_tags(&s, "circle")
+            .into_iter()
+            .filter(|t| {
+                t.contains("fill=\"url(#node)\"")
+                    || t.contains("fill=\"url(#tool)\"")
+                    || (t.contains("fill=\"#34d399\"") && num_attr(t, "r").unwrap_or(0.0) > 10.0)
+            })
+            .filter_map(|t| Some((num_attr(t, "cx")?, num_attr(t, "cy")?, num_attr(t, "r")?)))
+            .collect();
+        let arrows = pipeline_points(&s, panel);
+        // Each selector has to find what it is looking for, or the test passes
+        // by looking at nothing.
+        assert!(boxes.len() > 20, "{name}: {} label boxes found", boxes.len());
+        assert!(circles.len() > 200, "{name}: {} node circles found", circles.len());
+        assert!(arrows.len() > 200, "{name}: {} arrow points found", arrows.len());
+
+        let mut bad = Vec::new();
+        for b in &boxes {
+            let inside = b.0 >= panel.0 - 0.5
+                && b.2 <= panel.2 + 0.5
+                && b.1 >= panel.1 - 0.5
+                && b.3 <= panel.3 + 0.5;
+            let outside = b.2 <= panel.0 + 0.5
+                || b.0 >= panel.2 - 0.5
+                || b.3 <= panel.1 + 0.5
+                || b.1 >= panel.3 - 0.5;
+            if !inside && !outside {
+                bad.push(format!("  {b:?} straddles the panel edge {panel:?}"));
+            }
+            for &(cx, cy, r) in &circles {
+                let nx = cx.clamp(b.0, b.2);
+                let ny = cy.clamp(b.1, b.3);
+                let d = (cx - nx).hypot(cy - ny);
+                if d < r - 0.5 {
+                    bad.push(format!("  {b:?} covers the node at ({cx}, {cy}) r {r}"));
+                }
+            }
+            if let Some(p) = arrows.iter().find(|p| {
+                p.0 > b.0 + 0.5 && p.0 < b.2 - 0.5 && p.1 > b.1 + 0.5 && p.1 < b.3 - 0.5
+            }) {
+                bad.push(format!("  {b:?} lies under a pipeline arrow at {p:?}"));
+            }
+        }
+        assert!(
+            bad.is_empty(),
+            "{name}: {} label(s) sit on something else drawn:\n{}\n\nEvery label is placed \
+             by `fits()` in docs/assets/knowledge-graph.py, which checks nodes, arrows and \
+             the panel edge as well as other labels.",
+            bad.len(),
+            bad.join("\n")
+        );
+    }
 }
 
 // ── The hand-drawn animation on the front page ──────────────────────────
