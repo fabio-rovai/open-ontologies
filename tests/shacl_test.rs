@@ -1577,7 +1577,11 @@ fn test_shacl_node_constraint_reports_the_failing_value_node() {
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
     assert_eq!(parsed["conforms"], false, "{parsed}");
     let violations = parsed["violations"].as_array().unwrap();
-    assert_eq!(violations.len(), 1, "one failing value node: {violations:?}");
+    assert_eq!(
+        violations.len(),
+        1,
+        "one failing value node: {violations:?}"
+    );
     assert_eq!(
         violations[0]["source_constraint_component"],
         "http://www.w3.org/ns/shacl#NodeConstraintComponent"
@@ -1686,5 +1690,88 @@ fn test_shacl_less_than_or_equals_reports_the_failing_value_node() {
     assert_eq!(
         violations[0]["source_constraint_component"],
         "http://www.w3.org/ns/shacl#LessThanOrEqualsConstraintComponent"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_node_shape_result_value_is_the_focus_node() {
+    // SHACL 5.3.2: sh:value is "the binding for the variable value" and, when
+    // the query binds no such variable, "the value node". For a node shape the
+    // value node is the focus node, so a SELECT that projects only `this` must
+    // still carry sh:value = the focus node. Leaving it absent is not
+    // cosmetic: the expected result tuple names the value, so the reported
+    // result set disagrees with the constraint's own semantics.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:size 99 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:message "too big" ;
+                sh:select "SELECT $this WHERE { $this <http://example.org/size> ?s . FILTER(?s > 10) }" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["focus_node"], "http://example.org/bad",
+        "{violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "http://example.org/bad",
+        "SHACL 5.3.2: with no ?value binding the value node is reported, and a node shape's value node is its focus node: {violations:?}"
+    );
+    assert!(
+        violations[0].get("path").is_none(),
+        "SHACL 5.3.2: sh:resultPath is for property shapes; a node shape result carries none: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_property_shape_result_path_is_the_shapes_path() {
+    // SHACL 5.3.2: sh:resultPath is "the binding for the variable path" where
+    // that is an IRI, and otherwise, "for results produced by a property
+    // shape, a SHACL property path that is equivalent to the value of sh:path
+    // of the shape". A property shape's SELECT may project only `this`, so the
+    // path cannot be assumed to arrive as a binding; dropping it loses the
+    // difference between "the shape's property" and "any property".
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:size 99 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:size ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:message "too big" ;
+                sh:select "SELECT $this WHERE { $this <http://example.org/size> ?s . FILTER(?s > 10) }" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["path"], "http://example.org/size",
+        "SHACL 5.3.2: with no ?path binding the shape's sh:path is the result path: {violations:?}"
     );
 }

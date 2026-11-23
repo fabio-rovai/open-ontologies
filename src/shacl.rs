@@ -2103,6 +2103,67 @@ impl ShaclValidator {
                 continue;
             }
 
+            // SHACL 5.3.2 reads `sh:resultPath` top to bottom: the binding for
+            // `?path` when that is an IRI, and otherwise, for a result produced
+            // by a property shape, a property path equivalent to the shape's
+            // own `sh:path`. That path is also what `$PATH` stands for in the
+            // query text (SHACL-SPARQL 5.3.1), so it is resolved here once,
+            // through the resolver every other path goes through. A path this
+            // validator cannot translate must not be read as a direct edge or
+            // as a clean pass, so such a shape's constraints are refused
+            // rather than executed without the path they name.
+            let mut shape_paths: Vec<String> = query_solutions_bound(
+                &shapes_store,
+                r#"
+                PREFIX sh: <http://www.w3.org/ns/shacl#>
+                SELECT ?shape ?path WHERE { ?shape sh:path ?path }
+                "#,
+                "shape",
+                &shape_node,
+            )?
+            .iter()
+            .filter_map(|row| row.get("path").cloned())
+            .collect();
+            shape_paths.sort();
+            shape_paths.dedup();
+            if shape_paths.len() > 1 {
+                skipped.push(serde_json::json!({
+                    "shape": strip_angle_brackets(&shape_iri),
+                    "constraint": "sparql",
+                    "reason": format!(
+                        "the shape carries {} values for sh:path ({}); a well-formed property \
+                         shape has at most one, so its sh:sparql constraints were not run",
+                        shape_paths.len(),
+                        shape_paths.join(", ")
+                    ),
+                }));
+                continue;
+            }
+            let shape_path = match shape_paths.first() {
+                None => None,
+                Some(raw) => {
+                    let raw = strip_angle_brackets(raw);
+                    match PathResolver::new(&shapes_store).resolve(&raw) {
+                        Ok(p) => {
+                            path_forms.insert(p.display(), p.rdf_json());
+                            Some(p)
+                        }
+                        Err(reason) => {
+                            skipped.push(serde_json::json!({
+                                "shape": strip_angle_brackets(&shape_iri),
+                                "path": raw,
+                                "constraint": "sparql",
+                                "reason": format!(
+                                    "unsupported property path: {reason}; the shape's sh:path \
+                                     cannot be evaluated, so its sh:sparql constraints were not run"
+                                ),
+                            }));
+                            continue;
+                        }
+                    }
+                }
+            };
+
             for constraint in &constraints {
                 let select_raw = match constraint.get("select") {
                     Some(s) => strip_quotes(s),
@@ -2180,19 +2241,22 @@ impl ShaclValidator {
                         for (focus, rows) in focus_terms.iter().zip(per_focus) {
                             let focus_str = focus.to_string();
                             for row in rows {
-                                // 5.3.2 again: a bound ?message overrides
-                                // sh:message, ?path is sh:resultPath and
-                                // ?value is sh:value.
+                                // 5.3.2 again, in the order the section gives
+                                // for itself ("the first bound value will be
+                                // used"). `sh:resultMessage` is the binding for
+                                // `?message`, and a bound `?message` overrides
+                                // sh:message.
                                 let bound_message = row
                                     .get("message")
                                     .filter(|m| !strip_quotes(m).is_empty());
-                                let msg = bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
-                                    if message.is_empty() {
-                                        "SPARQL constraint violated".to_string()
-                                    } else {
-                                        expand_message_template(&message, &row)
-                                    }
-                                });
+                                let msg =
+                                    bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
+                                        if message.is_empty() {
+                                            "SPARQL constraint violated".to_string()
+                                        } else {
+                                            expand_message_template(&message, &row)
+                                        }
+                                    });
                                 let rdf = RdfTerms::new(
                                     constraint.get("severity").cloned(),
                                     bound_message.cloned().or_else(|| {
@@ -2208,11 +2272,39 @@ impl ShaclValidator {
                                     "constraint": "sparql",
                                     "message": msg,
                                 });
-                                if let Some(p) = row.get("path") {
-                                    v["result_path"] = serde_json::json!(strip_angle_brackets(p));
+                                // 5.3.2, the properties this engine carries
+                                // beyond `?message`. `sh:resultPath` is the
+                                // binding for `?path` when that is an IRI, and
+                                // otherwise the shape's own path for a result
+                                // produced by a property shape. `sh:value` is
+                                // the binding for `?value`, and otherwise the
+                                // value node: for a node shape the value node
+                                // IS the focus node, while a property shape's
+                                // value nodes are not named by a SELECT that
+                                // does not bind `?value`, so nothing is
+                                // invented for one. Left out, `sh:value` was
+                                // absent on every pre-binding test the suite
+                                // says must report the focus node as its own
+                                // value node.
+                                let bound_path = row
+                                    .get("path")
+                                    .filter(|p| p.starts_with('<') && p.ends_with('>'));
+                                if let Some(p) = bound_path
+                                    .map(|p| strip_angle_brackets(p))
+                                    .or_else(|| shape_path.as_ref().map(ShaclPath::display))
+                                {
+                                    // `path` rather than `result_path` so the
+                                    // RDF writer can find `path_form` and emit
+                                    // a compound path as SHACL's blank-node
+                                    // structure; `attribute` copies it to
+                                    // `result_path`.
+                                    v["path"] = serde_json::json!(p);
                                 }
                                 if let Some(val) = row.get("value") {
                                     v["value"] = serde_json::json!(strip_angle_brackets(val));
+                                } else if shape_path.is_none() {
+                                    v["value"] =
+                                        serde_json::json!(strip_angle_brackets(&focus_str));
                                 }
                                 violations.push(attribute(&shape_iri, &shape_iri, &rdf, v));
                             }
