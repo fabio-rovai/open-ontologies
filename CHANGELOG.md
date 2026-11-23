@@ -192,6 +192,21 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **No label on the front-page figure sits on a node, an arrow or the panel
+  border** (#436). Labels in `docs/assets/knowledge-graph.py` were checked
+  against other labels only, so the unasked-question badge ran through a row of
+  classes, the forged-line badge and the 無 glyph sat on nodes, three labels
+  crossed the ontology panel's border and the provers' dotted curves cut through
+  `problem.tsv`, while every test passed. Placement now goes through one `fits`
+  check (labels, node discs, pipeline arrows, the forged and unasked lines, the
+  panel edge); a badge with no clear candidate searches outward (the two beat badges in
+  the panel then get a leader back to their line), and the generator refuses to
+  draw if nothing fits. The canvas is
+  1200 x 830 (was 1100 x 780) so the panel has room, the forged line is marked
+  with a capsule instead of a circle that took in its neighbours, and
+  `no_label_sits_on_a_node_an_arrow_or_the_panel_edge` checks both languages
+  (30 violations on the old English figure, 0 now).
+
 - **`vocab-check` checks that each term is used in the role it is declared in**
   (#432). A class used as a predicate, or a property used as the object of
   `rdf:type`, passed with `conforms: true` because the check only asked whether
