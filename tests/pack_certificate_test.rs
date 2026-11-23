@@ -827,6 +827,7 @@ fn pack_refuses_a_certificate_that_is_not_about_the_graph() {
 
 /// A graph the engine refutes under `cax-dw`, so `certify` writes
 /// `refutation.tsv` beside the derivation certificate.
+#[cfg(unix)]
 const REFUTED: &str = r#"
     :Herbivore owl:disjointWith :Carnivore .
     :Lion rdfs:subClassOf :BigCat . :BigCat rdfs:subClassOf :Carnivore .
@@ -838,6 +839,7 @@ const REFUTED: &str = r#"
 /// It prints a rejected line, because that is what a rejecting run prints and
 /// the report quotes its bytes. The engine's decision is the exit code (1 =
 /// rejected, 2 = unreadable), so the payload is not what the test turns on.
+#[cfg(unix)]
 fn fake_refute(code: i32) -> PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
@@ -867,6 +869,7 @@ fn fake_refute(code: i32) -> PathBuf {
 /// The theorem is the one `CheckerRun::accepted_naming` requires, because the
 /// token must be minted from the checker's own line rather than from the exit
 /// code alone.
+#[cfg(unix)]
 fn fake_refute_accepting() -> PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
@@ -896,6 +899,7 @@ fn fake_refute_accepting() -> PathBuf {
 /// refusal; a receiver that checks private staged copies is handed a scratch
 /// path and gets the acceptance. The export itself is never modified, so the
 /// test can also assert it holds the captured bytes.
+#[cfg(unix)]
 fn fake_refute_outside(shared: &Path) -> PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
@@ -932,6 +936,7 @@ exit 0
 
 /// A refutation the receiver's own `oo-refute` refuses blocks the load; one the
 /// receiver could not check does not.
+#[cfg(unix)]
 #[test]
 fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
     let dir = scratch("refutation-leg");
@@ -1029,6 +1034,7 @@ fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
 /// The coverage gate must not silence the claim when the certificate and the
 /// graph are the same graph: that is the one case where the refutation is about
 /// the packed triples and the booleans mean something.
+#[cfg(unix)]
 #[test]
 fn an_accepted_refutation_about_this_pack_claims_unsatisfiability() {
     let dir = scratch("accepted-refutation");
@@ -1079,6 +1085,7 @@ fn an_accepted_refutation_about_this_pack_claims_unsatisfiability() {
 /// unsatisfiability claim: `in_certificate_only` is non-empty, so `asserted.tsv`
 /// holds premises this graph does not, and the derivation certificate here was
 /// never shown worthless by it.
+#[cfg(unix)]
 #[test]
 fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsatisfiable() {
     let mine = scratch("refuted-elsewhere-mine");
@@ -1154,6 +1161,7 @@ fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsat
 /// at the directory it just wrote. It also proves the export still holds the
 /// captured bytes, and that the report names the private staging rather than
 /// claiming the export is what was checked.
+#[cfg(unix)]
 #[test]
 fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
     let dir = scratch("receiver-private");
@@ -1230,6 +1238,7 @@ fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
 /// `certificate_out_dir` is for a human, so an I/O error there must not turn an
 /// accepted certificate into a refused one. The field says what happened, the
 /// private copies are still what the checker read, and the pack still loads.
+#[cfg(unix)]
 #[test]
 fn a_failed_export_is_a_field_and_does_not_change_the_verdict() {
     let dir = scratch("export-failure");
@@ -1273,6 +1282,7 @@ fn a_failed_export_is_a_field_and_does_not_change_the_verdict() {
 
 /// A refutation the receiver could not read blocks the load as `unreadable`,
 /// and its exit code and bytes are quoted rather than folded into a rejection.
+#[cfg(unix)]
 #[test]
 fn a_refutation_the_receiver_could_not_read_blocks_the_load_as_unreadable() {
     let dir = scratch("refutation-exit-two");

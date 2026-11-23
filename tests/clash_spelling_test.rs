@@ -121,6 +121,7 @@ impl Drop for RefuteEnv {
 }
 
 /// A script that answers like a rejecting `oo-refute` and exits 1.
+#[cfg(unix)]
 fn refusing_checker() -> PathBuf {
     let path = scratch("fake-refuter").join("oo-refute.sh");
     let body = "#!/bin/sh\n\
@@ -322,6 +323,7 @@ fn a_non_certifiable_witness_does_not_shadow_a_certifiable_one() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn a_rejected_run_says_the_engine_found_a_clash_not_not_yet_checked() {
     let _env = env_lock();
