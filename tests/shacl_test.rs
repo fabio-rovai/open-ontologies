@@ -1017,7 +1017,7 @@ fn test_shacl_exclusive_range() {
 
 // Red-team regression: a value node whose datatype cannot be compared to the bound
 // (a string against a numeric range, a date against an integer, or NaN) must be a
-// VIOLATION, not a silent pass. SHACL 4.6.1/4.6.2: a value where the satisfying
+// VIOLATION, not a silent pass. SHACL 4.3.1-4.3.4: a value where the satisfying
 // comparison "does not return true" is a validation result, and a type error does
 // not return true. The affirmative-only FILTER previously dropped these to conforms.
 #[test]
@@ -1494,7 +1494,7 @@ fn test_shacl_path_iri_list_head_is_a_predicate() {
         ex:list rdf:first ex:p ; rdf:rest rdf:nil .
     "#;
     let parsed = validate_paths(data, shapes);
-    // An IRI path is a predicate path (SHACL 2.3.1 4.2.2), so the rdf:first
+    // An IRI path is a predicate path (SHACL 2.3.1.1), so the rdf:first
     // on ex:list is not a path the shape wrote and ex:p must not be followed.
     assert_eq!(parsed["conforms"], false, "{parsed}");
     let violations = parsed["violations"].as_array().unwrap();
@@ -1537,7 +1537,7 @@ fn test_shacl_path_list_head_with_repeated_form_is_refused() {
     assert!(reason.contains("http://example.org/q"), "{reason}");
 }
 
-// --- SHACL 4.6.3/4.6.4/4.6.5 sh:lessThan, sh:lessThanOrEquals and sh:node ----
+// --- SHACL 4.5.3/4.5.4/4.7.1 sh:lessThan, sh:lessThanOrEquals and sh:node ----
 //
 // All three are value-node constraints: SHACL pairs each result with the value
 // node that failed (`sh:value`), and emits one result per (focus node, value
@@ -1549,7 +1549,7 @@ fn test_shacl_path_list_head_with_repeated_form_is_refused() {
 
 #[test]
 fn test_shacl_node_constraint_reports_the_failing_value_node() {
-    // SHACL 4.6.5: a value node that does not conform to the referenced shape
+    // SHACL 4.7.1: a value node that does not conform to the referenced shape
     // is one validation result, and that result carries the value node.
     let store = Arc::new(GraphStore::new());
     store
@@ -1588,15 +1588,15 @@ fn test_shacl_node_constraint_reports_the_failing_value_node() {
     );
     assert_eq!(
         violations[0]["value"], "http://example.org/addr2",
-        "SHACL 4.6.5: the result carries the value node that failed: {violations:?}"
+        "SHACL 4.7.1: the result carries the value node that failed: {violations:?}"
     );
 }
 
 #[test]
 fn test_shacl_less_than_reports_one_result_per_failing_pair() {
-    // SHACL 4.6.3: a result for each (focus node, value node) pair for which no
-    // value of the other property satisfies the comparison, with `sh:value`
-    // set to that value node. Two values against two others is four results,
+    // SHACL 4.5.3: a result for each (value node, comparison value) pair for
+    // which the comparison does not hold, with `sh:value` set to that value
+    // node. Two values against two others is four results,
     // and the pair whose operands cannot be ordered is one of them rather than
     // a silent pass.
     let store = Arc::new(GraphStore::new());
@@ -1625,14 +1625,14 @@ fn test_shacl_less_than_reports_one_result_per_failing_pair() {
     assert_eq!(
         violations.len(),
         4,
-        "SHACL 4.6.3: one result per (focus node, value node) pair: {violations:?}"
+        "SHACL 4.5.3: one result per failing (value node, comparison value) pair: {violations:?}"
     );
     let mut values: Vec<&str> = violations
         .iter()
         .map(|v| {
             v["value"]
                 .as_str()
-                .unwrap_or_else(|| panic!("SHACL 4.6.3: every result carries sh:value: {v}"))
+                .unwrap_or_else(|| panic!("SHACL 4.5.3: every result carries sh:value: {v}"))
         })
         .collect();
     values.sort_unstable();
@@ -1658,7 +1658,7 @@ fn test_shacl_less_than_reports_one_result_per_failing_pair() {
 
 #[test]
 fn test_shacl_less_than_or_equals_reports_the_failing_value_node() {
-    // SHACL 4.6.4 is the inclusive form of the same constraint and carries the
+    // SHACL 4.5.4 is the inclusive form of the same constraint and carries the
     // same value node.
     let store = Arc::new(GraphStore::new());
     store
@@ -1685,7 +1685,7 @@ fn test_shacl_less_than_or_equals_reports_the_failing_value_node() {
     assert_eq!(violations.len(), 1, "only 5 <= 4 fails: {violations:?}");
     assert_eq!(
         violations[0]["value"], "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>",
-        "SHACL 4.6.4: the result carries the failing value node: {violations:?}"
+        "SHACL 4.5.4: the result carries the failing value node: {violations:?}"
     );
     assert_eq!(
         violations[0]["source_constraint_component"],
@@ -1778,7 +1778,7 @@ fn test_shacl_sparql_property_shape_result_path_is_the_shapes_path() {
 
 #[test]
 fn test_shacl_target_union_reports_one_result_per_focus_node() {
-    // SHACL 2.1.1: the focus nodes of a shape are the union of the nodes its
+    // SHACL 2.1.3: the focus nodes of a shape are the union of the nodes its
     // target declarations select, and validation is per focus node. A node
     // selected by BOTH a target class and a target node is one focus node, so
     // its failing result must appear once, not once per declaration.
@@ -1805,7 +1805,7 @@ fn test_shacl_target_union_reports_one_result_per_focus_node() {
     assert_eq!(parsed["conforms"], false, "{parsed}");
     assert_eq!(
         parsed["violation_count"], 1,
-        "SHACL 2.1.1: ex:John is one focus node, selected by both declarations, so one failing result: {parsed}"
+        "SHACL 2.1.3: ex:John is one focus node, selected by both declarations, so one failing result: {parsed}"
     );
     let violations = parsed["violations"].as_array().unwrap();
     assert_eq!(violations.len(), 1, "{violations:?}");
@@ -1841,7 +1841,7 @@ fn test_shacl_target_union_reports_one_result_per_focus_node_for_subjects_of() {
     assert_eq!(parsed["conforms"], false, "{parsed}");
     assert_eq!(
         parsed["violation_count"], 1,
-        "SHACL 2.1.1: the same focus node selected twice is validated once: {parsed}"
+        "SHACL 2.1.3: the same focus node selected twice is validated once: {parsed}"
     );
     let violations = parsed["violations"].as_array().unwrap();
     assert_eq!(
@@ -1887,7 +1887,7 @@ fn test_shacl_target_union_applies_to_property_constraints_too() {
 
 #[test]
 fn test_shacl_sparql_dollar_path_is_substituted_with_the_shapes_path() {
-    // SHACL-SPARQL 6.3: for a SELECT-based validator on a property shape, the
+    // SHACL-SPARQL 5.3: for a SPARQL-based constraint on a property shape, the
     // variable PATH is substituted before execution with the shape's sh:path.
     // Left unsubstituted it is an ordinary SPARQL variable, and
     // `$this $PATH ?value` then matches EVERY predicate of the focus node —
@@ -1921,7 +1921,7 @@ fn test_shacl_sparql_dollar_path_is_substituted_with_the_shapes_path() {
     assert_eq!(parsed["conforms"], false, "{parsed}");
     assert_eq!(
         parsed["violation_count"], 1,
-        "SHACL-SPARQL 6.3: $PATH must constrain the pattern to ex:germanLabel, so only the English label fails: {parsed}"
+        "SHACL-SPARQL 5.3: $PATH must constrain the pattern to ex:germanLabel, so only the English label fails: {parsed}"
     );
     let violations = parsed["violations"].as_array().unwrap();
     assert_eq!(

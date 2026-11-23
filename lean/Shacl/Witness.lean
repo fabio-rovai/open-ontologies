@@ -48,10 +48,13 @@ agreement can pin. That is why they are here and why each one comes in a pair.
 
 The two counting theorems are the ones worth reading. SHACL counts distinct value
 nodes, so a triple asserted twice must not make a `sh:maxCount 1` fail. An engine
-that counts SPARQL solutions rather than value nodes gets that wrong, and the
-repository's own SHACL validator is documented as counting the other way
-(`docs/lean-certificates.md`, "A SHACL report double-counts a node selected by two
-target declarations"). Here it is settled in the specification and proved.
+that counts SPARQL solutions rather than value nodes gets that wrong. The
+repository's own SHACL validator used to double-count a node selected by two
+target declarations, a different counting mistake with the same shape; it now
+validates each shape once over the union of its targets
+(commit `2e827b8`, this branch), and `docs/lean-certificates.md` records a
+dated amendment to the bullet that said otherwise. Here the counting is
+settled in the specification and proved.
 -/
 namespace Shacl
 

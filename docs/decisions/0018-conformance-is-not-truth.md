@@ -7,6 +7,10 @@ deferral argument is kept rather than deleted, because it is the reason the fix 
 **Amended again 30 October 2026: the calendar moved into the SPARQL expression (option 2 of PR #348),
 so E1 is fixed at every site that asks the datatype question and not only on the two direct paths.**
 Sentences changed by that amendment are marked "Amended 30 October".
+**Amended again 23 November 2026: the evaluation loop now validates a shape once over the union of
+its target declarations, so the per-target walk described below is no longer what the validator
+does; `focus_nodes_by_target` remains per declaration.** Sentences added by that amendment are
+marked "Amended 23 November 2026".
 
 ## The thesis
 
@@ -388,6 +392,14 @@ run. Now "which shapes actually ran" is answered by reading one field.
 Per TARGET and not per SHAPE, deliberately. A shape carrying two target declarations is walked twice
 and these rows are what the walk did. Adding them up per shape would produce a number that is not a
 count of distinct focus nodes.
+
+**Amended 23 November 2026:** the walk described above is gone. A shape is now validated once over
+the union of its target declarations, commit `2e827b8` (this branch), so a node selected by two
+declarations produces one result and `violation_count` no longer double-counts. The
+per-declaration rows in `focus_nodes_by_target` remain, and adding them up still does not give a
+count of distinct focus nodes. Pinned by `test_shacl_target_union_reports_one_result_per_focus_node` in
+`tests/shacl_test.rs` and by the W3C cases `core/node/class-003` and
+`core/targets/targetSubjectsOf-002`.
 
 **This fixture is only an attack when the same party writes the data and the shapes.** Where a
 verifier writes the shapes graph and a publisher supplies the data, a target class that matches

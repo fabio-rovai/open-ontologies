@@ -120,9 +120,12 @@ impl ShaclValidator {
     /// where SHACL gives a result no value (`sh:minCount`, `sh:maxCount`,
     /// `sh:hasValue`, the qualified counts). `sh:lessThan`,
     /// `sh:lessThanOrEquals` and `sh:node` used to be on that list because
-    /// their queries selected `DISTINCT ?focus`; SHACL 4.6.3, 4.6.4 and 4.6.5
-    /// pair a result with the value node that failed, so they project it and
-    /// emit one result per (focus node, value node) pair.
+    /// their queries selected `DISTINCT ?focus`. SHACL 4.5.3 and 4.5.4 pair a
+    /// result with the failing value node and emit one result per failing
+    /// (value node, comparison value) pair, so `sh:value` repeats when one
+    /// value fails against several comparison values. SHACL 4.7.1 pairs a
+    /// `sh:node` result with the value node that fails the referenced shape
+    /// and emits one per (focus node, value node) pair.
     ///
     /// Reads the whole store. Over a store that uses the temporal vocabulary
     /// that is now REFUSED rather than done silently — see
@@ -435,7 +438,7 @@ impl ShaclValidator {
             }));
         }
 
-        // SHACL 2.1.1: a shape's focus nodes are the UNION of the nodes its
+        // SHACL 2.1.3: a shape's focus nodes are the UNION of the nodes its
         // target declarations select, and validation is per focus node. A node
         // selected by two declarations is ONE focus node, not two. Walking the
         // declarations one at a time checked it once per declaration, so every
@@ -445,7 +448,7 @@ impl ShaclValidator {
         // selected by both `sh:targetSubjectsOf` and `sh:targetNode` likewise
         // (W3C core/node/class-003, core/targets/targetSubjectsOf-002).
         //
-        // Grouped rather than deduplicated downstream, because SHACL 5.3.2
+        // Grouped rather than deduplicated downstream, because SHACL 5.3
         // emits one result per solution and collapsing results would break
         // agreement where two identical results are both correct. The fix has
         // to be at the point the focus nodes are computed.
@@ -1729,14 +1732,14 @@ impl ShaclValidator {
                 // path against the values of another property on the SAME focus
                 // node, which is why they take a predicate and not a value.
                 //
-                // SHACL 4.6.3/4.6.4: one result per (focus node, value node)
-                // pair for which NO value of the other property satisfies the
-                // comparison — so `?val` is emitted as `sh:value` and
+                // SHACL 4.5.3/4.5.4: one result per failing (focus node,
+                // value node, comparison value) triple — the value node is
+                // `sh:value` and the comparison value has no result field, so
                 // `?otherVal` stays in the projection even though the report
-                // has no field for it, because a value node failing against two
-                // other values is two results and DISTINCT over (focus, val)
-                // alone would collapse them into one. lessThan-002 is exactly
-                // that case: 1,2 against "a","b" is four results.
+                // cannot show it. DISTINCT over (focus, val) alone would
+                // collapse a value node failing against two comparison values
+                // into one result, which is why lessThan-002 (1,2 against
+                // "a","b") is four results and not two.
                 //
                 // A pair that cannot be ordered (comparing a string to an
                 // integer) makes the SPARQL comparison an error rather than
@@ -1788,7 +1791,7 @@ impl ShaclValidator {
                 // compiled the whole constraint is recorded as unevaluated,
                 // because a half-checked nested shape reads as a clean one.
                 //
-                // SHACL 4.6.3 pairs each violation with the value node that
+                // SHACL 4.7.1 pairs each violation with the value node that
                 // failed the referenced shape, so `?nodeval` is projected and
                 // emitted as `sh:value`. It was selected but not projected in
                 // the report before: one result per (focus, value) pair is
@@ -1987,7 +1990,7 @@ impl ShaclValidator {
                 }
 
                 // sh:minInclusive, sh:maxInclusive, sh:minExclusive and
-                // sh:maxExclusive. SHACL 4.6.1/4.6.2: a value node is a violation
+                // sh:maxExclusive. SHACL 4.3.1-4.3.4: a value node is a violation
                 // wherever the SATISFYING comparison does not return true. A type
                 // error (a string or date against a numeric bound) and NaN both
                 // "do not return true", so they are violations, not passes. We flag
@@ -2147,7 +2150,7 @@ impl ShaclValidator {
             // `?path` when that is an IRI, and otherwise, for a result produced
             // by a property shape, a property path equivalent to the shape's
             // own `sh:path`. That path is also what `$PATH` stands for in the
-            // query text (SHACL-SPARQL 5.3.1), so it is resolved here once,
+            // query text (SHACL-SPARQL 5.3), so it is resolved here once,
             // through the resolver every other path goes through. A path this
             // validator cannot translate must not be read as a direct edge or
             // as a clean pass, so such a shape's constraints are refused
@@ -2243,7 +2246,7 @@ impl ShaclValidator {
                     .map(|s| severity_name(s))
                     .unwrap_or_else(|| "Violation".to_string());
 
-                // SHACL-SPARQL 5.3.2: `$this` is pre-bound to the focus node,
+                // SHACL-SPARQL 5.3.1: `$this` is pre-bound to the focus node,
                 // one evaluation per node. Pre-binding is SPARQL substitution,
                 // so the term is in scope inside FILTER (NOT) EXISTS and inside
                 // subqueries, which is what makes a constraint written as
@@ -2263,7 +2266,7 @@ impl ShaclValidator {
                 // shapes graph declares. An author prologue of its own is
                 // legal after those: the grammar allows any number of
                 // PREFIX and BASE declarations in any order.
-                // SHACL-SPARQL 6.3: `$PATH` is substituted rather than
+                // SHACL-SPARQL 5.3: `$PATH` is substituted rather than
                 // pre-bound, so the text the engine runs is the author's query
                 // with the shape's path written where `$PATH` stood. Only a
                 // property shape gets the substitution, because only a
@@ -2413,11 +2416,16 @@ impl ShaclValidator {
         let nothing_matched = (!targets.is_empty() && focus_nodes_total == 0)
             || (targets.is_empty() && declared_any_shape);
 
-        // Deliberately NOT deduplicated, and this was measured before it was
-        // decided. One shape carrying two target declarations that select the
-        // same node does get checked twice, which inflates `violation_count`
-        // and `focus_nodes`. Collapsing identical results looked like the fix
-        // and is not: SHACL 5.3.2 emits one result per SPARQL solution, so a
+        // Deliberately NOT deduplicated in the report, and this was measured
+        // before it was decided. Validation itself is no longer per
+        // declaration: the evaluation loop unions a shape's target
+        // declarations into one focus pattern (`union_target_pattern` below)
+        // and checks each focus node once, so `violation_count` does not
+        // duplicate a result. `focus_nodes` is still the sum of the
+        // per-declaration rows in `focus_nodes_by_target`, so it counts a node
+        // selected by two declarations twice. Collapsing identical results
+        // looked like the fix and is not: SHACL 5.3 emits one result per
+        // SPARQL solution, so a
         // constraint returning several solutions for one focus node produces
         // several results that are identical wherever the extra solution binds
         // nothing this report carries. On the 39-shape corpus from issue #132
@@ -2433,16 +2441,15 @@ impl ShaclValidator {
         // TWO validation results from them while this engine emits four. The
         // collapsing is in pySHACL's SHACL layer rather than in its SPARQL
         // engine, so on identical solutions the two do not agree and this
-        // engine is the one following SHACL 5.2.1. The decision below is
+        // engine is the one following SHACL 5.3. The decision below is
         // unchanged and one of its old reasons was wrong.
         // tests/shacl_sparql_multiplicity_test.rs pins it.
         //
-        // The real fix for the double-checked node is to take the union of a
-        // shape's focus nodes across its target declarations rather than to
-        // walk targets, which is a change to the evaluation loop and not to
-        // the report. Until then the inflation is a documented limitation,
-        // because a wrong count is cheaper than a validator that drops results
-        // the specification says to emit.
+        // `union_target_pattern` is the fix for the double-checked node, and it
+        // lives in the evaluation loop rather than in the report. `focus_nodes`
+        // keeps its documented per-declaration sum, because a wrong count there
+        // is cheaper than a validator that drops results the specification says
+        // to emit.
         let mut report = serde_json::json!({
             "violation_count": violations.len(),
             "violations": violations,
@@ -2977,9 +2984,9 @@ impl<'a> PathResolver<'a> {
             }
         }
         // A sequence path is an rdf:List on a blank node. An IRI path term
-        // with no path-form predicate is a predicate path (SHACL 2.3.1
-        // 4.2.2), so rdf:first/rdf:rest triples on it are not a path the
-        // shape wrote; a named node carrying a form predicate is still
+        // with no path-form predicate is a predicate path (SHACL 2.3.1.1),
+        // so rdf:first/rdf:rest triples on it are not a path the shape
+        // wrote; a named node carrying a form predicate is still
         // resolved by that predicate (#205). A blank list head wins over one
         // such predicate: `path-strange-001` and `-002` carry sh:inversePath
         // alongside rdf:first/rdf:rest and the suite expects the sequence.
@@ -3624,7 +3631,7 @@ fn target_pattern(kind: &str, value: &str, var: &str) -> String {
 /// The union of a shape's target patterns, as one graph pattern binding the
 /// focus variable.
 ///
-/// SHACL 2.1.1 makes the focus nodes of a shape the union of the nodes its
+/// SHACL 2.1.3 makes the focus nodes of a shape the union of the nodes its
 /// target declarations select. A `UNION` of the declaration patterns is that
 /// union with duplicates collapsed, which is what keeps a node selected by two
 /// declarations from being validated — and so reported — twice.
@@ -3666,7 +3673,7 @@ fn count_focus_nodes(
 
 /// The construct in `query` that SHACL forbids under pre-binding, if any.
 ///
-/// SHACL 5.2.1 restricts what a `sh:sparql` SELECT may contain, because
+/// SHACL Appendix A restricts what a `sh:sparql` SELECT may contain, because
 /// pre-binding is substitution and substitution is not sound through every
 /// SPARQL operator. A conforming processor must REPORT A FAILURE rather than
 /// evaluate such a query. This validator substituted unconditionally, so it
@@ -3804,12 +3811,12 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 
 /// Replace the variable `PATH` in a SHACL-SPARQL query with the shape's path.
 ///
-/// SHACL-SPARQL 6.3: for a SELECT-based validator on a property shape, "prior
+/// SHACL-SPARQL 5.3: for a SPARQL-based constraint on a property shape, "prior
 /// to execution substitute the variable PATH where it appears in the predicate
 /// position of a triple pattern with a valid SPARQL surface syntax string of
 /// the SHACL property path specified via sh:path at the property shape."
 /// `$PATH` is the one SHACL variable that is SUBSTITUTED rather than
-/// pre-bound (SHACL-SPARQL 5.1), so there is no term to bind it to and the
+/// pre-bound (SHACL-SPARQL 5.3.1), so there is no term to bind it to and the
 /// query text is what changes.
 ///
 /// Left as written, `$PATH` is an ordinary SPARQL variable and `$this $PATH
@@ -3824,6 +3831,16 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 /// [`prebinding_violation`] does: `?PATH` inside a message literal is text,
 /// not a variable, and splicing a path into one would corrupt the message
 /// instead of the pattern.
+///
+/// LIMITATION: this is a character scan, not a SPARQL tokenizer. It substitutes
+/// `$PATH` in every position, while REC 5.3 confines the substitution to the
+/// predicate position of a triple pattern; and it does not recognise
+/// triple-quoted string literals, because the first pair of quotes reads as an
+/// empty short literal. A query that writes `$PATH` only in the predicate
+/// position and keeps the three characters out of string literals is substituted
+/// exactly as REC 5.3 requires; one that does otherwise may be rewritten where
+/// the specification would leave the text alone. Closing the gap needs a real
+/// tokenizer, which is a behaviour change and not made here.
 fn substitute_path(query: &str, path: &str) -> String {
     const NAME: [char; 4] = ['P', 'A', 'T', 'H'];
     let chars: Vec<char> = query.chars().collect();

@@ -81,7 +81,7 @@ fn a_subquery_that_cannot_receive_the_binding_is_refused_and_not_called_conformi
     let skipped = r["skipped_constraints"].as_array().expect("skipped_constraints");
     // One entry per constraint-evaluation site. The site is the shape's
     // constraint over its whole focus-node set, not one per target
-    // declaration: SHACL 2.1.1 makes the focus nodes the UNION of what the
+    // declaration: SHACL 2.1.3 makes the focus nodes the UNION of what the
     // declarations select, so `sh:targetNode ex:InvalidResource, ex:
     // ValidResource` is one evaluation over two nodes, and a per-declaration
     // count here would be a count of declarations rather than of refusals.
