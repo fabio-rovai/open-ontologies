@@ -750,6 +750,17 @@ jobs:
         # accepted, and the laundering guard, which fails if this engine ever
         # states the verdict only an accepted refutation earns.
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_refutation_producer_test -- --nocapture
+      - name: Check that a cls-maxc1 clash is certified only for the canonical zero
+        # Certifiability is per witness: the Lean condition requires the
+        # canonical xsd:nonNegativeInteger zero, and an integer-typed
+        # `owl:maxCardinality 0` must stay detected without being written.
+        # Strict, because this file is the only leg that pins that split.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test clash_spelling_test -- --nocapture
+      - name: Check that the engine believes the checker only when the refutation is accepted
+        # Needs the real oo-refute: an accepting run must mint the certified
+        # word, a wrong theorem must not, and an absent binary must report
+        # nothing was checked.
+        run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_refutation_checked_test -- --nocapture
       - name: Check the mixed certificate layer
         run: OO_REQUIRE_FIXTURES=1 cargo test --test lean_mixed_certificate_test -- --nocapture
       - name: Re-run the checker over a certificate carried inside a pack, and refuse a forged one
