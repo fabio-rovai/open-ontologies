@@ -1536,3 +1536,51 @@ fn test_shacl_path_list_head_with_repeated_form_is_refused() {
     assert!(reason.contains("http://example.org/p"), "{reason}");
     assert!(reason.contains("http://example.org/q"), "{reason}");
 }
+
+// --- SHACL 4.6.5 sh:node: the result carries the value node -----------------
+//
+// A value node that does not conform to the referenced shape is one
+// validation result (SHACL 4.6.5), and that result carries the value node. The
+// engine bound the value all along and the report dropped it, so a consumer
+// had to re-query the store for the node that failed.
+
+#[test]
+fn test_shacl_node_constraint_reports_the_failing_value_node() {
+    // SHACL 4.6.5: a value node that does not conform to the referenced shape
+    // is one validation result, and that result carries the value node.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:alice a ex:Person ; ex:address ex:addr1, ex:addr2 .
+            ex:addr1 ex:postalCode "1234" .
+            ex:addr2 ex:postalCode 5678 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:AddressShape a sh:NodeShape ;
+            sh:property [ sh:path ex:postalCode ; sh:datatype xsd:string ; sh:maxCount 1 ] .
+        ex:PersonShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:property [ sh:path ex:address ; sh:node ex:AddressShape ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "one failing value node: {violations:?}");
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#NodeConstraintComponent"
+    );
+    assert_eq!(
+        violations[0]["value"], "http://example.org/addr2",
+        "SHACL 4.6.5: the result carries the value node that failed: {violations:?}"
+    );
+}

@@ -1736,11 +1736,18 @@ impl ShaclValidator {
                 // expression over the value node; if any part of it cannot be
                 // compiled the whole constraint is recorded as unevaluated,
                 // because a half-checked nested shape reads as a clean one.
+                //
+                // SHACL 4.6.5 pairs each violation with the value node that
+                // failed the referenced shape, so `?nodeval` is projected and
+                // emitted as `sh:value`. It was bound and not emitted before:
+                // one result per (focus node, value node) pair is what the
+                // specification asks for, and two values failing the same
+                // nested shape is two results, not one.
                 if let Some(node_ref) = prop.get("node") {
                     match compile_node_shape(&shapes_store, node_ref.trim(), "nodeval", 0) {
                         Some(expr) => {
                             let query = format!(
-                                r#"SELECT DISTINCT ?focus WHERE {{
+                                r#"SELECT DISTINCT ?focus ?nodeval WHERE {{
                                     {focus_pattern}
                                     ?focus {path_expr} ?nodeval .
                                     FILTER(!({expr}))
@@ -1759,6 +1766,7 @@ impl ShaclValidator {
                                     violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
+                                        "value": row.get("nodeval").map(|v| strip_angle_brackets(v)),
                                         "path": path,
                                         "constraint": "node",
                                         "message": msg,
