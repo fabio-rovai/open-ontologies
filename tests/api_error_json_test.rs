@@ -11,11 +11,14 @@
 //! answered `null` with HTTP 200; the CLI printed the broken text and, for the
 //! commands that set their exit code from the `error` key, exited 0.
 
+mod common;
+
+use common::HttpServer;
 use serde_json::{Value, json};
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::process::Command;
+use std::time::Duration;
 
 /// A SPARQL query whose parse error quotes `"` and `\` back to the caller.
 const BAD_QUERY: &str = r#"SELECT * WHERE { ?s ?p "\q" }"#;
@@ -32,41 +35,16 @@ fn oo(dir: &tempfile::TempDir) -> Command {
     cmd
 }
 
-struct Server(Child);
-impl Drop for Server {
-    fn drop(&mut self) {
-        let _ = self.0.kill();
-        let _ = self.0.wait();
-    }
-}
-
-fn start_server(dir: &tempfile::TempDir) -> (Server, SocketAddr) {
+fn start_server(dir: &tempfile::TempDir) -> (HttpServer, SocketAddr) {
     let config = dir.path().join("config.toml");
     std::fs::write(&config, "[storage]\nmode = 'memory'\n").unwrap();
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    let addr = listener.local_addr().unwrap();
-    drop(listener);
     let mut cmd = oo(dir);
     cmd.env("OPEN_ONTOLOGIES_STORAGE_MODE", "memory")
         .arg("serve-http")
         .arg("--config")
-        .arg(&config)
-        .args(["--host", "127.0.0.1", "--port", &addr.port().to_string()])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    let mut server = Server(cmd.spawn().unwrap());
-    let deadline = Instant::now() + Duration::from_secs(30);
-    loop {
-        assert!(
-            server.0.try_wait().unwrap().is_none(),
-            "HTTP server exited before binding"
-        );
-        if TcpStream::connect(addr).is_ok() {
-            break;
-        }
-        assert!(Instant::now() < deadline, "HTTP server did not bind");
-        std::thread::sleep(Duration::from_millis(20));
-    }
+        .arg(&config);
+    let server = common::spawn_serve_http(cmd);
+    let addr = server.addr;
     (server, addr)
 }
 

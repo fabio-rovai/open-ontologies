@@ -3,9 +3,11 @@
 
 //! Native SELECT rows must reach the human renderer on local and proxy paths.
 
+mod common;
+
 use open_ontologies::{graph::GraphStore, output};
 use serde_json::{Value, json};
-use std::process::{Child, Command, Output, Stdio};
+use std::process::{Command, Output, Stdio};
 use std::time::{Duration, Instant};
 
 const DATA: &str = r#"
@@ -209,47 +211,22 @@ fn built_cli_local_select_uses_human_table_and_preserves_json_precedence() {
     check_cli_queries(&dir, "local", true);
 }
 
-struct Server(Child);
-impl Drop for Server {
-    fn drop(&mut self) {
-        let _ = self.0.kill();
-        let _ = self.0.wait();
-    }
-}
-
 #[test]
 fn built_cli_proxy_select_uses_real_http_store_and_human_dispatch() {
     let dir = tempfile::tempdir().unwrap();
     let config = dir.path().join("config.toml");
     std::fs::write(&config, "[storage]\nmode = 'memory'\n").unwrap();
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    let addr = listener.local_addr().unwrap();
-    drop(listener);
     let mut cmd = oo(&dir);
     cmd.env("OPEN_ONTOLOGIES_STORAGE_MODE", "memory")
         .arg("serve-http")
         .arg("--config")
-        .arg(&config)
-        .args(["--host", "127.0.0.1", "--port", &addr.port().to_string()])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    let mut server = Server(cmd.spawn().unwrap());
-    let deadline = Instant::now() + Duration::from_secs(10);
-    loop {
-        assert!(
-            server.0.try_wait().unwrap().is_none(),
-            "HTTP server exited before binding"
-        );
-        if std::net::TcpStream::connect(addr).is_ok() {
-            break;
-        }
-        assert!(Instant::now() < deadline, "HTTP server did not bind");
-        std::thread::sleep(Duration::from_millis(20));
-    }
+        .arg(&config);
+    let server = common::spawn_serve_http(cmd);
+    let addr = server.addr;
     // Advertise this owned, real serve-http child through the public daemon
     // record. It remains attached to the test so every exit reaps it.
     let info = open_ontologies::daemon::DaemonInfo {
-        pid: server.0.id(),
+        pid: server.child.id(),
         url: format!("http://{addr}"),
         token: None,
     };
