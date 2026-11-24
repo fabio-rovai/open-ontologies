@@ -228,7 +228,10 @@ All notable changes to Open Ontologies are documented here.
   `rdfs:domain`, `rdfs:range` and `rdfs:subPropertyOf`), and a declared term used
   in the other role is reported under a new `wrong_role_terms` field and fails
   the check. Undeclared terms stay in `hallucinated_terms`, so the two cases
-  remain distinguishable. A term declared in both roles is accepted in both.
+  remain distinguishable. A term declared in both roles is accepted in both. The
+  Python `vocab_check` in `open-ontologies-lite` runs the same check and lists
+  each such term under `wrong_role_terms` with the role it was used in and the
+  role it was declared in.
 
 - **`reason --certificate` writes the same `derivations.tsv` on every run over
   the same store** (#427). The conclusions were always the same set, but the

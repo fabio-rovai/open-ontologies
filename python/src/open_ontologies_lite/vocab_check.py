@@ -59,6 +59,26 @@ _DEFINING_AXIOM = f"""FILTER(
  || ?p = <{RDFS}subPropertyOf>)"""
 
 
+# Which role a declaration gives a term. A class used as a predicate, or a property
+# used as the object of `rdf:type`, is declared but not in that role (#432). A term
+# declared as both (OWL 2 punning) fits either role.
+_CLASS_KINDS = (f"{OWL}Class", f"{RDFS}Class")
+_CLASS_AXIOMS = (f"{RDFS}subClassOf",)
+_PROPERTY_KINDS = (
+    f"{OWL}ObjectProperty",
+    f"{OWL}DatatypeProperty",
+    f"{OWL}AnnotationProperty",
+    f"{OWL}FunctionalProperty",
+    f"{OWL}InverseFunctionalProperty",
+    f"{RDF}Property",
+)
+_PROPERTY_AXIOMS = (f"{RDFS}domain", f"{RDFS}range", f"{RDFS}subPropertyOf")
+
+
+def _in(var: str, iris: tuple[str, ...]) -> str:
+    return "FILTER(" + " || ".join(f"?{var} = <{iri}>" for iri in iris) + ")"
+
+
 def _namespace_of(iri: str) -> str:
     """Everything up to and including the last `#` or `/`."""
     cut = max(iri.rfind("#"), iri.rfind("/"))
@@ -108,6 +128,17 @@ def vocab_check(
         onto_store, f"SELECT DISTINCT ?t WHERE {{ ?t ?p ?o . {_DEFINING_AXIOM} }}", "t"
     )
 
+    classes = _iris(
+        onto_store, f"SELECT DISTINCT ?t WHERE {{ ?t a ?k . {_in('k', _CLASS_KINDS)} }}", "t"
+    ) | _iris(
+        onto_store, f"SELECT DISTINCT ?t WHERE {{ ?t ?p ?o . {_in('p', _CLASS_AXIOMS)} }}", "t"
+    )
+    properties = _iris(
+        onto_store, f"SELECT DISTINCT ?t WHERE {{ ?t a ?k . {_in('k', _PROPERTY_KINDS)} }}", "t"
+    ) | _iris(
+        onto_store, f"SELECT DISTINCT ?t WHERE {{ ?t ?p ?o . {_in('p', _PROPERTY_AXIOMS)} }}", "t"
+    )
+
     extra = list(extra_namespaces or [])
 
     # A closed-world check with nothing to close over must never silently pass.
@@ -115,6 +146,7 @@ def vocab_check(
         return {
             "conforms": False,
             "undeclared_terms": [],
+            "wrong_role_terms": [],
             "checked_namespaces": [],
             "predicates_checked": 0,
             "types_checked": 0,
@@ -138,9 +170,23 @@ def vocab_check(
         if _namespace_of(iri) in policed and iri not in declared
     )
 
+    wrong_role = sorted(
+        (
+            {"term": iri, "used_as": used_as, "declared_as": declared_as}
+            for used, used_as, fits, declared_as in (
+                (predicates, "property", properties, "class"),
+                (types, "class", classes, "property"),
+            )
+            for iri in used
+            if _namespace_of(iri) in policed and iri in declared and iri not in fits
+        ),
+        key=lambda entry: (entry["term"], entry["used_as"]),
+    )
+
     return {
-        "conforms": not undeclared,
+        "conforms": not undeclared and not wrong_role,
         "undeclared_terms": undeclared,
+        "wrong_role_terms": wrong_role,
         "checked_namespaces": sorted(policed),
         "predicates_checked": len(predicates),
         "types_checked": len(types),
