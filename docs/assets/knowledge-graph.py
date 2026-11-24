@@ -94,7 +94,13 @@ ONTOLOGY = "<http://www.w3.org/2002/07/owl#Ontology>"
 #   + rdf:type                      5
 #   + rdfs:domain, rdfs:range       1, and the file's own header
 LINKING = (SUBCLASS, TYPE, DOMAIN, RANGE)
-W, H = 1100, 780
+# 1200 x 830, up from 1100 x 780 (#436). At 1100 the pipeline's right-hand
+# labels ran into the ontology panel and the panel was too short for its 233
+# terms, so badges had nowhere to land that was not on a node. The extra width
+# goes to the gap between the pipeline and the panel, the extra height to the
+# panel; the pipeline itself stays where it was, because hero.js scales it from
+# these coordinates.
+W, H = 1200, 830
 SEED = 20260919
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OO_CERT = os.path.join(ROOT, "lean", ".lake", "build", "bin", "oo-cert")
@@ -574,7 +580,9 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # the rectangle the same way along its longer side, recurse. It fills the
     # region with no leftover, which is the point — the earlier layout left the
     # bottom-right of the canvas empty while fragments crowded the middle.
-    OL, OR_, T, B = 470, W - 34, 138, H - 246
+    # The panel starts at 566 so its border (550) clears the widest label of
+    # the pipeline, `oo-resolution`, which ends near 533.
+    OL, OR_, T, B = 566, W - 34, 138, H - 246
 
     def split(items, rect):
         if len(items) == 1:
@@ -784,7 +792,10 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         LEAN: (318, 168),
         "Isabelle/HOL": (318, 250),
         "Vampire": (318, 336),
-        FORES: (420, 336),
+        # 444, not 420: the arrow from Vampire now starts after Vampire's name
+        # instead of running under it, and needs the length. hero.js pushes
+        # this node clear of that name on its own, so its layout is unchanged.
+        FORES: (444, 336),
         "E": (318, 384),
         "Z3": (318, 432),
         "Mace4": (318, 480),
@@ -926,6 +937,8 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     order = sorted(range(len(edges)), key=lambda e: (depth[edges[e][0]] + depth[edges[e][1]]) / 2)
 
     layers = {"asserted": [], "certified": [], "rejected": []}
+    # Every pipeline arrow as drawn, tip included, so no label is placed on one.
+    pipe_segs = []
     for e in order:
         i, j, w = edges[e]
         d = (depth[i] + depth[j]) / 2
@@ -947,8 +960,14 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
             vx, vy = bx - ax, by - ay
             L = math.hypot(vx, vy) or 1.0
             ux_, uy_ = vx / L, vy / L
-            ax, ay = ax + ux_ * (rad(i) + 4.0), ay + uy_ * (rad(i) + 4.0)
+            lead_ = rad(i) + 4.0
+            if nodes[i] in PROGRAMS and nodes[j] in PROGRAMS and abs(ay - by) < 0.5:
+                # A judge feeding the judge beside it: the arrow leaves after the
+                # first one's name, which is drawn on that side, not under it.
+                lead_ = rad(i) + 1 + len(nodes[i]) * (10.5 * 0.55) + 8 + 4.0
+            ax, ay = ax + ux_ * lead_, ay + uy_ * lead_
             bx, by = bx - ux_ * (rad(j) + 8.5), by - uy_ * (rad(j) + 8.5)
+            pipe_segs.append(((ax, ay), (bx + ux_ * 7.0, by + uy_ * 7.0)))
         head = (f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" '
                 f'stroke="{COLOR[w]}" stroke-width="{WIDTH[w] * (0.7 + 0.8 * d):.2f}" '
                 f'opacity="{op:.2f}"')
@@ -1051,53 +1070,289 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # is to show who judged what. Ontology classes get a label only if they are
     # busy and the chip lands clear, the way the component shows one on hover
     # rather than all at once: a label per node is a grey wall.
-    placed = []
+    #
+    # WHERE A LABEL MAY GO (#436). Every label used to be checked against the
+    # other labels and against nothing else, and the figure passed every test
+    # while the amber badge ran through a row of nine classes, the forged-line
+    # badge sat on more, three labels straddled the panel's border and the
+    # dotted curves from the provers cut through `problem.tsv`. A badge rests at
+    # 0.4, so whatever it covers shows through it. Now `fits` refuses a box that
+    # touches another label, a node, an arrow of the pipeline, the forged line or
+    # the unasked question, or that crosses the panel's border. Nothing is placed
+    # blind: a label with no clear candidate searches outward from where it
+    # belongs, and if that fails too the figure is not drawn.
+    # `no_label_sits_on_a_node_an_arrow_or_the_panel_edge` checks the result.
+    #
+    # Placement runs in priority order and drawing runs afterwards in the old
+    # order, so winning a contested spot changes nothing about what is drawn on
+    # top. The beat badges are placed before the optional class names: a class
+    # that loses its name is a quieter drawing, a beat that loses its badge is a
+    # wrong one.
+    PANEL = (OL - 16, T - 22, OR_ + 16, B + 18)        # the boundary drawn above
+    INNER = (PANEL[0] + 4, PANEL[1] + 4, PANEL[2] - 4, PANEL[3] - 4)
+    LEFT = (10.0, 116.0, PANEL[0] - 4, PANEL[3])        # the pipeline's side
+    GAP = 1.5
+    placed = [(0.0, 0.0, float(W), 113.0),              # titles and column heads
+              (0.0, PANEL[3] + 4.0, float(W), float(H))]  # the rail and the legend
+    discs = []
+    for i in range(len(nodes)):
+        r_ = rad(i)
+        if nodes[i] in FILES:
+            placed.append((pt[i][0] - r_ * 1.5, pt[i][1] - r_ * 1.85,
+                           pt[i][0] + r_ * 1.5, pt[i][1] + r_ * 1.85))
+        else:
+            discs.append((pt[i][0], pt[i][1], r_, i))
+    lines_pts = []
 
-    def chip(i, label, color, size, weight, insist=False):
-        """Place a label, trying a few positions before giving up.
+    def trace(a, b, q=None):
+        """Points every two units along a segment, or a quadratic curve via q."""
+        n = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / 2.0)))
+        for k in range(n + 1):
+            t = k / n
+            if q is None:
+                lines_pts.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+            else:
+                u = 1.0 - t
+                lines_pts.append((u * u * a[0] + 2 * u * t * q[0] + t * t * b[0],
+                                  u * u * a[1] + 2 * u * t * q[1] + t * t * b[1]))
 
-        `insist` is for the verification layer. An ontology class that cannot
-        find room simply goes unlabelled, which is the right trade in a dense
-        graph. A judge that goes unlabelled defeats the purpose of drawing the
-        layer at all, so those get every candidate position and then take the
-        last one regardless. Dropping `Isabelle/HOL` off the picture because a
-        blue dot was in the way is not a tidier drawing, it is a wrong one."""
+    for a_, b_ in pipe_segs:
+        trace(a_, b_)
+    # The dotted curves from the provers back to the certificate (drawn below,
+    # under "What an opinion is FOR"), from the same numbers.
+    pv = [idx[n] for n in ("Vampire", "E", "Z3", "Mace4")]
+    ci0 = idx["certificate"]
+    fx0 = min(pt[i][0] for i in pv) - 46.0
+    fy0 = sum(pt[i][1] for i in pv) / len(pv)
+    for i in pv:
+        trace((pt[i][0] - rad(i) - 4, pt[i][1]), (fx0, fy0), (fx0, pt[i][1]))
+    trace((fx0, fy0), (pt[ci0][0], pt[ci0][1] + rad(ci0) + 6), (fx0, pt[ci0][1] + 30))
+    # The refused segment, certificate to Lean, and the bar across it.
+    _li, _ci = idx[LEAN], idx["certificate"]
+    _vx, _vy = pt[_li][0] - pt[_ci][0], pt[_li][1] - pt[_ci][1]
+    _L = math.hypot(_vx, _vy) or 1.0
+    _ux, _uy = _vx / _L, _vy / _L
+    _ex, _ey = pt[_li][0] - _ux * (rad(_li) + 15.0), pt[_li][1] - _uy * (rad(_li) + 15.0)
+    trace((pt[_ci][0] + _ux * (rad(_ci) + 4.0), pt[_ci][1] + _uy * (rad(_ci) + 4.0)), (_ex, _ey))
+    trace((_ex - _uy * 11, _ey + _ux * 11), (_ex + _uy * 11, _ey - _ux * 11))
+    # The two lines the last beats are about.
+    fi, fj, _ = edges[forged]
+    trace((pt[fi][0], pt[fi][1]), (pt[fj][0], pt[fj][1]))
+    if mu and mu_s in idx and mu_o in idx:
+        trace((pt[idx[mu_s]][0], pt[idx[mu_s]][1]), (pt[idx[mu_o]][0], pt[idx[mu_o]][1]))
+
+    def fits(b, own=None):
+        """Clear of everything drawn. `own` is the node a name belongs to: the
+        name sits one unit off its dot by design, inside the gap the others need."""
+        x0, y0, x1, y1 = b[0] - GAP, b[1] - GAP, b[2] + GAP, b[3] + GAP
+        if x0 < 8 or x1 > W - 8:
+            return False
+        inside = PANEL[0] <= x0 and x1 <= PANEL[2] and PANEL[1] <= y0 and y1 <= PANEL[3]
+        if not inside and not (x1 <= PANEL[0] or x0 >= PANEL[2] or y1 <= PANEL[1] or y0 >= PANEL[3]):
+            return False
+        if any(x0 < o[2] and o[0] < x1 and y0 < o[3] and o[1] < y1 for o in placed):
+            return False
+        for cx_, cy_, r_, k_ in discs:
+            if k_ == own:
+                continue
+            dx_ = cx_ - min(max(cx_, x0), x1)
+            dy_ = cy_ - min(max(cy_, y0), y1)
+            if dx_ * dx_ + dy_ * dy_ < r_ * r_:
+                return False
+        return not any(x0 < px_ < x1 and y0 < py_ < y1 for px_, py_ in lines_pts)
+
+    def within(b, region):
+        return region[0] <= b[0] and region[1] <= b[1] and b[2] <= region[2] and b[3] <= region[3]
+
+    def nearest(anchor, w_, h_, region, reach=300.0, step=4.0, own=None):
+        """The box of w_ x h_ centred nearest `anchor` that fits inside `region`."""
+        n = int(reach / step)
+        found = []
+        for gy in range(-n, n + 1):
+            for gx in range(-n, n + 1):
+                d = math.hypot(gx, gy) * step
+                if d > reach:
+                    continue
+                cx_, cy_ = anchor[0] + gx * step, anchor[1] + gy * step
+                b = (cx_ - w_ / 2, cy_ - h_ / 2, cx_ + w_ / 2, cy_ + h_ / 2)
+                if within(b, region):
+                    found.append((d, gy, gx, b))
+        found.sort()
+        return next((b for *_, b in found if fits(b, own)), None)
+
+    def take(cands, where, region, anchor, own=None):
+        """The first candidate that fits, else the nearest box of the same size
+        to `anchor`; refuse to draw rather than place it on something."""
+        b = next((c for c in cands if within(c, region) and fits(c, own)), None)
+        if b is None:
+            b = nearest(anchor, cands[0][2] - cands[0][0], cands[0][3] - cands[0][1], region, own=own)
+        if b is None:
+            raise SystemExit(f"{where}: no place on the figure is clear of every label, "
+                             f"node and arrow. Widen the canvas or shorten the text.")
+        placed.append(b)
+        return b
+
+    def lead(b, ax_, ay_):
+        """A leader from a line to its badge when the badge had to move away."""
+        nx0, ny0 = min(max(ax_, b[0]), b[2]), min(max(ay_, b[1]), b[3])
+        if math.hypot(nx0 - ax_, ny0 - ay_) <= 16.0:
+            return None
+        trace((ax_, ay_), (nx0, ny0))
+        return (ax_, ay_, nx0, ny0)
+
+    def chip_cands(i, label, size):
         w_ = len(label) * (size * 0.55) + 8
         # A file is drawn as a sheet, which is wider and taller than the dot it
         # replaced, so a label offset by the dot radius lands ON it.
         r_ = rad(i) * (1.6 if nodes[i] in FILES else 1.0)
-        candidates = [
+        pos = [
             (pt[i][0] + r_ + 5, pt[i][1] + 3.5),
-            (pt[i][0] - r_ - 5 - w_, pt[i][1] + 3.5),
+            (pt[i][0] - r_ - 5 - w_ + 4, pt[i][1] + 3.5),
             (pt[i][0] + r_ + 5, pt[i][1] - r_ - 6),
             (pt[i][0] - w_ / 2, pt[i][1] + r_ + 14),
             (pt[i][0] - w_ / 2, pt[i][1] - r_ - 8),
+            (pt[i][0] + r_ + 5, pt[i][1] + r_ + 12),
+            (pt[i][0] - r_ - 5 - w_ + 4, pt[i][1] - r_ - 6),
+            (pt[i][0] - r_ - 5 - w_ + 4, pt[i][1] + r_ + 12),
         ]
-        for n_, (x, y) in enumerate(candidates):
-            box = (x - 3, y - 11, x + w_, y + 4)
-            clear = all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-                        for o in placed)
-            last = n_ == len(candidates) - 1
-            if clear or (insist and last):
-                placed.append(box)
-                A(f'<rect x="{x-4:.1f}" y="{y-11:.1f}" width="{w_:.1f}" height="15" rx="3.5" '
-                  f'fill="#020617" opacity="0.88"/>')
-                A(f'<text x="{x:.1f}" y="{y:.1f}" font-size="{size}" font-weight="{weight}" '
-                  f'fill="{color}">{label}</text>')
-                return True
-        return False
+        return [(x - 4, y - 11, x - 4 + w_, y + 4) for x, y in pos]
 
+    chips = []          # (rect, label, colour, size, weight), drawn in this order
+
+    # 1. The verification layer's names. Each one is placed, whatever it takes.
     for name in [LEAN] + [t for t in TOOLS if t != LEAN]:
-        chip(idx[name], name, C_LEAN if name == LEAN else C_TOOL,
-             11.5 if name == LEAN else 10.5, 800 if name == LEAN else 700, insist=True)
+        size, weight = (11.5, 800) if name == LEAN else (10.5, 700)
+        cs = chip_cands(idx[name], name, size)
+        b = take(cs, f"the label {name!r}", LEFT, ((cs[0][0] + cs[0][2]) / 2, (cs[0][1] + cs[0][3]) / 2),
+                 own=idx[name])
+        chips.append((b, name, C_LEAN if name == LEAN else C_TOOL, size, weight))
+
+    # 2. Each judge's verdict badge (drawn under "The verification layer, working").
+    JUDGES = [
+        (LEAN, TX["j_cert"], C_LEAN, 6.8, 9.6),
+        ("Isabelle/HOL", TX["j_same"], C_LEAN, 7.4, 9.6),
+        ("Vampire", TX["j_cert"] if vampire_certified else TX["j_op"],
+         C_LEAN if vampire_certified else C_TOOL, 10.0, 13.0),
+        (FORES, TX["j_checks"] if vampire_certified else TX["j_noproof"],
+         C_LEAN if vampire_certified else C_TOOL, 10.4, 13.0),
+        ("E", TX["j_op"], C_TOOL, 10.3, 13.0),
+        ("Z3", TX["j_op"], C_TOOL, 10.6, 13.0),
+        ("Mace4", TX["j_op"], C_TOOL, 10.9, 13.0),
+    ]
+    judge_box = {}
+    for jname, verdict, col, t0, t1 in JUDGES:
+        ji = idx[jname]
+        jr = rad(ji)
+        bw = max(len(verdict) * 5.4, text_width(verdict, 9.5)) + 12
+        # Badges go through the SAME collision list the labels use. Stacked
+        # straight above their nodes they piled on top of one another and on
+        # the names beside them, because the four provers sit close together:
+        # the badge saying which kind of answer this is was the thing hidden.
+        pos = [
+            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 13),
+            (pt[ji][0] - bw / 2, pt[ji][1] + jr + 20),
+            (pt[ji][0] + jr + 7, pt[ji][1] - jr - 6),
+            (pt[ji][0] - jr - 7 - bw, pt[ji][1] - jr - 6),
+            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 30),
+        ]
+        judge_box[jname] = take([(x, y - 10, x + bw, y + 4) for x, y in pos],
+                                f"the {jname} badge", LEFT, (pt[ji][0], pt[ji][1] - jr - 17))
+
+    # 3. "disagreement · stops the line", beside the curves it names.
+    dtxt = TX["disagree"]
+    dw = max(len(dtxt) * 5.0, text_width(dtxt, 8.8)) + 12
+    # Candidates, like every other badge on this drawing. This one used to take
+    # a single computed point, and that point sat on top of the `problem.tsv`
+    # label: two pieces of writing, both visible at the same instant, in the
+    # same place. Nothing else here places blind, and the overlap guards in
+    # `tests/knowledge_graph_asset_test.rs` refuse the whole asset if one does.
+    dpos = [
+        (fx0 - dw - 8, fy0 + 4),
+        (fx0 - dw - 8, fy0 - 22),
+        (fx0 - dw - 8, fy0 + 30),
+        (fx0 + 10, fy0 + 30),
+        (fx0 - dw / 2, fy0 + 52),
+    ]
+    dbox = take([(x, y - 10, x + dw, y + 4) for x, y in dpos], "the disagreement badge",
+                LEFT, (fx0 - dw / 2 - 8, fy0))
+
+    # 4. The verdict at the checker.
+    li = idx[LEAN]
+    lr = rad(li)
+    rtxt = TX["refused"].format(code=refused_exit, rule=f_rule)
+    rw = max(len(rtxt) * 5.4, text_width(rtxt, 9.5)) + 12
+    rpos = [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
+            (pt[li][0] + lr + 8, pt[li][1] + lr + 12),
+            (pt[li][0] - rw / 2, pt[li][1] + lr + 40)]
+    rbox = take([(x, y - 10, x + rw, y + 4) for x, y in rpos], "the refusal badge",
+                LEFT, (pt[li][0], pt[li][1] + lr + 18))
+
+    # 5. "this line is forged", beside the line, inside the panel.
+    fmx = (pt[fi][0] + pt[fj][0]) / 2.0
+    fmy = (pt[fi][1] + pt[fj][1]) / 2.0
+    flen = math.hypot(pt[fi][0] - pt[fj][0], pt[fi][1] - pt[fj][1])
+    ftxt = TX["forged"]
+    # Wide enough for the glyphs actually drawn. `len * 5.4` is a Latin
+    # estimate, and a Chinese glyph is a full em, so the two beat-five
+    # badges ran their text into the rim of the box in the zh figure.
+    fw = max(len(ftxt) * 5.4, text_width(ftxt, 9.5)) + 12
+    # Beside the line first, on either side of it: just far enough along
+    # the normal that the box clears the line, so the badge names the line
+    # without covering an end of it. A steep line took the badge straight
+    # above its middle, which is on the line.
+    fnx = -(pt[fj][1] - pt[fi][1]) / (flen or 1.0)
+    fny = (pt[fj][0] - pt[fi][0]) / (flen or 1.0)
+    foff = (fw / 2.0 + 3.0) * abs(fnx) + 8.5 * abs(fny) + 6.0
+    fpos = [(fmx + fnx * foff, fmy + fny * foff + 3.5),
+            (fmx - fnx * foff, fmy - fny * foff + 3.5)]
+    for dy_ in (-26.0, 26.0, -44.0, 44.0):
+        for dx_ in (0.0, -46.0, 46.0):
+            fpos.append((fmx + dx_, fmy + dy_))
+    fbox = take([(x - fw / 2, y - 10, x + fw / 2, y + 4) for x, y in fpos],
+                "the forged-line badge", INNER, (fmx, fmy))
+    flead = lead(fbox, fmx, fmy)
+
+    # 6. The unasked question's badge, with 無 in its own square at its left
+    #    end. The glyph used to be drawn on the line's midpoint, on whatever
+    #    classes sat there; it is the engine's answer, so it goes with the badge.
+    mbox = mlead = None
+    if mu and mu_s in idx and mu_o in idx:
+        qi, qj = idx[mu_s], idx[mu_o]
+        qmx, qmy = (pt[qi][0] + pt[qj][0]) / 2.0, (pt[qi][1] + pt[qj][1]) / 2.0
+        mtxt = TX["mu_badge"].format(s=short(mu_s), why=mu_line)
+        mw = max(len(mtxt) * 5.4, text_width(mtxt, 9.5)) + 12
+        mpos = [(qmx - mw / 2, qmy - 24), (qmx - mw / 2, qmy + 34),
+                (qmx + 30, qmy - 6), (qmx - mw - 30, qmy - 6)]
+        # INSIDE THE PANEL, always: the badge follows the node it is about, and
+        # when the camera moved that node right, half the badge ran off the edge.
+        mbox = take([(x - 30, y - 16, x + mw, y + 10) for x, y in mpos],
+                    "the unasked-question badge", INNER, (qmx, qmy))
+        mlead = lead(mbox, qmx, qmy)
+    elif mu:
+        raise SystemExit(f"the unasked question names {mu_s} or {mu_o}, which the drawing does not carry")
+
+    # 7. The busiest classes' names, where one lands clear, at most seven.
     shown = 0
     shown_names = []
     for n in sorted((n for n in nodes if n not in TOOLS), key=lambda n: -deg[idx[n]]):
         if shown >= 7:
             break
-        if chip(idx[n], short(n), "#cbd5e1", 10, 400):
+        b = next((c for c in chip_cands(idx[n], short(n), 10)
+                  if within(c, INNER) and fits(c, idx[n])), None)
+        if b is not None:
+            placed.append(b)
+            chips.append((b, short(n), "#cbd5e1", 10, 400))
             shown += 1
             shown_names.append(n)
+
+    # ── Drawing what was placed ─────────────────────────────────────────
+    tool_chips = [c for c in chips if c[1] in TOOLS]
+    class_chips = [c for c in chips if c[1] not in TOOLS]
+    for b, label, color, size, weight in tool_chips + class_chips:
+        A(f'<rect x="{b[0]:.1f}" y="{b[1]:.1f}" width="{b[2] - b[0]:.1f}" height="15" rx="3.5" '
+          f'fill="#020617" opacity="0.88"/>')
+        A(f'<text x="{b[0] + 4:.1f}" y="{b[1] + 11:.1f}" font-size="{size}" font-weight="{weight}" '
+          f'fill="{color}">{label}</text>')
 
     # ── The verification layer, working ────────────────────────────────
     #
@@ -1112,40 +1367,10 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # entirely, say `opinion` in magenta, and they arrive together in beat 4,
     # because that is the point: four independent programs agreeing is still
     # four opinions.
-    JUDGES = [
-        (LEAN, TX["j_cert"], C_LEAN, 6.8, 9.6),
-        ("Isabelle/HOL", TX["j_same"], C_LEAN, 7.4, 9.6),
-        ("Vampire", TX["j_cert"] if vampire_certified else TX["j_op"],
-         C_LEAN if vampire_certified else C_TOOL, 10.0, 13.0),
-        (FORES, TX["j_checks"] if vampire_certified else TX["j_noproof"],
-         C_LEAN if vampire_certified else C_TOOL, 10.4, 13.0),
-        ("E", TX["j_op"], C_TOOL, 10.3, 13.0),
-        ("Z3", TX["j_op"], C_TOOL, 10.6, 13.0),
-        ("Mace4", TX["j_op"], C_TOOL, 10.9, 13.0),
-    ]
     for jname, verdict, col, t0, t1 in JUDGES:
         ji = idx[jname]
         jr = rad(ji)
-        bw = len(verdict) * 5.4 + 12
-        # Badges go through the SAME collision list the labels use. Stacked
-        # straight above their nodes they piled on top of one another and on
-        # the names beside them, because the four provers sit close together:
-        # the badge saying which kind of answer this is was the thing hidden.
-        cands = [
-            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 13),
-            (pt[ji][0] - bw / 2, pt[ji][1] + jr + 20),
-            (pt[ji][0] + jr + 7, pt[ji][1] - jr - 6),
-            (pt[ji][0] - jr - 7 - bw, pt[ji][1] - jr - 6),
-            (pt[ji][0] - bw / 2, pt[ji][1] - jr - 30),
-        ]
-        bx, by = cands[-1]
-        for n_, (cx_, cy_) in enumerate(cands):
-            box = (cx_ - 2, cy_ - 11, cx_ + bw + 2, cy_ + 4)
-            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-                   for o in placed) or n_ == len(cands) - 1:
-                bx, by = cx_, cy_
-                placed.append(box)
-                break
+        b = judge_box[jname]
         # Rested at 0.4 rather than hidden, like every other layer in this
         # file. A still frame then shows `certificate` on Lean and `opinion` on
         # the four provers, which is the whole argument of the picture and the
@@ -1153,9 +1378,9 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
         A('<g opacity="0.4">'
           + anim("opacity", "0.4;0.4;1;1;0.4;0.4",
                  kt(0, t0, t0 + 0.35, t1 - 0.3, t1, CYCLE)))
-        A(f'<rect x="{bx:.1f}" y="{by - 10:.1f}" width="{bw:.1f}" height="14" '
+        A(f'<rect x="{b[0]:.1f}" y="{b[1]:.1f}" width="{b[2] - b[0]:.1f}" height="14" '
           f'rx="7" fill="#020617" stroke="{col}" stroke-width="1.1" opacity="0.95"/>')
-        A(f'<text x="{bx + bw / 2:.1f}" y="{by:.1f}" text-anchor="middle" font-size="9.5" '
+        A(f'<text x="{(b[0] + b[2]) / 2:.1f}" y="{b[1] + 10:.1f}" text-anchor="middle" font-size="9.5" '
           f'font-weight="700" fill="{col}">{verdict}</text>')
         A('</g>')
         # A ring on the judge itself, so the eye goes to the node and not only
@@ -1180,10 +1405,6 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # is a different arrow from the certified one and it is drawn differently:
     # it leaves the provers, it arrives at the certificate, and it is dotted,
     # because what travels along it is a question and not a proof.
-    pv = [idx[n] for n in ("Vampire", "E", "Z3", "Mace4")]
-    ci0 = idx["certificate"]
-    fx0 = min(pt[i][0] for i in pv) - 46.0
-    fy0 = sum(pt[i][1] for i in pv) / len(pv)
     A(f'<g opacity="0.34">'
       + anim("opacity", "0.34;0.34;0.9;0.9;0.34;0.34",
              kt(0, 11.4, 11.9, 12.7, 13.0, CYCLE)))
@@ -1194,32 +1415,9 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     A(f'<path d="M{fx0:.1f} {fy0:.1f} Q{fx0:.1f} {pt[ci0][1] + 30:.1f} '
       f'{pt[ci0][0]:.1f} {pt[ci0][1] + rad(ci0) + 6:.1f}" fill="none" '
       f'stroke="{C_TOOL}" stroke-width="1.5" stroke-dasharray="4 4"/>')
-    dtxt = TX["disagree"]
-    dw = len(dtxt) * 5.0 + 12
-    # Candidates, like every other badge on this drawing. This one used to take
-    # a single computed point, and that point sat on top of the `problem.tsv`
-    # label: two pieces of writing, both visible at the same instant, in the
-    # same place. Nothing else here places blind, and the overlap guard in
-    # `tests/knowledge_graph_asset_test.rs` now refuses the whole asset if one
-    # does.
-    dcands = [
-        (fx0 - dw - 8, fy0 + 4),
-        (fx0 - dw - 8, fy0 - 22),
-        (fx0 - dw - 8, fy0 + 30),
-        (fx0 + 10, fy0 + 30),
-        (fx0 - dw / 2, fy0 + 52),
-    ]
-    dx, dy = dcands[-1]
-    for n_, (ccx, ccy) in enumerate(dcands):
-        box = (ccx - 3, ccy - 12, ccx + dw + 3, ccy + 5)
-        if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-               for o in placed) or n_ == len(dcands) - 1:
-            dx, dy = ccx, ccy
-            placed.append(box)
-            break
-    A(f'<rect x="{dx:.1f}" y="{dy - 10:.1f}" width="{dw:.1f}" height="14" rx="7" '
+    A(f'<rect x="{dbox[0]:.1f}" y="{dbox[1]:.1f}" width="{dw:.1f}" height="14" rx="7" '
       f'fill="#020617" stroke="{C_TOOL}" stroke-width="1" opacity="0.95"/>')
-    A(f'<text x="{dx + dw / 2:.1f}" y="{dy:.1f}" text-anchor="middle" font-size="8.8" '
+    A(f'<text x="{dbox[0] + dw / 2:.1f}" y="{dbox[1] + 10:.1f}" text-anchor="middle" font-size="8.8" '
       f'font-weight="700" fill="{C_TOOL}">{dtxt}</text>')
     A('</g>')
 
@@ -1234,8 +1432,6 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # The same `certificate -> Lean` segment that lit green in beat three now
     # runs red and stops at a bar short of the node, which is the argument:
     # same path, same reader, different content, different answer.
-    li = idx[LEAN]
-    lr = rad(li)
     ci = idx["certificate"]
     cvx, cvy = pt[li][0] - pt[ci][0], pt[li][1] - pt[ci][1]
     cL = math.hypot(cvx, cvy) or 1.0
@@ -1260,77 +1456,73 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
       f'stroke-width="3.4" stroke-linecap="round"/>')
     A('</g>')
 
-    if forged is not None:
-        fi, fj, _ = edges[forged]
-        fmx = (pt[fi][0] + pt[fj][0]) / 2.0
-        fmy = (pt[fi][1] + pt[fj][1]) / 2.0
-        flen = math.hypot(pt[fi][0] - pt[fj][0], pt[fi][1] - pt[fj][1])
-        # A halo along the edge rather than a ring on a node: the forgery is
-        # the LINE, and a ring would point at a class that did nothing wrong.
-        A('<g opacity="0.3">'
-          + anim("opacity", "0.3;0.3;0.85;0.85;0.3;0.3",
-                 kt(0, 13.0, 13.5, 16.6, 17.0, CYCLE)))
-        A(f'<line x1="{pt[fi][0]:.1f}" y1="{pt[fi][1]:.1f}" '
-          f'x2="{pt[fj][0]:.1f}" y2="{pt[fj][1]:.1f}" stroke="{C_REJECT}" '
-          f'stroke-width="9" stroke-linecap="round" opacity="0.22"/>')
-        A(f'<circle cx="{fmx:.1f}" cy="{fmy:.1f}" r="{max(13.0, flen * 0.34):.1f}" '
-          f'fill="none" stroke="{C_REJECT}" stroke-width="1.4" opacity="0.7"/>')
-        A('</g>')
+    # A halo along the edge rather than a ring on a node: the forgery is the
+    # LINE, and a ring would point at a class that did nothing wrong. The
+    # outline is a capsule hugging the line, not the circle it used to be: a
+    # circle a third of the line's length wide took in the classes around the
+    # line, and the forged line was chosen with no class within 9 units of it,
+    # so a capsule 9 units either side holds the line and nothing else.
+    fang = math.degrees(math.atan2(pt[fj][1] - pt[fi][1], pt[fj][0] - pt[fi][0]))
+    A('<g opacity="0.3">'
+      + anim("opacity", "0.3;0.3;0.85;0.85;0.3;0.3",
+             kt(0, 13.0, 13.5, 16.6, 17.0, CYCLE)))
+    A(f'<line x1="{pt[fi][0]:.1f}" y1="{pt[fi][1]:.1f}" '
+      f'x2="{pt[fj][0]:.1f}" y2="{pt[fj][1]:.1f}" stroke="{C_REJECT}" '
+      f'stroke-width="9" stroke-linecap="round" opacity="0.22"/>')
+    A(f'<rect x="{-flen / 2 - 9:.1f}" y="-9" width="{flen + 18:.1f}" height="18" rx="9" '
+      f'transform="translate({fmx:.1f} {fmy:.1f}) rotate({fang:.1f})" '
+      f'fill="none" stroke="{C_REJECT}" stroke-width="1.4" opacity="0.7"/>')
+    A('</g>')
 
-        ftxt = TX["forged"]
-        # Wide enough for the glyphs actually drawn. `len * 5.4` is a Latin
-        # estimate, and a Chinese glyph is a full em, so the two beat-five
-        # badges ran their text into the rim of the box in the zh figure.
-        fw = max(len(ftxt) * 5.4, text_width(ftxt, 9.5)) + 12
-        # Beside the line first, on either side of it: just far enough along
-        # the normal that the box clears the line, so the badge names the line
-        # without covering an end of it. A steep line took the badge straight
-        # above its middle, which is on the line.
-        fnx = -(pt[fj][1] - pt[fi][1]) / (flen or 1.0)
-        fny = (pt[fj][0] - pt[fi][0]) / (flen or 1.0)
-        foff = (fw / 2.0 + 3.0) * abs(fnx) + 8.5 * abs(fny) + 6.0
-        cands = [(fmx + fnx * foff, fmy + fny * foff + 3.5),
-                 (fmx - fnx * foff, fmy - fny * foff + 3.5)]
-        for dy_ in (-26.0, 26.0, -44.0, 44.0):
-            for dx_ in (0.0, -46.0, 46.0):
-                cands.append((fmx + dx_, fmy + dy_))
-        fx, fy = cands[0][0] - fw / 2, cands[0][1]
-        for n_, (ccx, ccy) in enumerate(cands):
-            bx_, by_ = ccx - fw / 2, ccy
-            box = (bx_ - 3, by_ - 12, bx_ + fw + 3, by_ + 5)
-            if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-                   for o in placed) or n_ == len(cands) - 1:
-                fx, fy = bx_, by_
-                placed.append(box)
-                break
-        A('<g opacity="0.4">'
-          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
-        A(f'<rect x="{fx:.1f}" y="{fy - 10:.1f}" width="{fw:.1f}" height="14" rx="7" '
-          f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
-        A(f'<text x="{fx + fw / 2:.1f}" y="{fy:.1f}" text-anchor="middle" font-size="9.5" '
-          f'font-weight="700" fill="{C_REJECT}">{ftxt}</text>')
-        A('</g>')
+    A('<g opacity="0.4">'
+      + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.2, 13.7, 16.6, 17.0, CYCLE)))
+    if flead:
+        A(f'<line x1="{flead[0]:.1f}" y1="{flead[1]:.1f}" x2="{flead[2]:.1f}" y2="{flead[3]:.1f}" '
+          f'stroke="{C_REJECT}" stroke-width="0.9" stroke-dasharray="2 2" opacity="0.8"/>')
+    A(f'<rect x="{fbox[0]:.1f}" y="{fbox[1]:.1f}" width="{fw:.1f}" height="14" rx="7" '
+      f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
+    A(f'<text x="{fbox[0] + fw / 2:.1f}" y="{fbox[1] + 10:.1f}" text-anchor="middle" font-size="9.5" '
+      f'font-weight="700" fill="{C_REJECT}">{ftxt}</text>')
+    A('</g>')
 
     # And the verdict, at the checker.
-    rtxt = TX["refused"].format(code=refused_exit, rule=f_rule)
-    rw = max(len(rtxt) * 5.4, text_width(rtxt, 9.5)) + 12
-    rx, ry = pt[li][0] - rw / 2, pt[li][1] + lr + 22
-    for ccx, ccy in [(pt[li][0] - rw / 2, pt[li][1] + lr + 22),
-                     (pt[li][0] + lr + 8, pt[li][1] + lr + 12),
-                     (pt[li][0] - rw / 2, pt[li][1] + lr + 40)]:
-        box = (ccx - 3, ccy - 12, ccx + rw + 3, ccy + 5)
-        if all(box[2] < o[0] or box[0] > o[2] or box[3] < o[1] or box[1] > o[3]
-               for o in placed):
-            rx, ry = ccx, ccy
-            placed.append(box)
-            break
     A('<g opacity="0.4">'
       + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 13.6, 14.0, 16.6, 17.0, CYCLE)))
-    A(f'<rect x="{rx:.1f}" y="{ry - 10:.1f}" width="{rw:.1f}" height="14" rx="7" '
+    A(f'<rect x="{rbox[0]:.1f}" y="{rbox[1]:.1f}" width="{rw:.1f}" height="14" rx="7" '
       f'fill="#020617" stroke="{C_REJECT}" stroke-width="1.1" opacity="0.95"/>')
-    A(f'<text x="{rx + rw / 2:.1f}" y="{ry:.1f}" text-anchor="middle" font-size="9.5" '
+    A(f'<text x="{rbox[0] + rw / 2:.1f}" y="{rbox[1] + 10:.1f}" text-anchor="middle" font-size="9.5" '
       f'font-weight="700" fill="{C_REJECT}">{rtxt}</text>')
     A('</g>')
+
+    # ── The unasked question ────────────────────────────────────────────
+    #
+    # Beat 6. The question `mu_s subClassOf mu_o` is drawn as a dashed amber
+    # line between the two nodes, faint at rest because the still frame must
+    # show every content layer. When the beat runs it brightens (the question
+    # is asked), 無 appears beside its badge (the engine returns it), and it
+    # dims again. It never turns red: nothing was refuted. The file said nothing.
+    if mbox is not None:
+        A('<g opacity="0.3">'
+          + anim("opacity", "0.3;0.3;0.95;0.95;0.3;0.3", kt(0, 17.0, 17.4, 19.0, 19.8, CYCLE)))
+        A(f'<line x1="{pt[qi][0]:.1f}" y1="{pt[qi][1]:.1f}" x2="{pt[qj][0]:.1f}" '
+          f'y2="{pt[qj][1]:.1f}" stroke="{C_MU}" stroke-width="2.2" stroke-dasharray="3 4"/>')
+        A('</g>')
+        mx, my = mbox[0] + 30, mbox[1] + 16
+        A(f'<text x="{mx - 17:.1f}" y="{my + 6:.1f}" text-anchor="middle" font-size="22" '
+          f'font-weight="800" fill="{C_MU}" opacity="0">'
+          + anim("opacity", "0;0;1;1;0;0", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE))
+          + '無</text>')
+        A('<g opacity="0.4">'
+          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE)))
+        if mlead:
+            A(f'<line x1="{mlead[0]:.1f}" y1="{mlead[1]:.1f}" x2="{mlead[2]:.1f}" y2="{mlead[3]:.1f}" '
+              f'stroke="{C_MU}" stroke-width="0.9" stroke-dasharray="2 2" opacity="0.8"/>')
+        A(f'<rect x="{mx:.1f}" y="{my - 10:.1f}" width="{mw:.1f}" height="14" rx="7" '
+          f'fill="#020617" stroke="{C_MU}" stroke-width="1.1" opacity="0.95"/>')
+        A(f'<text x="{mx + mw / 2:.1f}" y="{my:.1f}" text-anchor="middle" font-size="9.5" '
+          f'font-weight="700" fill="{C_MU}">{mtxt}</text>')
+        A('</g>')
+        # "no judge is asked": the four provers and the checkers stay dark in this beat.
 
     # ── One point becoming the graph ────────────────────────────────────
     #
@@ -1340,71 +1532,6 @@ def main(asserted_path, derivations_path, out_path, prove_path=None, mu_path=Non
     # anything: the rings are drawn ON TOP of a cloud that is always there, so
     # a renderer sampling t=0 still gets the whole picture. Unfilled, which is
     # what makes them a sweep rather than a layer.
-    # ── The unasked question ────────────────────────────────────────────
-    #
-    # Beat 6. The question `mu_s subClassOf mu_o` is drawn as a dashed amber
-    # line between the two nodes, faint at rest because the still frame must
-    # show every content layer. When the beat runs it brightens (the question
-    # is asked), 無 appears over it (the engine returns it), and it dims again.
-    # It never turns red: nothing was refuted. The file said nothing.
-    if mu and mu_s in idx and mu_o in idx:
-        qi, qj = idx[mu_s], idx[mu_o]
-        qmx, qmy = (pt[qi][0] + pt[qj][0]) / 2.0, (pt[qi][1] + pt[qj][1]) / 2.0
-        A('<g opacity="0.3">'
-          + anim("opacity", "0.3;0.3;0.95;0.95;0.3;0.3", kt(0, 17.0, 17.4, 19.0, 19.8, CYCLE)))
-        A(f'<line x1="{pt[qi][0]:.1f}" y1="{pt[qi][1]:.1f}" x2="{pt[qj][0]:.1f}" '
-          f'y2="{pt[qj][1]:.1f}" stroke="{C_MU}" stroke-width="2.2" stroke-dasharray="3 4"/>')
-        A('</g>')
-        A(f'<text x="{qmx:.1f}" y="{qmy + 9:.1f}" text-anchor="middle" font-size="26" '
-          f'font-weight="800" fill="{C_MU}" opacity="0">'
-          + anim("opacity", "0;0;1;1;0;0", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE))
-          + '無</text>')
-        mtxt = TX["mu_badge"].format(s=short(mu_s), why=mu_line)
-        mw = len(mtxt) * 5.4 + 12
-        mcands = [(qmx - mw / 2, qmy - 24), (qmx - mw / 2, qmy + 34), (qmx + 30, qmy - 6), (qmx - mw - 30, qmy - 6)]
-
-        # INSIDE THE PANEL, always. The candidates used to be filtered on label
-        # overlap alone, and the last one was taken unconditionally when none
-        # was clear. That was invisible until the camera moved: the badge
-        # follows the node it is about, the node moved right, and half the
-        # badge ran off the edge of the drawing.
-        PX0, PY0, PX1, PY1 = OL - 12, T - 18, OR_ + 12, B + 34
-
-        def _box(cx_, cy_):
-            return (cx_ - 3, cy_ - 12, cx_ + mw + 3, cy_ + 5)
-
-        def _inside(b):
-            return b[0] >= PX0 and b[2] <= PX1 and b[1] >= PY0 and b[3] <= PY1
-
-        def _clear(b):
-            return all(b[2] < o[0] or b[0] > o[2] or b[3] < o[1] or b[1] > o[3] for o in placed)
-
-        # Clear AND inside first; then merely inside; then slid back inside,
-        # which is better than drawn off the edge.
-        pick = next((c for c in mcands if _inside(_box(*c)) and _clear(_box(*c))), None)
-        if pick is None:
-            pick = next((c for c in mcands if _inside(_box(*c))), None)
-        if pick is None:
-            cx_, cy_ = mcands[0]
-            pick = (min(max(cx_, PX0 + 3), PX1 - mw - 3), min(max(cy_, PY0 + 12), PY1 - 5))
-        mx, my = pick
-        final = _box(mx, my)
-        if not _inside(final):
-            raise SystemExit(
-                f"the unasked-question badge lands at {final} and the panel is "
-                f"{(PX0, PY0, PX1, PY1)}. It would be drawn off the edge of the figure.")
-        placed.append(final)
-        A('<g opacity="0.4">'
-          + anim("opacity", "0.4;0.4;1;1;0.4;0.4", kt(0, 18.6, 19.0, 20.6, 21.0, CYCLE)))
-        A(f'<rect x="{mx:.1f}" y="{my - 10:.1f}" width="{mw:.1f}" height="14" rx="7" '
-          f'fill="#020617" stroke="{C_MU}" stroke-width="1.1" opacity="0.95"/>')
-        A(f'<text x="{mx + mw / 2:.1f}" y="{my:.1f}" text-anchor="middle" font-size="9.5" '
-          f'font-weight="700" fill="{C_MU}">{mtxt}</text>')
-        A('</g>')
-        # "no judge is asked": the four provers and the checkers stay dark in this beat.
-    elif mu:
-        raise SystemExit(f"the unasked question names {mu_s} or {mu_o}, which the drawing does not carry")
-
     seed = max(
         (idx[ont[g]] for g in comps[0]),
         key=lambda i: deg[i],

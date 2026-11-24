@@ -192,15 +192,46 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
-- **`vocab-check` reports a declared term used in the wrong role** (#432).
-  It checked that each term was declared, not that it was used as what it was
-  declared as, so a class used as a predicate (`d:s2 ex:Sensor d:x`) and a
-  property used as an `rdf:type` object (`d:s1 a ex:observes`) both passed
-  with `conforms: true`. They are now listed under `wrong_role_terms` with the
-  role they were used in and the role they were declared in, and make
-  `conforms` false; `hallucinated_terms` still lists only terms the ontology
-  does not declare at all. A term declared as both a class and a property (OWL
-  2 punning) fits either role. The Python `vocab_check` reports the same field.
+- **`serve-http --port 0` reports the port it bound, and the HTTP tests no
+  longer race a sibling test's fork for their port.** The startup line printed
+  the port asked for, so with `--port 0` it said `:0`. It now prints the port
+  the OS picked. `api_error_json_test` and `query_human_output_test` reserved a
+  port by binding and dropping a listener, then polled with a TCP connect. A
+  sibling test that forked while the reservation was open passed the listening
+  socket to its child, the poll connected to that copy, and the first request
+  was refused or reset, or the server could not bind at all. Main failed this
+  way once on CI (1ba7ecf8) and 42 times in 2,000 runs on Linux. Both tests now
+  start `serve-http --port 0` through `tests/common::spawn_serve_http`, which
+  reads the address from the server's own startup line: 2,000 of 2,000 runs
+  pass.
+
+- **No label on the front-page figure sits on a node, an arrow or the panel
+  border** (#436). Labels in `docs/assets/knowledge-graph.py` were checked
+  against other labels only, so the unasked-question badge ran through a row of
+  classes, the forged-line badge and the 無 glyph sat on nodes, three labels
+  crossed the ontology panel's border and the provers' dotted curves cut through
+  `problem.tsv`, while every test passed. Placement now goes through one `fits`
+  check (labels, node discs, pipeline arrows, the forged and unasked lines, the
+  panel edge); a badge with no clear candidate searches outward (the two beat badges in
+  the panel then get a leader back to their line), and the generator refuses to
+  draw if nothing fits. The canvas is
+  1200 x 830 (was 1100 x 780) so the panel has room, the forged line is marked
+  with a capsule instead of a circle that took in its neighbours, and
+  `no_label_sits_on_a_node_an_arrow_or_the_panel_edge` checks both languages
+  (30 violations on the old English figure, 0 now).
+
+- **`vocab-check` checks that each term is used in the role it is declared in**
+  (#432). A class used as a predicate, or a property used as the object of
+  `rdf:type`, passed with `conforms: true` because the check only asked whether
+  the term was declared at all. Declared terms are now kept per role (typed
+  classes and subjects of `rdfs:subClassOf`; typed properties and subjects of
+  `rdfs:domain`, `rdfs:range` and `rdfs:subPropertyOf`), and a declared term used
+  in the other role is reported under a new `wrong_role_terms` field and fails
+  the check. Undeclared terms stay in `hallucinated_terms`, so the two cases
+  remain distinguishable. A term declared in both roles is accepted in both. The
+  Python `vocab_check` in `open-ontologies-lite` runs the same check and lists
+  each such term under `wrong_role_terms` with the role it was used in and the
+  role it was declared in.
 
 - **`reason --certificate` writes the same `derivations.tsv` on every run over
   the same store** (#427). The conclusions were always the same set, but the
