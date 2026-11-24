@@ -152,3 +152,22 @@ def test_a_punned_term_may_be_used_in_either_role():
     report = vocab_check(ontology, data)
 
     assert report["conforms"] is True, report["wrong_role_terms"]
+
+
+def test_a_standard_term_the_ontology_declares_is_not_policed_for_its_role():
+    """The standard vocabularies stay unpoliced in the role check too, as in the
+    Rust engine: declaring `skos:Concept` a class does not bring SKOS under the
+    closed world, so using it as a predicate is not reported."""
+    ontology = ONTOLOGY + """
+    @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+    skos:Concept a owl:Class .
+    """
+    data = """
+    @prefix ex:   <http://example.org/onto#> .
+    @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+    <http://example.org/instances/ada> a ex:Person ; skos:Concept "Ada" .
+    """
+    report = vocab_check(ontology, data)
+
+    assert report["wrong_role_terms"] == []
+    assert report["conforms"] is True

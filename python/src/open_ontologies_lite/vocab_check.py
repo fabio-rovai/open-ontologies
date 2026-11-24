@@ -178,7 +178,7 @@ def vocab_check(
                 (types, "class", classes, "property"),
             )
             for iri in used
-            if iri in declared and iri not in fits
+            if _namespace_of(iri) in policed and iri in declared and iri not in fits
         ),
         key=lambda entry: (entry["term"], entry["used_as"]),
     )
