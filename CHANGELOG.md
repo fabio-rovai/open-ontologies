@@ -6,6 +6,30 @@ All notable changes to Open Ontologies are documented here.
 
 ### Added
 
+- **The Rust reasoner now runs `oo-refute` over the refutation it writes.**
+  `certificate_dir` used to produce `refutation.tsv` beside `asserted.tsv` and
+  `derivations.tsv`, and nothing in `src/` ever called the checker: the report
+  said `refutation_written_not_yet_checked`, which was true and is no longer
+  the end of the story. The run now finds the binary (`$OO_REFUTE`, then
+  `lean/.lake/build/bin/oo-refute`, then `PATH`), checks the pair, and an
+  accepting run mints its own word,
+  `refutation_accepted_by_this_machines_checker`, and sets
+  `checked_by_lean: true`. A rejected or unreadable answer keeps
+  `clash_found_by_this_engine` and carries the checker's bytes under
+  `checker.stdout`; a machine with no checker reports
+  `checker_absent_nothing_was_checked`, which is not a pass. `onto_unpack`
+  re-checks a packed `refutation.tsv` with this machine's `oo-refute` and
+  refuses the load when it is rejected, and `onto_pack` runs the same check on
+  the certificate it is about to ship and bails on a refusal. The engine never
+  copies the checker's `unsatisfiable_under_disjointness` or its theorem name
+  into an engine field. The certificate vocabulary's stale claim that only
+  `cax-dw` was certifiable is corrected throughout: `OOCert.RefuteConditions`
+  carries twelve of the seventeen clash rules and the engine detects ten of
+  those twelve. Certifiability is per witness for `cls-maxc1`: a zero written
+  `owl:maxCardinality 0` (typed `xsd:integer`) is detected and reported with
+  `certifiable: false`, but it is not certified, because the checker requires
+  the canonical `"0"^^xsd:nonNegativeInteger` spelling.
+
 - **Studio has a Graph view beside the 2D tree and the 3D view** (#415).
   Schema mode draws classes with their subclass and object-property links,
   each class's field codes and a Focus filter. Instances mode shows one

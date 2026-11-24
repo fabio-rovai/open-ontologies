@@ -587,10 +587,13 @@ enum Commands {
         ///
         /// When the run also finds a contradiction that the checker can judge,
         /// a refutation.tsv lands here too, for `lake exe oo-refute check`.
-        /// Ten clash rules are certifiable and written; the rest are reported
-        /// in the response as found by this engine, with nothing written for
-        /// them. The Lean checker holds conditions for twelve, and the two
-        /// it can check that this engine never finds are named in
+        /// Ten clash rules are certifiable, but a file is written only for a
+        /// clash whose witness is one of them: for `cls-maxc1` the zero must
+        /// be the canonical `"0"^^xsd:nonNegativeInteger` spelling, so an
+        /// `owl:maxCardinality 0` typed `xsd:integer` is detected and reported
+        /// with nothing written. The rest are reported in the response as
+        /// found by this engine. The Lean checker holds conditions for twelve,
+        /// and the two it can check that this engine never finds are named in
         /// `CLASH_RULES_NOT_DETECTED`.
         #[arg(long)]
         certificate: Option<String>,
@@ -4047,6 +4050,7 @@ async fn async_main() -> anyhow::Result<()> {
                 verify_only,
                 check_certificate: !no_check,
                 checker: checker.map(std::path::PathBuf::from),
+                refute_checker: None,
                 certificate_out_dir: certificate_out.map(std::path::PathBuf::from),
                 load_even_if_refused,
             };

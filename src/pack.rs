@@ -338,9 +338,11 @@ impl std::fmt::Display for PackCertVerdict {
 /// drifts in three of them.
 pub const MEANS: &str = "A checker on THIS machine re-derived every conclusion in this pack's \
      certificate from the triples the certificate lists as asserted, and accepted all of them. \
-     You did not have to trust the sender's engine to learn that. To repeat it by hand, unpack \
-     again with certificate_out_dir set and run the command in check_with over the files it \
-     keeps.";
+     You did not have to trust the sender's engine to learn that. The command in check_with \
+     names the private staged copies the checker read, which are removed after the check. To \
+     repeat it by hand, unpack again with certificate_out_dir set and run that command against \
+     the exported copies, substituting the export paths; those copies repeat the check only if \
+     they were not modified after they were written.";
 
 /// What an acceptance does NOT settle. Printed beside every accepted verdict.
 pub const DOES_NOT_MEAN: &str = "The asserted triples themselves are NOT proved. A certificate \
@@ -603,6 +605,12 @@ pub struct UnpackOptions {
     /// read from `$OO_CERT` here so that a test can point at a fake without
     /// mutating the environment of a parallel test.
     pub checker: Option<PathBuf>,
+    /// An explicit `oo-refute` path, used only when the pack carries a
+    /// `refutation.tsv`. Handed in for the same reason as `checker`: a test
+    /// points at a fake without mutating a parallel test's environment. `None`
+    /// means discovery, and discovery finding nothing is reported as
+    /// `checker_absent_nothing_was_checked`, which does not block the load.
+    pub refute_checker: Option<PathBuf>,
     /// Keep the certificate files here instead of in a scratch directory that
     /// is removed, so a receiver can re-run the checker by hand.
     pub certificate_out_dir: Option<PathBuf>,
@@ -634,10 +642,34 @@ impl Packer {
         lines.sort_unstable();
         let graph = lines.join("\n") + "\n";
 
+        let mut refutation_at_pack: Option<crate::refute::RefuteCheck> = None;
         let certificate = match req.certificate_dir {
             None => None,
             Some(dir) => {
                 let cert = read_certificate_dir(dir, req.profile_claimed)?;
+                // The refutation travels in the pack, so the sender runs the
+                // same check the receiver will. A refusal stops the pack here:
+                // shipping a file this machine's checker refused means the
+                // receiver, and not the sender, discovers the defect.
+                if cert.files.contains_key("refutation.tsv") {
+                    // Check the bytes captured into `cert.files`, not the files
+                    // still sitting in `dir`: a concurrent rerun can rewrite
+                    // those between the read and the check, and then the sender
+                    // would check one certificate and ship another.
+                    let checked = check_staged_refutation(&cert, None);
+                    if let crate::refute::RefuteCheck::Rejected { .. } = checked {
+                        anyhow::bail!(
+                            "the refutation in {} was REJECTED by this machine's oo-refute, so it \
+                             cannot travel in the pack. That is a defect in the run that produced \
+                             it, not in the graph. This pack-time report carries no `check_with`: \
+                             the bytes checked were staged copies that are no longer on disk. \
+                             Checker output: {}",
+                            dir.display(),
+                            checked.stdout().unwrap_or("(none)")
+                        );
+                    }
+                    refutation_at_pack = Some(checked);
+                }
                 // Refused at pack time, not warned about. A certificate whose
                 // assertions are not all in the graph being packed produces an
                 // artefact whose proof is about premises the pack does not
@@ -709,8 +741,11 @@ impl Packer {
                 "profile_claimed_by_sender": c.profile_claimed_by_sender,
                 "checked_by_this_packer": false,
                 "means": "the certificate travels with the graph and the content digest covers \
-                          both. NOTHING HERE HAS CHECKED IT: the receiver runs its own checker, \
-                          which is the point of shipping it",
+                          both. The derivation steps are NOT checked here: the receiver runs its \
+                          own checker, which is the point of shipping it",
+                // A pack only gets here when coverage passed, so the graph in
+                // this pack is the graph the refutation is about.
+                "refutation": refutation_at_pack.as_ref().map(|r| refutation_report(r, true)),
             })),
             "graph_bytes": pack.graph.len(),
             "pack_json_bytes": json.len(),
@@ -886,25 +921,22 @@ impl Packer {
             return Ok((v, r));
         }
 
-        // The checker reads files, so the pack's strings go to disk. The name
-        // joined is the WHITELIST's own literal and never the sender's string,
-        // so a crafted name cannot escape this directory even if the equality
-        // test below were wrong.
-        let dir = match &opts.certificate_out_dir {
-            Some(d) => d.clone(),
-            None => scratch_dir(),
-        };
-        // A read-only filesystem with no writable temp directory is a reason to
-        // report that nothing was checked, not a reason to fail an unpack that
-        // used to succeed.
-        if let Err(e) = std::fs::create_dir_all(&dir) {
+        // The checker reads files, so the pack's strings go to a PRIVATE
+        // staging directory written from the captured bytes. The name joined is
+        // the WHITELIST's own literal and never the sender's string, so a
+        // crafted name cannot escape a directory even if the equality test
+        // below were wrong. Nothing here reads `certificate_out_dir`: a
+        // concurrent writer to a shared export directory must not be able to
+        // change what the checker read, and therefore what the verdict claims.
+        let private = scratch_dir();
+        if let Err(e) = std::fs::create_dir_all(&private) {
             let v = PackCertVerdict::Unreadable;
             let r = base(
                 &v,
                 serde_json::json!({
                     "why": format!(
-                        "the certificate could not be written to {} ({e}), so no checker could \
-                         read it", dir.display()
+                        "the certificate could not be staged in a private directory ({e}), so no \
+                         checker could read it"
                     ),
                     "means": ABSENT_MEANS,
                 }),
@@ -913,6 +945,7 @@ impl Packer {
         }
         for name in cert.files.keys() {
             let Some(known) = CERTIFICATE_FILES.iter().find(|k| *k == name) else {
+                let _ = std::fs::remove_dir_all(&private);
                 let v = PackCertVerdict::Unreadable;
                 let r = base(
                     &v,
@@ -927,12 +960,15 @@ impl Packer {
                 );
                 return Ok((v, r));
             };
-            if let Err(e) = std::fs::write(dir.join(*known), &cert.files[*known]) {
+            if let Err(e) = std::fs::write(private.join(*known), &cert.files[*known]) {
+                let _ = std::fs::remove_dir_all(&private);
                 let v = PackCertVerdict::Unreadable;
                 let r = base(
                     &v,
                     serde_json::json!({
-                        "why": format!("{known} could not be written to {} ({e})", dir.display()),
+                        "why": format!(
+                            "{known} could not be staged in the private directory ({e})"
+                        ),
                         "means": ABSENT_MEANS,
                     }),
                 );
@@ -940,9 +976,41 @@ impl Packer {
             }
         }
 
-        let asserted = dir.join("asserted.tsv");
-        let derivations = dir.join(kind.derivations_file());
-        let rules = (kind == CertKind::OoHorn).then(|| dir.join("rules.tsv"));
+        // `certificate_out_dir` is an EXPORT for a human to inspect, written
+        // from the SAME captured strings. It is not where the checker reads,
+        // and a failed export is reported as a field, never as a change of
+        // verdict: the verdict does not rest on this copy.
+        let mut certificate_dir_error: Option<String> = None;
+        if let Some(out) = &opts.certificate_out_dir {
+            if let Err(e) = std::fs::create_dir_all(out) {
+                certificate_dir_error = Some(format!(
+                    "the certificate could not be exported to {} ({e})",
+                    out.display()
+                ));
+            } else {
+                for name in cert.files.keys() {
+                    let Some(known) = CERTIFICATE_FILES.iter().find(|k| *k == name) else {
+                        // Unreachable: the staging loop above refused it.
+                        certificate_dir_error = Some(format!(
+                            "the pack names a certificate file this build does not write: \
+                             {name:?}"
+                        ));
+                        break;
+                    };
+                    if let Err(e) = std::fs::write(out.join(*known), &cert.files[*known]) {
+                        certificate_dir_error = Some(format!(
+                            "{known} could not be exported to {} ({e})",
+                            out.display()
+                        ));
+                        break;
+                    }
+                }
+            }
+        }
+
+        let asserted = private.join("asserted.tsv");
+        let derivations = private.join(kind.derivations_file());
+        let rules = (kind == CertKind::OoHorn).then(|| private.join("rules.tsv"));
         let status = pe::run_checker(
             kind,
             opts.checker.as_deref(),
@@ -950,6 +1018,15 @@ impl Packer {
             &derivations,
             rules.as_deref(),
         );
+
+        // The refutation is a SECOND claim carried by the same run: the graph has
+        // no model under the `owl:disjointWith` reading. `oo-cert` has no theorem
+        // about it and `oo-refute` has no theorem about the derivation, so it is
+        // checked separately, and its absence is a case of its own.
+        let refutation_path = private.join("refutation.tsv");
+        let refutation = cert.files.contains_key("refutation.tsv").then(|| {
+            crate::refute::check(&asserted, &refutation_path, opts.refute_checker.as_deref())
+        });
 
         // The question is about the graph IN THE PACK, and it is asked BEFORE
         // anything is loaded, so a pack that is about to be refused never
@@ -972,24 +1049,33 @@ impl Packer {
                 derivations.display()
             ),
         };
-        // A scratch directory is removed once the checker has read it, so the
-        // command above names files that will not be there. Saying which is
-        // cheap; printing a command a reader cannot run and letting them find
-        // out is not.
-        let kept = opts.certificate_out_dir.is_some();
+        // The private staging directory is removed once the checker has read
+        // it, so the command above names files that will not be there. Saying
+        // which is cheap; printing a command a reader cannot run and letting
+        // them find out is not. `certificate_out_dir`, when asked for, is an
+        // export written from the same captured bytes and is not what the
+        // checker read.
+        let exported = opts.certificate_out_dir.is_some() && certificate_dir_error.is_none();
+        let derivation_ran = matches!(
+            &status,
+            CheckerStatus::Accepted(_)
+                | CheckerStatus::Rejected { .. }
+                | CheckerStatus::Unreadable { .. }
+        );
+        let check_with_means = derivation_check_with_means(derivation_ran, exported);
+        // The derivation certificate's premises are the refutation's premises,
+        // so a certificate that rests on triples this pack does not carry is a
+        // refutation about a graph this pack only partially contains. The
+        // enclosing verdict already says NotAboutThisPack; the refutation
+        // sub-report must not claim more than it can.
+        let about_pack = cover.in_certificate_only_total == 0;
         let checker_block = serde_json::json!({
             "status": status.word(),
             "check_with": check_with,
-            "certificate_dir": dir.display().to_string(),
-            "certificate_dir_kept": kept,
-            "check_with_means": if kept {
-                "the certificate files are still in certificate_dir, so this command repeats the \
-                 check exactly"
-            } else {
-                "the certificate went to a scratch directory that is removed once the checker has \
-                 read it, so this command names files that no longer exist. Unpack again with \
-                 certificate_out_dir set to keep them and run it"
-            },
+            "certificate_dir": opts.certificate_out_dir.as_ref().map(|d| d.display().to_string()),
+            "certificate_dir_kept": exported,
+            "certificate_dir_error": certificate_dir_error,
+            "check_with_means": check_with_means,
             "checker_says_it_is": checker_self_block(&status),
             "checker_limit": CHECKER_LIMIT,
             "coverage": {
@@ -1006,9 +1092,19 @@ impl Packer {
                           which is the normal shape when the sender reasoned without materialising",
             },
             "refutation_in_pack": cert.files.contains_key("refutation.tsv"),
-            "refutation_means": "a refutation.tsv is carried when the run found a contradiction. \
-                                 NOTHING in this crate runs oo-refute, so it was not checked here \
-                                 and no verdict in this report is about it",
+            "refutation": refutation.as_ref().map(|r| {
+                let mut report = refutation_report(r, about_pack);
+                report["check_with"] = serde_json::json!(format!(
+                    "cd lean && lake exe oo-refute check {} {}",
+                    asserted.display(),
+                    refutation_path.display()
+                ));
+                report["check_with_means"] = serde_json::json!(refutation_check_with_means(
+                    refutation_ran(r),
+                    exported
+                ));
+                report
+            }),
         });
 
         // The order of these arms is the policy. A checker that said no, or
@@ -1071,6 +1167,23 @@ impl Packer {
             }
         };
 
+        // A refutation this machine's checker REFUSED outranks the certificate's
+        // verdict: the pack carries a file claiming a contradiction it cannot
+        // support, which blocks the load. Absence is not a rejection and
+        // downgrades nothing here; the report says nothing was checked.
+        let mut extra = extra;
+        let verdict = match &refutation {
+            Some(crate::refute::RefuteCheck::Rejected { stdout }) => {
+                extra["refutation_checker_said"] = serde_json::json!(stdout);
+                PackCertVerdict::Refused
+            }
+            Some(crate::refute::RefuteCheck::Unreadable { stdout, .. }) => {
+                extra["refutation_checker_said"] = serde_json::json!(stdout);
+                PackCertVerdict::Unreadable
+            }
+            _ => verdict,
+        };
+
         let mut r = base(&verdict, checker_block);
         if let (Some(a), Some(b)) = (r.as_object_mut(), extra.as_object()) {
             for (k, val) in b {
@@ -1084,13 +1197,229 @@ impl Packer {
             None => serde_json::Value::Null,
         };
         r["checked_here"] = serde_json::json!(verdict.is_checked());
-        if opts.certificate_out_dir.is_none() {
-            // Best effort, and it is fine if it fails: a leftover scratch
-            // directory is untidy and a missing one would break the
-            // check_with command this report just printed.
-            let _ = std::fs::remove_dir_all(&dir);
-        }
+        // Best effort, and it is fine if it fails: a leftover private directory
+        // is untidy and a missing one would break nothing that survives. The
+        // export, when asked for, is deliberately NOT removed.
+        let _ = std::fs::remove_dir_all(&private);
         Ok((verdict, r))
+    }
+}
+
+/// Check a refutation from the bytes a pack CAPTURED.
+///
+/// The source certificate directory is mutable: a concurrent
+/// `reason --certificate` can replace `asserted.tsv` or `refutation.tsv` between
+/// `read_certificate_dir` and the check, so reading that directory again would
+/// let the sender check one certificate and ship another. The captured strings
+/// are staged into a private directory, checked there, and the directory is
+/// removed best-effort once the checker has read it.
+fn check_staged_refutation(
+    cert: &PackedCertificate,
+    checker: Option<&Path>,
+) -> crate::refute::RefuteCheck {
+    let dir = scratch_dir();
+    let checked = check_staged_refutation_in(&dir, cert, checker);
+    let _ = std::fs::remove_dir_all(&dir);
+    checked
+}
+
+/// [`check_staged_refutation`] with the staging directory named by the caller.
+///
+/// Separate so the failure path can be driven by a test: handing a regular
+/// file as `dir` makes staging fail without touching the checker at all.
+fn check_staged_refutation_in(
+    dir: &Path,
+    cert: &PackedCertificate,
+    checker: Option<&Path>,
+) -> crate::refute::RefuteCheck {
+    let staged = (|| -> std::io::Result<()> {
+        std::fs::create_dir_all(dir)?;
+        let asserted = cert.files.get("asserted.tsv").ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "the certificate carries no asserted.tsv",
+            )
+        })?;
+        let refutation = cert.files.get("refutation.tsv").ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "the certificate carries no refutation.tsv",
+            )
+        })?;
+        std::fs::write(dir.join("asserted.tsv"), asserted)?;
+        std::fs::write(dir.join("refutation.tsv"), refutation)?;
+        Ok(())
+    })();
+    if let Err(e) = staged {
+        // This crate could not prepare the inputs, so no checker ran. The
+        // error must not masquerade as checker output: an `Unreadable` with a
+        // synthetic stdout and exit -1 would claim a binary said something.
+        return crate::refute::RefuteCheck::StagingFailed {
+            what: format!("could not stage the certificate for the refutation check: {e}"),
+        };
+    }
+    crate::refute::check(
+        &dir.join("asserted.tsv"),
+        &dir.join("refutation.tsv"),
+        checker,
+    )
+}
+
+/// What `check_with` means when the derivation checker DID run.
+///
+/// The command names private staged copies that are removed afterwards, so the
+/// prose says so and points at the export when one exists.
+fn derivation_check_with_means(ran: bool, exported: bool) -> &'static str {
+    match (ran, exported) {
+        (true, true) => {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, \
+             and those copies are removed after the check, so the command above names files that \
+             no longer exist. certificate_dir holds an EXPORT written from the same captured \
+             bytes for inspection; running the command against that copy repeats the check only \
+             if the copy was not modified after it was written"
+        }
+        (true, false) => {
+            "the checker read PRIVATE staged copies of the bytes this pack carries, \
+             and those copies are removed after the check, so the command above names files \
+             that no longer exist. Unpack again with certificate_out_dir set to export them for \
+             inspection"
+        }
+        (false, true) => {
+            "no checker ran, so NOTHING WAS CHECKED. The command above names the \
+             private staged copies that were prepared and then removed. certificate_dir holds \
+             an EXPORT for inspection; it is not evidence that anything was checked"
+        }
+        (false, false) => {
+            "no checker ran, so NOTHING WAS CHECKED. The command above names the \
+             private staged copies that were prepared and then removed. Unpack again with \
+             certificate_out_dir set to export them for inspection, but the export is not \
+             evidence that anything was checked"
+        }
+    }
+}
+
+/// Whether the refutation checker was actually run, as opposed to absent or
+/// unable to stage its inputs. Both no-checker cases must not be described as
+/// "the checker read" anything.
+fn refutation_ran(r: &crate::refute::RefuteCheck) -> bool {
+    matches!(
+        r,
+        crate::refute::RefuteCheck::Accepted(_)
+            | crate::refute::RefuteCheck::Rejected { .. }
+            | crate::refute::RefuteCheck::Unreadable { .. }
+    )
+}
+
+/// What the refutation `check_with` means. Same rule as the derivation one:
+/// the private-copies phrasing belongs to a run that happened.
+fn refutation_check_with_means(ran: bool, exported: bool) -> &'static str {
+    match (ran, exported) {
+        (true, true) => {
+            "the checker read PRIVATE staged copies of the captured asserted/refutation \
+             bytes, and those copies are removed after the check, so the command above names \
+             files that no longer exist. certificate_dir holds an EXPORT for inspection; running \
+             the command against that copy repeats the refutation check only if the copy was not \
+             modified after it was written"
+        }
+        (true, false) => {
+            "the checker read PRIVATE staged copies of the captured asserted/refutation \
+             bytes, and those copies are removed after the check, so the command above names \
+             files that no longer exist. Unpack again with certificate_out_dir set to export them \
+             for inspection"
+        }
+        (false, true) => {
+            "no checker ran, so NOTHING WAS CHECKED about the refutation. The command \
+             above names the private staged copies of the captured asserted/refutation bytes \
+             that were prepared and then removed. certificate_dir holds an EXPORT for inspection; \
+             it is not evidence that anything was checked"
+        }
+        (false, false) => {
+            "no checker ran, so NOTHING WAS CHECKED about the refutation. The command \
+             above names the private staged copies of the captured asserted/refutation bytes \
+             that were prepared and then removed. Unpack again with certificate_out_dir set to \
+             export them for inspection, but the export is not evidence that anything was \
+             checked"
+        }
+    }
+}
+
+/// The refutation sub-report both the pack-time and unpack-time paths print.
+///
+/// The accepted word is carried by `verdict` only when a checker accepted AND
+/// the certificate is about the packed graph: the two boolean claims are ABSENT
+/// otherwise, so a report where nothing was checked (or where the proof rests
+/// on premises this pack does not carry) cannot contain the accepted word even
+/// as a key.
+fn refutation_report(r: &crate::refute::RefuteCheck, about_pack: bool) -> serde_json::Value {
+    let mut report = serde_json::json!({
+        "status": r.status(),
+        "verdict": refutation_word(r, about_pack),
+        "exit": r.exit(),
+        "stdout": r.stdout(),
+        "what": r.what(),
+        "means": refutation_means(r, about_pack),
+    });
+    if about_pack && matches!(r, crate::refute::RefuteCheck::Accepted(_)) {
+        report["graph_is_unsatisfiable"] = serde_json::json!(true);
+        report["derivation_certificate_is_worthless"] = serde_json::json!(true);
+    }
+    report
+}
+
+/// The word this crate may print about a refutation. `graph_is_unsatisfiable`
+/// is minted from an accepting token, never from the checker's own verdict
+/// string; the other three are the pack verdicts a refusal, an unreadable file
+/// and an absent checker already have.
+fn refutation_word(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'static str {
+    match r {
+        crate::refute::RefuteCheck::Accepted(_) if about_pack => "graph_is_unsatisfiable",
+        crate::refute::RefuteCheck::Accepted(_) => PackCertVerdict::NotAboutThisPack.word(),
+        crate::refute::RefuteCheck::Rejected { .. } => PackCertVerdict::Refused.word(),
+        crate::refute::RefuteCheck::Unreadable { .. } => PackCertVerdict::Unreadable.word(),
+        crate::refute::RefuteCheck::CheckerAbsent { .. } => PackCertVerdict::CheckerAbsent.word(),
+        // A word of this crate's own: no checker ran, and unlike an absent
+        // checker the reason is this side's inability to stage the inputs.
+        crate::refute::RefuteCheck::StagingFailed { .. } => "staging_failed_nothing_was_checked",
+    }
+}
+
+/// What the refutation answer does and does not mean. One wording for pack time
+/// and unpack time, because the two must not disagree about the same file.
+fn refutation_means(r: &crate::refute::RefuteCheck, about_pack: bool) -> &'static str {
+    match r {
+        crate::refute::RefuteCheck::Accepted(_) if about_pack => {
+            "the checker ACCEPTED this refutation: under the owl:disjointWith reading the graph \
+             has no model, so every triple follows and the derivation certificate beside this \
+             file proves nothing about this graph. It is not a claim that the asserted triples \
+             are true, and the contradiction is certified relative to the disjointness axioms, \
+             not absolutely"
+        }
+        crate::refute::RefuteCheck::Accepted(_) => {
+            "the checker ACCEPTED this refutation, but not every premise in its asserted.tsv is \
+             in this pack (see coverage.in_certificate_only), so what it proved has no model is \
+             a graph this pack does not fully carry. It is therefore NOT a claim that the graph \
+             in this pack is unsatisfiable, and no derivation certificate of this pack is shown \
+             worthless by it"
+        }
+        crate::refute::RefuteCheck::Rejected { .. } => {
+            "the checker REFUSED the refutation carried in this pack. STOP: the run that produced \
+             this pack recorded a contradiction its own checker will not accept, so the \
+             refutation file is a defect. This is not a proof of consistency either"
+        }
+        crate::refute::RefuteCheck::Unreadable { .. } => {
+            "the refutation file could not be read (exit 2, or an exit 0 that named no theorem \
+             this crate can require), so nothing is known about it. This is not a rejection and \
+             not a pass: NOTHING WAS CHECKED about the refutation"
+        }
+        crate::refute::RefuteCheck::CheckerAbsent { .. } => {
+            "no oo-refute checker was found, so NOTHING WAS CHECKED about the refutation. This is \
+             not a pass and not a rejection. Build it with `cd lean && lake build oo-refute`"
+        }
+        crate::refute::RefuteCheck::StagingFailed { .. } => {
+            "no checker ran, because the captured bytes could not be staged for it, so NOTHING \
+             WAS CHECKED about the refutation. This is not a pass and not a rejection: the pack \
+             still carries the refutation bytes, and the receiver runs its own checker over them"
+        }
     }
 }
 
@@ -1127,4 +1456,166 @@ fn scratch_dir() -> PathBuf {
         "oo-unpack-{}-{nanos}-{serial}",
         std::process::id()
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::refute::RefuteCheck;
+
+    /// Write an executable shell script and return its path.
+    #[cfg(unix)]
+    fn executable(dir: &Path, name: &str, body: &str) -> PathBuf {
+        use std::os::unix::fs::PermissionsExt as _;
+        let path = dir.join(name);
+        std::fs::write(&path, body).expect("write the fake checker");
+        let mut perms = std::fs::metadata(&path)
+            .expect("stat the fake checker")
+            .permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&path, perms).expect("make the fake checker executable");
+        path
+    }
+
+    /// The pack-time check reads the bytes the pack CAPTURED, not whatever the
+    /// source certificate directory holds a moment later.
+    ///
+    /// The source files are rewritten after `read_certificate_dir` returns, and
+    /// the fake checker copies the two files it was handed into a record
+    /// directory. If the helper read the source again the record would hold the
+    /// mutation; it holds the sentinel instead. The helper's staging directory
+    /// is removed after the check, and the `$1` path it recorded lets this test
+    /// observe that too.
+    #[cfg(unix)]
+    #[test]
+    fn the_refutation_is_checked_from_the_captured_bytes() {
+        let root = std::env::temp_dir().join(format!("oo-staged-bytes-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let src = root.join("certificate");
+        std::fs::create_dir_all(&src).expect("source dir");
+        std::fs::write(src.join("asserted.tsv"), "captured asserted line\n").expect("asserted");
+        std::fs::write(src.join("refutation.tsv"), "captured refutation line\n")
+            .expect("refutation");
+        // `kind_of` needs one of the two derivation files to recognise a kind;
+        // this test is only about the refutation pair.
+        std::fs::write(src.join("derivations.tsv"), "captured derivation line\n")
+            .expect("derivations");
+        let cert = read_certificate_dir(&src, None).expect("capture the certificate");
+        std::fs::write(src.join("asserted.tsv"), "MUTATED asserted line\n").expect("mutate");
+        std::fs::write(src.join("refutation.tsv"), "MUTATED refutation line\n").expect("mutate");
+
+        let record = root.join("record");
+        std::fs::create_dir_all(&record).expect("record dir");
+        let recorded_asserted = record.join("asserted");
+        let recorded_refutation = record.join("refutation");
+        let recorded_staging = record.join("staging-dir");
+        // `oo-refute check ASSERTED REFUTATION`: the subcommand is `$1`, so
+        // the two files are `$2` and `$3`.
+        let body = format!(
+            r#"#!/bin/sh
+cp "$2" "{}"
+cp "$3" "{}"
+dirname "$2" > "{}"
+echo '{{"ok":true,"theorem":"OOCert.refutation_fast_sound"}}'
+exit 0
+"#,
+            recorded_asserted.display(),
+            recorded_refutation.display(),
+            recorded_staging.display(),
+        );
+        let checker = executable(&record, "fake-oo-refute.sh", &body);
+
+        let checked = check_staged_refutation(&cert, Some(&checker));
+        assert!(
+            matches!(checked, RefuteCheck::Accepted(_)),
+            "the fake checker accepts: {checked:?}"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&recorded_asserted).expect("recorded asserted"),
+            "captured asserted line\n",
+            "the sender checked the bytes it captured, not the mutated source"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&recorded_refutation).expect("recorded refutation"),
+            "captured refutation line\n",
+            "the sender checked the captured refutation, not the mutated source"
+        );
+        let staging = std::fs::read_to_string(&recorded_staging).expect("recorded staging dir");
+        assert!(
+            !Path::new(staging.trim()).exists(),
+            "the staging directory is removed after the check: {staging}"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// A staging failure is this crate's own outcome, never synthetic checker
+    /// output: no exit code, no stdout, and a word that says nothing ran.
+    #[cfg(unix)]
+    #[test]
+    fn a_staging_failure_is_not_checker_output() {
+        let root = std::env::temp_dir().join(format!("oo-staging-failure-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).expect("root dir");
+        let not_a_dir = root.join("this-is-a-file");
+        std::fs::write(&not_a_dir, "not a directory").expect("blocking file");
+        let cert = PackedCertificate {
+            format: "oo-cert/1".to_string(),
+            files: BTreeMap::from([
+                ("asserted.tsv".to_string(), "asserted line\n".to_string()),
+                (
+                    "refutation.tsv".to_string(),
+                    "refutation line\n".to_string(),
+                ),
+            ]),
+            asserted: 1,
+            derivations: 1,
+            profile_claimed_by_sender: None,
+        };
+
+        let checked = check_staged_refutation_in(&not_a_dir, &cert, None);
+        assert!(
+            matches!(checked, RefuteCheck::StagingFailed { .. }),
+            "a file where the directory should be is a staging failure: {checked:?}"
+        );
+        assert_eq!(
+            checked.exit(),
+            None,
+            "no checker ran, so there is no exit code"
+        );
+        assert_eq!(checked.stdout(), None, "and no checker output to quote");
+        assert_eq!(
+            checked.status(),
+            "staging_failed",
+            "a staging failure has its own status: {checked:?}"
+        );
+        assert!(
+            checked.certified().is_none(),
+            "no theorem was named, so no token was minted: {checked:?}"
+        );
+        assert!(
+            checked
+                .what()
+                .unwrap_or_default()
+                .contains("could not stage"),
+            "this crate's own account is in `what`: {checked:?}"
+        );
+        assert!(
+            !crate::verdict::CHECKER_OWNED_WORDS.contains(&"staging_failed_nothing_was_checked"),
+            "the staging word is an engine word, not a checker word"
+        );
+
+        let report = refutation_report(&checked, true);
+        assert_eq!(report["verdict"], "staging_failed_nothing_was_checked");
+        assert!(report["exit"].is_null(), "no exit code: {report:#}");
+        assert!(report["stdout"].is_null(), "no checker bytes: {report:#}");
+        assert!(
+            report.get("graph_is_unsatisfiable").is_none(),
+            "nothing was checked, so the accepted word may not appear: {report:#}"
+        );
+        assert!(
+            report.get("derivation_certificate_is_worthless").is_none(),
+            "and it may not call the derivation certificate worthless: {report:#}"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
 }

@@ -88,11 +88,12 @@ in [docs/lean-certificates.md](docs/lean-certificates.md) and
 
 The same run also looks for a contradiction, and writes `refutation.tsv` when it
 finds one `oo-refute` can judge. Ten of the seventeen OWL 2 RL rules that
-conclude `false` are detected; one of them, `cax-dw`, has a semantic condition
-in `lean/` and is the only one a refutation is written for. The other nine are
-reported as found by this engine and nothing more, because a file naming a rule
-the checker cannot judge would be a certificate-shaped object that certifies
-nothing. `cax-dw` needs an individual in two disjoint classes, so a TBox that is
+conclude `false` are detected, and all ten have a semantic condition in `lean/`
+(`OOCert.RefuteConditions` carries twelve fields); a refutation can be written
+for any of the ten whose witness the checker can judge. The seven rules the
+engine does not look for are reported as not detected, because a file naming a
+rule the checker cannot judge would be a certificate-shaped object that
+certifies nothing. `cax-dw` needs an individual in two disjoint classes, so a TBox that is
 unsatisfiable with no individual asserted is invisible to the rule-based route:
 the `owl-dl` tableau sees that case and its answer carries no certificate.
 ### Rules you wrote

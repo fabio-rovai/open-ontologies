@@ -18,13 +18,17 @@
 //! `oo-refute` on the engine's own output.
 //!
 //! **An uncertified inconsistency must never look certified.** Seventeen rules
-//! of OWL 2 RL conclude `false`; `OOCert.RefuteConditions` carries a semantic
-//! condition for exactly one of them, `cax-dw`. The engine detects ten and can
-//! write a refutation for one. For the other nine it says it found a clash and
-//! says nothing else, because a file naming a rule the checker has no condition
-//! for is refused with exit 2 and would be a certificate-shaped object that
-//! certifies nothing. `the_engine_never_states_the_checkers_verdict` is the
-//! laundering guard, written to the pattern
+//! of OWL 2 RL conclude `false`; `OOCert.RefuteConditions` carries twelve
+//! semantic conditions and the engine detects ten of them, so a refutation is
+//! written for a clash of one of those ten. For any other rule it says it found
+//! a clash and says nothing else, because a file naming a rule the checker has
+//! no condition for is refused with exit 2 and would be a certificate-shaped
+//! object that certifies nothing. Since R1 the run also RUNS the checker over
+//! the pair it wrote, and an accepting run mints the token behind
+//! `refutation_accepted_by_this_machines_checker`. The laundering guard
+//! `the_engine_never_states_the_checkers_verdict` still holds: the engine's own
+//! word never becomes the checker's `unsatisfiable_under_disjointness`, and no
+//! engine field copies the theorem name. It is written to the pattern
 //! `tests/lean_horn_certificate_test.rs` set for the Horn layer.
 //!
 //! **A consistent ontology must never be refutable.** A refutation checker that
@@ -80,10 +84,11 @@ fn skip() -> bool {
     )
 }
 
-/// Build once per test binary. `oo-refute` is NOT in the lakefile's
-/// `defaultTargets`, so naming it here is what puts `OOCert/Refute.lean` and
-/// `OOCert/RefuteWitness.lean`, and the `#guard_msgs` axiom tripwires in them,
-/// in front of a compiler.
+/// Build once per test binary. `oo-refute` IS in the lakefile's
+/// `defaultTargets`, and naming it here still builds exactly the executable
+/// this file runs — and, with it, the `#guard_msgs` axiom tripwires in
+/// `OOCert/Refute.lean` and `OOCert/RefuteWitness.lean` — without depending on
+/// the whole default build having been run first.
 fn refute_bin() -> &'static Path {
     static BUILT: OnceLock<PathBuf> = OnceLock::new();
     BUILT.get_or_init(|| {
@@ -165,9 +170,10 @@ const CONSISTENT: &str = ":Herbivore owl:disjointWith :Carnivore .\n\
 const TBOX_ONLY: &str = ":Herbivore owl:disjointWith :Carnivore .\n\
     :Lion rdfs:subClassOf :Carnivore . :Lion rdfs:subClassOf :Herbivore .\n";
 
-/// Contradictions of three rules the Lean checker has no semantic condition
-/// for. Each is a real inconsistency and none of them can be certified here.
-const UNCERTIFIABLE: &str = ":parentOf a owl:IrreflexiveProperty . :bob :parentOf :bob .\n\
+/// Contradictions of three rules the Lean checker DOES have a condition for,
+/// none of them `cax-dw`. Each is a real inconsistency and each is certifiable
+/// since `RefuteConditions` grew past the single `cax-dw` field.
+const CERTIFIABLE_WITHOUT_CAX_DW: &str = ":parentOf a owl:IrreflexiveProperty . :bob :parentOf :bob .\n\
     :alice owl:sameAs :bob . :alice owl:differentFrom :bob .\n\
     :ghost a owl:Nothing .\n";
 
@@ -197,6 +203,19 @@ fn the_produced_refutation_is_accepted_by_the_checker() {
     assert_eq!(r["inconsistency"]["found"], true, "{r}");
     assert_eq!(r["inconsistency"]["refutation"]["written"], true, "{r}");
     assert_eq!(r["inconsistency"]["refutation"]["rule"], "cax-dw", "{r}");
+    // The run wired the checker itself: `skip()` proved the binary is present,
+    // so this is the accepting arm of the report and not the absent one.
+    assert_eq!(
+        r["inconsistency"]["verdict"], "refutation_accepted_by_this_machines_checker",
+        "a present, accepting checker must mint the certified word: {r}"
+    );
+    assert_eq!(r["inconsistency"]["checked_by_lean"], true, "{r}");
+    assert_eq!(
+        r["inconsistency"]["refutation"]["verdict"],
+        "refutation_accepted_by_this_machines_checker",
+        "{r}"
+    );
+    assert_eq!(r["inconsistency"]["refutation"]["checker"]["status"], "accepted", "{r}");
     // The clash is not in the asserted triples. If the prefix were empty the
     // producer would have cited a premise it never derived.
     assert!(
@@ -384,7 +403,7 @@ fn every_clash_this_engine_finds_is_now_one_the_checker_can_judge() {
     // Lean, `uncertifiable_rules_found` becomes non-empty, no file is written
     // for it, and this test says which rule it was.
     let dir = scratch("uncertifiable");
-    let r = reason(&ontology(UNCERTIFIABLE), "owl-rl", Some(&dir));
+    let r = reason(&ontology(CERTIFIABLE_WITHOUT_CAX_DW), "owl-rl", Some(&dir));
 
     assert_eq!(r["inconsistency"]["found"], true, "{r}");
     let by_rule = r["inconsistency"]["by_rule"].as_object().unwrap();
@@ -434,40 +453,104 @@ fn the_engine_never_states_the_checkers_verdict() {
     // `tests/lean_horn_certificate_test.rs::a_user_rule_never_earns_the_absolute_verdict`
     // set for the Horn layer. `unsatisfiable_under_disjointness` is what
     // `oo-refute` prints when it has ACCEPTED a refutation, and
-    // `OOCert.refutation_fast_sound` is the theorem behind it. Neither may be a
-    // verdict this engine states about its own findings: an engine opinion and
-    // a machine-checked result must never share a string, or a consumer cannot
-    // tell them apart.
-    for (name, ttl) in [("cax-dw", INCONSISTENT), ("uncertifiable", UNCERTIFIABLE)] {
-        let dir = scratch(&format!("laundering-{name}"));
-        let r = reason(&ontology(ttl), "owl-rl", Some(&dir));
+    // `OOCert.refutation_fast_sound` is the theorem behind it. Neither may
+    // appear as a verdict this engine states about its own findings: an engine
+    // opinion and a machine-checked result must never share a string, or a
+    // consumer cannot tell them apart. Since R1 the report may say that THIS
+    // machine's checker accepted the refutation, but it says so in its own WORD
+    // (`refutation_accepted_by_this_machines_checker`), never in the checker's.
+    let dir = scratch("laundering-cax-dw");
+    let r = reason(&ontology(INCONSISTENT), "owl-rl", Some(&dir));
+    let top = r["inconsistency"]["verdict"].as_str().unwrap_or_default();
+    let accepted = top == "refutation_accepted_by_this_machines_checker";
+    assert!(
+        accepted || top == "clash_found_by_this_engine",
+        "the engine states one of its own two words and nothing else: {r}"
+    );
+    // `checked_by_lean` is exactly the claim the certified word makes. It is
+    // not a third opinion: it is true iff the token behind the word exists.
+    assert_eq!(r["inconsistency"]["checked_by_lean"], accepted, "{r}");
+    if accepted {
+        assert_eq!(
+            r["inconsistency"]["refutation"]["verdict"],
+            "refutation_accepted_by_this_machines_checker",
+            "{r}"
+        );
+        assert_eq!(
+            r["inconsistency"]["refutation"]["checker"]["status"], "accepted",
+            "{r}"
+        );
+    } else {
+        // Not accepted. The nested word now depends on WHY: no checker on this
+        // machine means the file really is written and unchecked; a checker
+        // that answered did check it, so "not yet checked" would be false.
+        let status = r["inconsistency"]["refutation"]["checker"]["status"]
+            .as_str()
+            .unwrap_or_default();
+        let want = if status == "checker_absent_nothing_was_checked" {
+            "refutation_written_not_yet_checked"
+        } else {
+            "clash_found_by_this_engine"
+        };
+        assert_eq!(
+            r["inconsistency"]["refutation"]["verdict"], want,
+            "status was {status}: {r}"
+        );
+    }
 
-        assert_eq!(r["inconsistency"]["verdict"], "clash_found_by_this_engine", "{r}");
-        assert_eq!(r["inconsistency"]["checked_by_lean"], false, "{r}");
+    // The same guarantee for a run certified through a DIFFERENT rule: the
+    // engine must not have learned to name one particular rule's theorem, and
+    // the word it states is its own either way.
+    let dir = scratch("laundering-certifiable-no-cax-dw");
+    let u = reason(&ontology(CERTIFIABLE_WITHOUT_CAX_DW), "owl-rl", Some(&dir));
+    assert_eq!(u["inconsistency"]["refutation"]["written"], true, "{u}");
+    let u_top = u["inconsistency"]["verdict"].as_str().unwrap_or_default();
+    let u_accepted = u_top == "refutation_accepted_by_this_machines_checker";
+    assert!(
+        u_accepted || u_top == "clash_found_by_this_engine",
+        "a clash outside cax-dw is still the engine's own word or the certified one: {u}"
+    );
+    assert_eq!(u["inconsistency"]["checked_by_lean"], u_accepted, "{u}");
+    if u_accepted {
+        assert_eq!(
+            u["inconsistency"]["refutation"]["verdict"],
+            "refutation_accepted_by_this_machines_checker",
+            "{u}"
+        );
+        assert_eq!(
+            u["inconsistency"]["refutation"]["checker"]["status"], "accepted",
+            "{u}"
+        );
+    } else {
+        let status = u["inconsistency"]["refutation"]["checker"]["status"]
+            .as_str()
+            .unwrap_or_default();
+        let want = if status == "checker_absent_nothing_was_checked" {
+            "refutation_written_not_yet_checked"
+        } else {
+            "clash_found_by_this_engine"
+        };
+        assert_eq!(
+            u["inconsistency"]["refutation"]["verdict"], want,
+            "status was {status}: {u}"
+        );
+    }
 
+    for (name, report) in [("cax-dw", &r), ("certifiable-no-cax-dw", &u)] {
         let mut values = Vec::new();
-        string_values(&r, &mut values);
+        string_values(report, &mut values);
         for v in &values {
             assert_ne!(
                 v, "unsatisfiable_under_disjointness",
                 "{name}: that verdict is the CHECKER's, earned by an accepted refutation, and \
-                 this engine must not state it: {r}"
+                 this engine must not state it: {report}"
             );
             assert!(
                 !v.contains("OOCert.refutation_fast_sound"),
-                "{name}: naming the soundness theorem is claiming its conclusion: {r}"
+                "{name}: an engine field must not copy the soundness theorem's name: {report}"
             );
         }
     }
-    // And the word the engine does use for a written refutation says plainly
-    // that nothing has checked it.
-    let dir = scratch("laundering-word");
-    let r = reason(&ontology(INCONSISTENT), "owl-rl", Some(&dir));
-    assert_eq!(
-        r["inconsistency"]["refutation"]["verdict"],
-        "refutation_written_not_yet_checked",
-        "{r}"
-    );
 }
 
 #[test]

@@ -502,31 +502,48 @@ impl ClosureVerdict {
 
 /// What THIS ENGINE may say about a contradiction it found in its own closure.
 ///
-/// There is deliberately no certified variant. Nothing in the Rust tree runs
-/// `oo-refute`, so there is no code path that could mint the evidence one
-/// would need, and adding an unreachable variant would put the checker's word
-/// into the binary for the first time. When a Rust caller for `oo-refute` is
-/// written, it mints a [`Certified`] through [`CheckerRun::accepted`] like
-/// every other checker and a variant is added here — not before.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+/// [`EngineRefutation::ClashFoundByThisEngine`] is the engine's own opinion and
+/// nothing has checked it. [`EngineRefutation::RefutationAcceptedByThisMachinesChecker`]
+/// carries the [`Certified`] token a run of THIS machine's `oo-refute` minted,
+/// so the word cannot appear on a path that did not run the checker. Neither is
+/// the checker's own word: `oo-refute` prints
+/// `unsatisfiable_under_disjointness`, which lives in [`CHECKER_OWNED_WORDS`]
+/// and is never stated from this module.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum EngineRefutation {
     /// This engine found a clash in the closure it computed and NOTHING has
     /// checked that. Deliberately not the checker's word.
     ClashFoundByThisEngine,
-    /// A `refutation.tsv` was written in the format `oo-refute` reads. That it
-    /// was WRITTEN is all this says: exit 0 from `oo-refute check` is the
-    /// result that means anything.
+    /// A `refutation.tsv` was written in the format `oo-refute` reads, and no
+    /// run of the checker accepted it — because it was rejected, because it
+    /// could not be read, because no checker was found, or because the run has
+    /// not finished yet.
     RefutationWrittenNotYetChecked,
+    /// THIS machine's `oo-refute` accepted the refutation and named
+    /// `OOCert.refutation_fast_sound`. Relative to the owl:disjointWith
+    /// reading; still not the checker's own verdict string.
+    RefutationAcceptedByThisMachinesChecker(Certified),
 }
 
 impl EngineRefutation {
-    pub fn word(self) -> &'static str {
+    pub fn word(&self) -> &'static str {
         match self {
             EngineRefutation::ClashFoundByThisEngine => "clash_found_by_this_engine",
             EngineRefutation::RefutationWrittenNotYetChecked => {
                 "refutation_written_not_yet_checked"
             }
+            EngineRefutation::RefutationAcceptedByThisMachinesChecker(_) => {
+                "refutation_accepted_by_this_machines_checker"
+            }
         }
+    }
+
+    /// Whether an accepting checker run stands behind this word.
+    pub fn is_checked(&self) -> bool {
+        matches!(
+            self,
+            EngineRefutation::RefutationAcceptedByThisMachinesChecker(_)
+        )
     }
 }
 
@@ -614,6 +631,13 @@ mod tests {
         ours.push(ClosureVerdict::Checked(Certified { theorem: "x", subject: [0u8; 32] }).word());
         ours.push(EngineRefutation::ClashFoundByThisEngine.word());
         ours.push(EngineRefutation::RefutationWrittenNotYetChecked.word());
+        ours.push(
+            EngineRefutation::RefutationAcceptedByThisMachinesChecker(Certified {
+                theorem: "OOCert.refutation_fast_sound",
+                subject: [0u8; 32],
+            })
+            .word(),
+        );
         for w in ours {
             assert!(
                 !CHECKER_OWNED_WORDS.contains(&w),
@@ -757,6 +781,20 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&EngineRefutation::ClashFoundByThisEngine).unwrap(),
             "\"clash_found_by_this_engine\""
+        );
+        assert_eq!(
+            serde_json::to_string(&EngineRefutation::RefutationWrittenNotYetChecked).unwrap(),
+            "\"refutation_written_not_yet_checked\""
+        );
+        assert_eq!(
+            serde_json::to_string(&EngineRefutation::RefutationAcceptedByThisMachinesChecker(
+                Certified {
+                    theorem: "OOCert.refutation_fast_sound",
+                    subject: [0u8; 32]
+                }
+            ))
+            .unwrap(),
+            "\"refutation_accepted_by_this_machines_checker\""
         );
         let cert = Certified { theorem: "Fol.satisfiable_of_check", subject: [0u8; 32] };
         // `.clone()` three times where a `Copy` token needed none. That is the

@@ -35,14 +35,15 @@ refutation does not.
 # What a rejected refutation does NOT mean
 
 It does not mean the graph is consistent. Seventeen OWL 2 RL rules conclude
-`false`; `RefuteConditions` carries one condition, for `cax-dw`, and the other
-sixteen have no condition here at all. Fifteen of those sixteen are expressible
-in this layer and simply absent. The sixteenth, `dt-not-type`, is not
-expressible at all, because `OOCert.Semantics` has no datatype value space.
-`Refute.lean` lists all seventeen with their tables and states that split at the
-count. A graph that only `prp-irp` or `eq-diff1` could refute is rejected by
-this checker and is still contradictory. The checker is a gate, not an oracle,
-in that direction as in the other.
+`false`; `RefuteConditions` carries twelve conditions, and the other five have
+no condition here at all. Four of those five are expressible in this layer and
+simply absent (`cax-adc`, `prp-adp`, `eq-diff2`, `eq-diff3`, which read an RDF
+list). The fifth, `dt-not-type`, is not expressible at all, because
+`OOCert.Semantics` has no datatype value space. `Refute.lean` lists all
+seventeen with their tables and states that split at the count. A graph that
+only `cax-adc` or `dt-not-type` could refute is rejected by this checker and is
+still contradictory. The checker is a gate, not an oracle, in that direction as
+in the other.
 -/
 open OOCert
 
@@ -108,8 +109,8 @@ def runCheck (gPath rPath : String) : IO UInt32 := do
         \"prefix\":{r.steps.length},\"rule\":{jsonStr r.final.rule.name},\
         \"reason\":{jsonStr (whyRejected G r)},\
         \"means\":\"the refutation was not accepted. That is not a proof of consistency: \
-        seventeen OWL 2 RL rules conclude false, this checker implements cax-dw, and the other \
-        sixteen have no condition in it.\"}"
+        seventeen OWL 2 RL rules conclude false, this checker implements twelve of them, and \
+        the other five have no condition in it.\"}"
       return 1
   | .error e, _ => IO.eprintln e; return 2
   | _, .error e => IO.eprintln e; return 2
@@ -137,8 +138,8 @@ def runGuard (gPath dPath rPath : String) : IO UInt32 := do
         \"verdict\":\"entailed_and_no_disjointness_clash_found\",\
         \"theorem\":\"OOCert.certificate_sound\",\
         \"means\":\"every conclusion is entailed, and the supplied refutation did NOT check. \
-        No clash was found; that is not a proof of consistency, because only cax-dw is \
-        implemented.\"}"
+        No clash was found; that is not a proof of consistency, because this checker has no \
+        condition for five of the seventeen clash rules.\"}"
       return 0
     else
       IO.println s!"\{\"ok\":false,\"certificate_ok\":false,\"refuted\":false,\

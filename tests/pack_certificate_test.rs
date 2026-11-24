@@ -21,6 +21,14 @@
 //! for the accepted word in the whole serialised report and requires it to be
 //! absent.
 //!
+//! A pack may also carry `refutation.tsv`, written by a run that found a
+//! contradiction. That is a SECOND claim with its own checker: `oo-refute`.
+//! A refutation this machine's checker refuses blocks the load exactly as a
+//! refused derivation does — the pack carries a contradiction it cannot
+//! support. A refutation that could not be checked (no `oo-refute` here) is
+//! reported as `checker_absent_nothing_was_checked` and blocks nothing, because
+//! absence is not a rejection.
+//!
 //! The two legs that need a real `oo-cert` skip loudly through
 //! `common::skip_unless`; the `lean` job runs this file with
 //! `OO_REQUIRE_FIXTURES=1`, which turns that skip into a failure. Everything
@@ -136,11 +144,20 @@ fn unpack(path: &Path, opts: &UnpackOptions) -> Value {
     serde_json::from_str(&out).expect("the unpack report is JSON")
 }
 
+/// The default options every leg starts from.
+///
+/// Nine `UnpackOptions` literals exist in the tree: the three production ones
+/// (`src/batch.rs`, `src/server.rs`, `src/main.rs`) and six in this file (this
+/// function plus five `..UnpackOptions { .. }` legs). A new field has to reach
+/// all nine or the compiler says so.
 fn options(checker: Option<PathBuf>) -> UnpackOptions {
     UnpackOptions {
         verify_only: false,
         check_certificate: true,
         checker,
+        // Discovery by default, like the CLI. A test that needs a fake
+        // refutation checker names one explicitly.
+        refute_checker: None,
         certificate_out_dir: None,
         load_even_if_refused: false,
     }
@@ -417,13 +434,19 @@ fn the_receiver_outcomes_are_distinguishable() {
         "a command over a deleted directory must be labelled as one: {accepted:#}"
     );
     assert!(
-        !PathBuf::from(
-            accepted["certificate"]["certificate_dir"]
-                .as_str()
-                .unwrap()
-        )
-        .exists(),
-        "the scratch directory must actually be gone: {accepted:#}"
+        accepted["certificate"]["certificate_dir"].is_null(),
+        "no export was asked for, so there is no kept directory to name: {accepted:#}"
+    );
+    let printed = accepted["certificate"]["check_with"]
+        .as_str()
+        .expect("the report still prints the command it ran");
+    let printed_asserted = printed
+        .split_whitespace()
+        .nth(1)
+        .expect("the command names the asserted file it read");
+    assert!(
+        !PathBuf::from(printed_asserted).exists(),
+        "the private staging directory the command names must actually be gone: {accepted:#}"
     );
 
     // ... and with certificate_out_dir the files stay, so the command runs.
@@ -441,12 +464,17 @@ fn the_receiver_outcomes_are_distinguishable() {
         "the files a receiver was told to re-check must be there: {}",
         kept_dir.display()
     );
+    assert_eq!(
+        kept["certificate"]["certificate_dir"],
+        kept_dir.display().to_string(),
+        "the kept directory is the export, and the report names it: {kept:#}"
+    );
     assert!(
         kept["certificate"]["check_with_means"]
             .as_str()
             .unwrap_or_default()
-            .contains("repeats the check exactly"),
-        "{kept:#}"
+            .contains("EXPORT"),
+        "the report says certificate_out_dir is an export, not what the check read: {kept:#}"
     );
 
     // (b) exit 1: refused, and the load is blocked.
@@ -739,6 +767,10 @@ fn a_certificate_about_another_graph_is_not_about_this_pack() {
     );
     assert_eq!(r["loaded"], false, "{r:#}");
     assert!(
+        r["why_not_loaded"].is_string(),
+        "a real refusal says why it did not load: {r:#}"
+    );
+    assert!(
         r["certificate"]["coverage"]["in_certificate_only"]
             .as_u64()
             .unwrap_or(0)
@@ -786,6 +818,627 @@ fn pack_refuses_a_certificate_that_is_not_about_the_graph() {
         !path.exists(),
         "a refused pack must not be left on disk: {}",
         path.display()
+    );
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// 4b. The refutation a pack may also carry
+// ───────────────────────────────────────────────────────────────────────────
+
+/// A graph the engine refutes under `cax-dw`, so `certify` writes
+/// `refutation.tsv` beside the derivation certificate.
+#[cfg(unix)]
+const REFUTED: &str = r#"
+    :Herbivore owl:disjointWith :Carnivore .
+    :Lion rdfs:subClassOf :BigCat . :BigCat rdfs:subClassOf :Carnivore .
+    :leo a :Lion ; a :Herbivore .
+"#;
+
+/// A script that exits with `code`, standing in for `oo-refute`.
+///
+/// It prints a rejected line, because that is what a rejecting run prints and
+/// the report quotes its bytes. The engine's decision is the exit code (1 =
+/// rejected, 2 = unreadable), so the payload is not what the test turns on.
+#[cfg(unix)]
+fn fake_refute(code: i32) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!(
+        "refute_exit{code}_{}_{serial}.sh",
+        std::process::id()
+    ));
+    let body = format!(
+        "#!/bin/sh\necho '{{\"ok\":false,\"reason\":\"the fake refuter refused the file\"}}'\nexit {code}\n"
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+    p
+}
+
+/// A script that prints what an ACCEPTING `oo-refute` prints and exits 0.
+///
+/// The theorem is the one `CheckerRun::accepted_naming` requires, because the
+/// token must be minted from the checker's own line rather than from the exit
+/// code alone.
+#[cfg(unix)]
+fn fake_refute_accepting() -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!(
+        "refute_accepted_{}_{serial}.sh",
+        std::process::id()
+    ));
+    let body = "#!/bin/sh\necho '{\"ok\":true,\"theorem\":\"OOCert.refutation_fast_sound\"}'\nexit 0\n";
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+    p
+}
+
+/// A derivation checker that first MUTATES the export, then records what it
+/// was handed and what it read.
+///
+/// The mutation makes the export disagree with the captured bytes before the
+/// checker reads anything, so a receiver that points this fake at the export
+/// gets the mutated bytes and the test fails. The script saves and restores
+/// the export on exit, so the export still holds the captured bytes afterwards.
+#[cfg(unix)]
+fn fake_checker_recording(export: &Path, record: &Path) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-checkers");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!("recording_{}_{serial}.sh", std::process::id()));
+    let export = export.to_str().expect("temp paths are UTF-8");
+    let record = record.to_str().expect("temp paths are UTF-8");
+    let body = format!(
+        r#"#!/bin/sh
+set -e
+export_dir="{export}"
+record_dir="{record}"
+mkdir -p "$record_dir"
+cp "$export_dir/asserted.tsv" "$record_dir/derivation_export_asserted.orig"
+cp "$export_dir/derivations.tsv" "$record_dir/derivation_export_derivations.orig"
+restore() {{
+  cp "$record_dir/derivation_export_asserted.orig" "$export_dir/asserted.tsv"
+  cp "$record_dir/derivation_export_derivations.orig" "$export_dir/derivations.tsv"
+}}
+trap restore EXIT
+printf 'MUTATED BY THE FAKE DERIVATION CHECKER
+' > "$export_dir/asserted.tsv"
+printf 'MUTATED BY THE FAKE DERIVATION CHECKER
+' > "$export_dir/derivations.tsv"
+printf '%s
+' "$1" >> "$record_dir/derivation_paths.txt"
+printf '%s
+' "$2" >> "$record_dir/derivation_paths.txt"
+cp "$1" "$record_dir/derivation_asserted.seen"
+cp "$2" "$record_dir/derivation_derivations.seen"
+case "$1" in "$export_dir"/*) exit 1 ;; esac
+case "$2" in "$export_dir"/*) exit 1 ;; esac
+echo '{{"ok":true,"theorem":"OOCert.certificate_sound","checker":{{"name":"fake","sha256":"0"}}}}'
+exit 0
+"#
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    p
+}
+
+/// The refutation twin: mutate the export, record the paths and the bytes the
+/// `oo-refute check ASSERTED REFUTATION` invocation actually read, restore the
+/// export, then accept.
+#[cfg(unix)]
+fn fake_refute_recording(export: &Path, record: &Path) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let dir = std::env::temp_dir().join("oo-packcert-fake-refuters");
+    std::fs::create_dir_all(&dir).unwrap();
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let p = dir.join(format!("recording_{}_{serial}.sh", std::process::id()));
+    let export = export.to_str().expect("temp paths are UTF-8");
+    let record = record.to_str().expect("temp paths are UTF-8");
+    let body = format!(
+        r#"#!/bin/sh
+set -e
+export_dir="{export}"
+record_dir="{record}"
+mkdir -p "$record_dir"
+cp "$export_dir/asserted.tsv" "$record_dir/refutation_export_asserted.orig"
+cp "$export_dir/refutation.tsv" "$record_dir/refutation_export_refutation.orig"
+restore() {{
+  cp "$record_dir/refutation_export_asserted.orig" "$export_dir/asserted.tsv"
+  cp "$record_dir/refutation_export_refutation.orig" "$export_dir/refutation.tsv"
+}}
+trap restore EXIT
+printf 'MUTATED BY THE FAKE REFUTATION CHECKER
+' > "$export_dir/asserted.tsv"
+printf 'MUTATED BY THE FAKE REFUTATION CHECKER
+' > "$export_dir/refutation.tsv"
+printf '%s
+' "$2" >> "$record_dir/refutation_paths.txt"
+printf '%s
+' "$3" >> "$record_dir/refutation_paths.txt"
+cp "$2" "$record_dir/refutation_asserted.seen"
+cp "$3" "$record_dir/refutation_refutation.seen"
+case "$2" in "$export_dir"/*) exit 1 ;; esac
+case "$3" in "$export_dir"/*) exit 1 ;; esac
+echo '{{"ok":true,"theorem":"OOCert.refutation_fast_sound"}}'
+exit 0
+"#
+    );
+    {
+        let _gate = common::exec_gate();
+        std::fs::write(&p, body).unwrap();
+        use std::os::unix::fs::PermissionsExt as _;
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    p
+}
+
+/// A refutation the receiver's own `oo-refute` refuses blocks the load; one the
+/// receiver could not check does not.
+#[cfg(unix)]
+#[test]
+fn a_refused_refutation_blocks_the_load_and_an_absent_one_does_not() {
+    let dir = scratch("refutation-leg");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+
+    let packed = pack_with_certificate(&store, &cert_dir, &dir);
+    // Pack time checked it too, or said it could not. Either way the pack went
+    // through, because a refusal is the only thing that stops a pack here.
+    let at_pack = &packed["certificate"]["refutation"];
+    assert!(
+        at_pack.is_object(),
+        "pack time must report the refutation: {packed:#}"
+    );
+    let at_pack_status = at_pack["status"].as_str().unwrap_or_default();
+    assert!(
+        matches!(
+            at_pack_status,
+            "accepted" | "checker_absent_nothing_was_checked"
+        ),
+        "pack time either accepted the refutation or had no checker: {packed:#}"
+    );
+
+    let path = dir.join("carried.oopack");
+
+    // (a) A refutation checker that refuses: the pack's own contradiction does
+    // not check, so the graph is not promoted even though the DERIVATION
+    // certificate was accepted by the fake checker above.
+    let refused = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute(1)),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        refused["certificate"]["verdict"], "certificate_refused",
+        "a refused refutation outranks an accepted certificate: {refused:#}"
+    );
+    assert_eq!(refused["loaded"], false, "{refused:#}");
+    assert_eq!(
+        refused["certificate"]["refutation"]["status"], "rejected",
+        "{refused:#}"
+    );
+    assert!(
+        refused["certificate"]["refutation"]
+            .get("graph_is_unsatisfiable")
+            .is_none(),
+        "a refusal proves nothing about the graph, so the accepted word is absent: {refused:#}"
+    );
+
+    // (b) No refutation checker on this machine: the certificate still loads,
+    // and the report says the refutation was NOT checked rather than borrowing
+    // any verdict for it.
+    let absent = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(PathBuf::from("/nonexistent/oo-refute")),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        absent["certificate"]["verdict"], "certificate_accepted",
+        "the derivation certificate is still checked and accepted: {absent:#}"
+    );
+    assert_eq!(
+        absent["loaded"], true,
+        "an absent refute checker is not a rejection: {absent:#}"
+    );
+    assert_eq!(
+        absent["certificate"]["refutation"]["status"], "checker_absent_nothing_was_checked",
+        "{absent:#}"
+    );
+    let whole = serde_json::to_string(&absent).unwrap();
+    assert!(
+        !whole.contains("graph_is_unsatisfiable"),
+        "nothing checked the refutation, so the accepted word may not appear: {absent:#}"
+    );
+    assert!(
+        absent["certificate"]["refutation"]["means"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("NOTHING WAS CHECKED"),
+        "{absent:#}"
+    );
+    let absent_means = absent["certificate"]["refutation"]["check_with_means"]
+        .as_str()
+        .unwrap_or_default();
+    assert!(
+        absent_means.contains("no checker ran, so NOTHING WAS CHECKED"),
+        "an absent checker did not read anything, so the means must not say it did: {absent:#}"
+    );
+    assert!(
+        !absent_means.contains("the checker read PRIVATE"),
+        "the private-copies phrasing is for a run that happened: {absent:#}"
+    );
+}
+
+/// An accepted refutation about THIS pack still says the graph has no model.
+///
+/// The coverage gate must not silence the claim when the certificate and the
+/// graph are the same graph: that is the one case where the refutation is about
+/// the packed triples and the booleans mean something.
+#[cfg(unix)]
+#[test]
+fn an_accepted_refutation_about_this_pack_claims_unsatisfiability() {
+    let dir = scratch("accepted-refutation");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let accepted = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_accepting()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        accepted["certificate"]["verdict"], "certificate_accepted",
+        "clean coverage leaves the derivation certificate accepted: {accepted:#}"
+    );
+    assert_eq!(accepted["loaded"], true, "{accepted:#}");
+    assert_eq!(
+        accepted["certificate"]["refutation"]["status"], "accepted",
+        "{accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["verdict"], "graph_is_unsatisfiable",
+        "the accepted refutation is about this graph: {accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["graph_is_unsatisfiable"], true,
+        "{accepted:#}"
+    );
+    assert_eq!(
+        accepted["certificate"]["refutation"]["derivation_certificate_is_worthless"], true,
+        "{accepted:#}"
+    );
+}
+
+/// An accepted refutation whose `asserted.tsv` is not this pack's graph is NOT
+/// a claim about this pack.
+///
+/// The checker was right about the certificate and the pack still carries no
+/// unsatisfiability claim: `in_certificate_only` is non-empty, so `asserted.tsv`
+/// holds premises this graph does not, and the derivation certificate here was
+/// never shown worthless by it.
+#[cfg(unix)]
+#[test]
+fn an_accepted_refutation_about_another_graph_does_not_claim_this_graph_is_unsatisfiable() {
+    let mine = scratch("refuted-elsewhere-mine");
+    let theirs = scratch("refuted-elsewhere-theirs");
+    let out = scratch("refuted-elsewhere");
+    let store = certify(LIST_BEARING, &mine);
+    let other = certify(REFUTED, &theirs);
+    assert!(
+        theirs.join("refutation.tsv").exists(),
+        "the certificate being transplanted must carry a refutation"
+    );
+
+    // `Packer::pack` refuses this at pack time, so the artefact is assembled by
+    // hand: the receiver must not depend on the sender having refused it.
+    pack_with_certificate(&store, &mine, &out);
+    let other_out = scratch("refuted-elsewhere-other");
+    pack_with_certificate(&other, &theirs, &other_out);
+    let path = out.join("carried.oopack");
+    let mut pack = read_pack(&path);
+    pack["manifest"]["certificate"] =
+        read_pack(&other_out.join("carried.oopack"))["manifest"]["certificate"].clone();
+    let cert: PackedCertificate =
+        serde_json::from_value(pack["manifest"]["certificate"].clone()).unwrap();
+    pack["manifest"]["content_sha256"] = serde_json::json!(content_digest(
+        pack["graph"].as_str().unwrap(),
+        Some(&cert)
+    ));
+    write_pack(&path, &pack);
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_accepting()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_not_about_this_pack",
+        "the derivation certificate rests on premises the pack does not carry: {r:#}"
+    );
+    assert_eq!(r["loaded"], false, "{r:#}");
+    assert!(
+        r["certificate"]["coverage"]["in_certificate_only"]
+            .as_u64()
+            .unwrap_or(0)
+            > 0,
+        "{r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the checker accepted the refutation itself: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "certificate_not_about_this_pack",
+        "the accepted word is not about this pack: {r:#}"
+    );
+    let whole = serde_json::to_string(&r).unwrap();
+    assert!(
+        !whole.contains("graph_is_unsatisfiable"),
+        "an accepted refutation about another graph may not assert this one is unsatisfiable: {r:#}"
+    );
+    assert!(
+        !whole.contains("derivation_certificate_is_worthless"),
+        "and it may not call this pack's derivation certificate worthless: {r:#}"
+    );
+}
+
+/// The receiver checks PRIVATE staged copies; `certificate_out_dir` is only an
+/// export for a human to inspect.
+///
+/// Both fakes overwrite the export in place before reading their inputs, record
+/// the paths they were handed and the bytes they actually read, then restore
+/// the export. A receiver that hands either checker the export makes it read
+/// the mutated bytes, which the assertions below catch; a receiver that hands
+/// it the private copies reads the captured bytes, and the export still holds
+/// the captured bytes when the run ends.
+#[cfg(unix)]
+#[test]
+fn the_receiver_checks_private_staged_copies_not_the_export_directory() {
+    let dir = scratch("receiver-private");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    assert!(
+        cert_dir.join("refutation.tsv").exists(),
+        "the run must have written the refutation this leg is about"
+    );
+    let export = dir.join("export");
+    let record = dir.join("record");
+    std::fs::create_dir_all(&record).unwrap();
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_recording(&export, &record)),
+            certificate_out_dir: Some(export.clone()),
+            ..options(Some(fake_checker_recording(&export, &record)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_accepted",
+        "the derivation checker must have read the private copies: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the checker must have read the private copies, not the export: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "graph_is_unsatisfiable",
+        "{r:#}"
+    );
+    assert_eq!(r["loaded"], true, "{r:#}");
+    assert_eq!(
+        r["certificate"]["certificate_dir_kept"], true,
+        "the export is kept for inspection: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["certificate_dir"],
+        export.display().to_string(),
+        "{r:#}"
+    );
+    assert!(
+        r["certificate"]["certificate_dir_error"].is_null(),
+        "the export succeeded: {r:#}"
+    );
+    for field in [
+        &r["certificate"]["check_with_means"],
+        &r["certificate"]["refutation"]["check_with_means"],
+    ] {
+        let means = field.as_str().unwrap_or_default();
+        assert!(
+            means.contains("PRIVATE staged copies"),
+            "the report says the verdict rests on private copies: {means}"
+        );
+        assert!(
+            means.contains("EXPORT"),
+            "and it says the export is for inspection only: {means}"
+        );
+    }
+    let export_text = export.to_str().unwrap();
+    let check_with = r["certificate"]["check_with"].as_str().unwrap();
+    let refute_check_with = r["certificate"]["refutation"]["check_with"]
+        .as_str()
+        .unwrap();
+    assert!(
+        !check_with.contains(export_text) && !refute_check_with.contains(export_text),
+        "the commands name the private copies the checkers read: {r:#}"
+    );
+
+    // (a) Neither checker was handed a path inside the export directory.
+    for name in ["derivation_paths.txt", "refutation_paths.txt"] {
+        let text = std::fs::read_to_string(record.join(name)).expect("the checker recorded paths");
+        let lines = text.lines().collect::<Vec<_>>();
+        assert_eq!(lines.len(), 2, "both inputs were recorded in {name}: {text}");
+        for line in lines {
+            assert!(!line.is_empty(), "a recorded path is empty: {text}");
+            assert!(
+                !line.starts_with(export_text),
+                "a checker read a file inside the export directory: {line}"
+            );
+        }
+    }
+
+    // (b) What each checker recorded is the captured certificate bytes, not
+    // the mutated export. If either check is pointed at the export, the fake
+    // reads "MUTATED BY ..." and this fails.
+    let captured = |name: &str| std::fs::read(cert_dir.join(name)).expect("captured file");
+    for (seen, captured_name) in [
+        ("derivation_asserted.seen", "asserted.tsv"),
+        ("derivation_derivations.seen", "derivations.tsv"),
+        ("refutation_asserted.seen", "asserted.tsv"),
+        ("refutation_refutation.seen", "refutation.tsv"),
+    ] {
+        let got = std::fs::read(record.join(seen)).expect("the checker recorded its input");
+        assert_eq!(
+            got,
+            captured(captured_name),
+            "{seen} must be the captured {captured_name}, not the mutated export"
+        );
+    }
+
+    // (c) The export still holds the captured bytes, not the fake's mutation.
+    for name in ["asserted.tsv", "derivations.tsv", "refutation.tsv"] {
+        let exported = std::fs::read(export.join(name)).expect("exported file");
+        assert_eq!(
+            exported,
+            captured(name),
+            "the export must hold the captured {name}, not the fake's mutation"
+        );
+    }
+}
+
+/// A failed export is reported, and the verdict does not rest on it.
+///
+/// `certificate_out_dir` is for a human, so an I/O error there must not turn an
+/// accepted certificate into a refused one. The field says what happened, the
+/// private copies are still what the checker read, and the pack still loads.
+#[cfg(unix)]
+#[test]
+fn a_failed_export_is_a_field_and_does_not_change_the_verdict() {
+    let dir = scratch("export-failure");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let not_a_dir = dir.join("export-is-a-file");
+    std::fs::write(&not_a_dir, "a file where a directory was asked for").unwrap();
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute_accepting()),
+            certificate_out_dir: Some(not_a_dir.clone()),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_accepted",
+        "a failed export must not change the verdict: {r:#}"
+    );
+    assert_eq!(r["loaded"], true, "{r:#}");
+    assert_eq!(
+        r["certificate"]["certificate_dir_kept"], false,
+        "nothing was exported: {r:#}"
+    );
+    let error = r["certificate"]["certificate_dir_error"]
+        .as_str()
+        .unwrap_or_default();
+    assert!(
+        error.contains("could not be exported"),
+        "the failure is reported as a field: {r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "accepted",
+        "the check itself still ran on the private copies: {r:#}"
+    );
+}
+
+/// A refutation the receiver could not read blocks the load as `unreadable`,
+/// and its exit code and bytes are quoted rather than folded into a rejection.
+#[cfg(unix)]
+#[test]
+fn a_refutation_the_receiver_could_not_read_blocks_the_load_as_unreadable() {
+    let dir = scratch("refutation-exit-two");
+    let cert_dir = dir.join("cert");
+    std::fs::create_dir_all(&cert_dir).unwrap();
+    let store = certify(REFUTED, &cert_dir);
+    pack_with_certificate(&store, &cert_dir, &dir);
+    let path = dir.join("carried.oopack");
+
+    let r = unpack(
+        &path,
+        &UnpackOptions {
+            refute_checker: Some(fake_refute(2)),
+            ..options(Some(fake_checker(0)))
+        },
+    );
+    assert_eq!(
+        r["certificate"]["verdict"], "certificate_unreadable",
+        "exit 2 is not a rejection and not a pass: {r:#}"
+    );
+    assert_eq!(r["loaded"], false, "{r:#}");
+    assert_eq!(
+        r["certificate"]["refutation"]["status"], "unreadable",
+        "{r:#}"
+    );
+    assert_eq!(
+        r["certificate"]["refutation"]["verdict"], "certificate_unreadable",
+        "{r:#}"
+    );
+    assert_eq!(r["certificate"]["refutation"]["exit"], 2, "{r:#}");
+    assert!(
+        r["certificate"]["refutation"]["stdout"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("the fake refuter refused the file"),
+        "the checker's bytes are quoted: {r:#}"
     );
 }
 

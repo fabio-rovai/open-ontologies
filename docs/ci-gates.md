@@ -79,6 +79,8 @@ job invokes the file at all.
 | `dl_refutation_certificate_test.rs` | lake + `oo-dlrefute` | `lean` job | **strict** |
 | `lean_refutation_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
 | `lean_refutation_producer_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
+| `clash_spelling_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
+| `lean_refutation_checked_test.rs` | lake + `oo-refute` | `lean` job | **strict** |
 | `lean_mixed_certificate_test.rs` | lake | `lean` job | **strict** |
 | `pack_certificate_test.rs` | lake, for the two legs that forge a conclusion inside a packed certificate; the other six hand the checker in as a path and need nothing | `lean` job | **strict** |
 | `lean_horn_certificate_test.rs` | lake | `lean` job | **strict** |

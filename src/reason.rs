@@ -102,9 +102,12 @@ pub struct RuleInstance {
 pub struct ClashInstance {
     pub rule: &'static str,
     pub premises: Vec<Spelled>,
-    /// Whether `lean/OOCert/Refute.lean` holds a semantic condition for this
-    /// rule, so that a refutation naming it can be CHECKED rather than merely
-    /// asserted. Exactly one rule qualifies; see [`CLASH_RULES_CERTIFIABLE`].
+    /// Whether THIS clash has a witness shape `lean/OOCert/Refute.lean` can
+    /// check, so that a refutation naming it can be CHECKED rather than merely
+    /// asserted. The rule must be one of [`CLASH_RULES_CERTIFIABLE`], and for
+    /// `cls-maxc1` the zero must be the canonical `xsd:nonNegativeInteger`
+    /// spelling the checker compares against: a zero typed `xsd:integer` is
+    /// still DETECTED and reported here with `certifiable: false`.
     pub certifiable: bool,
 }
 
@@ -234,6 +237,39 @@ fn clash_is_certifiable(rule: &str) -> bool {
     CLASH_RULES_CERTIFIABLE.contains(&rule)
 }
 
+/// The exact spelling `lean/OOCert/Refute.lean` requires for the zero in
+/// `cls-maxc1`: canonical lexical form, typed `xsd:nonNegativeInteger`.
+///
+/// `checkRefuteStep` compares terms syntactically, so this spelling and this
+/// spelling alone is accepted. `literal_is_zero` is deliberately wider, because
+/// detection of an `owl:maxCardinality 0` restriction must survive whatever
+/// datatype its author wrote; certifiability is the narrower question, and it
+/// is asked per witness below.
+const CANONICAL_ZERO: &str = "\"0\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>";
+
+/// Whether THIS clash has a witness the Lean checker can judge, which is
+/// narrower than whether its rule appears in [`CLASH_RULES_CERTIFIABLE`].
+///
+/// Every rule but `cls-maxc1` has no per-witness condition here: the rule name
+/// is the whole question. `cls-maxc1`'s Lean condition compares the object of
+/// the `owl:maxCardinality` premise (the FIRST premise, in W3C order) to
+/// [`CANONICAL_ZERO`], so a restriction written `owl:maxCardinality 0` and
+/// typed `xsd:integer` produces a clash the engine reports and does not
+/// certify — `oo-refute` would reject a refutation naming it, and writing one
+/// anyway would make a packer refuse a genuinely contradictory graph.
+fn clash_certifiable_here(c: &Clash, interner: &Interner) -> bool {
+    if !clash_is_certifiable(c.rule) {
+        return false;
+    }
+    if c.rule == "cls-maxc1" {
+        let Some(&(_, _, zero)) = c.premises.first() else {
+            return false;
+        };
+        return interner.resolve(zero) == CANONICAL_ZERO;
+    }
+    true
+}
+
 /// The clash rules this engine does NOT look for, each with the reason. Listed
 /// so that "no clash found" is never read as "consistent": the honest reading
 /// of a clean run is that none of the rules below was even tried.
@@ -333,11 +369,15 @@ struct ClashVocab {
     target_value: u32,
 }
 
-/// Zero, in whichever spelling the store hands back for a
-/// `xsd:nonNegativeInteger` zero. Only the lexical form is read, because
-/// nothing else in this engine compares a literal by value and a detector that
-/// did would be claiming a datatype semantics the checker underneath it does
-/// not have.
+/// Zero, in whichever spelling the store hands back. Only the lexical form is
+/// read, because nothing else in this engine compares a literal by value and a
+/// detector that did would be claiming a datatype semantics the checker
+/// underneath it does not have.
+///
+/// This is deliberately WIDER than the checker, which compares the term against
+/// the canonical `xsd:nonNegativeInteger` spelling. Detection of
+/// `owl:maxCardinality 0` must survive whatever datatype its author wrote;
+/// [`clash_certifiable_here`] asks the narrower question per witness.
 fn literal_is_zero(term: &str) -> bool {
     let Some(rest) = term.strip_prefix('"') else {
         return false;
@@ -1400,10 +1440,12 @@ fn merge_sorted(all: &mut Vec<Fact>, mut added: Vec<Fact>) {
 ///     is what the `oo-cert/1` format can carry. The seventeen rules of the
 ///     profile that conclude `false` are handled AFTER the fixpoint instead,
 ///     by [`find_clashes`], and written in the separate `oo-refute/1` format
-///     that `lean/OOCert/Refute.lean` checks. Only `cax-dw` earns a
-///     certificate there, because it is the only clash rule the Lean checker
-///     has a semantic condition for; the rest are reported as found and
-///     uncertified, and the two must never share a word.
+///     that `lean/OOCert/Refute.lean` checks. `OOCert.RefuteConditions`
+///     carries twelve semantic conditions for clash rules; this engine detects
+///     ten of them, and a refutation is written for a clash of one of those
+///     ten. `oo-refute` refuses a rule it has no condition for with exit 2,
+///     the rest are reported as found and unaccepted, and the checker's own
+///     word is never this engine's word.
 ///
 /// The graph materialised inferences are written to when the caller asks for
 /// them to be kept apart from what was asserted.
@@ -2807,7 +2849,7 @@ impl Reasoner {
                 .map(|c| {
                     serde_json::json!({
                         "rule": c.rule,
-                        "certifiable": clash_is_certifiable(c.rule),
+                        "certifiable": clash_certifiable_here(c, &interner),
                         "premises": c.premises.iter().map(show).collect::<Vec<_>>(),
                     })
                 })
@@ -2827,10 +2869,10 @@ impl Reasoner {
                 //
                 // The word comes from `verdict::EngineRefutation`, whose
                 // vocabulary is asserted disjoint from
-                // `verdict::CHECKER_OWNED_WORDS`, and which has no certified
-                // variant to reach for: nothing in the Rust tree runs
-                // `oo-refute`, so there is no evidence any code here could
-                // mint.
+                // `verdict::CHECKER_OWNED_WORDS`. It starts unchecked; the
+                // runner below replaces it with the certified variant only
+                // when THIS machine's `oo-refute` accepts the refutation and
+                // mints the token that variant carries.
                 "verdict": crate::verdict::EngineRefutation::ClashFoundByThisEngine,
                 "checked_by_lean": false,
                 "clash_count": clashes.len(),
@@ -2843,11 +2885,11 @@ impl Reasoner {
                     .iter()
                     .map(|(r, why)| serde_json::json!({"rule": r, "why": why}))
                     .collect::<Vec<_>>(),
-                "means": "this engine found a contradiction in the closure it computed, and \
-                          NOTHING HAS CHECKED THAT. A refutation the Lean checker accepted is a \
-                          different kind of result with a different word for it: run `oo-refute \
-                          check` and read its verdict, which is `unsatisfiable_under_disjointness` \
-                          and is never stated here.",
+                "means": "this engine found a contradiction in the closure it computed, and NO \
+                          CHECKER RUN ACCEPTED A REFUTATION OF IT. A refutation the Lean checker \
+                          accepted is a different kind of result with a different word for it. \
+                          The `checker` block under `refutation` says what the run produced, and \
+                          `unsatisfiable_under_disjointness` is never stated in an engine field.",
                 "limits": "cax-dw needs an INDIVIDUAL in two disjoint classes, so a TBox that is \
                            unsatisfiable with no individual asserted is invisible to this route \
                            entirely: it is a boundary of rule-based reasoning, not a bug. The SHIQ \
@@ -2860,13 +2902,15 @@ impl Reasoner {
             });
 
             if let Some(dir) = certificate_dir {
-                // A refutation file is written for the one rule the checker can
-                // judge, and for nothing else. The engine's own detection of
-                // any other clash rule stays a report, because a file naming a
-                // rule `OOCert.RefuteConditions` has no field for is refused by
-                // `oo-refute` with exit 2 and would be a certificate-shaped
-                // object that certifies nothing.
-                let certifiable = clashes.iter().find(|c| clash_is_certifiable(c.rule));
+                // A checkable refutation is written for a clash of one of the
+                // ten rules `OOCert.RefuteConditions` has a condition for. A
+                // clash of any other rule stays a report: `oo-refute` refuses a
+                // refutation naming a rule it does not implement with exit 2
+                // rather than judging it, and a certificate-shaped file that
+                // certifies nothing is worse than none.
+                let certifiable = clashes
+                    .iter()
+                    .find(|c| clash_certifiable_here(c, &interner));
                 match certifiable {
                     Some(c) => match refutation_prefix(&c.premises, &derivations, &original) {
                         Some(ids) => {
@@ -2897,34 +2941,155 @@ impl Reasoner {
                                 text.push_str(interner.resolve(o));
                             }
                             text.push('\n');
-                            std::fs::write(dir.join("refutation.tsv"), text)?;
+                            let refutation_path = dir.join("refutation.tsv");
+                            let asserted_path = dir.join("asserted.tsv");
+                            std::fs::write(&refutation_path, text)?;
+
+                            // Run THIS machine's checker over the pair. Every
+                            // failure mode is a report, never an error: a run
+                            // that was asked for a certificate directory must
+                            // not fail because the checker is absent,
+                            // disagrees, or is unreadable.
+                            let checked =
+                                crate::refute::check(&asserted_path, &refutation_path, None);
+                            let check_with = format!(
+                                "cd lean && lake exe oo-refute check {a} {r}",
+                                a = asserted_path.display(),
+                                r = refutation_path.display()
+                            );
+                            let guard_with = format!(
+                                "cd lean && lake exe oo-refute guard {a} {d} {r}",
+                                a = asserted_path.display(),
+                                d = dir.join("derivations.tsv").display(),
+                                r = refutation_path.display()
+                            );
+                            let mut checker = serde_json::json!({
+                                "status": checked.status(),
+                                "exit": checked.exit(),
+                                "check_with": check_with,
+                            });
+                            let refutation_means: String = match &checked {
+                                crate::refute::RefuteCheck::Accepted(_) => {
+                                    let token = checked
+                                        .certified()
+                                        .expect("an accepted check carries its token")
+                                        .clone();
+                                    inconsistency["verdict"] = serde_json::json!(
+                                        crate::verdict::EngineRefutation::RefutationAcceptedByThisMachinesChecker(token)
+                                    );
+                                    inconsistency["checked_by_lean"] = serde_json::json!(true);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, and THIS MACHINE'S `oo-refute` ACCEPTED the \
+                                         refutation written for it, under the owl:disjointWith \
+                                         reading. That is a machine-checked result about the \
+                                         asserted triples in `asserted.tsv`: no model of them \
+                                         gives owl:disjointWith its OWL 2 meaning. It is \
+                                         relative to that reading, and a run that finds no \
+                                         clash is still not a consistency result."
+                                    );
+                                    "this refutation was ACCEPTED by this \
+                                         machine's `oo-refute`, which named the theorem this \
+                                         crate requires. The refutation and `asserted.tsv` are \
+                                         the two inputs that run was handed; `check_with` \
+                                         reproduces it."
+                                        .into()
+                                }
+                                crate::refute::RefuteCheck::Rejected { stdout } => {
+                                    checker["stdout"] = serde_json::json!(stdout);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, and this machine's `oo-refute` REJECTED the \
+                                         refutation written for it. No machine-checked result \
+                                         stands behind the clash, and `checker.stdout` is the \
+                                         checker's own reason. A rejection is not a proof of \
+                                         consistency either."
+                                    );
+                                    "the checker read this file and refused \
+                                         it. That is a defect in this producer, not a property \
+                                         of the ontology; `checker.stdout` carries its reason."
+                                        .into()
+                                }
+                                crate::refute::RefuteCheck::Unreadable { stdout, .. } => {
+                                    checker["stdout"] = serde_json::json!(stdout);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, and the checker run produced no answer this \
+                                         crate can read: the file was not accepted and it was \
+                                         not rejected either. `checker.stdout` carries what the \
+                                         checker emitted. Nothing was certified."
+                                    );
+                                    "the checker did not accept this file and \
+                                         did not reject it: its exit code or the theorem it \
+                                         named is not one this crate can read. Nothing was \
+                                         certified."
+                                        .into()
+                                }
+                                crate::refute::RefuteCheck::CheckerAbsent { what } => {
+                                    checker["what"] = serde_json::json!(what);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, and NO CHECKER RAN: `oo-refute` was not \
+                                         found, so NOTHING WAS CHECKED. Absence is not a pass."
+                                    );
+                                    "a file in the format \
+                                         OOCert.RefuteParse.parseRefutation reads, written for \
+                                         `oo-refute check`. No checker was found on this \
+                                         machine, so nothing was checked; `checker.what` says \
+                                         what was looked for."
+                                        .into()
+                                }
+                                crate::refute::RefuteCheck::StagingFailed { what } => {
+                                    checker["what"] = serde_json::json!(what);
+                                    inconsistency["means"] = serde_json::json!(
+                                        "this engine found a contradiction in the closure it \
+                                         computed, but the checker's inputs could not be \
+                                         prepared, so NO CHECKER RAN: NOTHING WAS CHECKED. \
+                                         This is not a pass."
+                                    );
+                                    "`refutation.tsv` was written, but the \
+                                         checker's inputs could not be prepared, so nothing \
+                                         was checked; `checker.what` says why."
+                                        .into()
+                                }
+                            };
+                            let refutation_verdict = match &checked {
+                                crate::refute::RefuteCheck::Accepted(_) => {
+                                    inconsistency["verdict"].clone()
+                                }
+                                // After a check that produced an answer, saying
+                                // "not yet checked" would be false. A rejection
+                                // or an unreadable run leaves the engine's own
+                                // word standing, now with the checker's bytes
+                                // beside it.
+                                crate::refute::RefuteCheck::Rejected { .. }
+                                | crate::refute::RefuteCheck::Unreadable { .. } => {
+                                    serde_json::json!(
+                                        crate::verdict::EngineRefutation::ClashFoundByThisEngine
+                                    )
+                                }
+                                // No checker ran, so the file really is written
+                                // and not yet checked.
+                                crate::refute::RefuteCheck::CheckerAbsent { .. }
+                                | crate::refute::RefuteCheck::StagingFailed { .. } => {
+                                    serde_json::json!(
+                                        crate::verdict::EngineRefutation::RefutationWrittenNotYetChecked
+                                    )
+                                }
+                            };
                             inconsistency["refutation"] = serde_json::json!({
                                 "written": true,
-                                "file": dir.join("refutation.tsv").display().to_string(),
+                                "file": refutation_path.display().to_string(),
                                 "format": "oo-refute/1",
                                 "rule": c.rule,
                                 "prefix": ids.len(),
                                 "premises": c.premises.iter().map(show).collect::<Vec<_>>(),
-                                // Written, not checked. The word for a checked
-                                // one is `oo-refute`'s to say, and this crate
-                                // has no vocabulary that can say it.
-                                "verdict": crate::verdict::EngineRefutation::RefutationWrittenNotYetChecked,
-                                "check_with": format!(
-                                    "cd lean && lake exe oo-refute check {a} {r}",
-                                    a = dir.join("asserted.tsv").display(),
-                                    r = dir.join("refutation.tsv").display()
-                                ),
-                                "guard_with": format!(
-                                    "cd lean && lake exe oo-refute guard {a} {d} {r}",
-                                    a = dir.join("asserted.tsv").display(),
-                                    d = dir.join("derivations.tsv").display(),
-                                    r = dir.join("refutation.tsv").display()
-                                ),
-                                "means": "a file in the format OOCert.RefuteParse.parseRefutation \
-                                          reads. Exit 0 from `oo-refute check` is the result that \
-                                          means anything; this engine writing the file means only \
-                                          that it wrote it.",
+                                "verdict": refutation_verdict,
+                                "check_with": checker["check_with"].clone(),
+                                "guard_with": guard_with,
+                                "means": refutation_means,
                             });
+                            inconsistency["refutation"]["checker"] = checker;
                         }
                         None => {
                             inconsistency["refutation"] = serde_json::json!({
@@ -2939,12 +3104,19 @@ impl Reasoner {
                     None => {
                         inconsistency["refutation"] = serde_json::json!({
                             "written": false,
-                            "why": "every clash found is of a rule the Lean checker has no \
-                                    semantic condition for. `OOCert.RefuteConditions` carries one \
-                                    field, for cax-dw, and `oo-refute` refuses a refutation naming \
-                                    any other rule with exit 2 rather than judging it. Writing one \
-                                    anyway would produce a certificate-shaped file that certifies \
-                                    nothing.",
+                            "why": "no clash found has a witness shape `OOCert.checkRefuteStep` \
+                                    can judge, so no checkable refutation could be built. A \
+                                    clash of a rule outside the twelve `OOCert.RefuteConditions` \
+                                    has a condition for is one case. The other is `cls-maxc1` \
+                                    with a zero that is not the canonical \
+                                    `\"0\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>` \
+                                    spelling the checker compares against: `owl:maxCardinality 0` \
+                                    typed `xsd:integer` is DETECTED and reported, but it is not \
+                                    certifiable, and no refutation is written for it. \
+                                    `oo-refute` refuses a refutation naming a rule it does not \
+                                    implement with exit 2 rather than judging it, and a \
+                                    certificate-shaped file that certifies nothing is worse than \
+                                    none.",
                         });
                     }
                 }
@@ -2952,8 +3124,9 @@ impl Reasoner {
                 inconsistency["refutation"] = serde_json::json!({
                     "written": false,
                     "why": "no certificate directory was given. Pass --certificate DIR (or \
-                            certificate_dir over MCP) and a refutation is written there for the \
-                            one clash rule the Lean checker can judge.",
+                            certificate_dir over MCP) and a refutation is written there for a \
+                            clash whose witness the Lean checker can judge: one of the ten \
+                            rules, with the canonical zero spelling for a cls-maxc1 clash.",
                 });
             }
 
@@ -3012,7 +3185,7 @@ impl Reasoner {
                     .map(|c| ClashInstance {
                         rule: c.rule,
                         premises: c.premises.iter().map(&spell).collect(),
-                        certifiable: clash_is_certifiable(c.rule),
+                        certifiable: clash_certifiable_here(c, &interner),
                     })
                     .collect(),
                 refused_unserialisable: refused.len(),

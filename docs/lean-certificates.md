@@ -131,6 +131,22 @@ weaker verification.
 | `checker_absent_nothing_was_checked` | no checker here, or the caller turned the check off | yes |
 | `no_certificate_in_pack` | the pack carries no proof, which every pack written before this does | yes |
 
+**The nested refutation sub-report is a second verdict, with its own vocabulary.**
+A pack that carries `refutation.tsv` gets a `certificate.refutation` object beside the certificate
+verdict. Its `status` is one of `accepted`, `rejected`, `unreadable`,
+`checker_absent_nothing_was_checked`, `staging_failed`. The `verdict` word is
+`graph_is_unsatisfiable` only when the checker accepted the refutation AND `in_certificate_only` is
+zero, so the refutation is about the packed graph; an accepted refutation whose premises are not all
+in the pack earns `certificate_not_about_this_pack` instead and asserts nothing about this graph. The
+other words are `certificate_refused`, `certificate_unreadable`,
+`checker_absent_nothing_was_checked` and `staging_failed_nothing_was_checked`. A `staging_failed`
+status means THIS CRATE could not write the captured bytes into a private staging directory, so no
+checker ran: `exit` and `stdout` are null, `what` carries the I/O error, and it is neither a pass
+nor a rejection. Both the sender at pack time and the receiver at unpack time run their checkers on
+private staged copies of the captured bytes, never on a shared directory; `certificate_out_dir` is
+an export for a human to inspect, and a failed export is reported under `certificate_dir_error`
+without changing the verdict.
+
 `certificate_not_about_this_pack` is the gate the checker cannot be. `oo-cert` verifies the steps
 against the triples inside `asserted.tsv` and has no way to ask where they came from, so a
 certificate that is internally sound over somebody else's premises checks green. `onto_unpack`
@@ -459,7 +475,8 @@ in `benchmark/`.
 
 A derivation certificate says a triple follows. A *refutation* says the graph contradicts itself, and
 it needs a second format because there is no triple to conclude. `lean/OOCert/Refute.lean` holds it,
-`oo-refute` checks it, and `OOCert.refutation_sound` is proved about it.
+`oo-refute` checks it, and `OOCert.refutation_fast_sound` is the theorem it prints when it
+accepts one (`OOCert.refutation_sound` is the general form; the fast checker is what the CLI runs).
 
 The reasoner now writes one. `reason --certificate DIR` looks for a contradiction in the closure it
 reached and, when it finds one the checker can judge, writes `DIR/refutation.tsv` beside the other
@@ -485,23 +502,40 @@ The response gains an `inconsistency` object:
 {
   "inconsistency": {
     "found": true,
-    "verdict": "clash_found_by_this_engine",
-    "checked_by_lean": false,
+    "verdict": "refutation_accepted_by_this_machines_checker",
+    "checked_by_lean": true,
     "by_rule": {"cax-dw": 1},
     "refutation": {
       "written": true,
       "rule": "cax-dw",
       "prefix": 2,
-      "verdict": "refutation_written_not_yet_checked",
-      "check_with": "cd lean && lake exe oo-refute check /tmp/cert/asserted.tsv /tmp/cert/refutation.tsv"
+      "verdict": "refutation_accepted_by_this_machines_checker",
+      "check_with": "cd lean && lake exe oo-refute check /tmp/cert/asserted.tsv /tmp/cert/refutation.tsv",
+      "checker": {
+        "status": "accepted",
+        "exit": 0,
+        "check_with": "cd lean && lake exe oo-refute check /tmp/cert/asserted.tsv /tmp/cert/refutation.tsv"
+      }
     }
   }
 }
 ```
 
+The run writes the file, then runs THIS machine's `oo-refute` over `asserted.tsv` and the file it
+just wrote. Only an exit-0 run naming `OOCert.refutation_fast_sound` produces
+`refutation_accepted_by_this_machines_checker` and `"checked_by_lean": true`; the token is minted by
+`CheckerRun::accepted_naming`, and the checker's own `verdict` string never becomes an engine verdict
+field — on a refusal its bytes are quoted under `checker.stdout`, which is evidence and not a verdict
+this engine states. With no checker the top verdict stays `clash_found_by_this_engine`, `checked_by_lean` stays
+false, the nested verdict is `refutation_written_not_yet_checked`, and `refutation.checker.status` is
+`checker_absent_nothing_was_checked` with `checker.what` naming what was looked for. A rejection
+(exit 1) leaves the engine word too, with the checker's bytes under `checker.stdout`; exit 2 is the
+same, under the same key. None of those three is a consistency result.
+
 **Read the two verdicts apart.** `clash_found_by_this_engine` is this engine saying so, with nothing
 behind it. `unsatisfiable_under_disjointness` is what `oo-refute` prints when it has ACCEPTED a
-refutation, and the engine never states it.
+refutation, and the engine never states it: the word it states instead is
+`refutation_accepted_by_this_machines_checker`, minted from the theorem name the checker printed.
 `tests/lean_refutation_producer_test.rs::the_engine_never_states_the_checkers_verdict` fails if any
 string in the response is ever that verdict, on the pattern the Horn layer's laundering guard set.
 
@@ -514,29 +548,44 @@ looked for once, after the fixpoint.
 | rule | detected | certifiable |
 |---|---|---|
 | `cax-dw` (`c1 owl:disjointWith c2`, `x a c1`, `x a c2`) | yes | **yes** |
-| `cls-com` (`owl:complementOf`) | yes | no |
-| `cls-nothing2` (`x a owl:Nothing`) | yes | no |
-| `cls-maxc1` (`owl:maxCardinality 0`) | yes | no |
-| `eq-diff1` (`owl:sameAs` and `owl:differentFrom`) | yes | no |
-| `prp-irp` (`owl:IrreflexiveProperty`) | yes | no |
-| `prp-asyp` (`owl:AsymmetricProperty`) | yes | no |
-| `prp-pdw` (`owl:propertyDisjointWith`) | yes | no |
-| `prp-npa1`, `prp-npa2` (negative property assertions) | yes | no |
-| `cax-adc`, `prp-adp`, `eq-diff2`, `eq-diff3` | no, they read an RDF list | no |
-| `cls-maxqc1`, `cls-maxqc2` | no, qualified cardinality is not implemented | no |
-| `dt-not-type` | no, an ill-typed literal needs a datatype value space | no |
+| `cls-com` (`owl:complementOf`) | yes | **yes** |
+| `cls-nothing2` (`x a owl:Nothing`) | yes | **yes** |
+| `cls-maxc1` (`owl:maxCardinality 0`) | yes | **yes**, for the canonical `"0"^^xsd:nonNegativeInteger` zero only |
+| `eq-diff1` (`owl:sameAs` and `owl:differentFrom`) | yes | **yes** |
+| `prp-irp` (`owl:IrreflexiveProperty`) | yes | **yes** |
+| `prp-asyp` (`owl:AsymmetricProperty`) | yes | **yes** |
+| `prp-pdw` (`owl:propertyDisjointWith`) | yes | **yes** |
+| `prp-npa1`, `prp-npa2` (negative property assertions) | yes | **yes** |
+| `cax-adc`, `prp-adp`, `eq-diff2`, `eq-diff3` | no, they read an RDF list | no condition in the checker |
+| `cls-maxqc1`, `cls-maxqc2` | no, qualified cardinality is not implemented | condition exists, never reached here |
+| `dt-not-type` | no, an ill-typed literal needs a datatype value space | no condition in the checker |
 
-Only `cax-dw` is certifiable, and the reason belongs to the checker rather than to the engine.
-`OOCert.RefuteConditions` carries exactly one semantic field, for `cax-dw`, and `oo-refute` refuses a
-refutation naming any other clash rule with exit 2 rather than guessing at it. So the producer writes
-a refutation for that rule alone. For the other nine it detects, the response says a clash was found
-and `"refutation": {"written": false}` with the reason. Every rule the engine does not look for is
-listed in `rules_not_detected` with its own reason, so a run with no clash is never a consistency
-result: most of the table was not tried.
+Ten of the seventeen are certifiable, and the reason belongs to the checker as much as to the engine.
+`OOCert.RefuteConditions` carries twelve semantic conditions: `dw`, `com`, `nothing`, `irp`, `asyp`,
+`pdw`, `diff`, `npa1`, `npa2`, `maxc1`, `maxqc1`, `maxqc2`. The engine detects ten of those twelve.
+The other two, `cls-maxqc1` and `cls-maxqc2`, have a condition the checker would judge and the engine
+never reaches, because qualified cardinality is not implemented here. The five rules with no
+condition at all are refused by `oo-refute` with exit 2 rather than guessed at.
 
-`lean/OOCert/Refute.lean` says sixteen rules conclude `false`. Counted against the W3C tables it is
-seventeen; the difference is `dt-not-type`, which that file excludes elsewhere on the stated ground
-that the Lean semantics has no datatype value space. Nothing computes with the number.
+Certifiability is per WITNESS, not only per rule. For nine of the ten the rule name is the whole
+question. `cls-maxc1` is the exception: the checker's condition compares the cardinality object to
+exactly `"0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>`, and it compares terms
+syntactically. A restriction written `owl:maxCardinality 0`, which Turtle types as `xsd:integer`, IS
+detected and IS reported, but with `"certifiable": false`; no refutation is written for it, and if
+the same graph also contains a clash whose witness the checker can judge, that one is written
+instead. So a run that reports a `cls-maxc1` clash with `certifiable: false` is reporting a real
+contradiction this producer cannot certify, not a failure to detect one.
+
+So the producer writes a refutation for a clash whose witness is certifiable, and then runs the
+checker over the pair it wrote. For any other clash it detects nothing is written: the response says
+a clash was found and `"refutation": {"written": false}` with the reason, which names the canonical
+zero spelling when that is what stood in the way. Every rule the engine does not look for is listed
+in `rules_not_detected` with its own reason, so a run with no clash is never a consistency result:
+most of the table was not tried.
+
+`lean/OOCert/Refute.lean` and `RefuteMain.lean` state seventeen rules conclude `false`, the count the
+W3C tables give. Twelve of them have a condition in the checker; five do not, `dt-not-type` among
+them because the Lean semantics has no datatype value space. Nothing computes with the total.
 
 ### The limit, which is real
 
@@ -551,10 +600,11 @@ The SHIQ tableau (`--profile owl-dl`, `src/tableaux.rs`) does see it, and report
 (`"not_covered": "unsatisfiability and inconsistency carry no certificate"`). No refutation is
 emitted from it, and the obstruction is precise rather than a matter of effort:
 
-- `oo-refute/1` can express exactly one contradiction, `cax-dw`, whose three premises must each be
-  asserted or concluded by a step of the 29-rule forward-chaining prefix. A tableau clash reached
-  through `∃`/`∀` expansion, node merging or a cardinality bound is not three triples of that shape
-  and there is nothing in the format to write it as.
+- `oo-refute/1` can express the twelve contradiction shapes `OOCert.RefuteConditions` carries, and
+  the producer reaches ten of them. Each shape's premises must be asserted or concluded by a step of
+  the 29-rule forward-chaining prefix. A tableau clash reached through `∃`/`∀` expansion, node
+  merging or a cardinality bound is not a triple pattern of that shape and there is nothing in the
+  format to write it as.
 - Where a tableau clash IS a `cax-dw` instance over triples the forward-chaining rules can reach, the
   rule-based producer has already found it, so the tableau adds nothing that can be certified.
 - Feeding the tableau's inferred subsumptions back into the store and re-reasoning would let more
@@ -944,8 +994,9 @@ Stated rather than discovered later.
   drops the inference graph from what it reads, records the drop in `scope.tsv`, and materialises
   nothing of its own.
 - **No clash found is not consistency.** Seven of the seventeen clash rules are not looked for at
-  all and eight of the ten that are cannot be certified, so a clean `reason` run means "none of the
-  ten rules tried fired", never "this ontology is consistent". A rejected refutation means the same:
+  all, and the ten that are can be certified (for `cls-maxc1`, only when its witness is the
+  canonical `xsd:nonNegativeInteger` zero), so a clean `reason` run means "none of the ten rules
+  tried fired", never "this ontology is consistent". A rejected refutation means the same:
   `oo-refute`'s own report says so in every verdict it prints.
 - **One clash is reported per refutation, and only the first certifiable one is written.** A graph
   with twenty disjointness clashes gets one `refutation.tsv`. `clash_count` and `by_rule` carry the

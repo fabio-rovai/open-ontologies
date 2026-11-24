@@ -22,17 +22,21 @@ Vocabulary, contributes none of them: all 20 of its rules conclude a triple, so
 the ones this project implements live in `Semantics.lean` as ordinary
 conditions.
 
-`cax-dw` is the one implemented here, and the one with the most axioms waiting
+`cax-dw` is the flagship condition, and the one with the most axioms waiting
 for it: given `c1 owl:disjointWith c2`, `x rdf:type c1` and `x rdf:type c2`, the
 graph is contradictory. The certificate format in `Rules.lean` cannot express
 that, because `Step.conclusion` is a `Triple` and `certificate_sound` concludes
 `Entails`. There is no triple to conclude. This file adds the second format.
 
-Sixteen of the seventeen are rules this layer can state, and it states one of
-them, `cax-dw`. The seventeenth, `dt-not-type`, it cannot state at all. The
-distinction is drawn where the count is, below, because a reader who meets only
-the number will otherwise take "not implemented" and "not expressible" for the
-same thing, and they are different claims about this checker.
+`RefuteConditions` states twelve of the seventeen rules. The other five have no
+condition here: `cax-adc`, `prp-adp`, `eq-diff2` and `eq-diff3` read an RDF
+list, and `dt-not-type` needs a datatype value space this layer does not have.
+Four of those five are expressible in this layer and simply absent; the fifth,
+`dt-not-type`, is not expressible at all. The distinction is drawn where the
+count is, below, because a reader who meets only the number will otherwise take
+"not implemented" and "not expressible" for the same thing, and they are
+different claims about this checker. The Rust producer detects ten of the
+twelve: it does not reach `cls-maxqc1` or `cls-maxqc2`.
 
 ## Why the negative conditions live HERE and not in `Semantics.lean`
 
@@ -167,7 +171,13 @@ The three cardinality rules of the profile that conclude `false` are the ZERO
 cases and nothing else, which is why they are here at all: `cls-maxc1` says a
 class with `owl:maxCardinality 0` on a property cannot have a member with that
 property, and deciding that needs no counting, only the literal. A rule that
-needed to COUNT successors could not be stated in this format. -/
+needed to COUNT successors could not be stated in this format.
+
+The spelling is part of the condition: `checkRefuteStep` compares terms, so a
+graph that writes `owl:maxCardinality 0` and lets Turtle type it `xsd:integer`
+is a zero this checker does not accept. The Rust producer still DETECTS that
+clash; it reports it with `certifiable: false` and writes no refutation,
+because a certificate that cannot check is worse than none. -/
 def zero : Term :=
   "\"0\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>"
 end RV

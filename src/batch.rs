@@ -1169,6 +1169,7 @@ impl BatchRunner {
             verify_only: flag("--verify-only"),
             check_certificate: !flag("--no-check"),
             checker: value("--checker").map(std::path::PathBuf::from),
+            refute_checker: None,
             certificate_out_dir: value("--certificate-out").map(std::path::PathBuf::from),
             load_even_if_refused: flag("--load-even-if-refused"),
         };
