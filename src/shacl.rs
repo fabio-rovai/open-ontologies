@@ -4,9 +4,15 @@
 use crate::graph::{GraphStore, ReadScope};
 use crate::temporal::{ScopeManifest, ScopeRequest};
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{Literal, Term, Variable};
+use oxigraph::model::{Literal, NamedNode, Term, Variable};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
+use spargebra::SparqlParser;
+use spargebra::algebra::{
+    AggregateExpression, Expression, GraphPattern, OrderExpression, PropertyPathExpression,
+};
+use spargebra::term::{NamedNodePattern, TriplePattern};
+use spargebra::Query;
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::sync::Arc;
@@ -2267,16 +2273,19 @@ impl ShaclValidator {
                 // legal after those: the grammar allows any number of
                 // PREFIX and BASE declarations in any order.
                 // SHACL-SPARQL 5.3: `$PATH` is substituted rather than
-                // pre-bound, so the text the engine runs is the author's query
-                // with the shape's path written where `$PATH` stood. Only a
+                // pre-bound, so the query the engine runs is the author's,
+                // with the shape's path in the predicate position where
+                // `$PATH` stood. Only a
                 // property shape gets the substitution, because only a
                 // property shape has an `sh:path` to substitute; a node
                 // shape's query runs as written.
-                let select_substituted = match shape_path.as_ref() {
-                    Some(p) => substitute_path(&select_raw, &p.sparql()),
-                    None => select_raw.clone(),
+                // The shapes graph's prefixes are part of the text handed to
+                // the parser, because the author's SELECT may name them.
+                let select_full = format!("{prefix_block}{select_raw}");
+                let query = match shape_path.as_ref() {
+                    Some(p) => substitute_path(&select_full, p),
+                    None => select_full,
                 };
-                let query = format!("{prefix_block}{select_substituted}");
                 if let Some(construct) = prebinding_violation(&select_raw, "this") {
                     skipped.push(serde_json::json!({
                         "shape": strip_angle_brackets(&shape_iri),
@@ -3809,6 +3818,396 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
     None
 }
 
+/// Convert a SHACL property path into the SPARQL algebra's path expression.
+///
+/// The mapping is structural, not textual: the resolver has already decided
+/// which path each node denotes, and rendering it back to a string only to
+/// have another parser read it again would be a second, weaker reading of the
+/// same thing. Sequence and alternative lists are left-folded in written
+/// order, which preserves the association SPARQL gives those operators.
+fn shacl_path_expression(path: &ShaclPath) -> PropertyPathExpression {
+    fn fold(
+        parts: &[ShaclPath],
+        combine: fn(
+            Box<PropertyPathExpression>,
+            Box<PropertyPathExpression>,
+        ) -> PropertyPathExpression,
+    ) -> PropertyPathExpression {
+        let mut iter = parts.iter();
+        let first = iter
+            .next()
+            .expect("the path resolver rejects an empty sequence or alternative list");
+        let mut acc = shacl_path_expression(first);
+        for part in iter {
+            acc = combine(Box::new(acc), Box::new(shacl_path_expression(part)));
+        }
+        acc
+    }
+
+    match path {
+        ShaclPath::Predicate(iri) => {
+            PropertyPathExpression::NamedNode(NamedNode::new_unchecked(iri.clone()))
+        }
+        ShaclPath::Inverse(inner) => {
+            PropertyPathExpression::Reverse(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::Sequence(parts) => fold(parts, PropertyPathExpression::Sequence),
+        ShaclPath::Alternative(parts) => fold(parts, PropertyPathExpression::Alternative),
+        ShaclPath::ZeroOrMore(inner) => {
+            PropertyPathExpression::ZeroOrMore(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::OneOrMore(inner) => {
+            PropertyPathExpression::OneOrMore(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::ZeroOrOne(inner) => {
+            PropertyPathExpression::ZeroOrOne(Box::new(shacl_path_expression(inner)))
+        }
+    }
+}
+
+/// Whether a triple pattern has the SHACL `PATH` variable as its predicate.
+fn is_path_predicate(triple: &TriplePattern) -> bool {
+    matches!(
+        &triple.predicate,
+        NamedNodePattern::Variable(variable) if variable.as_str() == "PATH"
+    )
+}
+
+/// One triple of a basic graph pattern as a pattern on its own, with a
+/// predicate-position `PATH` turned into the shape's property path.
+fn pattern_for_triple(triple: TriplePattern, path: &PropertyPathExpression) -> GraphPattern {
+    if is_path_predicate(&triple) {
+        GraphPattern::Path {
+            subject: triple.subject,
+            path: path.clone(),
+            object: triple.object,
+        }
+    } else {
+        GraphPattern::Bgp {
+            patterns: vec![triple],
+        }
+    }
+}
+
+/// Split a BGP that contains a `PATH` predicate into a left-folded join of
+/// single-triple patterns. A BGP without one is left untouched, so the common
+/// case keeps a basic graph pattern the optimizer can read as one unit.
+fn split_bgp(patterns: Vec<TriplePattern>, path: &PropertyPathExpression) -> (GraphPattern, bool) {
+    if !patterns.iter().any(is_path_predicate) {
+        return (GraphPattern::Bgp { patterns }, false);
+    }
+    let mut triples = patterns.into_iter();
+    let first = triples
+        .next()
+        .expect("a non-empty pattern list was checked by any()");
+    let mut acc = pattern_for_triple(first, path);
+    for triple in triples {
+        acc = GraphPattern::Join {
+            left: Box::new(acc),
+            right: Box::new(pattern_for_triple(triple, path)),
+        };
+    }
+    (acc, true)
+}
+
+/// Walk one graph pattern, replacing every predicate-position `PATH` variable
+/// with the shape's path. Returns whether anything was replaced.
+fn replace_in_pattern(
+    pattern: GraphPattern,
+    path: &PropertyPathExpression,
+) -> (GraphPattern, bool) {
+    match pattern {
+        GraphPattern::Bgp { patterns } => split_bgp(patterns, path),
+        // Already a concrete property path: no predicate variable to replace.
+        GraphPattern::Path {
+            subject,
+            path: expression,
+            object,
+        } => (
+            GraphPattern::Path {
+                subject,
+                path: expression,
+                object,
+            },
+            false,
+        ),
+        GraphPattern::Join { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Join { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::LeftJoin {
+            left,
+            right,
+            mut expression,
+        } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            let expression_changed = expression
+                .as_mut()
+                .is_some_and(|expression| replace_in_expression(expression, path));
+            (
+                GraphPattern::LeftJoin {
+                    left,
+                    right,
+                    expression,
+                },
+                left_changed || right_changed || expression_changed,
+            )
+        }
+        // `Lateral` exists because Oxigraph enables spargebra's `sep-0006`
+        // feature; walking it keeps every child pattern reachable.
+        GraphPattern::Lateral { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Lateral { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Filter { mut expr, inner } => {
+            let expr_changed = replace_in_expression(&mut expr, path);
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Filter { expr, inner },
+                expr_changed || inner_changed,
+            )
+        }
+        GraphPattern::Union { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Union { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Graph { name, inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Graph { name, inner }, changed)
+        }
+        GraphPattern::Extend {
+            inner,
+            variable,
+            mut expression,
+        } => {
+            let expression_changed = replace_in_expression(&mut expression, path);
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Extend {
+                    inner,
+                    variable,
+                    expression,
+                },
+                expression_changed || inner_changed,
+            )
+        }
+        GraphPattern::Minus { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Minus { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Values {
+            variables,
+            bindings,
+        } => (
+            GraphPattern::Values {
+                variables,
+                bindings,
+            },
+            false,
+        ),
+        GraphPattern::OrderBy {
+            inner,
+            mut expression,
+        } => {
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            let mut expression_changed = false;
+            for order in &mut expression {
+                expression_changed |= replace_in_order_expression(order, path);
+            }
+            (
+                GraphPattern::OrderBy { inner, expression },
+                inner_changed || expression_changed,
+            )
+        }
+        GraphPattern::Project { inner, variables } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Project { inner, variables }, changed)
+        }
+        GraphPattern::Distinct { inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Distinct { inner }, changed)
+        }
+        GraphPattern::Reduced { inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Reduced { inner }, changed)
+        }
+        GraphPattern::Slice {
+            inner,
+            start,
+            length,
+        } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Slice {
+                    inner,
+                    start,
+                    length,
+                },
+                changed,
+            )
+        }
+        GraphPattern::Group {
+            inner,
+            variables,
+            mut aggregates,
+        } => {
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            let mut aggregate_changed = false;
+            for (_, aggregate) in &mut aggregates {
+                aggregate_changed |= replace_in_aggregate(aggregate, path);
+            }
+            (
+                GraphPattern::Group {
+                    inner,
+                    variables,
+                    aggregates,
+                },
+                inner_changed || aggregate_changed,
+            )
+        }
+        GraphPattern::Service {
+            name,
+            inner,
+            silent,
+        } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Service {
+                    name,
+                    inner,
+                    silent,
+                },
+                changed,
+            )
+        }
+    }
+}
+
+/// Boxed wrapper around [`replace_in_pattern`], for the variants that hold a
+/// child pattern behind a `Box`. Taking and returning the box keeps the call
+/// sites from re-boxing at every variant, which is the storage form the SPARQL
+/// algebra itself uses.
+#[allow(clippy::boxed_local)]
+fn replace_in_boxed_pattern(
+    pattern: Box<GraphPattern>,
+    path: &PropertyPathExpression,
+) -> (Box<GraphPattern>, bool) {
+    let (pattern, changed) = replace_in_pattern(*pattern, path);
+    (Box::new(pattern), changed)
+}
+
+/// In-place wrapper around [`replace_in_pattern`], for a pattern owned by a
+/// `Query` or by an `EXISTS` expression.
+fn replace_in_pattern_slot(pattern: &mut GraphPattern, path: &PropertyPathExpression) -> bool {
+    let current = std::mem::replace(
+        pattern,
+        GraphPattern::Bgp {
+            patterns: Vec::new(),
+        },
+    );
+    let (replacement, changed) = replace_in_pattern(current, path);
+    *pattern = replacement;
+    changed
+}
+
+/// Walk one expression, replacing `PATH` inside any `EXISTS` subquery and in
+/// every composite argument. Returns whether anything was replaced.
+fn replace_in_expression(expression: &mut Expression, path: &PropertyPathExpression) -> bool {
+    match expression {
+        Expression::NamedNode(_)
+        | Expression::Literal(_)
+        | Expression::Variable(_)
+        | Expression::Bound(_) => false,
+        Expression::Or(left, right)
+        | Expression::And(left, right)
+        | Expression::Equal(left, right)
+        | Expression::SameTerm(left, right)
+        | Expression::Greater(left, right)
+        | Expression::GreaterOrEqual(left, right)
+        | Expression::Less(left, right)
+        | Expression::LessOrEqual(left, right)
+        | Expression::Add(left, right)
+        | Expression::Subtract(left, right)
+        | Expression::Multiply(left, right)
+        | Expression::Divide(left, right) => {
+            let left_changed = replace_in_expression(left, path);
+            let right_changed = replace_in_expression(right, path);
+            left_changed || right_changed
+        }
+        Expression::In(expression, items) => {
+            let mut changed = replace_in_expression(expression, path);
+            for item in items {
+                changed |= replace_in_expression(item, path);
+            }
+            changed
+        }
+        Expression::UnaryPlus(inner) | Expression::UnaryMinus(inner) | Expression::Not(inner) => {
+            replace_in_expression(inner, path)
+        }
+        Expression::Exists(pattern) => replace_in_pattern_slot(pattern, path),
+        Expression::If(condition, then, otherwise) => {
+            let condition_changed = replace_in_expression(condition, path);
+            let then_changed = replace_in_expression(then, path);
+            let otherwise_changed = replace_in_expression(otherwise, path);
+            condition_changed || then_changed || otherwise_changed
+        }
+        Expression::Coalesce(items) => {
+            let mut changed = false;
+            for item in items {
+                changed |= replace_in_expression(item, path);
+            }
+            changed
+        }
+        Expression::FunctionCall(_, arguments) => {
+            let mut changed = false;
+            for argument in arguments {
+                changed |= replace_in_expression(argument, path);
+            }
+            changed
+        }
+    }
+}
+
+/// Walk one `ORDER BY` key. Returns whether anything was replaced.
+fn replace_in_order_expression(
+    expression: &mut OrderExpression,
+    path: &PropertyPathExpression,
+) -> bool {
+    match expression {
+        OrderExpression::Asc(expression) | OrderExpression::Desc(expression) => {
+            replace_in_expression(expression, path)
+        }
+    }
+}
+
+/// Walk the expression of an aggregate. Returns whether anything was replaced.
+fn replace_in_aggregate(
+    aggregate: &mut AggregateExpression,
+    path: &PropertyPathExpression,
+) -> bool {
+    match aggregate {
+        AggregateExpression::CountSolutions { .. } => false,
+        AggregateExpression::FunctionCall { expr, .. } => replace_in_expression(expr, path),
+    }
+}
+
 /// Replace the variable `PATH` in a SHACL-SPARQL query with the shape's path.
 ///
 /// SHACL-SPARQL 5.3: for a SPARQL-based constraint on a property shape, "prior
@@ -3817,7 +4216,7 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 /// the SHACL property path specified via sh:path at the property shape."
 /// `$PATH` is the one SHACL variable that is SUBSTITUTED rather than
 /// pre-bound (SHACL-SPARQL 5.3.1), so there is no term to bind it to and the
-/// query text is what changes.
+/// query is what changes.
 ///
 /// Left as written, `$PATH` is an ordinary SPARQL variable and `$this $PATH
 /// ?value` is a pattern whose predicate is a variable: it matches EVERY
@@ -3825,93 +4224,48 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
 /// but a fully bound wrong one, which is why the pre-binding checks cannot
 /// catch it — nothing about the query is malformed.
 ///
-/// Two details matter for text surgery. The substitute is parenthesised, so a
-/// sequence or an alternative cannot re-associate with the pattern around it.
-/// And the scan skips string literals, IRIs and comments, the way
-/// [`prebinding_violation`] does: `?PATH` inside a message literal is text,
-/// not a variable, and splicing a path into one would corrupt the message
-/// instead of the pattern.
+/// The query is parsed with the `spargebra` parser this crate already depends
+/// on, and the substitution is made on the syntax tree: every triple pattern
+/// whose predicate is the variable `PATH` becomes a property-path pattern
+/// carrying the shape's path. That is a structural decision, so no token can
+/// be mistaken for another: `$PATH` inside a string literal, an IRI or a
+/// comment is not a predicate position, and a `<` in a comparison is not the
+/// opening of an IRIREF. The shapes graph's prefixes are prepended before the
+/// parse because the author's SELECT may use them; when nothing is replaced
+/// the input (prefixes included) is returned byte for byte, and the engine
+/// runs the author's text as before.
 ///
-/// LIMITATION: this is a character scan, not a SPARQL tokenizer. It substitutes
-/// `$PATH` in every position, while REC 5.3 confines the substitution to the
-/// predicate position of a triple pattern; and it does not recognise
-/// triple-quoted string literals, because the first pair of quotes reads as an
-/// empty short literal. A query that writes `$PATH` only in the predicate
-/// position and keeps the three characters out of string literals is substituted
-/// exactly as REC 5.3 requires; one that does otherwise may be rewritten where
-/// the specification would leave the text alone. Closing the gap needs a real
-/// tokenizer, which is a behaviour change and not made here.
-fn substitute_path(query: &str, path: &str) -> String {
-    const NAME: [char; 4] = ['P', 'A', 'T', 'H'];
-    let chars: Vec<char> = query.chars().collect();
-    let mut out = String::with_capacity(query.len());
-    let mut i = 0;
-    while i < chars.len() {
-        match chars[i] {
-            quote @ ('"' | '\'') => {
-                out.push(quote);
-                i += 1;
-                while i < chars.len() {
-                    let c = chars[i];
-                    out.push(c);
-                    i += 1;
-                    if c == '\\' {
-                        if let Some(escaped) = chars.get(i) {
-                            out.push(*escaped);
-                            i += 1;
-                        }
-                    } else if c == quote {
-                        break;
-                    }
-                }
-            }
-            // An operator is not the start of an IRI: `FILTER(?x < 5)` must
-            // not swallow the rest of the query looking for a `>`.
-            '<' if chars
-                .get(i + 1)
-                .is_some_and(|n| !n.is_whitespace() && !n.is_ascii_digit() && !matches!(n, '=' | '!' | '<' | '?' | '$' | '-' | '+')) =>
-            {
-                out.push('<');
-                i += 1;
-                while i < chars.len() {
-                    let c = chars[i];
-                    out.push(c);
-                    i += 1;
-                    if c == '>' {
-                        break;
-                    }
-                }
-            }
-            '#' => {
-                out.push('#');
-                i += 1;
-                while i < chars.len() {
-                    let c = chars[i];
-                    out.push(c);
-                    i += 1;
-                    if c == '\n' {
-                        break;
-                    }
-                }
-            }
-            '?' | '$'
-                if chars[i + 1..].starts_with(&NAME)
-                    && chars
-                        .get(i + 1 + NAME.len())
-                        .is_none_or(|n| !(n.is_alphanumeric() || *n == '_')) =>
-            {
-                out.push('(');
-                out.push_str(path);
-                out.push(')');
-                i += 1 + NAME.len();
-            }
-            other => {
-                out.push(other);
-                i += 1;
-            }
+/// When a substitution happens the query is serialised from the tree. IRIs are
+/// absolute in that form and `$this` may come back as `?this`; SPARQL reads
+/// both spellings as the same query, and comments are not part of the tree.
+/// If the parser cannot read the query, the text is returned unchanged rather
+/// than half-rewritten: an unparseable constraint is reported as skipped by the
+/// caller instead of running with a predicate variable that matches every edge.
+///
+/// LIMITATION: `PATH` is substituted only where REC 5.3 requires it, in a
+/// triple pattern's predicate position. A `PATH` variable used anywhere else
+/// is left as an ordinary variable, and the inserted path is written from the
+/// parsed tree rather than spliced into the author's formatting.
+fn substitute_path(query_text: &str, path: &ShaclPath) -> String {
+    let Ok(mut query) = SparqlParser::new().parse_query(query_text) else {
+        return query_text.to_string();
+    };
+    let path_expression = shacl_path_expression(path);
+    let changed = match &mut query {
+        Query::Select { pattern, .. }
+        | Query::Ask { pattern, .. }
+        | Query::Describe { pattern, .. } => replace_in_pattern_slot(pattern, &path_expression),
+        Query::Construct { pattern, .. } => {
+            // A CONSTRUCT template cannot carry a property path in the
+            // predicate position, so only its WHERE clause can need this.
+            replace_in_pattern_slot(pattern, &path_expression)
         }
+    };
+    if changed {
+        query.to_string()
+    } else {
+        query_text.to_string()
     }
-    out
 }
 
 /// Name the shape and the constraint component that produced a violation.

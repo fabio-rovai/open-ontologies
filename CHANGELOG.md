@@ -244,6 +244,27 @@ All notable changes to Open Ontologies are documented here.
   `no_label_sits_on_a_node_an_arrow_or_the_panel_edge` checks both languages
   (30 violations on the old English figure, 0 now).
 
+- **`$PATH` is substituted through the parsed SPARQL query, not by scanning
+  its text.** A character scan could not tell a `$PATH` in a long string
+  literal or an IRI from one in a predicate position, nor a `<` comparison
+  from the start of an IRIREF. A SPARQL long string (`"""..."""` or
+  `'''...'''`) was read as an empty short literal followed by more text, so a
+  `$PATH` inside it was rewritten and could flip a FILTER's truth value: a
+  shape that must report one violation came back `conforms: true` with none.
+  `FILTER(0<.5)` made the scanner search for a `>` to the end of the query and
+  skip every later `$PATH`, so `$this $PATH ?value` ran as an ordinary
+  variable and reported values from unrelated predicates; a valid IRIREF such
+  as `<.5-foo#frag>` could lose the text after its `#` the same way, and
+  rewriting `<5+$PATH>` inside the IRI turned a constraint into a skipped one.
+  The query is now parsed with `spargebra` and every triple pattern whose
+  predicate is the variable `PATH` becomes a property-path pattern carrying
+  the shape's path. String literals, IRIREFs, comments and comparison
+  operators are left to the grammar, and a query that cannot be parsed is run
+  as written rather than half-rewritten. `PATH` outside a triple pattern's
+  predicate position is left as an ordinary variable, which is all
+  SHACL-SPARQL 5.3 substitutes. All these cases are pinned in
+  `tests/shacl_test.rs`.
+
 - **The W3C SHACL suite's two columns now agree: every one of the 120 gated
   cases that passes on `sh:conforms` also passes on its full result tuple.**
   The gated column compared the expected verdict and the SET of `(focus node,
