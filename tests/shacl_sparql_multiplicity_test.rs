@@ -26,7 +26,7 @@
 //! duplicates: only `DISTINCT` and `REDUCED` do, per SPARQL 1.1 section 18.2.
 //! So the disagreement is not about SPARQL at all. pySHACL's SHACL layer
 //! collapses the three identical `ex:alice` solutions into one result, and
-//! SHACL section 5.2.1 says a validation result is created for each solution.
+//! SHACL section 5.3 says a validation result is created for each solution.
 //!
 //! **This engine is therefore right and pySHACL under-reports**, which is the
 //! opposite of what a reader would assume from a disagreement where we are the
@@ -75,7 +75,7 @@ fn a_sparql_constraint_reports_once_per_solution() {
         r["violation_count"],
         serde_json::json!(4),
         "ex:alice has three ex:knows edges and ex:bob one, so the constraint query has \
-         four solutions and SHACL 5.2.1 makes one result of each. Collapsing the three \
+         four solutions and SHACL 5.3 makes one result of each. Collapsing the three \
          identical ex:alice results would give 2, which is what pySHACL returns and what \
          this test exists to stop us copying: {r}"
     );

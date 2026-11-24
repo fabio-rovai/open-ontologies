@@ -244,6 +244,83 @@ All notable changes to Open Ontologies are documented here.
   `no_label_sits_on_a_node_an_arrow_or_the_panel_edge` checks both languages
   (30 violations on the old English figure, 0 now).
 
+- **`$PATH` is substituted through the parsed SPARQL query, not by scanning
+  its text.** A character scan could not tell a `$PATH` in a long string
+  literal or an IRI from one in a predicate position, nor a `<` comparison
+  from the start of an IRIREF. A SPARQL long string (`"""..."""` or
+  `'''...'''`) was read as an empty short literal followed by more text, so a
+  `$PATH` inside it was rewritten and could flip a FILTER's truth value: a
+  shape that must report one violation came back `conforms: true` with none.
+  `FILTER(0<.5)` made the scanner search for a `>` to the end of the query and
+  skip every later `$PATH`, so `$this $PATH ?value` ran as an ordinary
+  variable and reported values from unrelated predicates; a valid IRIREF such
+  as `<.5-foo#frag>` could lose the text after its `#` the same way, and
+  rewriting `<5+$PATH>` inside the IRI turned a constraint into a skipped one.
+  The query is now parsed with `spargebra` and every triple pattern whose
+  predicate is the variable `PATH` becomes a property-path pattern carrying
+  the shape's path. String literals, IRIREFs, comments and comparison
+  operators are left to the grammar, and a query that cannot be parsed is run
+  as written rather than half-rewritten. `PATH` outside a triple pattern's
+  predicate position is left as an ordinary variable, which is all
+  SHACL-SPARQL 5.3 substitutes. All these cases are pinned in
+  `tests/shacl_test.rs`.
+
+- **The W3C SHACL suite's two columns now agree: every one of the 120 gated
+  cases that passes on `sh:conforms` also passes on its full result tuple.**
+  The gated column compared the expected verdict and the SET of `(focus node,
+  source shape, component)` triples; the full-tuple column compared the same
+  verdict plus the whole multiset of `(focus node, result path, value, source
+  shape, component, severity)`. Eight cases passed the gated column and failed
+  the full tuple; the ninth case counted by the more lenient partial-compliance
+  rule, `sparql/property/sparql-001`, failed the gated column only on its
+  results. So the engine was certified correct about nine cases whose results
+  it reported wrongly. Five defects, each fixed against the clause that states
+  it, none of them special-cased on a test id:
+
+  `sh:node`, `sh:lessThan` and `sh:lessThanOrEquals` reported which nodes
+  failed but not which value node did (SHACL 4.5.3, 4.5.4 and 4.7.1). They now
+  project the value node. `sh:lessThan`/`sh:lessThanOrEquals` report one result
+  per failing (value node, comparison value) pair, so `sh:value` repeats when
+  one value fails against several comparison values; a `sh:node` result stays
+  one per (focus node, value node) pair. The comparison is now wrapped in
+  `COALESCE(…, false)`, so a pair whose operands cannot be ordered — an
+  integer against a string — is a violation the clause calls for rather than a
+  SPARQL type error that FILTER drops. `core/property/lessThan-002` is
+  exactly that pair: it passed before because the error was dropped, and it
+  now fails as a consequence of the general lessThan fix, not because the test
+  id is special.
+
+  A `sh:sparql` constraint now maps solution bindings to result properties as
+  SHACL 5.3.2 directs: `sh:resultPath` falls back to a property shape's own
+  `sh:path` when the query binds no `?path`, and `sh:value` falls back to the
+  value node — the focus node for the node shapes the pre-binding cases use.
+  The shape's path is resolved through the same `PathResolver` the
+  property-shape loop uses, so an untranslatable path is refused rather than
+  read as a direct edge.
+
+  `$PATH` is substituted before execution, as SHACL-SPARQL 5.3 requires (5.3.1
+  lists the variables that are pre-bound, and PATH is not one of them); only
+  `$this` was being replaced, so `$this $PATH ?value` reached
+  Oxigraph as an ordinary variable, matched every predicate of the focus node
+  and reported results from triples the query never named. The substitute is
+  the shape's path in SPARQL surface syntax, parenthesised so a compound path
+  does not re-associate with the surrounding pattern.
+
+  A shape is now validated once over the union of its target declarations
+  (SHACL 2.1.3) instead of once per declaration, which duplicated every
+  result of a node selected by two declarations (`core/node/class-003`,
+  `core/targets/targetSubjectsOf-002`). The report's per-declaration counts
+  in `focus_nodes_by_target` are unchanged; `skipped_constraints` now holds
+  one entry per constraint-evaluation site rather than one per declaration,
+  which `tests/shacl_subquery_prebinding_test.rs` pins.
+
+  Measured on the vendored suite: gated PASS 73 -> 75, FAIL 13 -> 11;
+  partial compliance 74 -> 75; full tuple PASS 65 -> 75, FAIL 21 -> 11;
+  UNDETERMINED 34 and ERROR 0 unchanged in both columns, so the two columns
+  are now equal at 75. The ratchet baseline is re-cut to hold the new floor of
+  75. Unit tests for each fix are in `tests/shacl_test.rs`, cited to their
+  clause.
+
 - **`vocab-check` checks that each term is used in the role it is declared in**
   (#432). A class used as a predicate, or a property used as the object of
   `rdf:type`, passed with `conforms: true` because the check only asked whether

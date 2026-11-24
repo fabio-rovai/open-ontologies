@@ -1017,7 +1017,7 @@ fn test_shacl_exclusive_range() {
 
 // Red-team regression: a value node whose datatype cannot be compared to the bound
 // (a string against a numeric range, a date against an integer, or NaN) must be a
-// VIOLATION, not a silent pass. SHACL 4.6.1/4.6.2: a value where the satisfying
+// VIOLATION, not a silent pass. SHACL 4.3.1-4.3.4: a value where the satisfying
 // comparison "does not return true" is a validation result, and a type error does
 // not return true. The affirmative-only FILTER previously dropped these to conforms.
 #[test]
@@ -1494,7 +1494,7 @@ fn test_shacl_path_iri_list_head_is_a_predicate() {
         ex:list rdf:first ex:p ; rdf:rest rdf:nil .
     "#;
     let parsed = validate_paths(data, shapes);
-    // An IRI path is a predicate path (SHACL 2.3.1 4.2.2), so the rdf:first
+    // An IRI path is a predicate path (SHACL 2.3.1.1), so the rdf:first
     // on ex:list is not a path the shape wrote and ex:p must not be followed.
     assert_eq!(parsed["conforms"], false, "{parsed}");
     let violations = parsed["violations"].as_array().unwrap();
@@ -1535,4 +1535,980 @@ fn test_shacl_path_list_head_with_repeated_form_is_refused() {
     assert!(reason.contains("more than one sh:inversePath"), "{reason}");
     assert!(reason.contains("http://example.org/p"), "{reason}");
     assert!(reason.contains("http://example.org/q"), "{reason}");
+}
+
+// --- SHACL 4.5.3/4.5.4/4.7.1 sh:lessThan, sh:lessThanOrEquals and sh:node ----
+//
+// All three pair each result with the value node that failed (`sh:value`). A
+// `sh:node` result stays one per (focus node, value node) pair, while
+// `sh:lessThan` and `sh:lessThanOrEquals` report one per failing (value node,
+// comparison value) pair. The engine's queries bound the value all along and
+// the report dropped it, so a consumer had to re-query the store for the
+// offending node; and `sh:lessThan` wrapped an errored comparison so loosely
+// that a pair which cannot be ordered (a string against an integer) went
+// unreported and the shape came back clean.
+
+#[test]
+fn test_shacl_node_constraint_reports_the_failing_value_node() {
+    // SHACL 4.7.1: a value node that does not conform to the referenced shape
+    // is one validation result, and that result carries the value node.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:alice a ex:Person ; ex:address ex:addr1, ex:addr2 .
+            ex:addr1 ex:postalCode "1234" .
+            ex:addr2 ex:postalCode 5678 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        @prefix ex: <http://example.org/> .
+        ex:AddressShape a sh:NodeShape ;
+            sh:property [ sh:path ex:postalCode ; sh:datatype xsd:string ; sh:maxCount 1 ] .
+        ex:PersonShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:property [ sh:path ex:address ; sh:node ex:AddressShape ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "one failing value node: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#NodeConstraintComponent"
+    );
+    assert_eq!(
+        violations[0]["value"], "http://example.org/addr2",
+        "SHACL 4.7.1: the result carries the value node that failed: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_less_than_reports_one_result_per_failing_pair() {
+    // SHACL 4.5.3: a result for each (value node, comparison value) pair for
+    // which the comparison does not hold, with `sh:value` set to that value
+    // node. Two values against two others is four results,
+    // and the pair whose operands cannot be ordered is one of them rather than
+    // a silent pass.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:i1 ex:first 1, 2 ; ex:second "a", "b" .
+            ex:i2 ex:first 3 ; ex:second 4 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:i1, ex:i2 ;
+            sh:property [ sh:path ex:first ; sh:lessThan ex:second ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    // 1 and 2 each fail against both "a" and "b"; 3 < 4 conforms.
+    assert_eq!(
+        violations.len(),
+        4,
+        "SHACL 4.5.3: one result per failing (value node, comparison value) pair: {violations:?}"
+    );
+    let mut values: Vec<&str> = violations
+        .iter()
+        .map(|v| {
+            v["value"]
+                .as_str()
+                .unwrap_or_else(|| panic!("SHACL 4.5.3: every result carries sh:value: {v}"))
+        })
+        .collect();
+    values.sort_unstable();
+    // Literals are reported in N-Triples lexical form, as everywhere else in
+    // the report.
+    assert_eq!(
+        values,
+        [
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        ],
+        "{violations:?}"
+    );
+    assert!(
+        violations
+            .iter()
+            .all(|v| v["focus_node"] == "http://example.org/i1"),
+        "ex:i2's 3 against 4 conforms: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_less_than_or_equals_reports_the_failing_value_node() {
+    // SHACL 4.5.4 is the inclusive form of the same constraint and carries the
+    // same value node.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:i1 ex:first 5 ; ex:second 4 .
+            ex:i2 ex:first 4 ; ex:second 4 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:i1, ex:i2 ;
+            sh:property [ sh:path ex:first ; sh:lessThanOrEquals ex:second ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "only 5 <= 4 fails: {violations:?}");
+    assert_eq!(
+        violations[0]["value"], "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "SHACL 4.5.4: the result carries the failing value node: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#LessThanOrEqualsConstraintComponent"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_node_shape_result_value_is_the_focus_node() {
+    // SHACL 5.3.2: sh:value is "the binding for the variable value" and, when
+    // the query binds no such variable, "the value node". For a node shape the
+    // value node is the focus node, so a SELECT that projects only `this` must
+    // still carry sh:value = the focus node. Leaving it absent is not
+    // cosmetic: the expected result tuple names the value, so the reported
+    // result set disagrees with the constraint's own semantics.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:size 99 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:NodeShape ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:message "too big" ;
+                sh:select "SELECT $this WHERE { $this <http://example.org/size> ?s . FILTER(?s > 10) }" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["focus_node"], "http://example.org/bad",
+        "{violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "http://example.org/bad",
+        "SHACL 5.3.2: with no ?value binding the value node is reported, and a node shape's value node is its focus node: {violations:?}"
+    );
+    assert!(
+        violations[0].get("path").is_none(),
+        "SHACL 5.3.2: sh:resultPath is for property shapes; a node shape result carries none: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_property_shape_result_path_is_the_shapes_path() {
+    // SHACL 5.3.2: sh:resultPath is "the binding for the variable path" where
+    // that is an IRI, and otherwise, "for results produced by a property
+    // shape, a SHACL property path that is equivalent to the value of sh:path
+    // of the shape". A property shape's SELECT may project only `this`, so the
+    // path cannot be assumed to arrive as a binding; dropping it loses the
+    // difference between "the shape's property" and "any property".
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:size 99 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:size ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:message "too big" ;
+                sh:select "SELECT $this WHERE { $this <http://example.org/size> ?s . FILTER(?s > 10) }" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["path"], "http://example.org/size",
+        "SHACL 5.3.2: with no ?path binding the shape's sh:path is the result path: {violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_target_union_reports_one_result_per_focus_node() {
+    // SHACL 2.1.3: the focus nodes of a shape are the union of the nodes its
+    // target declarations select, and validation is per focus node. A node
+    // selected by BOTH a target class and a target node is one focus node, so
+    // its failing result must appear once, not once per declaration.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:John a ex:Person .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:TestShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:targetNode ex:John ;
+            sh:class ex:Employee .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL 2.1.3: ex:John is one focus node, selected by both declarations, so one failing result: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0]["focus_node"], "http://example.org/John");
+}
+
+#[test]
+fn test_shacl_target_union_reports_one_result_per_focus_node_for_subjects_of() {
+    // The same union, through `sh:targetSubjectsOf` rather than a class: the
+    // subject of a triple that names the focus node outright is still one
+    // focus node when a second declaration selects it too.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:InvalidInstance1 ex:myProperty "a" , "b" .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:TestShape a sh:PropertyShape ;
+            sh:path ex:myProperty ;
+            sh:targetSubjectsOf ex:myProperty ;
+            sh:targetNode ex:InvalidInstance1 ;
+            sh:maxCount 1 .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL 2.1.3: the same focus node selected twice is validated once: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["focus_node"],
+        "http://example.org/InvalidInstance1"
+    );
+    assert_eq!(violations[0]["path"], "http://example.org/myProperty");
+}
+
+#[test]
+fn test_shacl_target_union_applies_to_property_constraints_too() {
+    // A property constraint hangs off the focus nodes of the shape that
+    // carries it, so a duplicated focus node used to duplicate these results
+    // as well.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:alice a ex:Person .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:PersonShape a sh:NodeShape ;
+            sh:targetClass ex:Person ;
+            sh:targetNode ex:alice ;
+            sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["source_constraint_component"],
+        "http://www.w3.org/ns/shacl#MinCountConstraintComponent"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_with_the_shapes_path() {
+    // SHACL-SPARQL 5.3: for a SPARQL-based constraint on a property shape, the
+    // variable PATH is substituted before execution with the shape's sh:path.
+    // Left unsubstituted it is an ordinary SPARQL variable, and
+    // `$this $PATH ?value` then matches EVERY predicate of the focus node —
+    // including rdf:type — so the constraint fires on nodes it must pass.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:InvalidCountry a ex:Country ; ex:germanLabel "Spain"@en .
+            ex:ValidCountry a ex:Country ; ex:germanLabel "Spanien"@de .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:LanguageExamplePropertyShape a sh:PropertyShape ;
+            sh:path ex:germanLabel ;
+            sh:targetClass ex:Country ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE {
+                    $this $PATH ?value .
+                    FILTER (!isLiteral(?value) || !langMatches(lang(?value), "de"))
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL-SPARQL 5.3: $PATH must constrain the pattern to ex:germanLabel, so only the English label fails: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["focus_node"], "http://example.org/InvalidCountry",
+        "{violations:?}"
+    );
+    assert_eq!(violations[0]["path"], "http://example.org/germanLabel");
+    assert_eq!(violations[0]["value"], "\"Spain\"@en", "{violations:?}");
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_substitutes_a_compound_path() {
+    // The substitute is a path expression, not an IRI, so a sequence has to
+    // arrive parenthesised: `$this ex:a/ex:b ?value` would re-associate with
+    // the surrounding pattern instead of standing in for it.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:bad a ex:Thing ; ex:a ex:mid .
+            ex:mid ex:b "wrong" .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ( ex:a ex:b ) ;
+            sh:targetNode ex:bad ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE { $this $PATH ?value . FILTER (isLiteral(?value)) }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations[0]["path"], "(http://example.org/a/http://example.org/b)",
+        "SHACL 5.3.2: the result path is the shape's path: {violations:?}"
+    );
+    assert_eq!(violations[0]["value"], "\"wrong\"", "{violations:?}");
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_not_substituted_inside_a_triple_quoted_literal() {
+    // A SPARQL long string literal opens with three quotes, not with an empty
+    // short literal followed by more text. Read the latter way, the `$PATH`
+    // inside it was substituted, which changed what the FILTER asked and turned
+    // a violation the shape must report into `conforms: true` with none.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE {
+                    $this $PATH ?value .
+                    FILTER(CONTAINS(\"\"\"a\" $PATH \"b\"\"\", \"$PATH\"))
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL-SPARQL 5.3 substitutes PATH in the pattern and leaves a long string literal's text alone: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_a_less_than_operator() {
+    // `0<.5` is a comparison, not the start of an IRIREF. Read as an IRI, the
+    // scanner looked for a `>` to the end of the query, so the later `$PATH`
+    // was never substituted and the pattern matched EVERY predicate of the
+    // focus node, reporting a value from an unrelated one.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                SELECT $this ?value
+                WHERE { FILTER(0<.5) $this $PATH ?value . }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "SHACL-SPARQL 5.3 substitutes PATH in the pattern, so only ex:p is read: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_a_numeric_prefixed_iri() {
+    // `<.5#frag>` is a valid IRIREF, not a number followed by a comment. The
+    // `#` inside it was read as a comment, so the rest of the line, including
+    // `$PATH`, was copied unsubstituted; the pattern then matched EVERY
+    // predicate and reported the unrelated ex:q value.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE { BIND(<.5#frag> AS ?iri) $this $PATH ?value . }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "the IRIREF must be copied whole so the later $PATH is still substituted: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "{parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_after_a_numeric_prefixed_iri_is_not_a_false_clean() {
+    // The false-conformance shape of the same defect: with `$PATH` left
+    // unsubstituted inside the NOT EXISTS, the unrelated ex:q 2 satisfied the
+    // inner FILTER, the negation evaluated false, and the run returned
+    // `conforms: true` with no violation and no skipped constraint.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/> SELECT $this WHERE { FILTER NOT EXISTS { BIND(<.5#frag> AS ?iri) $this $PATH ?value . FILTER(?value = 2) } }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(
+        parsed["conforms"], false,
+        "the inner pattern must read ex:p, so ex:q 2 cannot make the negation false: {parsed}"
+    );
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "the query is valid, so nothing may be skipped: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_not_substituted_inside_a_numeric_prefixed_iri() {
+    // `<.5$PATH>` is an IRI containing the three characters `$PATH`, not a
+    // substitution site. Substituting into it produced a malformed IRIREF, so
+    // the constraint was skipped and the run returned `conforms: null`
+    // instead of the violation the pattern finds.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE { BIND(<.5$PATH> AS ?iri) $this $PATH ?value . }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "the query must parse and constrain the pattern to ex:p: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "nothing may be skipped: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_not_substituted_inside_a_digit_leading_iri() {
+    // The same defect with a digit-leading IRIREF: `<5#frag>` begins with a
+    // number, but the `#frag` continues the IRI rather than starting a
+    // comment, so `$PATH` after it must still be substituted.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE { BIND(<5#frag> AS ?iri) $this $PATH ?value . }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "the IRIREF must be copied whole so the later $PATH is still substituted: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "{parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_compact_comparisons() {
+    // `?value<5&&?value>0` is a comparison followed by another, not an IRI
+    // whose closing `>` appears later in the same token. The numeric operand
+    // decides it, so the `$PATH` after the FILTER is still substituted, and
+    // only ex:p is read for a focus node that also carries ex:q.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE { FILTER(?value<5&&?value>0) $this $PATH ?value . }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "both ex:p and ex:q satisfy the comparison, so only the substituted pattern separates them: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "{parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_a_predicate_iri_with_a_fragment() {
+    // A predicate IRI containing `#` is one token, not a comment. A character
+    // scan had to guess that from the surrounding text; reading the query as
+    // SPARQL decides it from the grammar, so `$PATH` after it is still in a
+    // predicate position and only ex:p is read.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 .
+            ex:s <http://example.org/p#frag> ex:o .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE {
+                    ?s <http://example.org/p#frag> ?o .
+                    $this $PATH ?value .
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "the IRI predicate is a token, so the later $PATH must be substituted: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "{parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_legal_iri_punctuation() {
+    // The old numeric-prefix shortcut recognised only a small whitelist of
+    // continuations. A valid IRIREF such as `<.5-foo#frag>` therefore fell back
+    // to comment handling and the later `$PATH` was lost (over-reporting the
+    // unrelated ex:q value), while `<5+$PATH>` was rewritten inside the IRI and
+    // made the query invalid (a skipped constraint). A parsed query keeps every
+    // IRIREF token as written.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    for iri in [
+        ".5-foo#frag",
+        "5é#frag",
+        "5+$PATH",
+        "5-foo$PATH",
+        "1E-3-foo$PATH",
+        "1e-3-foo#frag",
+    ] {
+        let shapes = format!(
+            r#"
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+            @prefix ex: <http://example.org/> .
+            ex:S a sh:PropertyShape ;
+                sh:path ex:p ;
+                sh:targetNode ex:a ;
+                sh:sparql [ sh:select """
+                    BASE <http://example.org/>
+                    SELECT $this ?value WHERE {{ BIND(<{iri}> AS ?iri) $this $PATH ?value . }}""" ] .
+            "#
+        );
+        let result = ShaclValidator::validate(&store, &shapes).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["conforms"], false, "<{iri}>: {parsed}");
+        assert_eq!(parsed["violation_count"], 1, "<{iri}>: {parsed}");
+        assert!(
+            parsed
+                .get("skipped_constraints")
+                .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+            "<{iri}> must not be skipped: {parsed}"
+        );
+        let violations = parsed["violations"].as_array().unwrap();
+        assert_eq!(violations.len(), 1, "<{iri}>: {violations:?}");
+        assert_eq!(
+            violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "<{iri}>: {violations:?}"
+        );
+    }
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_is_substituted_after_a_compact_division() {
+    // `?x<5/2` is division inside a comparison. The old scan treated `/` as an
+    // IRI continuation and consumed the following `$PATH`, so the pattern
+    // matched every predicate and reported the unrelated ex:q value.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this ?value WHERE {
+                    BIND(1 AS ?x)
+                    FILTER(?x<5/2)$this$PATH?value.FILTER(?value>0)
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["conforms"], false, "{parsed}");
+    assert_eq!(
+        parsed["violation_count"], 1,
+        "the division is not an IRI, so the later $PATH must be substituted: {parsed}"
+    );
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "{parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(
+        violations.len(),
+        1,
+        "the unrelated ex:q value must not be reported: {violations:?}"
+    );
+    assert_eq!(
+        violations[0]["value"], "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn test_shacl_sparql_dollar_path_after_a_compact_division_is_not_a_false_clean() {
+    // The false-conformance form of the compact-division defect: with `$PATH`
+    // swallowed by the old scan, the inner pattern also matched ex:q 2, the
+    // negation evaluated false, and the run returned `conforms: true` with no
+    // violation and no skipped constraint.
+    let store = Arc::new(GraphStore::new());
+    store
+        .load_turtle(
+            r#"
+            @prefix ex: <http://example.org/> .
+            ex:a ex:p 1 ; ex:q 2 .
+            "#,
+            None,
+        )
+        .unwrap();
+    let shapes = r#"
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        @prefix ex: <http://example.org/> .
+        ex:S a sh:PropertyShape ;
+            sh:path ex:p ;
+            sh:targetNode ex:a ;
+            sh:sparql [ sh:select """
+                BASE <http://example.org/>
+                SELECT $this WHERE {
+                    BIND(1 AS ?x)
+                    FILTER NOT EXISTS {
+                        FILTER(?x<5/2)$this$PATH?value.FILTER(?value>0)FILTER(?value=2)
+                    }
+                }""" ] .
+    "#;
+    let result = ShaclValidator::validate(&store, shapes).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(
+        parsed["conforms"], false,
+        "the inner pattern must read ex:p, so ex:q 2 cannot make the negation false: {parsed}"
+    );
+    assert_eq!(parsed["violation_count"], 1, "{parsed}");
+    assert!(
+        parsed
+            .get("skipped_constraints")
+            .is_none_or(|s| s.as_array().is_none_or(|a| a.is_empty())),
+        "the query is valid, so nothing may be skipped: {parsed}"
+    );
+    let violations = parsed["violations"].as_array().unwrap();
+    assert_eq!(violations.len(), 1, "{violations:?}");
 }

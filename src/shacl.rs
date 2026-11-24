@@ -4,9 +4,15 @@
 use crate::graph::{GraphStore, ReadScope};
 use crate::temporal::{ScopeManifest, ScopeRequest};
 use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{Literal, Term, Variable};
+use oxigraph::model::{Literal, NamedNode, Term, Variable};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
+use spargebra::SparqlParser;
+use spargebra::algebra::{
+    AggregateExpression, Expression, GraphPattern, OrderExpression, PropertyPathExpression,
+};
+use spargebra::term::{NamedNodePattern, TriplePattern};
+use spargebra::Query;
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::sync::Arc;
@@ -114,14 +120,18 @@ impl ShaclValidator {
     /// `path`) are unchanged.
     ///
     /// `value` is the offending value node (`sh:value`) wherever the query
-    /// that found the violation binds it (#318). The value queries selected it
+    /// that found the violation binds one (#318). The value queries selected it
     /// all along and the report dropped it, so whoever repaired the data had to
     /// query the store again for what the validator already knew. It is absent
     /// where SHACL gives a result no value (`sh:minCount`, `sh:maxCount`,
-    /// `sh:hasValue`, the qualified counts) and for `sh:lessThan`,
-    /// `sh:lessThanOrEquals` and `sh:node`, whose queries select
-    /// `DISTINCT ?focus`: projecting the value there would change how many
-    /// results they emit, which is a different change from this one.
+    /// `sh:hasValue`, the qualified counts). `sh:lessThan`,
+    /// `sh:lessThanOrEquals` and `sh:node` used to be on that list because
+    /// their queries selected `DISTINCT ?focus`. SHACL 4.5.3 and 4.5.4 pair a
+    /// result with the failing value node and emit one result per failing
+    /// (value node, comparison value) pair, so `sh:value` repeats when one
+    /// value fails against several comparison values. SHACL 4.7.1 pairs a
+    /// `sh:node` result with the value node that fails the referenced shape
+    /// and emits one per (focus node, value node) pair.
     ///
     /// Reads the whole store. Over a store that uses the temporal vocabulary
     /// that is now REFUSED rather than done silently — see
@@ -276,11 +286,13 @@ impl ShaclValidator {
         // inferring it from the absence of another. Fixture A1 in
         // `tests/adversarial_shacl_test.rs` is the attack it makes visible.
         //
-        // Per TARGET and not per SHAPE, deliberately. A shape carrying two
-        // target declarations is walked twice by the loop below, and these
-        // rows are what the loop did. Adding them up per shape would produce a
-        // number that is not a count of distinct focus nodes, for exactly the
-        // reason `focus_nodes` is documented as inflatable further down.
+        // Per TARGET DECLARATION and not per SHAPE, deliberately. A shape
+        // carrying two declarations has one focus-node set, which the loop
+        // below walks once, but two answers to "how many nodes does this
+        // declaration select" — and that is the question these rows answer.
+        // Adding them up per shape would produce a number that is not a count
+        // of distinct focus nodes, for exactly the reason `focus_nodes` is
+        // documented as inflatable further down.
         //
         // The verdict is NOT computed from this. `conforms` keeps SHACL's
         // meaning, and a gate that wants to refuse a vacuous load-bearing
@@ -432,8 +444,71 @@ impl ShaclValidator {
             }));
         }
 
+        // SHACL 2.1.3: a shape's focus nodes are the UNION of the nodes its
+        // target declarations select, and validation is per focus node. A node
+        // selected by two declarations is ONE focus node, not two. Walking the
+        // declarations one at a time checked it once per declaration, so every
+        // result it produced was reported once per declaration: `ex:John`
+        // typed as a target class AND named by `sh:targetNode` came back with
+        // six results where the specification's five are right, and a node
+        // selected by both `sh:targetSubjectsOf` and `sh:targetNode` likewise
+        // (W3C core/node/class-003, core/targets/targetSubjectsOf-002).
+        //
+        // Grouped rather than deduplicated downstream, because SHACL 5.3
+        // emits one result per solution and collapsing results would break
+        // agreement where two identical results are both correct. The fix has
+        // to be at the point the focus nodes are computed.
+        let mut shape_order: Vec<String> = Vec::new();
+        let mut targets_by_shape: HashMap<String, Vec<(String, String)>> = HashMap::new();
+        for (shape, kind, target_value) in &targets {
+            if !targets_by_shape.contains_key(shape) {
+                shape_order.push(shape.clone());
+            }
+            targets_by_shape
+                .entry(shape.clone())
+                .or_default()
+                .push(((*kind).to_string(), target_value.clone()));
+        }
+
+        // How many nodes does each declaration select? A shape whose target
+        // appears nowhere in the data evaluates every one of its constraints
+        // against the empty set and contributes no violations, which is
+        // indistinguishable in the report from a shape that checked its nodes
+        // and found them sound. Counted per declaration and reported per
+        // declaration, for the reason given where these rows are declared.
         for (shape_term, kind, target_value) in &targets {
-            let kind = *kind;
+            let focus_pattern = format!(
+                "{{ SELECT DISTINCT ?focus WHERE {{ {} . }} }}",
+                target_pattern(kind, target_value, "focus")
+            );
+            let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
+            focus_nodes_total += focus_count;
+            focus_by_target.push(serde_json::json!({
+                "shape": strip_angle_brackets(shape_term),
+                "target_form": *kind,
+                "target": strip_angle_brackets(target_value),
+                "focus_nodes": focus_count,
+            }));
+            if focus_count == 0 {
+                let mut entry = serde_json::json!({
+                    "shape": strip_angle_brackets(shape_term),
+                    "target_form": *kind,
+                    "target": strip_angle_brackets(target_value),
+                });
+                // `target_class` is the key callers already read for the common
+                // form. Keep emitting it rather than renaming it under them.
+                if *kind == "class" {
+                    entry["target_class"] = serde_json::json!(target_value);
+                }
+                unmatched.push(entry);
+            }
+        }
+
+        for shape_term in &shape_order {
+            let shape_targets: &[(String, String)] = targets_by_shape
+                .get(shape_term)
+                .map(|t| t.as_slice())
+                .unwrap_or(&[]);
             // A DISTINCT subquery, not a bare pattern. `sh:targetClass` compiles
             // to `?focus rdf:type/rdfs:subClassOf* <target>`, which matches once
             // per path, so a node typed as two subclasses of the target binds
@@ -443,41 +518,12 @@ impl ShaclValidator {
             // once per path. Issue #168, found by a differential oracle against
             // pySHACL.
             //
-            // Fixed here rather than by collapsing results: SHACL 5.3.2 emits
-            // one result per solution and both implementations do, so
-            // deduplicating results would break agreement on cases where two
-            // identical results are both correct.
+            // The union of the shape's declarations is what is deduplicated
+            // here, which also collapses a node two declarations both select.
             let focus_pattern = format!(
                 "{{ SELECT DISTINCT ?focus WHERE {{ {} . }} }}",
-                target_pattern(kind, target_value, "focus")
+                union_target_pattern(shape_targets, "focus")
             );
-
-            // How many nodes does this shape actually apply to? A shape whose
-            // target appears nowhere in the data evaluates every one of its
-            // constraints against the empty set and contributes no violations,
-            // which is indistinguishable in the report from a shape that checked
-            // its nodes and found them sound.
-            let focus_count = count_focus_nodes(graph, scope, &focus_pattern)?;
-            focus_nodes_total += focus_count;
-            focus_by_target.push(serde_json::json!({
-                "shape": strip_angle_brackets(shape_term),
-                "target_form": kind,
-                "target": strip_angle_brackets(target_value),
-                "focus_nodes": focus_count,
-            }));
-            if focus_count == 0 {
-                let mut entry = serde_json::json!({
-                    "shape": strip_angle_brackets(shape_term),
-                    "target_form": kind,
-                    "target": strip_angle_brackets(target_value),
-                });
-                // `target_class` is the key callers already read for the common
-                // form. Keep emitting it rather than renaming it under them.
-                if kind == "class" {
-                    entry["target_class"] = serde_json::json!(target_value);
-                }
-                unmatched.push(entry);
-            }
 
             // 3. Find property constraints for this shape
             let shape_iri = shape_term.clone();
@@ -1690,13 +1736,26 @@ impl ShaclValidator {
 
                 // sh:lessThan / sh:lessThanOrEquals compare the values of this
                 // path against the values of another property on the SAME focus
-                // node, which is why they take a predicate and not a value. A
-                // pair that cannot be ordered (comparing a string to an integer)
-                // makes the SPARQL comparison an error rather than false, and an
-                // error inside FILTER is dropped, so such a pair goes unreported
-                // instead of counting as a violation. That is the one place these
-                // two are weaker than pyshacl, and it is stated here rather than
-                // discovered later.
+                // node, which is why they take a predicate and not a value.
+                //
+                // SHACL 4.5.3/4.5.4: one result per failing (focus node,
+                // value node, comparison value) triple — the value node is
+                // `sh:value` and the comparison value has no result field, so
+                // `?otherVal` stays in the projection even though the report
+                // cannot show it. DISTINCT over (focus, val) alone would
+                // collapse a value node failing against two comparison values
+                // into one result, which is why lessThan-002 (1,2 against
+                // "a","b") is four results and not two.
+                //
+                // A pair that cannot be ordered (comparing a string to an
+                // integer) makes the SPARQL comparison an error rather than
+                // false. SHACL does not say an errored comparison is a pass, and
+                // a bare `FILTER(!(?val < ?otherVal))` dropped it, so such a
+                // pair went unreported and the shape came back clean. Wrapping
+                // the satisfying comparison in COALESCE(_, false) — the same
+                // template the inclusive/exclusive bounds below use — makes an
+                // errored comparison "does not return true", which is a
+                // violation.
                 for (key, constraint, ok_cmp) in [
                     ("lessThan", "lessThan", "<"),
                     ("lessThanOrEquals", "lessThanOrEquals", "<="),
@@ -1706,11 +1765,11 @@ impl ShaclValidator {
                     };
                     let other = strip_angle_brackets(other_raw);
                     let query = format!(
-                        r#"SELECT DISTINCT ?focus WHERE {{
+                        r#"SELECT DISTINCT ?focus ?val ?otherVal WHERE {{
                             {focus_pattern}
                             ?focus {path_expr} ?val .
                             ?focus <{other}> ?otherVal .
-                            FILTER(!(?val {ok_cmp} ?otherVal))
+                            FILTER(!COALESCE(?val {ok_cmp} ?otherVal, false))
                         }}"#
                     );
                     for row in &graph_sparql_select(graph, scope, &query)? {
@@ -1723,6 +1782,7 @@ impl ShaclValidator {
                             violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                 "severity": severity,
                                 "focus_node": strip_angle_brackets(focus),
+                                "value": row.get("val").map(|v| strip_angle_brackets(v)),
                                 "path": path,
                                 "constraint": constraint,
                                 "message": msg,
@@ -1736,11 +1796,18 @@ impl ShaclValidator {
                 // expression over the value node; if any part of it cannot be
                 // compiled the whole constraint is recorded as unevaluated,
                 // because a half-checked nested shape reads as a clean one.
+                //
+                // SHACL 4.7.1 pairs each violation with the value node that
+                // failed the referenced shape, so `?nodeval` is projected and
+                // emitted as `sh:value`. It was selected but not projected in
+                // the report before: one result per (focus, value) pair is
+                // what the specification asks for, and two values failing the
+                // same nested shape is two results, not one.
                 if let Some(node_ref) = prop.get("node") {
                     match compile_node_shape(&shapes_store, node_ref.trim(), "nodeval", 0) {
                         Some(expr) => {
                             let query = format!(
-                                r#"SELECT DISTINCT ?focus WHERE {{
+                                r#"SELECT DISTINCT ?focus ?nodeval WHERE {{
                                     {focus_pattern}
                                     ?focus {path_expr} ?nodeval .
                                     FILTER(!({expr}))
@@ -1759,6 +1826,7 @@ impl ShaclValidator {
                                     violations.push(attribute(&constraint_shape, &shape_iri, &rdf, serde_json::json!({
                                         "severity": severity,
                                         "focus_node": strip_angle_brackets(focus),
+                                        "value": row.get("nodeval").map(|v| strip_angle_brackets(v)),
                                         "path": path,
                                         "constraint": "node",
                                         "message": msg,
@@ -1928,7 +1996,7 @@ impl ShaclValidator {
                 }
 
                 // sh:minInclusive, sh:maxInclusive, sh:minExclusive and
-                // sh:maxExclusive. SHACL 4.6.1/4.6.2: a value node is a violation
+                // sh:maxExclusive. SHACL 4.3.1-4.3.4: a value node is a violation
                 // wherever the SATISFYING comparison does not return true. A type
                 // error (a string or date against a numeric bound) and NaN both
                 // "do not return true", so they are violations, not passes. We flag
@@ -1982,8 +2050,12 @@ impl ShaclValidator {
         // A validator that reports success on rules it never ran is worse than
         // one that refuses, so every constraint here is either executed or
         // recorded in skipped_constraints, and skipping suppresses `conforms`.
-        for (shape_term, kind, target_value) in &targets {
-            let this_pattern = target_pattern(kind, target_value, "this");
+        for shape_term in &shape_order {
+            let shape_targets: &[(String, String)] = targets_by_shape
+                .get(shape_term)
+                .map(|t| t.as_slice())
+                .unwrap_or(&[]);
+            let this_pattern = union_target_pattern(shape_targets, "this");
             let shape_iri = shape_term.clone();
             let shape_node = match shape_iri.parse::<Term>() {
                 Ok(t) => t,
@@ -2080,6 +2152,67 @@ impl ShaclValidator {
                 continue;
             }
 
+            // SHACL 5.3.2 reads `sh:resultPath` top to bottom: the binding for
+            // `?path` when that is an IRI, and otherwise, for a result produced
+            // by a property shape, a property path equivalent to the shape's
+            // own `sh:path`. That path is also what `$PATH` stands for in the
+            // query text (SHACL-SPARQL 5.3), so it is resolved here once,
+            // through the resolver every other path goes through. A path this
+            // validator cannot translate must not be read as a direct edge or
+            // as a clean pass, so such a shape's constraints are refused
+            // rather than executed without the path they name.
+            let mut shape_paths: Vec<String> = query_solutions_bound(
+                &shapes_store,
+                r#"
+                PREFIX sh: <http://www.w3.org/ns/shacl#>
+                SELECT ?shape ?path WHERE { ?shape sh:path ?path }
+                "#,
+                "shape",
+                &shape_node,
+            )?
+            .iter()
+            .filter_map(|row| row.get("path").cloned())
+            .collect();
+            shape_paths.sort();
+            shape_paths.dedup();
+            if shape_paths.len() > 1 {
+                skipped.push(serde_json::json!({
+                    "shape": strip_angle_brackets(&shape_iri),
+                    "constraint": "sparql",
+                    "reason": format!(
+                        "the shape carries {} values for sh:path ({}); a well-formed property \
+                         shape has at most one, so its sh:sparql constraints were not run",
+                        shape_paths.len(),
+                        shape_paths.join(", ")
+                    ),
+                }));
+                continue;
+            }
+            let shape_path = match shape_paths.first() {
+                None => None,
+                Some(raw) => {
+                    let raw = strip_angle_brackets(raw);
+                    match PathResolver::new(&shapes_store).resolve(&raw) {
+                        Ok(p) => {
+                            path_forms.insert(p.display(), p.rdf_json());
+                            Some(p)
+                        }
+                        Err(reason) => {
+                            skipped.push(serde_json::json!({
+                                "shape": strip_angle_brackets(&shape_iri),
+                                "path": raw,
+                                "constraint": "sparql",
+                                "reason": format!(
+                                    "unsupported property path: {reason}; the shape's sh:path \
+                                     cannot be evaluated, so its sh:sparql constraints were not run"
+                                ),
+                            }));
+                            continue;
+                        }
+                    }
+                }
+            };
+
             for constraint in &constraints {
                 let select_raw = match constraint.get("select") {
                     Some(s) => strip_quotes(s),
@@ -2119,7 +2252,7 @@ impl ShaclValidator {
                     .map(|s| severity_name(s))
                     .unwrap_or_else(|| "Violation".to_string());
 
-                // SHACL-SPARQL 5.3.2: `$this` is pre-bound to the focus node,
+                // SHACL-SPARQL 5.3.1: `$this` is pre-bound to the focus node,
                 // one evaluation per node. Pre-binding is SPARQL substitution,
                 // so the term is in scope inside FILTER (NOT) EXISTS and inside
                 // subqueries, which is what makes a constraint written as
@@ -2139,7 +2272,20 @@ impl ShaclValidator {
                 // shapes graph declares. An author prologue of its own is
                 // legal after those: the grammar allows any number of
                 // PREFIX and BASE declarations in any order.
-                let query = format!("{prefix_block}{select_raw}");
+                // SHACL-SPARQL 5.3: `$PATH` is substituted rather than
+                // pre-bound, so the query the engine runs is the author's,
+                // with the shape's path in the predicate position where
+                // `$PATH` stood. Only a
+                // property shape gets the substitution, because only a
+                // property shape has an `sh:path` to substitute; a node
+                // shape's query runs as written.
+                // The shapes graph's prefixes are part of the text handed to
+                // the parser, because the author's SELECT may name them.
+                let select_full = format!("{prefix_block}{select_raw}");
+                let query = match shape_path.as_ref() {
+                    Some(p) => substitute_path(&select_full, p),
+                    None => select_full,
+                };
                 if let Some(construct) = prebinding_violation(&select_raw, "this") {
                     skipped.push(serde_json::json!({
                         "shape": strip_angle_brackets(&shape_iri),
@@ -2157,19 +2303,22 @@ impl ShaclValidator {
                         for (focus, rows) in focus_terms.iter().zip(per_focus) {
                             let focus_str = focus.to_string();
                             for row in rows {
-                                // 5.3.2 again: a bound ?message overrides
-                                // sh:message, ?path is sh:resultPath and
-                                // ?value is sh:value.
+                                // 5.3.2 again, in the order the section gives
+                                // for itself ("the first bound value will be
+                                // used"). `sh:resultMessage` is the binding for
+                                // `?message`, and a bound `?message` overrides
+                                // sh:message.
                                 let bound_message = row
                                     .get("message")
                                     .filter(|m| !strip_quotes(m).is_empty());
-                                let msg = bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
-                                    if message.is_empty() {
-                                        "SPARQL constraint violated".to_string()
-                                    } else {
-                                        expand_message_template(&message, &row)
-                                    }
-                                });
+                                let msg =
+                                    bound_message.map(|m| strip_quotes(m)).unwrap_or_else(|| {
+                                        if message.is_empty() {
+                                            "SPARQL constraint violated".to_string()
+                                        } else {
+                                            expand_message_template(&message, &row)
+                                        }
+                                    });
                                 let rdf = RdfTerms::new(
                                     constraint.get("severity").cloned(),
                                     bound_message.cloned().or_else(|| {
@@ -2185,11 +2334,39 @@ impl ShaclValidator {
                                     "constraint": "sparql",
                                     "message": msg,
                                 });
-                                if let Some(p) = row.get("path") {
-                                    v["result_path"] = serde_json::json!(strip_angle_brackets(p));
+                                // 5.3.2, the properties this engine carries
+                                // beyond `?message`. `sh:resultPath` is the
+                                // binding for `?path` when that is an IRI, and
+                                // otherwise the shape's own path for a result
+                                // produced by a property shape. `sh:value` is
+                                // the binding for `?value`, and otherwise the
+                                // value node: for a node shape the value node
+                                // IS the focus node, while a property shape's
+                                // value nodes are not named by a SELECT that
+                                // does not bind `?value`, so nothing is
+                                // invented for one. Left out, `sh:value` was
+                                // absent on every pre-binding test the suite
+                                // says must report the focus node as its own
+                                // value node.
+                                let bound_path = row
+                                    .get("path")
+                                    .filter(|p| p.starts_with('<') && p.ends_with('>'));
+                                if let Some(p) = bound_path
+                                    .map(|p| strip_angle_brackets(p))
+                                    .or_else(|| shape_path.as_ref().map(ShaclPath::display))
+                                {
+                                    // `path` rather than `result_path` so the
+                                    // RDF writer can find `path_form` and emit
+                                    // a compound path as SHACL's blank-node
+                                    // structure; `attribute` copies it to
+                                    // `result_path`.
+                                    v["path"] = serde_json::json!(p);
                                 }
                                 if let Some(val) = row.get("value") {
                                     v["value"] = serde_json::json!(strip_angle_brackets(val));
+                                } else if shape_path.is_none() {
+                                    v["value"] =
+                                        serde_json::json!(strip_angle_brackets(&focus_str));
                                 }
                                 violations.push(attribute(&shape_iri, &shape_iri, &rdf, v));
                             }
@@ -2248,11 +2425,16 @@ impl ShaclValidator {
         let nothing_matched = (!targets.is_empty() && focus_nodes_total == 0)
             || (targets.is_empty() && declared_any_shape);
 
-        // Deliberately NOT deduplicated, and this was measured before it was
-        // decided. One shape carrying two target declarations that select the
-        // same node does get checked twice, which inflates `violation_count`
-        // and `focus_nodes`. Collapsing identical results looked like the fix
-        // and is not: SHACL 5.3.2 emits one result per SPARQL solution, so a
+        // Deliberately NOT deduplicated in the report, and this was measured
+        // before it was decided. Validation itself is no longer per
+        // declaration: the evaluation loop unions a shape's target
+        // declarations into one focus pattern (`union_target_pattern` below)
+        // and checks each focus node once, so `violation_count` does not
+        // duplicate a result. `focus_nodes` is still the sum of the
+        // per-declaration rows in `focus_nodes_by_target`, so it counts a node
+        // selected by two declarations twice. Collapsing identical results
+        // looked like the fix and is not: SHACL 5.3 emits one result per
+        // SPARQL solution, so a
         // constraint returning several solutions for one focus node produces
         // several results that are identical wherever the extra solution binds
         // nothing this report carries. On the 39-shape corpus from issue #132
@@ -2268,16 +2450,15 @@ impl ShaclValidator {
         // TWO validation results from them while this engine emits four. The
         // collapsing is in pySHACL's SHACL layer rather than in its SPARQL
         // engine, so on identical solutions the two do not agree and this
-        // engine is the one following SHACL 5.2.1. The decision below is
+        // engine is the one following SHACL 5.3. The decision below is
         // unchanged and one of its old reasons was wrong.
         // tests/shacl_sparql_multiplicity_test.rs pins it.
         //
-        // The real fix for the double-checked node is to take the union of a
-        // shape's focus nodes across its target declarations rather than to
-        // walk targets, which is a change to the evaluation loop and not to
-        // the report. Until then the inflation is a documented limitation,
-        // because a wrong count is cheaper than a validator that drops results
-        // the specification says to emit.
+        // `union_target_pattern` is the fix for the double-checked node, and it
+        // lives in the evaluation loop rather than in the report. `focus_nodes`
+        // keeps its documented per-declaration sum, because a wrong count there
+        // is cheaper than a validator that drops results the specification says
+        // to emit.
         let mut report = serde_json::json!({
             "violation_count": violations.len(),
             "violations": violations,
@@ -2812,9 +2993,9 @@ impl<'a> PathResolver<'a> {
             }
         }
         // A sequence path is an rdf:List on a blank node. An IRI path term
-        // with no path-form predicate is a predicate path (SHACL 2.3.1
-        // 4.2.2), so rdf:first/rdf:rest triples on it are not a path the
-        // shape wrote; a named node carrying a form predicate is still
+        // with no path-form predicate is a predicate path (SHACL 2.3.1.1),
+        // so rdf:first/rdf:rest triples on it are not a path the shape
+        // wrote; a named node carrying a form predicate is still
         // resolved by that predicate (#205). A blank list head wins over one
         // such predicate: `path-strange-001` and `-002` carry sh:inversePath
         // alongside rdf:first/rdf:rest and the suite expects the sequence.
@@ -3456,6 +3637,28 @@ fn target_pattern(kind: &str, value: &str, var: &str) -> String {
     }
 }
 
+/// The union of a shape's target patterns, as one graph pattern binding the
+/// focus variable.
+///
+/// SHACL 2.1.3 makes the focus nodes of a shape the union of the nodes its
+/// target declarations select. A `UNION` of the declaration patterns is that
+/// union with duplicates collapsed, which is what keeps a node selected by two
+/// declarations from being validated — and so reported — twice.
+fn union_target_pattern(targets: &[(String, String)], var: &str) -> String {
+    if targets.is_empty() {
+        // Unreachable: a shape reaches the loops above only through a target
+        // declaration. Spelled out rather than left as an empty pattern so a
+        // future caller that does pass nothing selects nothing instead of
+        // failing to parse.
+        return "FILTER(false)".to_string();
+    }
+    targets
+        .iter()
+        .map(|(kind, value)| format!("{{ {} }}", target_pattern(kind, value, var)))
+        .collect::<Vec<_>>()
+        .join(" UNION ")
+}
+
 /// Count the focus nodes a target selects, given the SPARQL pattern that binds
 /// `?focus`. Taking the pattern rather than a class is what lets all four target
 /// forms share one counter, and keeps `focus_nodes` in the report meaning the
@@ -3479,7 +3682,7 @@ fn count_focus_nodes(
 
 /// The construct in `query` that SHACL forbids under pre-binding, if any.
 ///
-/// SHACL 5.2.1 restricts what a `sh:sparql` SELECT may contain, because
+/// SHACL Appendix A restricts what a `sh:sparql` SELECT may contain, because
 /// pre-binding is substitution and substitution is not sound through every
 /// SPARQL operator. A conforming processor must REPORT A FAILURE rather than
 /// evaluate such a query. This validator substituted unconditionally, so it
@@ -3613,6 +3816,456 @@ fn prebinding_violation(query: &str, var: &str) -> Option<String> {
         }
     }
     None
+}
+
+/// Convert a SHACL property path into the SPARQL algebra's path expression.
+///
+/// The mapping is structural, not textual: the resolver has already decided
+/// which path each node denotes, and rendering it back to a string only to
+/// have another parser read it again would be a second, weaker reading of the
+/// same thing. Sequence and alternative lists are left-folded in written
+/// order, which preserves the association SPARQL gives those operators.
+fn shacl_path_expression(path: &ShaclPath) -> PropertyPathExpression {
+    fn fold(
+        parts: &[ShaclPath],
+        combine: fn(
+            Box<PropertyPathExpression>,
+            Box<PropertyPathExpression>,
+        ) -> PropertyPathExpression,
+    ) -> PropertyPathExpression {
+        let mut iter = parts.iter();
+        let first = iter
+            .next()
+            .expect("the path resolver rejects an empty sequence or alternative list");
+        let mut acc = shacl_path_expression(first);
+        for part in iter {
+            acc = combine(Box::new(acc), Box::new(shacl_path_expression(part)));
+        }
+        acc
+    }
+
+    match path {
+        ShaclPath::Predicate(iri) => {
+            PropertyPathExpression::NamedNode(NamedNode::new_unchecked(iri.clone()))
+        }
+        ShaclPath::Inverse(inner) => {
+            PropertyPathExpression::Reverse(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::Sequence(parts) => fold(parts, PropertyPathExpression::Sequence),
+        ShaclPath::Alternative(parts) => fold(parts, PropertyPathExpression::Alternative),
+        ShaclPath::ZeroOrMore(inner) => {
+            PropertyPathExpression::ZeroOrMore(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::OneOrMore(inner) => {
+            PropertyPathExpression::OneOrMore(Box::new(shacl_path_expression(inner)))
+        }
+        ShaclPath::ZeroOrOne(inner) => {
+            PropertyPathExpression::ZeroOrOne(Box::new(shacl_path_expression(inner)))
+        }
+    }
+}
+
+/// Whether a triple pattern has the SHACL `PATH` variable as its predicate.
+fn is_path_predicate(triple: &TriplePattern) -> bool {
+    matches!(
+        &triple.predicate,
+        NamedNodePattern::Variable(variable) if variable.as_str() == "PATH"
+    )
+}
+
+/// One triple of a basic graph pattern as a pattern on its own, with a
+/// predicate-position `PATH` turned into the shape's property path.
+fn pattern_for_triple(triple: TriplePattern, path: &PropertyPathExpression) -> GraphPattern {
+    if is_path_predicate(&triple) {
+        GraphPattern::Path {
+            subject: triple.subject,
+            path: path.clone(),
+            object: triple.object,
+        }
+    } else {
+        GraphPattern::Bgp {
+            patterns: vec![triple],
+        }
+    }
+}
+
+/// Split a BGP that contains a `PATH` predicate into a left-folded join of
+/// single-triple patterns. A BGP without one is left untouched, so the common
+/// case keeps a basic graph pattern the optimizer can read as one unit.
+fn split_bgp(patterns: Vec<TriplePattern>, path: &PropertyPathExpression) -> (GraphPattern, bool) {
+    if !patterns.iter().any(is_path_predicate) {
+        return (GraphPattern::Bgp { patterns }, false);
+    }
+    let mut triples = patterns.into_iter();
+    let first = triples
+        .next()
+        .expect("a non-empty pattern list was checked by any()");
+    let mut acc = pattern_for_triple(first, path);
+    for triple in triples {
+        acc = GraphPattern::Join {
+            left: Box::new(acc),
+            right: Box::new(pattern_for_triple(triple, path)),
+        };
+    }
+    (acc, true)
+}
+
+/// Walk one graph pattern, replacing every predicate-position `PATH` variable
+/// with the shape's path. Returns whether anything was replaced.
+fn replace_in_pattern(
+    pattern: GraphPattern,
+    path: &PropertyPathExpression,
+) -> (GraphPattern, bool) {
+    match pattern {
+        GraphPattern::Bgp { patterns } => split_bgp(patterns, path),
+        // Already a concrete property path: no predicate variable to replace.
+        GraphPattern::Path {
+            subject,
+            path: expression,
+            object,
+        } => (
+            GraphPattern::Path {
+                subject,
+                path: expression,
+                object,
+            },
+            false,
+        ),
+        GraphPattern::Join { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Join { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::LeftJoin {
+            left,
+            right,
+            mut expression,
+        } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            let expression_changed = expression
+                .as_mut()
+                .is_some_and(|expression| replace_in_expression(expression, path));
+            (
+                GraphPattern::LeftJoin {
+                    left,
+                    right,
+                    expression,
+                },
+                left_changed || right_changed || expression_changed,
+            )
+        }
+        // `Lateral` exists because Oxigraph enables spargebra's `sep-0006`
+        // feature; walking it keeps every child pattern reachable.
+        GraphPattern::Lateral { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Lateral { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Filter { mut expr, inner } => {
+            let expr_changed = replace_in_expression(&mut expr, path);
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Filter { expr, inner },
+                expr_changed || inner_changed,
+            )
+        }
+        GraphPattern::Union { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Union { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Graph { name, inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Graph { name, inner }, changed)
+        }
+        GraphPattern::Extend {
+            inner,
+            variable,
+            mut expression,
+        } => {
+            let expression_changed = replace_in_expression(&mut expression, path);
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Extend {
+                    inner,
+                    variable,
+                    expression,
+                },
+                expression_changed || inner_changed,
+            )
+        }
+        GraphPattern::Minus { left, right } => {
+            let (left, left_changed) = replace_in_boxed_pattern(left, path);
+            let (right, right_changed) = replace_in_boxed_pattern(right, path);
+            (
+                GraphPattern::Minus { left, right },
+                left_changed || right_changed,
+            )
+        }
+        GraphPattern::Values {
+            variables,
+            bindings,
+        } => (
+            GraphPattern::Values {
+                variables,
+                bindings,
+            },
+            false,
+        ),
+        GraphPattern::OrderBy {
+            inner,
+            mut expression,
+        } => {
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            let mut expression_changed = false;
+            for order in &mut expression {
+                expression_changed |= replace_in_order_expression(order, path);
+            }
+            (
+                GraphPattern::OrderBy { inner, expression },
+                inner_changed || expression_changed,
+            )
+        }
+        GraphPattern::Project { inner, variables } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Project { inner, variables }, changed)
+        }
+        GraphPattern::Distinct { inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Distinct { inner }, changed)
+        }
+        GraphPattern::Reduced { inner } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (GraphPattern::Reduced { inner }, changed)
+        }
+        GraphPattern::Slice {
+            inner,
+            start,
+            length,
+        } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Slice {
+                    inner,
+                    start,
+                    length,
+                },
+                changed,
+            )
+        }
+        GraphPattern::Group {
+            inner,
+            variables,
+            mut aggregates,
+        } => {
+            let (inner, inner_changed) = replace_in_boxed_pattern(inner, path);
+            let mut aggregate_changed = false;
+            for (_, aggregate) in &mut aggregates {
+                aggregate_changed |= replace_in_aggregate(aggregate, path);
+            }
+            (
+                GraphPattern::Group {
+                    inner,
+                    variables,
+                    aggregates,
+                },
+                inner_changed || aggregate_changed,
+            )
+        }
+        GraphPattern::Service {
+            name,
+            inner,
+            silent,
+        } => {
+            let (inner, changed) = replace_in_boxed_pattern(inner, path);
+            (
+                GraphPattern::Service {
+                    name,
+                    inner,
+                    silent,
+                },
+                changed,
+            )
+        }
+    }
+}
+
+/// Boxed wrapper around [`replace_in_pattern`], for the variants that hold a
+/// child pattern behind a `Box`. Taking and returning the box keeps the call
+/// sites from re-boxing at every variant, which is the storage form the SPARQL
+/// algebra itself uses.
+#[allow(clippy::boxed_local)]
+fn replace_in_boxed_pattern(
+    pattern: Box<GraphPattern>,
+    path: &PropertyPathExpression,
+) -> (Box<GraphPattern>, bool) {
+    let (pattern, changed) = replace_in_pattern(*pattern, path);
+    (Box::new(pattern), changed)
+}
+
+/// In-place wrapper around [`replace_in_pattern`], for a pattern owned by a
+/// `Query` or by an `EXISTS` expression.
+fn replace_in_pattern_slot(pattern: &mut GraphPattern, path: &PropertyPathExpression) -> bool {
+    let current = std::mem::replace(
+        pattern,
+        GraphPattern::Bgp {
+            patterns: Vec::new(),
+        },
+    );
+    let (replacement, changed) = replace_in_pattern(current, path);
+    *pattern = replacement;
+    changed
+}
+
+/// Walk one expression, replacing `PATH` inside any `EXISTS` subquery and in
+/// every composite argument. Returns whether anything was replaced.
+fn replace_in_expression(expression: &mut Expression, path: &PropertyPathExpression) -> bool {
+    match expression {
+        Expression::NamedNode(_)
+        | Expression::Literal(_)
+        | Expression::Variable(_)
+        | Expression::Bound(_) => false,
+        Expression::Or(left, right)
+        | Expression::And(left, right)
+        | Expression::Equal(left, right)
+        | Expression::SameTerm(left, right)
+        | Expression::Greater(left, right)
+        | Expression::GreaterOrEqual(left, right)
+        | Expression::Less(left, right)
+        | Expression::LessOrEqual(left, right)
+        | Expression::Add(left, right)
+        | Expression::Subtract(left, right)
+        | Expression::Multiply(left, right)
+        | Expression::Divide(left, right) => {
+            let left_changed = replace_in_expression(left, path);
+            let right_changed = replace_in_expression(right, path);
+            left_changed || right_changed
+        }
+        Expression::In(expression, items) => {
+            let mut changed = replace_in_expression(expression, path);
+            for item in items {
+                changed |= replace_in_expression(item, path);
+            }
+            changed
+        }
+        Expression::UnaryPlus(inner) | Expression::UnaryMinus(inner) | Expression::Not(inner) => {
+            replace_in_expression(inner, path)
+        }
+        Expression::Exists(pattern) => replace_in_pattern_slot(pattern, path),
+        Expression::If(condition, then, otherwise) => {
+            let condition_changed = replace_in_expression(condition, path);
+            let then_changed = replace_in_expression(then, path);
+            let otherwise_changed = replace_in_expression(otherwise, path);
+            condition_changed || then_changed || otherwise_changed
+        }
+        Expression::Coalesce(items) => {
+            let mut changed = false;
+            for item in items {
+                changed |= replace_in_expression(item, path);
+            }
+            changed
+        }
+        Expression::FunctionCall(_, arguments) => {
+            let mut changed = false;
+            for argument in arguments {
+                changed |= replace_in_expression(argument, path);
+            }
+            changed
+        }
+    }
+}
+
+/// Walk one `ORDER BY` key. Returns whether anything was replaced.
+fn replace_in_order_expression(
+    expression: &mut OrderExpression,
+    path: &PropertyPathExpression,
+) -> bool {
+    match expression {
+        OrderExpression::Asc(expression) | OrderExpression::Desc(expression) => {
+            replace_in_expression(expression, path)
+        }
+    }
+}
+
+/// Walk the expression of an aggregate. Returns whether anything was replaced.
+fn replace_in_aggregate(
+    aggregate: &mut AggregateExpression,
+    path: &PropertyPathExpression,
+) -> bool {
+    match aggregate {
+        AggregateExpression::CountSolutions { .. } => false,
+        AggregateExpression::FunctionCall { expr, .. } => replace_in_expression(expr, path),
+    }
+}
+
+/// Replace the variable `PATH` in a SHACL-SPARQL query with the shape's path.
+///
+/// SHACL-SPARQL 5.3: for a SPARQL-based constraint on a property shape, "prior
+/// to execution substitute the variable PATH where it appears in the predicate
+/// position of a triple pattern with a valid SPARQL surface syntax string of
+/// the SHACL property path specified via sh:path at the property shape."
+/// `$PATH` is the one SHACL variable that is SUBSTITUTED rather than
+/// pre-bound (SHACL-SPARQL 5.3.1), so there is no term to bind it to and the
+/// query is what changes.
+///
+/// Left as written, `$PATH` is an ordinary SPARQL variable and `$this $PATH
+/// ?value` is a pattern whose predicate is a variable: it matches EVERY
+/// predicate of the focus node. That is neither a refusal nor an empty result
+/// but a fully bound wrong one, which is why the pre-binding checks cannot
+/// catch it — nothing about the query is malformed.
+///
+/// The query is parsed with the `spargebra` parser this crate already depends
+/// on, and the substitution is made on the syntax tree: every triple pattern
+/// whose predicate is the variable `PATH` becomes a property-path pattern
+/// carrying the shape's path. That is a structural decision, so no token can
+/// be mistaken for another: `$PATH` inside a string literal, an IRI or a
+/// comment is not a predicate position, and a `<` in a comparison is not the
+/// opening of an IRIREF. The shapes graph's prefixes are prepended before the
+/// parse because the author's SELECT may use them; when nothing is replaced
+/// the input (prefixes included) is returned byte for byte, and the engine
+/// runs the author's text as before.
+///
+/// When a substitution happens the query is serialised from the tree. IRIs are
+/// absolute in that form and `$this` may come back as `?this`; SPARQL reads
+/// both spellings as the same query, and comments are not part of the tree.
+/// If the parser cannot read the query, the text is returned unchanged rather
+/// than half-rewritten: an unparseable constraint is reported as skipped by the
+/// caller instead of running with a predicate variable that matches every edge.
+///
+/// LIMITATION: `PATH` is substituted only where REC 5.3 requires it, in a
+/// triple pattern's predicate position. A `PATH` variable used anywhere else
+/// is left as an ordinary variable, and the inserted path is written from the
+/// parsed tree rather than spliced into the author's formatting.
+fn substitute_path(query_text: &str, path: &ShaclPath) -> String {
+    let Ok(mut query) = SparqlParser::new().parse_query(query_text) else {
+        return query_text.to_string();
+    };
+    let path_expression = shacl_path_expression(path);
+    let changed = match &mut query {
+        Query::Select { pattern, .. }
+        | Query::Ask { pattern, .. }
+        | Query::Describe { pattern, .. } => replace_in_pattern_slot(pattern, &path_expression),
+        Query::Construct { pattern, .. } => {
+            // A CONSTRUCT template cannot carry a property path in the
+            // predicate position, so only its WHERE clause can need this.
+            replace_in_pattern_slot(pattern, &path_expression)
+        }
+    };
+    if changed {
+        query.to_string()
+    } else {
+        query_text.to_string()
+    }
 }
 
 /// Name the shape and the constraint component that produced a violation.

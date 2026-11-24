@@ -23,7 +23,7 @@ use open_ontologies::graph::GraphStore;
 use open_ontologies::shacl::ShaclValidator;
 use std::sync::Arc;
 
-/// `MINUS` is forbidden in a pre-bound query by SHACL 5.2.1, so the validator
+/// `MINUS` is forbidden in a pre-bound query by SHACL Appendix A, so the validator
 /// must refuse the constraint rather than substitute into it. That refusal is
 /// a skip, which is what gives this test something to inspect.
 const SHAPES: &str = r#"
