@@ -394,7 +394,7 @@ and these rows are what the walk did. Adding them up per shape would produce a n
 count of distinct focus nodes.
 
 **Amended 23 November 2026:** the walk described above is gone. A shape is now validated once over
-the union of its target declarations, commit `2e827b8` (this branch), so a node selected by two
+the union of its target declarations, commit `7131dab` (this branch), so a node selected by two
 declarations produces one result and `violation_count` no longer double-counts. The
 per-declaration rows in `focus_nodes_by_target` remain, and adding them up still does not give a
 count of distinct focus nodes. Pinned by `test_shacl_target_union_reports_one_result_per_focus_node` in

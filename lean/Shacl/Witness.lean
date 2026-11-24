@@ -52,7 +52,7 @@ that counts SPARQL solutions rather than value nodes gets that wrong. The
 repository's own SHACL validator used to double-count a node selected by two
 target declarations, a different counting mistake with the same shape; it now
 validates each shape once over the union of its targets
-(commit `2e827b8`, this branch), and `docs/lean-certificates.md` records a
+(commit `7131dab`, this branch), and `docs/lean-certificates.md` records a
 dated amendment to the bullet that said otherwise. Here the counting is
 settled in the specification and proved.
 -/

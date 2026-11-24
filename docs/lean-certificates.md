@@ -1018,7 +1018,7 @@ Stated rather than discovered later.
   change to the evaluation loop and is not done.
 
   **Amended 23 November 2026:** this limitation is fixed in the evaluation loop. The engine now
-  validates each shape once over the union of its focus nodes, commit `2e827b8` (this branch),
+  validates each shape once over the union of its focus nodes, commit `7131dab` (this branch),
   so a node selected by two target declarations produces one result and `violation_count` is no
   longer inflated. `focus_nodes` remains the sum of the per-declaration rows in
   `focus_nodes_by_target`, which records what each declaration selected rather than a count of
