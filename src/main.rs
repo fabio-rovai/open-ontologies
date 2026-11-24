@@ -2742,6 +2742,11 @@ async fn async_main() -> anyhow::Result<()> {
             let router = router.layer(tower_http::cors::CorsLayer::permissive());
             let addr = format!("{host}:{port}");
             let listener = tokio::net::TcpListener::bind(&addr).await?;
+            // Print the port actually bound, not the one asked for: with
+            // `--port 0` the OS picks a free port, and this line is the only
+            // way the caller learns it. The integration tests start servers
+            // that way (tests/common/mod.rs, `spawn_serve_http`).
+            let addr = format!("{host}:{}", listener.local_addr()?.port());
             eprintln!("Open Ontologies MCP server listening on http://{addr}/mcp");
             if token.is_some() {
                 eprintln!("  Authentication: bearer token required");
