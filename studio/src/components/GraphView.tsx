@@ -9,6 +9,7 @@ import {
   buildSchema, emptyInstGraph, expandInstGraph, explodeGroup, instElements, schemaElements,
   seedInstGraph, NEUTRAL, PALETTE, type InstGraph, type Neighbour, type NodeInfo, type Schema,
 } from '../lib/graph-model';
+import QUERIES from '../lib/graph-queries.json';
 
 cytoscape.use(dagre);
 
@@ -19,26 +20,15 @@ interface GraphViewProps {
   selected?: Selected;
 }
 
-const P = `PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-`;
+// The queries live in graph-queries.json so tests/studio_graph_queries_test.rs can run these
+// exact strings against the engine. Classes are owl:Class or rdfs:Class, and an rdf:Property
+// counts as a property when it has an IRI domain and range (#440).
+const P = QUERIES.prefixes;
 const Q = {
-  classes: `${P}SELECT ?c ?label WHERE { ?c a owl:Class . FILTER(isIRI(?c)) OPTIONAL { ?c rdfs:label ?label } }`,
-  sub: `${P}SELECT ?s ?o WHERE { ?s rdfs:subClassOf ?o . ?s a owl:Class . FILTER(isIRI(?s) && isIRI(?o) && ?s != ?o) }`,
-  props: `${P}SELECT ?p ?t ?label ?code WHERE {
-  VALUES ?t { owl:ObjectProperty owl:DatatypeProperty }
-  ?p a ?t . FILTER(isIRI(?p))
-  OPTIONAL { ?p rdfs:label ?label }
-  OPTIONAL { ?p skos:notation ?code }
-}`,
-  domRange: `${P}SELECT ?p ?k ?c WHERE {
-  { ?p rdfs:domain ?c . BIND("d" AS ?k) } UNION { ?p rdfs:range ?c . BIND("r" AS ?k) }
-  UNION { ?p rdfs:domain ?u . ?u owl:unionOf ?l . ?l rdf:rest*/rdf:first ?c . BIND("d" AS ?k) }
-  UNION { ?p rdfs:range ?u . ?u owl:unionOf ?l . ?l rdf:rest*/rdf:first ?c . BIND("r" AS ?k) }
-  FILTER(isIRI(?c))
-}`,
+  classes: P + QUERIES.classes,
+  sub: P + QUERIES.sub,
+  props: P + QUERIES.props,
+  domRange: P + QUERIES.domRange,
 };
 const DAGRE = { name: 'dagre', rankDir: 'TB', nodeSep: 36, rankSep: 90, edgeSep: 14, animate: false, fit: false };
 
@@ -202,10 +192,7 @@ export function GraphView({ onNodeSelect, selected }: GraphViewProps) {
     const term = search.trim();
     if (mode !== 'instances' || term.length < 2) { setHits([]); return; }
     const t = setTimeout(async () => {
-      const text = await mcp.sparqlQuery(`${P}SELECT DISTINCT ?n ?label WHERE {
-  ?n a ?t . ?t a owl:Class . OPTIONAL { ?n rdfs:label ?label }
-  FILTER(isIRI(?n) && (CONTAINS(LCASE(STR(?n)), LCASE("${esc(term)}")) || CONTAINS(LCASE(STR(?label)), LCASE("${esc(term)}"))))
-} LIMIT 40`);
+      const text = await mcp.sparqlQuery(P + QUERIES.instanceSearch.split('$TERM').join(esc(term)));
       const seen = new Map<string, string>();
       for (const r of parseRows(text)) {
         const u = r.n?.value;

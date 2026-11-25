@@ -216,6 +216,16 @@ All notable changes to Open Ontologies are documented here.
 
 ### Fixed
 
+- **Studio's Graph view draws an ontology written in plain RDFS** (#440).
+  Its queries read only `owl:Class`, `owl:ObjectProperty` and
+  `owl:DatatypeProperty`, so a vocabulary that declares `rdfs:Class` loaded
+  and drew nothing: "No classes in the store", and no individual in the
+  Instances search. `rdfs:Class` now counts as a class, and `rdf:Property` as
+  a property when it has an IRI domain and range and no OWL property type,
+  which keeps its OWL kind when it has one. The queries moved to
+  `studio/src/lib/graph-queries.json`, and
+  `tests/studio_graph_queries_test.rs` runs them against the engine.
+
 - **`serve-http --port 0` reports the port it bound, and the HTTP tests no
   longer race a sibling test's fork for their port.** The startup line printed
   the port asked for, so with `--port 0` it said `:0`. It now prints the port
